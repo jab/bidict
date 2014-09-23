@@ -1,6 +1,16 @@
 bidict
 ======
 
+Installation
+------------
+
+``pip install bidict``
+
+Releases
+--------
+
+[ `PyPI`_ ] | [ `Warehouse`_ ]
+
 Branches/Tags
 -------------
 
@@ -12,6 +22,7 @@ Branches/Tags
 |            |     :target: https://bidict.readthedocs.org/en/latest/                   |     :target: https://travis-ci.org/jab/bidict                 |
 +------------+--------------------------------------------------------------------------+---------------------------------------------------------------+
 
-Please see https://bidict.readthedocs.org or bidict.py for documentation.
+Please see https://bidict.readthedocs.org or bidict.py for more documentation.
 
-
+.. _PyPI: https://pypi.python.org/pypi/bidict
+.. _Warehouse: https://warehouse.python.org/project/bidict/
