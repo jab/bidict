@@ -7,7 +7,7 @@ Overview
 :mod:`bidict` provides a bidirectional mapping data structure and related
 functionality to naturally work with one-to-one relations in Python.
 
-Unlike alternative implementations, ``bidict`` builds on top of the dict
+Unlike other bidirectional dict libraries, ``bidict`` builds on top of the dict
 API and supports the familiar ``__getitem__`` syntax. It also supports a
 convenient slice syntax to express an inverse mapping::
 
@@ -50,9 +50,9 @@ More Examples
 Expanding on the previous example, anywhere the ``__getitem__`` syntax can be
 used to reference a forward mapping, slice syntax can be used too::
 
-    >>> element_by_symbol['H'] = 'Hydrogen'
+    >>> element_by_symbol['H'] = 'hydrogen'
     >>> element_by_symbol['H':]
-    'Hydrogen'
+    'hydrogen'
 
 Including setting and deleting items in either direction::
 
@@ -126,8 +126,9 @@ Notes
   keys", respectively. ``bidict`` sticks with the terms "keys" and "values" for
   the sake of familiarity and to avoid potential confusion, but it's worth
   noting that values are also keys themselves. This allows us to return a
-  set-like object for :attr:`bidict.BidirectionalMapping.values` (Python 3)
-  / :attr:`bidict.BidirectionalMapping.viewvalues` (Python 2), for example.
+  set-like ``dict_keys`` object for :attr:`bidict.BidirectionalMapping.values`
+  (Python 3) / :attr:`bidict.BidirectionalMapping.viewvalues` (Python 2),
+  rather than a (non-set-like) ``dict_values`` object, for example.
 
 * The built-in ``htmlentitydefs`` module provides an example of where
   ``bidict`` could be used in the Python standard library instead of having to
