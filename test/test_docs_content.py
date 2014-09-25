@@ -1,32 +1,13 @@
-# test_basics.py
+# test_docs_content.py
 # David Prager Branner
+# 20140924
 
-
+"""Run tests mostly matching those in docstrings."""
 
 import bidict as B
 import pytest
 import random
 import string
-
-def random_ints(cardinality=10, hi=10, lo=-10):
-    """return list of `cardinality` ints, each in range (lo, hi)."""
-    if cardinality > hi - lo:
-        raise Exception(
-                'cardinality ({}) > hi - lo ({}); impossible condition'.
-                format(cardinality, hi-lo))
-    results = set()
-    while len(results) < cardinality:
-        results.add( random.randint(lo, hi))
-    return results
-
-def random_strings(length=10, cardinality=10):
-    """return list of `cardinality` strings, each length `length`."""
-    results = set()
-    while len(results) < cardinality:
-        results.add(''.join(
-                random.choice(string.ascii_letters + string.digits) 
-                for i in range(length)))
-    return results
 
 def test_basic_getitem():
     element_by_symbol = B.bidict(H='hydrogen')
