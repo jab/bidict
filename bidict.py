@@ -208,6 +208,15 @@ Caveats
   ``threading.Lock`` around mutating operations to synchronize access/prevent
   race conditions.
 
+* As documented below, a bidict ``b`` keeps a reference to its inverse bidict
+  (accessible via ``b.inv``). By extension, its inverse bidict keeps a
+  reference to it (``b.inv.inv is b``). So even when you no longer have any
+  references to ``b``, its refcount will not drop to zero because its inverse
+  still has a reference to it. Python's garbage collector will detect this and
+  reclaim the memory allocated for a bidict when you no longer have any
+  references to it. In other words, bidict won't leak memory as long as you
+  don't ``gc.disable()``. If you do, reclaiming a bidict's memory is up to you.
+
 Links
 -----
 
