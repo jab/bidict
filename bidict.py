@@ -185,6 +185,11 @@ Caveats
   collapsing mappings to proceed with no indication when they've occurred.
   See :class:`bidict.collapsingbidict` for examples.
 
+* As with built-in dicts, mutating operations on a bidict are not atomic. So
+  if you need to mutate the same bidict from two different threads, use a
+  ``threading.Lock`` around mutating operations to synchronize access/prevent
+  race conditions.
+
 Links
 -----
 
