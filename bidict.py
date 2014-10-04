@@ -160,17 +160,30 @@ Caveats
     >>> len(nils)
     1
 
-* When mapping the key of one existing mapping to the value of another (or
-  vice versa), the two mappings silently collapse into one::
+* When attempting to map the key of one existing mapping to the value of
+  another (or vice versa), a ``CollapseException`` is raised to signal that the
+  new mapping would cause the two existing mappings to silently collapse into
+  the single new one::
 
-    >>> b = bidict({1: 'one', 2: 'two'})
-    >>> b[1] = 'two'
+    >>> b = bidict({0: None, 1: 'one'})
+    >>> b[0] = 'one'  # doctest: +ELLIPSIS +IGNORE_EXCEPTION_DETAIL
+    Traceback (most recent call last):
+    ...
+    CollapseException: ((0, None), (1, 'one'))
     >>> b
-    bidict({1: 'two'})
-    >>> b = bidict({1: 'one', 2: 'two'})
-    >>> b[:'two'] = 1
-    >>> b
-    bidict({1: 'two'})
+    bidict({0: None, 1: 'one'})
+
+  See :class:`bidict.CollapseException`.
+
+  To prevent this in a case like the above, you can explicitly remove one of
+  the existing mappings first with something like::
+
+    >>> b.pop(0, None)
+    >>> b[0] = 'one'  # now only overwrites a single mapping -> succeeds
+
+  Or use a ``collapsingbidict`` if you want a bidict which silently allows
+  collapsing mappings to proceed with no indication when they've occurred.
+  See :class:`bidict.collapsingbidict` for examples.
 
 Links
 -----
@@ -344,6 +357,26 @@ class inverted(Iterator):
         next = __next__
 
 
+class CollapseException(Exception):
+    '''
+    Exception raised by :class:`bidict.bidict` when attempting to insert a new
+    mapping that would collapse two existing mappings::
+
+        >>> b = bidict({1: 'one', 2: 'two'})
+        >>> b[1] = 'two'  # doctest: +ELLIPSIS +IGNORE_EXCEPTION_DETAIL
+        Traceback (most recent call last):
+        ...
+        CollapseException: ((1, 'one'), (2, 'two'))
+        >>> b[:'two'] = 1  # doctest: +ELLIPSIS +IGNORE_EXCEPTION_DETAIL
+        Traceback (most recent call last):
+        ...
+        CollapseException: ((1, 'one'), (2, 'two'))
+
+    Notice the exception instance's args are set to the two existing mappings
+    that would have been collapsed by inserting the new mapping.
+    '''
+
+_none = object()
 class BidirectionalMapping(Mapping):
     '''
     The read-only functionality of ``bidict`` is implemented in this base
@@ -439,17 +472,23 @@ class BidirectionalMapping(Mapping):
 
     def _set(self, key, val):
         try:
-            oldkey = self._bwd[val]
-        except KeyError:
-            pass
-        else:
-            del self._fwd[oldkey]
-        try:
             oldval = self._fwd[key]
         except KeyError:
-            pass
-        else:
+            oldval = _none
+        try:
+            oldkey = self._bwd[val]
+        except KeyError:
+            oldkey = _none
+
+        if oldval is not _none and oldkey is not _none:
+            if key == oldkey and val == oldval:
+                return
+            raise CollapseException((key, oldval), (oldkey, val))
+        elif oldval is not _none:
             del self._bwd[oldval]
+        elif oldkey is not _none:
+            del self._fwd[oldkey]
+
         self._fwd[key] = val
         self._bwd[val] = key
 
@@ -712,20 +751,8 @@ class bidict(BidirectionalMapping, MutableMapping):
         >>> nils.update(nix=0, nada=0)
         >>> len(nils)
         1
-
-    Another caveat: when mapping the key of one existing mapping to the value
-    of another (or vice versa), the two mappings collapse into one::
-
-        >>> b = bidict({1: 'one', 2: 'two'})
-        >>> b[1] = 'two'
-        >>> b
-        bidict({1: 'two'})
-        >>> b = bidict({1: 'one', 2: 'two'})
-        >>> b[:'two'] = 1
-        >>> b
-        bidict({1: 'two'})
     '''
-    def __del(self, key):
+    def _del(self, key):
         val = self._fwd[key]
         del self._fwd[key]
         del self._bwd[val]
@@ -734,11 +761,11 @@ class bidict(BidirectionalMapping, MutableMapping):
         if isinstance(keyorslice, slice):
             # delete by key: del b[key:]
             if self._fwd_slice(keyorslice):
-                self.__del(keyorslice.start)
+                self._del(keyorslice.start)
             else:  # delete by value: del b[:val]
-                self.__del(self._bwd[keyorslice.stop])
+                self._del(self._bwd[keyorslice.stop])
         else:  # keyorslice is a key: del b[key]
-            self.__del(keyorslice)
+            self._del(keyorslice)
 
     def __setitem__(self, keyorslice, keyorval):
         if isinstance(keyorslice, slice):
@@ -778,6 +805,28 @@ class bidict(BidirectionalMapping, MutableMapping):
     def update(self, *args, **kw):
         for k, v in fancy_iteritems(*args, **kw):
             self[k] = v
+
+
+class collapsingbidict(bidict):
+    '''
+    A bidict which does not throw a :class:`bidict.CollapseException` when
+    attempting to insert a new mapping that would collapse two existing
+    mappings::
+
+        >>> b = collapsingbidict({1: 'one', 2: 'two'})
+        >>> b[1] = 'two'
+        >>> b
+        collapsingbidict({1: 'two'})
+    '''
+    def _set(self, key, val):
+        oldval = self._fwd.get(key, _none)
+        oldkey = self._bwd.get(val, _none)
+        if oldval is not _none:
+            del self._bwd[oldval]
+        if oldkey is not _none:
+            del self._fwd[oldkey]
+        self._fwd[key] = val
+        self._bwd[val] = key
 
 
 _LEGALNAMEPAT = '^[a-zA-Z][a-zA-Z0-9_]*$'
