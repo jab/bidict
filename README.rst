@@ -11,8 +11,8 @@ Releases
 
 [ `PyPI`_ ] | [ `Warehouse`_ ]
 
-Branches/Tags
--------------
+Status
+------
 
 +------------+--------------------------------------------------------------------------+---------------------------------------------------------------+
 | ``master`` | .. image:: https://readthedocs.org/projects/bidict/badge/?version=master | .. image:: https://travis-ci.org/jab/bidict.svg?branch=master |
