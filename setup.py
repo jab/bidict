@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='bidict',
-    version='0.3.0',
+    version='0.3.1-dev',
     author='Joshua Bronson',
     author_email='jab@math.brown.edu',
     description="2-way dict with convenient slice syntax: d[65] = 'A' -> d[:'A'] == 65",
