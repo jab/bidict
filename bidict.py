@@ -183,23 +183,24 @@ Caveats
   new mapping would cause the two existing mappings to silently collapse into
   the single new one::
 
-    >>> b = bidict({0: None, 1: 'one'})
+    >>> b = bidict({0: 'zero', 1: 'one'})
     >>> b[0] = 'one'  # doctest: +ELLIPSIS +IGNORE_EXCEPTION_DETAIL
     Traceback (most recent call last):
     ...
-    CollapseException: ((0, None), (1, 'one'))
+    CollapseException: ((0, 'zero'), (1, 'one'))
     >>> b
-    bidict({0: None, 1: 'one'})
+    bidict({0: 'zero', 1: 'one'})
 
   See :class:`bidict.CollapseException`.
 
-  To prevent this in a case like the above, you can explicitly remove one of
-  the existing mappings first with something like::
+  To prevent this in a case like the above, you can explicitly use the
+  :attr:`bidict.bidict.forceput` method::
 
-    >>> b.pop(0, None)
-    >>> b[0] = 'one'  # now only overwrites a single mapping -> succeeds
+    >>> b.forceput(0, 'one')
+    >>> b
+    bidict({0: 'one'})
 
-  Or use a ``collapsingbidict`` if you want a bidict which silently allows
+  Or use a ``collapsingbidict`` if you want a bidict which always allows
   collapsing mappings to proceed with no indication when they've occurred.
   See :class:`bidict.collapsingbidict` for examples.
 
@@ -207,6 +208,7 @@ Caveats
   if you need to mutate the same bidict from two different threads, use a
   ``threading.Lock`` around mutating operations to synchronize access/prevent
   race conditions.
+  See also: https://twitter.com/teozaurus/status/518071391959388160
 
 * As documented below, a bidict ``b`` keeps a reference to its inverse bidict
   (accessible via ``b.inv``). By extension, its inverse bidict keeps a
@@ -419,7 +421,7 @@ class BidirectionalMapping(Mapping):
         self._fwd = {}
         self._bwd = {}
         for (k, v) in fancy_iteritems(*args, **kw):
-            self._set(k, v)
+            self._put(k, v)
         inv = object.__new__(self.__class__)
         inv._fwd = self._bwd
         inv._bwd = self._fwd
@@ -502,7 +504,7 @@ class BidirectionalMapping(Mapping):
         else:  # keyorslice is a key: b[key]
             return self._fwd[keyorslice]
 
-    def _set(self, key, val):
+    def _put(self, key, val):
         try:
             oldval = self._fwd[key]
         except KeyError:
@@ -803,11 +805,46 @@ class bidict(BidirectionalMapping, MutableMapping):
         if isinstance(keyorslice, slice):
             # keyorslice.start is key, keyorval is val: b[key:] = val
             if self._fwd_slice(keyorslice):
-                self._set(keyorslice.start, keyorval)
+                self._put(keyorslice.start, keyorval)
             else:  # keyorval is key, keyorslice.stop is val: b[:val] = key
-                self._set(keyorval, keyorslice.stop)
+                self._put(keyorval, keyorslice.stop)
         else:  # keyorslice is a key, keyorval is a val: b[key] = val
-            self._set(keyorslice, keyorval)
+            self._put(keyorslice, keyorval)
+
+    def put(self, key, val):
+        '''
+        Alternative to using the setitem syntax to insert a mapping::
+
+            >>> b = bidict()
+            >>> b.put('H', 'hydrogen')
+            >>> b
+            bidict({'H': 'hydrogen'})
+        '''
+        self._put(key, val)
+
+    def forceput(self, key, val):
+        '''
+        Like :attr:`bidict.bidict.put` but silently removes any existing
+        mapping that would otherwise cause a :class:`CollapseException`
+        before inserting the given mapping::
+
+            >>> b = bidict({0: 'zero', 1: 'one'})
+            >>> b.put(0, 'one')  # doctest: +ELLIPSIS +IGNORE_EXCEPTION_DETAIL
+            Traceback (most recent call last):
+            ...
+            CollapseException: ((0, 'zero'), (1, 'one'))
+            >>> b.forceput(0, 'one')
+            >>> b
+            bidict({0: 'one'})
+        '''
+        oldval = self._fwd.get(key, _none)
+        oldkey = self._bwd.get(val, _none)
+        if oldval is not _none:
+            del self._bwd[oldval]
+        if oldkey is not _none:
+            del self._fwd[oldkey]
+        self._fwd[key] = val
+        self._bwd[val] = key
 
     def clear(self):
         self._fwd.clear()
@@ -850,16 +887,7 @@ class collapsingbidict(bidict):
         >>> b
         collapsingbidict({1: 'two'})
     '''
-    def _set(self, key, val):
-        oldval = self._fwd.get(key, _none)
-        oldkey = self._bwd.get(val, _none)
-        if oldval is not _none:
-            del self._bwd[oldval]
-        if oldkey is not _none:
-            del self._fwd[oldkey]
-        self._fwd[key] = val
-        self._bwd[val] = key
-
+    _put = bidict.forceput
 
 _LEGALNAMEPAT = '^[a-zA-Z][a-zA-Z0-9_]*$'
 _LEGALNAMERE = compile(_LEGALNAMEPAT)
