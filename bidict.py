@@ -249,8 +249,7 @@ if PY2:
     assert version_info[1] > 6, 'Python >= 2.7 required'
 
 from collections import Hashable, Iterator, Mapping, MutableMapping
-from re import compile
-from sys import version_info
+from re import compile as compile_re
 
 if PY2:
     iteritems = lambda x: x.iteritems()
@@ -324,8 +323,8 @@ def fancy_iteritems(*map_or_it, **kw):
             for (k, v) in map_or_it:    #    -> treat as sequence
                 yield (k, v)
         else:                           #  yes
-           for (k, v) in it:            #    -> treat as mapping
-               yield (k, v)
+            for (k, v) in it:           #    -> treat as mapping
+                yield (k, v)
     for (k, v) in iteritems(kw):
         yield (k, v)
 
@@ -890,7 +889,7 @@ class collapsingbidict(bidict):
     _put = bidict.forceput
 
 _LEGALNAMEPAT = '^[a-zA-Z][a-zA-Z0-9_]*$'
-_LEGALNAMERE = compile(_LEGALNAMEPAT)
+_LEGALNAMERE = compile_re(_LEGALNAMEPAT)
 
 def _empty_namedbidict(mapname, fwdname, invname):
     '''
