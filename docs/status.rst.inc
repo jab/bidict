@@ -1,11 +1,3 @@
-bidict
-======
- 
-Bidirectional dict with convenient slice syntax: ``d[65] = 'A'`` ⇔ ``d[:'A'] == 65``
-
-Status
-------
-
 .. image:: https://pypip.in/download/bidict/badge.svg
     :target: https://pypi.python.org/pypi/bidict
     :alt: Downloads per month
@@ -57,25 +49,3 @@ Status
 .. image:: https://badges.gitter.im/Join%20Chat.svg
     :alt: Chat
     :target: https://gitter.im/jab/bidict
-
-Installation
-------------
-
-``pip install bidict``
-
-Usage
------
-
-See https://bidict.readthedocs.org.
-
-Participation
--------------
-
-Please feel free to `create an issue <https://github.com/jab/bidict/issues/new>`_
-or `join the chat room <https://gitter.im/jab/bidict>`_
-if you have any questions, feedback, or just want to say hi /
-tell us about your use case.
-
-Check out
-`CONTRIBUTING.rst <https://github.com/jab/bidict/blob/master/CONTRIBUTING.rst>`_
-for information about contributing.

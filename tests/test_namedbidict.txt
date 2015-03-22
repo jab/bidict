@@ -1,0 +1,45 @@
+Test script for :func:`bidict.namedbidict`::
+
+    >>> from bidict import namedbidict
+    >>> ElementMap = namedbidict('ElementMap', 'symbol', 'element')
+    >>> noble_gases = ElementMap(He='helium')
+    >>> noble_gases.element_for['He']
+    'helium'
+    >>> noble_gases.symbol_for['helium']
+    'He'
+    >>> noble_gases.element_for['Ne'] = 'neon'
+    >>> del noble_gases.symbol_for['helium']
+    >>> noble_gases
+    ElementMap({'Ne': 'neon'})
+
+Comparison works as expected::
+
+    >>> from bidict import bidict
+    >>> noble_gases2 = ElementMap({'Ne': 'neon'})
+    >>> noble_gases2 == noble_gases
+    True
+    >>> noble_gases2 == bidict(noble_gases)
+    True
+    >>> noble_gases2 == dict(noble_gases)
+    True
+    >>> noble_gases2['Rn'] = 'radon'
+    >>> noble_gases2 == noble_gases
+    False
+    >>> noble_gases2 != noble_gases
+    True
+    >>> noble_gases2 != bidict(noble_gases)
+    True
+    >>> noble_gases2 != dict(noble_gases)
+    True
+
+Test ``base_type`` keyword arg::
+
+    >>> from bidict import frozenbidict
+    >>> ElMap = namedbidict('ElMap', 'sym', 'el', base_type=frozenbidict)
+    >>> noble = ElMap(He='helium')
+    >>> hash(noble) is not 'an exception'
+    True
+    >>> noble['C'] = 'carbon'  # doctest: +ELLIPSIS
+    Traceback (most recent call last):
+    ...
+    TypeError...

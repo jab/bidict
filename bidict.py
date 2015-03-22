@@ -1,22 +1,70 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-'''
+"""Bidirectional dict with convenient slice syntax: ``d[65] = 'A'`` ⇔
+``d[:'A'] == 65``
+
+
+Status
+------------
+
+.. image:: https://pypip.in/download/bidict/badge.svg
+    :target: https://pypi.python.org/pypi/bidict
+    :alt: Downloads per month
+
+.. image:: https://pypip.in/version/bidict/badge.svg
+    :target: https://pypi.python.org/pypi/bidict
+    :alt: Latest release
+
+.. image:: https://readthedocs.org/projects/bidict/badge/
+    :target: https://bidict.readthedocs.org/
+    :alt: Documentation
+
+.. image:: https://pypip.in/status/bidict/badge.svg
+    :target: https://pypi.python.org/pypi/bidict
+    :alt: Development status
+
+.. image:: https://travis-ci.org/jab/bidict.svg
+    :target: https://travis-ci.org/jab/bidict
+    :alt: Build status
+
+.. image:: https://coveralls.io/repos/jab/bidict/badge.svg
+    :target: https://coveralls.io/r/jab/bidict
+    :alt: Test coverage
+
+.. image:: https://www.codacy.com/project/badge/1c5bfb83d2d54d57898d4ede1c9157ee
+    :target: https://www.codacy.com/app/jab/bidict
+    :alt: Code quality
+
+.. image:: https://pypip.in/py_versions/bidict/badge.svg
+    :target: https://pypi.python.org/pypi/bidict
+    :alt: Supported Python versions
+
+.. image:: https://pypip.in/implementation/bidict/badge.svg
+    :target: https://pypi.python.org/pypi/bidict
+    :alt: Supported Python implementations
+
+.. image:: https://pypip.in/license/bidict/badge.svg
+    :target: https://raw.githubusercontent.com/jab/bidict/master/LICENSE
+    :alt: License
+
+.. image:: https://img.shields.io/badge/Paypal-Buy%20a%20Drink-blue.svg
+    :target: https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=jab%40math%2ebrown%2eedu&lc=US&item_name=Buy%20a%20drink%20for%20jab&button_subtype=services&currency_code=USD&bn=PP%2dBuyNowBF%3aPaypal%2dBuy%2520a%2520Drink%2dblue%2esvg%3aNonHosted
+    :alt: PayPal - Buy a drink
+
+.. image:: https://api.bountysource.com/badge/team?team_id=72966&style=raised
+    :target: https://www.bountysource.com/teams/jab
+    :alt: Donate via Bountysource
+
+.. image:: https://badges.gitter.im/Join%20Chat.svg
+   :alt: Chat
+   :target: https://gitter.im/jab/bidict
+|
+
+
 Installation
 ------------
 
 ``pip install bidict``
-
-
-Status
-------
-
-+------------+--------------------------------------------------------------------------+---------------------------------------------------------------+
-| ``master`` | .. image:: https://readthedocs.org/projects/bidict/badge/?version=master | .. image:: https://travis-ci.org/jab/bidict.svg?branch=master |
-|            |     :target: https://bidict.readthedocs.org/en/master/                   |     :target: https://travis-ci.org/jab/bidict                 |
-+------------+--------------------------------------------------------------------------+---------------------------------------------------------------+
-| ``v0.3.1`` | .. image:: https://readthedocs.org/projects/bidict/badge/?version=latest | .. image:: https://travis-ci.org/jab/bidict.svg?tag=0.3.1     |
-|            |     :target: https://bidict.readthedocs.org/en/latest/                   |     :target: https://travis-ci.org/jab/bidict                 |
-+------------+--------------------------------------------------------------------------+---------------------------------------------------------------+
 
 
 Overview
@@ -36,6 +84,7 @@ convenient slice syntax to express an inverse mapping::
     'H'
 
 Syntax hacks ftw.
+
 
 Motivation
 ----------
@@ -61,6 +110,7 @@ to be able to look up, in constant time, keys by value, in addition to being
 able to look up values by key. With the additional constraint that values must
 also be hashable as well as keys, we can get constant-time forward and inverse
 lookups -- with a convenient syntax to boot -- with ``bidict``.
+
 
 More Examples
 -------------
@@ -127,6 +177,7 @@ The ``namedbidict`` class factory can be used to create a bidirectional mapping
 with customized names for the forward and the inverse mappings accessible via
 attributes. See :attr:`bidict.namedbidict` for more documentation.
 
+
 Notes
 -----
 
@@ -152,6 +203,10 @@ Notes
   ``bidict`` could be used in the Python standard library instead of having to
   maintain the two ``name2codepoint`` and ``codepoint2name`` dictionaries
   separately by hand.
+
+  Another example from the standard library of where ``bidict`` would be
+  useful is the ``logging._levelToName`` mapping.
+
 
 Caveats
 -------
@@ -219,6 +274,7 @@ Caveats
   references to it. In other words, bidict won't leak memory as long as you
   don't ``gc.disable()``. If you do, reclaiming a bidict's memory is up to you.
 
+
 Links
 -----
 
@@ -226,7 +282,8 @@ Links
 
 * Development: https://github.com/jab/bidict
 
-* License: http://choosealicense.com/licenses/isc/
+* License: https://raw.githubusercontent.com/jab/bidict/master/LICENSE
+
 
 Credits
 -------
@@ -240,7 +297,7 @@ Credits
 
 See the rest of the bidict module for further documentation.
 ------------------------------------------------------------
-'''
+"""
 
 from sys import version_info
 
@@ -259,7 +316,7 @@ else:
     viewitems = lambda x: x.items()
 
 def fancy_iteritems(*map_or_it, **kw):
-    '''
+    """
     Generator yielding the mappings provided.
     Abstracts differences between Python 2 and 3::
 
@@ -311,7 +368,7 @@ def fancy_iteritems(*map_or_it, **kw):
         {'a': 3}
         >>> list(fancy_iteritems([('a', 1), ('a', 2)], a=3))
         [('a', 1), ('a', 2), ('a', 3)]
-    '''
+    """
     if map_or_it:
         l = len(map_or_it)
         if l != 1:
@@ -330,7 +387,7 @@ def fancy_iteritems(*map_or_it, **kw):
 
 
 class inverted(Iterator):
-    '''
+    """
     An iterator in the spirit of ``reversed``. Useful for inverting a mapping::
 
         >>> keys = (1, 2, 3)
@@ -369,7 +426,7 @@ class inverted(Iterator):
         5
         >>> len(dict(inverted(squares)))
         3
-    '''
+    """
 
     def __init__(self, data):
         self._data = data
@@ -391,7 +448,7 @@ class inverted(Iterator):
 
 
 class CollapseException(Exception):
-    '''
+    """
     Exception raised by :class:`bidict.bidict` when attempting to insert a new
     mapping that would collapse two existing mappings::
 
@@ -407,15 +464,15 @@ class CollapseException(Exception):
 
     Notice the exception instance's args are set to the two existing mappings
     that would have been collapsed by inserting the new mapping.
-    '''
+    """
 
 _none = object()
 class BidirectionalMapping(Mapping):
-    '''
+    """
     The read-only functionality of ``bidict`` is implemented in this base
     class. :class:`bidict.bidict` and :class:`bidict.frozenbidict` both extend
     this.
-    '''
+    """
     def __init__(self, *args, **kw):
         self._fwd = {}
         self._bwd = {}
@@ -433,7 +490,7 @@ class BidirectionalMapping(Mapping):
     __str__ = __repr__
 
     def __eq__(self, other):
-        '''
+        """
         Supports equality testing with another mapping::
 
             >>> d = dict(a=1)
@@ -458,7 +515,7 @@ class BidirectionalMapping(Mapping):
 
             >>> bidict(a=1) == [('a', 1)]
             False
-        '''
+        """
         try:
             return viewitems(self) == viewitems(other)
         except:
@@ -468,9 +525,9 @@ class BidirectionalMapping(Mapping):
         return not self.__eq__(other)
 
     def __invert__(self):
-        '''
+        """
         Called when the unary inverse operator (~) is applied.
-        '''
+        """
         return self._inv
 
     inv = property(__invert__, doc='Property providing access to the inverse '\
@@ -481,13 +538,13 @@ class BidirectionalMapping(Mapping):
 
     @staticmethod
     def _fwd_slice(slice):
-        '''
+        """
         Raises ``TypeError`` if the given slice does not have either only
         its start or only its stop set to a non-None value.
 
         Returns True if only its start is not None and False if only its stop
         is not None.
-        '''
+        """
         if slice.step is not None or \
             (not ((slice.start is None) ^ (slice.stop is None))):
             raise TypeError('Slice must specify only either start or stop')
@@ -542,9 +599,9 @@ class BidirectionalMapping(Mapping):
     values = lambda self: self._bwd.keys()
     values.__doc__ = \
         "D.values() -> a set-like object providing a view on D's values. " \
-        "Note that because values of a BidirectionalMapping are also keys, " \
-        "this returns a ``dict_keys`` object rather than a ``dict_values`` " \
-        "object."
+        'Note that because values of a BidirectionalMapping are also keys, ' \
+        'this returns a ``dict_keys`` object rather than a ``dict_values`` ' \
+        'object.'
     if PY2:
         iterkeys = lambda self: self._fwd.iterkeys()
         viewkeys = lambda self: self._fwd.viewkeys()
@@ -562,7 +619,7 @@ class BidirectionalMapping(Mapping):
 
 
 class frozenbidict(BidirectionalMapping, Hashable):
-    '''
+    """
     Extends ``BidirectionalMapping`` and ``Hashable`` to provide an immutable,
     hashable bidict. It's immutable simply because it doesn't implement any
     mutating methods::
@@ -607,7 +664,7 @@ class frozenbidict(BidirectionalMapping, Hashable):
 
     To mitigate this, the hash is computed lazily, only when ``__hash__`` is
     first called, and is then cached so that future calls take constant time.
-    '''
+    """
     def __hash__(self):
         if self._hash is None:
             self._hash = hash(frozenset(viewitems(self)))
@@ -615,7 +672,7 @@ class frozenbidict(BidirectionalMapping, Hashable):
 
 
 class bidict(BidirectionalMapping, MutableMapping):
-    '''
+    """
     Extends :class:`bidict.BidirectionalMapping` to implement the
     ``MutableMapping`` interface. The API is a superset of the ``dict`` API
     minus the ``fromkeys`` method, which doesn't make sense for a bidirectional
@@ -784,7 +841,7 @@ class bidict(BidirectionalMapping, MutableMapping):
         >>> nils.update(nix=0, nada=0)
         >>> len(nils)
         1
-    '''
+    """
     def _del(self, key):
         val = self._fwd[key]
         del self._fwd[key]
@@ -811,18 +868,18 @@ class bidict(BidirectionalMapping, MutableMapping):
             self._put(keyorslice, keyorval)
 
     def put(self, key, val):
-        '''
+        """
         Alternative to using the setitem syntax to insert a mapping::
 
             >>> b = bidict()
             >>> b.put('H', 'hydrogen')
             >>> b
             bidict({'H': 'hydrogen'})
-        '''
+        """
         self._put(key, val)
 
     def forceput(self, key, val):
-        '''
+        """
         Like :attr:`bidict.bidict.put` but silently removes any existing
         mapping that would otherwise cause a :class:`CollapseException`
         before inserting the given mapping::
@@ -835,7 +892,7 @@ class bidict(BidirectionalMapping, MutableMapping):
             >>> b.forceput(0, 'one')
             >>> b
             bidict({0: 'one'})
-        '''
+        """
         oldval = self._fwd.get(key, _none)
         oldkey = self._bwd.get(val, _none)
         if oldval is not _none:
@@ -876,7 +933,7 @@ class bidict(BidirectionalMapping, MutableMapping):
 
 
 class collapsingbidict(bidict):
-    '''
+    """
     A bidict which does not throw a :class:`bidict.CollapseException` when
     attempting to insert a new mapping that would collapse two existing
     mappings::
@@ -885,21 +942,21 @@ class collapsingbidict(bidict):
         >>> b[1] = 'two'
         >>> b
         collapsingbidict({1: 'two'})
-    '''
+    """
     _put = bidict.forceput
 
 _LEGALNAMEPAT = '^[a-zA-Z][a-zA-Z0-9_]*$'
 _LEGALNAMERE = compile_re(_LEGALNAMEPAT)
 
 def _empty_namedbidict(mapname, fwdname, invname):
-    '''
+    """
     Create an empty instance of a custom bidict (namedbidict). This method is
     used to make ``namedbidict`` instances picklable.
-    '''
+    """
     return namedbidict(mapname, fwdname, invname)()
 
 def namedbidict(mapname, fwdname, invname, bidict_type=bidict):
-    '''
+    """
     Generate a custom bidict class in the spirit of ``namedtuple`` with
     custom attribute-based access to forward and inverse mappings::
 
@@ -949,7 +1006,7 @@ def namedbidict(mapname, fwdname, invname, bidict_type=bidict):
         Traceback (most recent call last):
         ...
         TypeError...
-    '''
+    """
     for name in mapname, fwdname, invname:
         if _LEGALNAMERE.match(name) is None:
             raise ValueError('"%s" does not match pattern %s' %
