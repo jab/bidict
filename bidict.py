@@ -19,6 +19,10 @@ Status
     :target: https://bidict.readthedocs.org/
     :alt: Documentation
 
+.. image:: https://pypip.in/status/bidict/badge.svg
+    :target: https://pypi.python.org/pypi/bidict
+    :alt: Development status
+
 .. image:: https://travis-ci.org/jab/bidict.svg
     :target: https://travis-ci.org/jab/bidict
     :alt: Build status
