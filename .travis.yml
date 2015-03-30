@@ -7,7 +7,13 @@ python:
 
 install:
   - python setup.py install
+  - pip install coveralls
 
-script: python bidict.py
+script:
+# - python setup.py test
+  - coverage run --source=bidict setup.py test
+
+after_success:
+  coveralls
 
 sudo: false

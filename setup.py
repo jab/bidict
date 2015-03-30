@@ -26,4 +26,5 @@ setup(
         'Topic :: Scientific/Engineering :: Mathematics',
         'Topic :: Software Development :: Libraries :: Python Modules',
         ],
-    )
+    test_suite='test',
+)
