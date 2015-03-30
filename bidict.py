@@ -23,6 +23,10 @@ Status
     :target: https://travis-ci.org/jab/bidict
     :alt: Build status
 
+.. image:: https://coveralls.io/repos/jab/bidict/badge.svg
+    :target: https://coveralls.io/r/jab/bidict
+    :alt: Test coverage
+
 .. image:: https://pypip.in/py_versions/bidict/badge.svg
     :target: https://pypi.python.org/pypi/bidict
     :alt: Supported Python versions
@@ -34,7 +38,7 @@ Status
 .. image:: https://pypip.in/license/bidict/badge.svg
     :target: https://raw.githubusercontent.com/jab/bidict/master/LICENSE
     :alt: License
-| 
+|
 
 
 Installation
@@ -575,9 +579,9 @@ class BidirectionalMapping(Mapping):
     values = lambda self: self._bwd.keys()
     values.__doc__ = \
         "D.values() -> a set-like object providing a view on D's values. " \
-        "Note that because values of a BidirectionalMapping are also keys, " \
-        "this returns a ``dict_keys`` object rather than a ``dict_values`` " \
-        "object."
+        'Note that because values of a BidirectionalMapping are also keys, ' \
+        'this returns a ``dict_keys`` object rather than a ``dict_values`` ' \
+        'object.'
     if PY2:
         iterkeys = lambda self: self._fwd.iterkeys()
         viewkeys = lambda self: self._fwd.viewkeys()

@@ -17,6 +17,10 @@ bidict
     :target: https://travis-ci.org/jab/bidict
     :alt: Build status
 
+.. image:: https://coveralls.io/repos/jab/bidict/badge.svg
+    :target: https://coveralls.io/r/jab/bidict
+    :alt: Test coverage
+
 .. image:: https://pypip.in/py_versions/bidict/badge.svg
     :target: https://pypi.python.org/pypi/bidict
     :alt: Supported Python versions
