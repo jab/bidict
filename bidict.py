@@ -180,6 +180,9 @@ Notes
   maintain the two ``name2codepoint`` and ``codepoint2name`` dictionaries
   separately by hand.
 
+  Another example from the standard library of where ``bidict`` would be
+  useful is the ``logging._levelToName`` mapping.
+
 
 Caveats
 -------
