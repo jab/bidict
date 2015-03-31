@@ -5,9 +5,9 @@ setup(
     version='0.3.2-dev',
     author='Joshua Bronson',
     author_email='jab@math.brown.edu',
-    description="2-way dict with convenient slice syntax: d[65] = 'A' -> d[:'A'] == 65",
-    long_description= 'Please see https://bidict.readthedocs.org/ for documentation.',
-    keywords='bidirectional, two-way, inverse, reverse, dict, dictionary, mapping',
+    description="Bidirectional dict with convenient slice syntax: d[65] = 'A' <-> d[:'A'] == 65",
+    long_description= 'Please see https://bidict.readthedocs.org/ for more information.',
+    keywords='bidirectional, two-way, 2-way, inverse, reverse, dict, dictionary, mapping',
     url='https://github.com/jab/bidict',
     license='ISCL',
     py_modules=['bidict'],
@@ -26,5 +26,8 @@ setup(
         'Topic :: Scientific/Engineering :: Mathematics',
         'Topic :: Software Development :: Libraries :: Python Modules',
         ],
+    extras_require=dict(
+        dev=['pre-commit'],
+    ),
     test_suite='test',
 )
