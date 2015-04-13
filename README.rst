@@ -41,6 +41,10 @@ bidict
     :target: https://raw.githubusercontent.com/jab/bidict/master/LICENSE
     :alt: License
 
+.. image:: https://img.shields.io/badge/Paypal-Buy%20a%20Drink-blue.svg
+    :target: https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=jab%40math%2ebrown%2eedu&lc=US&item_name=Buy%20a%20drink%20for%20jab&button_subtype=services&currency_code=USD&bn=PP%2dBuyNowBF%3aPaypal%2dBuy%2520a%2520Drink%2dblue%2esvg%3aNonHosted
+    :alt: PayPal - Buy a drink
+
 .. image:: https://api.bountysource.com/badge/team?team_id=72967&style=raised
     :target: https://www.bountysource.com/teams/bidict
     :alt: Donate via Bountysource
