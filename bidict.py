@@ -51,8 +51,8 @@ Status
     :target: https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=jab%40math%2ebrown%2eedu&lc=US&item_name=Buy%20a%20drink%20for%20jab&button_subtype=services&currency_code=USD&bn=PP%2dBuyNowBF%3aPaypal%2dBuy%2520a%2520Drink%2dblue%2esvg%3aNonHosted
     :alt: PayPal - Buy a drink
 
-.. image:: https://api.bountysource.com/badge/team?team_id=72967&style=raised
-    :target: https://www.bountysource.com/teams/bidict
+.. image:: https://api.bountysource.com/badge/team?team_id=72966&style=raised
+    :target: https://www.bountysource.com/teams/jab
     :alt: Donate via Bountysource
 |
 
