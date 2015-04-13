@@ -25,6 +25,10 @@ bidict
     :target: https://coveralls.io/r/jab/bidict
     :alt: Test coverage
 
+.. image:: https://www.codacy.com/project/badge/1c5bfb83d2d54d57898d4ede1c9157ee
+    :target: https://www.codacy.com/app/jab/bidict
+    :alt: Code quality
+
 .. image:: https://pypip.in/py_versions/bidict/badge.svg
     :target: https://pypi.python.org/pypi/bidict
     :alt: Supported Python versions
@@ -36,6 +40,10 @@ bidict
 .. image:: https://pypip.in/license/bidict/badge.svg
     :target: https://raw.githubusercontent.com/jab/bidict/master/LICENSE
     :alt: License
+
+.. image:: https://api.bountysource.com/badge/team?team_id=72967&style=raised
+    :target: https://www.bountysource.com/teams/bidict
+    :alt: Donate via Bountysource
 | 
 | Bidirectional dict with convenient slice syntax: ``d[65] = 'A'`` ⇔ ``d[:'A'] == 65``
 
