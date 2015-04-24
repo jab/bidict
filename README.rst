@@ -1,6 +1,10 @@
 bidict
 ======
 
+.. image:: https://badges.gitter.im/Join%20Chat.svg
+   :alt: Join the chat at https://gitter.im/jab/bidict
+   :target: https://gitter.im/jab/bidict?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
+
 .. image:: https://pypip.in/download/bidict/badge.svg
     :target: https://pypi.python.org/pypi/bidict
     :alt: Downloads per month
