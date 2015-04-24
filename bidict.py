@@ -54,6 +54,10 @@ Status
 .. image:: https://api.bountysource.com/badge/team?team_id=72966&style=raised
     :target: https://www.bountysource.com/teams/jab
     :alt: Donate via Bountysource
+
+.. image:: https://badges.gitter.im/Join%20Chat.svg
+   :alt: Chat
+   :target: https://gitter.im/jab/bidict
 |
 
 

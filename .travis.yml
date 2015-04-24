@@ -17,3 +17,8 @@ after_success:
   coveralls
 
 sudo: false
+
+notifications:
+  webhooks:
+    urls:
+      - https://webhooks.gitter.im/e/bf64fb45a633c0935b9b
