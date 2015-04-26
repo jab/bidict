@@ -1,14 +1,23 @@
-.. bidict documentation master file, created by
-   sphinx-quickstart on Fri Aug 29 11:38:22 2014.
-   You can adapt this file completely to your liking, but it should at least
-   contain the root `toctree` directive.
-
 bidict
 ======
 
-.. toctree::
-   :maxdepth: 2
+Bidirectional dict with convenient slice syntax:
+``d[65] = 'A'`` ⇔ ``d[:'A'] == 65``
 
-.. automodule:: bidict
-    :members:
-    :special-members:
+.. include:: status.rst.inc
+
+:ref:`Let's get started <intro>`.
+
+.. toctree::
+    :maxdepth: 2
+    :hidden:
+
+    intro
+    basic-usage
+    caveats
+    other-bidict-types
+    inverted
+    api
+    changelog
+    credits
+    cut

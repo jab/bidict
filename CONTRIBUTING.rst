@@ -1,7 +1,7 @@
 Contributors' Guide
 ===================
 
-Bug reports, feature requests, patches, and other contributions are more than welcome!
+Bug reports, feature requests, patches, and other contributions are more than welcome.
 We want to make contribution as easy and friendly as possible.
 Here are a few guidelines we ask contributors to follow to facilitate the process:
 
@@ -22,7 +22,7 @@ Getting Started
     all known environments in which the bug is exhibited,
     and ideally a failing test case.
 
-- If you have a patch to contribute,
+- If you would like to contribute a patch,
   make sure you've `created your own fork <https://github.com/jab/bidict/fork>`_
   and have cloned it to your machine.
 
@@ -30,20 +30,20 @@ Making Changes
 --------------
 
 - Before making changes, please install the extra packages required for development:
-  ``pip install -e . [dev]``
+  ``pip install -e .[dev]``
 
   We use `EditorConfig <http://editorconfig.org/>`_
   and `pre-commit <http://pre-commit.com/>`_
   to help achieve uniform style and quality standards
   across a diversity of development environments.
 
-  pre-commit gets installed when you run ``pip install -e . [dev]``
-  and ensures that various code checkers are run before every commit
+  pre-commit gets installed when you run ``pip install -e .[dev]``
+  and ensures that various code checks are run before every commit
   (look in ``.pre-commit-config.yaml`` to see which hooks are run).
 
   EditorConfig allows us to provide a single ``.editorconfig`` file
   to configure settings like indentation consistently
-  across all suppored editors.
+  across a variety of suppored editors.
   See http://editorconfig.org/#download to install the plugin for your editor.
 
 - Create a topic branch off of master for your changes:
@@ -55,8 +55,9 @@ Making Changes
   If you're adding a feature, include accompanying tests and documentation
   demonstrating its correctness and usage.
 
-- Run all the tests to assure nothing else was accidentally broken:
-  ``python setup.py test``
+- Run all the tests
+  with `tox <https://tox.readthedocs.org>`_
+  to make sure nothing else was accidentally broken.
 
 - Create a concise but comprehensive commit message in the following style::
 
@@ -109,7 +110,7 @@ If you come across other people who could find it useful, spread the word.
 If you or your organization has benefited from bidict commercially or otherwise,
 you can use `Bountysource <https://www.bountysource.com/teams/jab>`_
 to sponsor a new feature or bugfix, or make a general donation.
-There's also a shiny new "buy a drink" badge if that's more your cup of tea. ;)
+You can also use this if it's more your cup of tea:
 
 .. image:: https://img.shields.io/badge/Paypal-Buy%20a%20Drink-blue.svg
     :target: https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=jab%40math%2ebrown%2eedu&lc=US&item_name=Buy%20a%20drink%20for%20jab&button_subtype=services&currency_code=USD&bn=PP%2dBuyNowBF%3aPaypal%2dBuy%2520a%2520Drink%2dblue%2esvg%3aNonHosted

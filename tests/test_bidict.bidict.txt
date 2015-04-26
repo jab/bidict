@@ -1,0 +1,153 @@
+Test script for bidict.bidict::
+
+    >>> from bidict import bidict
+    >>> keys = (1, 2, 3)
+    >>> vals = ('one', 'two', 'three')
+    >>> bi = bidict(zip(keys, vals))
+    >>> bi == bidict({1: 'one', 2: 'two', 3: 'three'})
+    True
+
+Standard getitem syntax gets and sets forward mappings::
+
+    >>> bi[2]
+    'two'
+    >>> bi[2] = 'twain'
+    >>> bi[2]
+    'twain'
+    >>> bi[4]
+    Traceback (most recent call last):
+        ...
+    KeyError: 4
+
+As does slice with only a ``start``::
+
+    >>> bi[2:]
+    'twain'
+    >>> bi[0:] = 'naught'
+    >>> bi[0:]
+    'naught'
+
+Slice with only a ``stop`` gets and sets inverse mappings::
+
+    >>> bi[:'one']
+    1
+    >>> bi[:'aught'] = 1
+    >>> bi[:'aught']
+    1
+    >>> bi[1]
+    'aught'
+    >>> bi[:'one']
+    Traceback (most recent call last):
+        ...
+    KeyError: 'one'
+
+Likewise, deleting items::
+
+    >>> del bi[0]
+    >>> del bi[2:]
+    >>> del bi[:'three']
+    >>> bi
+    bidict({1: 'aught'})
+
+bidicts maintain references to their inverses via the ``inv`` property,
+which can also be used to access or modify them::
+
+    >>> bi.inv
+    bidict({'aught': 1})
+    >>> bi.inv['aught']
+    1
+    >>> bi.inv[:1]
+    'aught'
+    >>> bi.inv[:1] = 'one'
+    >>> bi.inv
+    bidict({'one': 1})
+    >>> bi
+    bidict({1: 'one'})
+    >>> bi.inv.inv is bi
+    True
+    >>> bi.inv.inv.inv is bi.inv
+    True
+
+A bidict's inverse can also be accessed via ~ operator::
+
+    >>> ~bi
+    bidict({'one': 1})
+    >>> ~bi is bi.inv
+    True
+
+bidicts work with ``inverted`` as expected::
+
+    >>> from bidict import inverted
+    >>> biinv = bidict(inverted(bi))
+    >>> biinv
+    bidict({'one': 1})
+
+This created a new object (equivalent but not identical)::
+
+    >>> biinv == bi.inv
+    True
+    >>> biinv is bi.inv
+    False
+
+Inverting the inverse should round-trip::
+
+    >>> bi == bidict(inverted(inverted(bi)))
+    True
+
+Use ``invert`` to invert the mapping in place (and in constant time)::
+
+    >>> bi.invert()
+    >>> bi
+    bidict({'one': 1})
+
+The rest of the ``MutableMapping`` interface is supported::
+
+    >>> bi.get('one')
+    1
+    >>> bi.get('zero')
+    >>> bi.get('zero', 0)
+    0
+    >>> list(bi.keys())
+    ['one']
+    >>> list(bi.values())
+    [1]
+    >>> list(bi.items())
+    [('one', 1)]
+    >>> bi.setdefault('one', 2)
+    1
+    >>> bi.setdefault('two', 2)
+    2
+    >>> bi.pop('one')
+    1
+    >>> bi.popitem()
+    ('two', 2)
+    >>> bi.inv.setdefault(3, 'three')
+    'three'
+    >>> bi
+    bidict({'three': 3})
+    >>> len(bi)  # calls __len__
+    1
+    >>> [key for key in bi]  # calls __iter__, returns keys like dict
+    ['three']
+    >>> 'three' in bi  # calls __contains__
+    True
+    >>> list(bi.keys())
+    ['three']
+    >>> list(bi.values())
+    [3]
+    >>> bi.update([('four', 4)])
+    >>> bi.update({'five': 5}, six=6, seven=7)
+    >>> sorted(bi.items(), key=lambda x: x[1])
+    [('three', 3), ('four', 4), ('five', 5), ('six', 6), ('seven', 7)]
+
+Collapsing updates fail::
+
+    >>> b = bidict({1: 'one', 2: 'two'})
+    >>> b[1] = 'two'  # doctest: +IGNORE_EXCEPTION_DETAIL
+    Traceback (most recent call last):
+    ...
+    CollapseException: ((1, 'one'), (2, 'two'))
+    >>> b[:'two'] = 1  # doctest: +IGNORE_EXCEPTION_DETAIL
+    Traceback (most recent call last):
+    ...
+    CollapseException: ((1, 'one'), (2, 'two'))
