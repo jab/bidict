@@ -2,20 +2,27 @@
 Property-based tests using https://warehouse.python.org/project/hypothesis/
 """
 
-from bidict import bidict
-from hypothesis import assume, given
-from hypothesis.specifiers import dictionary
 from math import isnan
 
-# work around https://bitbucket.org/pypy/pypy/issue/1974
-nan = float('nan')
-BUGGY_PYPY = (nan, nan) != (nan, nan)
-if BUGGY_PYPY:
-    from warnings import warn
-    warn('working around buggy pypy')
+from hypothesis import assume, given, strategy
+from hypothesis.specifiers import dictionary
 
-@given(dictionary(float, float))
+from bidict import bidict
+
+
+def safe_isnan(x):
+    return isnan(x) if isinstance(x, float) else False
+
+immutable_types = (
+    strategy(int) | strategy(float) | strategy(str) |
+    strategy(bool) | strategy(None))
+
+@given(dictionary(immutable_types, immutable_types))
 def test_basic_properties_bidict(fwd):
+
+    assume(all(
+        not safe_isnan(x) for kv in fwd.items() for x in kv
+    ))
 
     # ensure all values in fwd are unique
     assume(len(fwd.values()) == len(set(fwd.values())))
@@ -30,8 +37,8 @@ def test_basic_properties_bidict(fwd):
     for k, v in b.items():
         k_ = b[:v]
         v_ = b[k]
-        assert k == k_ if not isnan(k) else isnan(k_)
-        assert v == v_ if not isnan(v) else isnan(v_)
+        assert k == k_
+        assert v == v_
 
     # .inv, is, ==, !=, and ~ operators. == and != are polymorphic.
     assert b is b.inv.inv is ~~b
