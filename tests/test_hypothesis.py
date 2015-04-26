@@ -15,7 +15,7 @@ def safe_isnan(x):
 
 immutable_types = (
     strategy(int) | strategy(float) | strategy(str) |
-    strategy(bool) | strategy(None))
+    strategy(bool))
 
 @given(dictionary(immutable_types, immutable_types))
 def test_basic_properties_bidict(fwd):
