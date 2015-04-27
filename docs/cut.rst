@@ -35,7 +35,7 @@ More Caveats
 .. include:: caveat-mutation.rst.inc
 
 Other Verbiage, Esoterica, Navel Gazing, &c.
--------------------------------------------
+--------------------------------------------
 
 - It's intentional that the term "inverse" is used rather than "reverse".
 

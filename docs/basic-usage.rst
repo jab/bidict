@@ -45,7 +45,7 @@ This can be handy for composing with other operations::
 Because inverse mappings are maintained alongside forward mappings,
 referencing a bidict's inverse
 is always a constant-time operation.
-No need to go through the entire map on every reference.
+No need to go through the entire collection.
 
 One last thing, bidicts interoperate well with other types of maps.
 For example, they support (efficient) polymorphic equality testing::

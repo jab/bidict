@@ -1,10 +1,12 @@
 Credits
 -------
 
-- Thanks to Terry Reedy for the idea for the slice syntax.
+- Thanks to Gregory Ewing for the name.
 
-- Thanks to Raymond Hettinger for the idea for namedbidict and pointing out
-  various caveats.
+- Thanks to Terry Reedy for suggesting the slice syntax.
+
+- Thanks to Raymond Hettinger for suggesting namedbidict
+  and pointing out various caveats.
 
 - Thanks to Francis Carr for the idea of storing the inverse bidict.
 

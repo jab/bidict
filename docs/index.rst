@@ -2,7 +2,7 @@ bidict
 ======
 
 Bidirectional dict with convenient slice syntax:
-``d[65] = 'A'`` ⇔ ``d[:'A'] == 65``
+``d[65] = 'A'`` ⇔ ``d[:'A'] = 65``
 
 .. include:: status.rst.inc
 
@@ -15,6 +15,7 @@ Bidirectional dict with convenient slice syntax:
     intro
     basic-usage
     caveats
+    performance
     other-bidict-types
     inverted
     api

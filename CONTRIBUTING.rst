@@ -61,7 +61,7 @@ Making Changes
 
 - Create a concise but comprehensive commit message in the following style::
 
-      #99999 Include an example commit message in CONTRIBUTING guide
+      Include an example commit message in CONTRIBUTING guide #9999
 
       Without this patch the CONTRIBUTING guide would contain no examples of
       a model commit message. This is a problem because the contributor is left

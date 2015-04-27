@@ -1,18 +1,14 @@
-.. image:: https://pypip.in/download/bidict/badge.svg
+.. image:: https://img.shields.io/pypi/dm/bidict.svg
     :target: https://pypi.python.org/pypi/bidict
     :alt: Downloads per month
 
-.. image:: https://pypip.in/version/bidict/badge.svg
+.. image:: https://img.shields.io/pypi/v/bidict.svg
     :target: https://pypi.python.org/pypi/bidict
     :alt: Latest release
 
 .. image:: https://readthedocs.org/projects/bidict/badge/
     :target: https://bidict.readthedocs.org/
     :alt: Documentation
-
-.. image:: https://pypip.in/status/bidict/badge.svg
-    :target: https://pypi.python.org/pypi/bidict
-    :alt: Development status
 
 .. image:: https://travis-ci.org/jab/bidict.svg
     :target: https://travis-ci.org/jab/bidict
@@ -34,7 +30,7 @@
     :target: https://pypi.python.org/pypi/bidict
     :alt: Supported Python implementations
 
-.. image:: https://pypip.in/license/bidict/badge.svg
+.. image:: https://img.shields.io/pypi/l/bidict.svg
     :target: https://raw.githubusercontent.com/jab/bidict/master/LICENSE
     :alt: License
 

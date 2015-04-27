@@ -19,7 +19,7 @@ bidict.util
     :members:
 
 bidict.compat
------------
+-------------
 
 .. automodule:: bidict.compat
     :members:

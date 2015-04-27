@@ -39,7 +39,7 @@ setup(
     version=version,
     author='Joshua Bronson',
     author_email='jab@math.brown.edu',
-    description="Bidirectional dict with convenient slice syntax: d[65] = 'A' <-> d[:'A'] == 65",
+    description="Bidirectional dict with convenient slice syntax: d[65] = 'A' <-> d[:'A'] = 65",
     long_description=long_description,
     keywords='dict, dictionary, mapping, bidirectional, bijection, bijective, injective, two-way, 2-way, double, inverse, reverse',
     url='https://github.com/jab/bidict',

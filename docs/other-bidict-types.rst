@@ -6,7 +6,7 @@ Other bidict Types
 Now that we've covered
 :class:`bidict.bidict`,
 :class:`bidict.collapsingbidict`,
-and a few :ref:`caveats`,
+and some other basics,
 let's look at the remaining bidict types
 and the hierarchy they belong to.
 

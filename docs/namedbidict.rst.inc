@@ -1,8 +1,8 @@
 namedbidict
 -----------
 
-:class:`bidict.namedbidict`
-(inspired by :func:`collections.namedtuple`)
+:class:`bidict.namedbidict`,
+inspired by :func:`collections.namedtuple`,
 allows you to easily generate
 a custom bidirectional map type
 with custom attribute-based access to forward and inverse mappings::

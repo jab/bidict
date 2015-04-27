@@ -45,4 +45,4 @@ Instead you have to do something like::
     'foo'
 
 Suggestions for better ways to handle this edge case
-gratefully received.
+would be gratefully received.

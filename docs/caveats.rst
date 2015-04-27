@@ -15,4 +15,5 @@ Please bear the following in mind while using bidict.
 
 .. include:: caveat-none-slice.rst.inc
 
-With those out of the way, let's have a look at some :ref:`other-bidict-types`.
+With those out of the way,
+let's turn now to considering bidict's :ref:`performance`.
