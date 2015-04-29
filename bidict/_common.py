@@ -56,10 +56,14 @@ class BidirectionalMapping(Mapping):
         Returns True if only its start is not None and False if only its stop
         is not None.
         """
-        if slice.step is not None or \
-            (not ((slice.start is None) ^ (slice.stop is None))):
+        start_missing = slice.start is None
+        start_found = not start_missing
+        stop_missing = slice.stop is None
+        step_found = slice.step is not None
+
+        if step_found or start_missing == stop_missing:
             raise TypeError('Slice must specify only either start or stop')
-        return slice.start is not None
+        return start_found
 
     def __getitem__(self, keyorslice):
         """
