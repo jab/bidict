@@ -1,8 +1,7 @@
-from itertools import product
-
 import pytest
-
 from bidict import bidict
+from bidict.compat import PY2
+from itertools import product
 
 
 @pytest.fixture
@@ -12,7 +11,7 @@ def b():
 single_test_data = {'H', 'hydrogen', -1, 0, 1}
 bad_start_values = single_test_data - {'H'}
 bad_stop_values = single_test_data - {'hydrogen'}
-pair_test_data = product(single_test_data, single_test_data)
+pair_test_data = set(product(single_test_data, repeat=2))
 
 
 def test_good_start(b):
@@ -55,14 +54,19 @@ def test_empty(b):
 def b_none():
     return bidict({'key': None, None: 'val'})
 
-@pytest.mark.xfail
+@pytest.mark.xfail(not PY2, reason='none-slice unsupported on Python 3')
 def test_none_slice_fwd(b_none):
     assert b_none[None:] == 'val'
 
-@pytest.mark.xfail
+@pytest.mark.xfail(not PY2, reason='none-slice unsupported on Python 3')
 def test_none_slice_inv(b_none):
     assert b_none[:None] == 'key'
 
-@pytest.mark.xfail
-def test_none_slice_fwd_inv(b_none):
-    assert b_none[None:] + b_none[:None] == 'valkey'
+# mutliple slices per line with none-slice unsupported
+def test_multi_slice_fwd(b_none):
+    with pytest.raises(TypeError):
+        b_none[None:] + ['foo'][0:][0]
+
+def test_multi_slice_inv(b_none):
+    with pytest.raises(TypeError):
+        b_none[:None] + ['foo'][0:][0]

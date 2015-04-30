@@ -1,7 +1,12 @@
 from .compat import PY2, iteritems, viewitems
 from .util import pairs
 from collections import Mapping
+from dis import opmap
+from inspect import currentframe
 
+if PY2:
+    OP_FWD_SLICE = chr(opmap['SLICE+1'])
+    OP_INV_SLICE = chr(opmap['SLICE+2'])
 
 class BidirectionalMapping(Mapping):
     """
@@ -50,20 +55,37 @@ class BidirectionalMapping(Mapping):
     @staticmethod
     def _fwd_slice(slice):
         """
-        Raises :class:`TypeError` if the given slice does not have either only
-        its start or only its stop set to a non-None value.
+        Returns True if ``slice`` represents a forward slice ``b[key:]``
+        and False to signifiy an inverse slice ``b[:val]``.
 
-        Returns True if only its start is not None and False if only its stop
-        is not None.
+        Raises :class:`TypeError` if the given slice is invalid.
+        A valid slice for a bidict is one where there is no step,
+        and either only start or only stop is set to something hashable
+        (i.e. something that could be present as a key or value in the bidict).
+
+        Also may raise for slices like ``b[None:]`` and ``b[:None]``.
+        See ../docs/caveat-none-slice.rst.inc or
+        https://bidict.readthedocs.org/en/master/caveats.html#none-breaks-the-slice-syntax
         """
-        start_missing = slice.start is None
-        start_found = not start_missing
-        stop_missing = slice.stop is None
-        step_found = slice.step is not None
+        if slice.step is not None:
+            raise TypeError('Slice step must be None')
 
-        if step_found or start_missing == stop_missing:
+        start_missing = slice.start is None
+        stop_missing = slice.stop is None
+        if start_missing and stop_missing and PY2:
+            f = currentframe().f_back.f_back
+            fc = f.f_code.co_code
+            nfwd = fc.count(OP_FWD_SLICE)
+            ninv = fc.count(OP_INV_SLICE)
+            if nfwd == 1 and not ninv:
+                return True
+            if ninv == 1 and not nfwd:
+                return False
+            if nfwd or ninv:
+                raise TypeError('Could not disambiguate None-slice')
+        if start_missing == stop_missing:
             raise TypeError('Slice must specify only either start or stop')
-        return start_found
+        return not start_missing
 
     def __getitem__(self, keyorslice):
         """
