@@ -47,3 +47,22 @@ def test_step(b, step):
 def test_empty(b):
     with pytest.raises(TypeError):
         b[::]
+
+
+# see ../docs/caveat-none-slice.rst.inc or
+# https://bidict.readthedocs.org/en/master/caveats.html#none-breaks-the-slice-syntax
+@pytest.fixture
+def b_none():
+    return bidict({'key': None, None: 'val'})
+
+@pytest.mark.xfail
+def test_none_slice_fwd(b_none):
+    assert b_none[None:] == 'val'
+
+@pytest.mark.xfail
+def test_none_slice_inv(b_none):
+    assert b_none[:None] == 'key'
+
+@pytest.mark.xfail
+def test_none_slice_fwd_inv(b_none):
+    assert b_none[None:] + b_none[:None] == 'valkey'
