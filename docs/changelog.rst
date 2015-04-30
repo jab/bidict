@@ -6,10 +6,14 @@ Changelog
 0.9.0-dev (not yet released)
 ----------------------------
 
+- Add a Changelog!
+  Also a
+  `Contributors' Guide <https://github.com/jab/bidict/blob/master/CONTRIBUTING.rst>`_,
+  `Gitter chat room <https://gitter.im/jab/bidict>`_,
+  and other community-oriented improvements
 - Adopt Pytest (thanks Tom Viner and Adopt Pytest Month)
 - Add property-based tests via `hypothesis <https://hypothesis.readthedocs.org>`_
-- Make code and docs more modular
-- Project layout improvements to support the above
+- Other code, tests, and docs improvements
 
 API
 ^^^

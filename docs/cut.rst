@@ -3,8 +3,8 @@ Not Worth Reading?
 
 This whole page should maybe just get cut from the docs.
 
-Stdlib Examples
----------------
+Missing bidicts in Stdlib!
+--------------------------
 
 The Python standard library actually contains some examples
 where bidicts could be used for fun and profit
@@ -17,15 +17,21 @@ where bidicts could be used for fun and profit
   (and as a public attribute, no less), 
   I bet I could afford some better turns of phrase.
 
+- The :mod:`dis` module
+  maintains a mapping from opnames to opcodes
+  :attr:`dis.opmap`
+  and a separate list of opnames indexed by opcode
+  :attr:`dis.opnames`.
+  These could be combined into a single bidict.
+
 - Python 3's
   :mod:`html.entities` module /
   Python 2's
   :mod:`htmlentitydefs` module
-  manually maintains
+  maintains separate
   :attr:`html.entities.name2codepoint` and
-  :attr:`html.entities.codepoint2name` dicts
-  separately by hand.
-  (See what I did there?)
+  :attr:`html.entities.codepoint2name` dicts.
+  These could be combined into a single bidict.
 
 More Caveats
 ------------

@@ -19,11 +19,11 @@ Status
     :target: https://bidict.readthedocs.org/
     :alt: Documentation
 
-.. image:: https://travis-ci.org/jab/bidict.svg
+.. image:: https://travis-ci.org/jab/bidict.svg?branch=master
     :target: https://travis-ci.org/jab/bidict
     :alt: Build status
 
-.. image:: https://coveralls.io/repos/jab/bidict/badge.svg
+.. image:: https://coveralls.io/repos/jab/bidict/badge.svg?branch=master
     :target: https://coveralls.io/r/jab/bidict
     :alt: Test coverage
 
