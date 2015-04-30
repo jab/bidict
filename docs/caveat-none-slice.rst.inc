@@ -35,7 +35,9 @@ so e.g. ``b[:None] + 'foo'`` will work fine, but::
     >>> b[:None] + ['foo'][0:][0]
     Traceback (most recent call last):
     ...
-    TypeError: Could not disambiguate None-slice
+    AmbiguousSlice: Could not disambiguate None-slice
+
+i.e. bidict can't guess the slice, and so raises an error.
 
 On Python 3,
 lacking any known good alternatives,

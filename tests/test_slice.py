@@ -1,5 +1,5 @@
 import pytest
-from bidict import bidict
+from bidict import bidict, AmbiguousSlice
 from bidict.compat import PY2
 from itertools import product
 
@@ -54,19 +54,21 @@ def test_empty(b):
 def b_none():
     return bidict({'key': None, None: 'val'})
 
-@pytest.mark.xfail(not PY2, reason='none-slice unsupported on Python 3')
+_nopy3 = 'None-slice unsupported on Python 3'
+
+@pytest.mark.xfail(not PY2, reason=_nopy3, raises=TypeError)
 def test_none_slice_fwd(b_none):
     assert b_none[None:] == 'val'
 
-@pytest.mark.xfail(not PY2, reason='none-slice unsupported on Python 3')
+@pytest.mark.xfail(not PY2, reason=_nopy3, raises=TypeError)
 def test_none_slice_inv(b_none):
     assert b_none[:None] == 'key'
 
-# mutliple slices per line with none-slice unsupported
+raises = AmbiguousSlice if PY2 else TypeError
 def test_multi_slice_fwd(b_none):
-    with pytest.raises(TypeError):
+    with pytest.raises(raises):
         b_none[None:] + ['foo'][0:][0]
 
 def test_multi_slice_inv(b_none):
-    with pytest.raises(TypeError):
+    with pytest.raises(raises):
         b_none[:None] + ['foo'][0:][0]

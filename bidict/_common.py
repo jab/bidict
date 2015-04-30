@@ -82,7 +82,7 @@ class BidirectionalMapping(Mapping):
             if ninv == 1 and not nfwd:
                 return False
             if nfwd or ninv:
-                raise TypeError('Could not disambiguate None-slice')
+                raise AmbiguousSlice
         if start_missing == stop_missing:
             raise TypeError('Slice must specify only either start or stop')
         return not start_missing
@@ -167,6 +167,17 @@ class CollapseException(Exception):
     Raised when an attempt is made to insert a new mapping into a bidict that
     would collapse two existing mappings.
     """
+
+
+class AmbiguousSlice(Exception):
+    """
+    Raised when a bidict is sliced with a None value
+    but we can't tell how.
+
+    See ../docs/caveat-none-slice.rst.inc or
+    https://bidict.readthedocs.org/en/master/caveats.html#none-breaks-the-slice-syntax
+    """
+    message = 'Could not disambiguate None-slice'
 
 
 _sentinel = object()
