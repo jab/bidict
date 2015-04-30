@@ -10,6 +10,8 @@ Changelog
 - Add property-based tests via `hypothesis <https://hypothesis.readthedocs.org>`_
 - Make code and docs more modular
 - Project layout improvements to support the above
+- Partial support for slices like ``b[:None]``
+  (see `caveat <https://bidict.readthedocs.org/en/master/caveats.html#none-breaks-the-slice-syntax>`_)
 
 API
 ^^^
