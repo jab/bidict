@@ -12,3 +12,6 @@ Credits
 
 - Thanks to Tom Viner for all the great help as bidict's mentor
   for Adopt Pytest Month 2015.
+
+- Thanks to Allison Kaptur and Tom Ballinger for suggestions on supporting
+  slices like ``b[:None]``.
