@@ -67,10 +67,13 @@ def test_inv_identity(d):
 nan = float('nan')
 WORKAROUND_NAN_BUG = (nan, nan) != (nan, nan)
 
-@pytest.mark.xfail(WORKAROUND_NAN_BUG, reason='python with nan bug detected')
 @given(d)
 def test_equality(d):
+    if WORKAROUND_NAN_BUG:
+        assume(nan not in d)
     i = inv(d)
+    if WORKAROUND_NAN_BUG:
+        assume(nan not in i)
     b = bidict(d)
     assert b == d
     assert ~b == i
