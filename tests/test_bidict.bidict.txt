@@ -49,6 +49,17 @@ Likewise, deleting items::
     >>> bi
     bidict({1: 'aught'})
 
+``put`` can also be used to update mappings::
+
+    >>> bi.put(0, 'zero')
+    >>> bi[0]
+    'zero'
+    >>> del bi[0]
+    >>> bi.put(1, 'one')
+    >>> bi
+    bidict({1: 'one'})
+    >>> bi.put(1, 'aught')
+
 bidicts maintain references to their inverses via the ``inv`` property,
 which can also be used to access or modify them::
 
@@ -121,6 +132,10 @@ The rest of the ``MutableMapping`` interface is supported::
     1
     >>> bi.popitem()
     ('two', 2)
+    >>> bi.popitem()
+    Traceback (most recent call last):
+    ...
+    KeyError: 'popitem(): bidict is empty'
     >>> bi.inv.setdefault(3, 'three')
     'three'
     >>> bi
@@ -139,6 +154,9 @@ The rest of the ``MutableMapping`` interface is supported::
     >>> bi.update({'five': 5}, six=6, seven=7)
     >>> sorted(bi.items(), key=lambda x: x[1])
     [('three', 3), ('four', 4), ('five', 5), ('six', 6), ('seven', 7)]
+    >>> bi.clear()
+    >>> bi
+    bidict({})
 
 Collapsing updates fail::
 
@@ -151,3 +169,19 @@ Collapsing updates fail::
     Traceback (most recent call last):
     ...
     CollapseException: ((1, 'one'), (2, 'two'))
+
+``forceput`` can be used instead::
+
+    >>> b.forceput(1, 'two')
+    >>> b
+    bidict({1: 'two'})
+
+Trying to insert an existing mapping behaves as expected::
+
+    >>> b = bidict({1: 'one'})
+    >>> b[1] = 'one'
+    >>> b[1]
+    'one'
+    >>> b[:'one'] = 1
+    >>> b[:'one']
+    1

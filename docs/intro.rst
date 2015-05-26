@@ -50,15 +50,15 @@ Is This Really Necessary?
 
 A skeptic writes:
 
-    If I want a mapping *a* ↔︎ *b*,
-    I would just create a dict *{a: b, b: a}*.
+    If I want a mapping *a* <-> *b*,
+    I would just create a dict *{a: b, b: a}*.
     What is the advantage of bidict
     over the simplicity of the dict approach?
 
 Glad you asked.
 
-For one, you don't have to manually update the mapping from *b* → *a*
-every time the mapping from *a* → *b* changes.
+For one, you don't have to manually update the mapping from *b* → *a*
+every time the mapping from *a* → *b* changes.
 With the skeptic's method, you have to write::
 
     >>> d[a] = c

@@ -27,13 +27,10 @@ class BidirectionalMapping(Mapping):
     __str__ = __repr__
 
     def __eq__(self, other):
-        try:
-            return viewitems(self) == viewitems(other)
-        except:
-            return False
+        return self._fwd == other
 
     def __ne__(self, other):
-        return not self.__eq__(other)
+        return self._fwd != other
 
     def __invert__(self):
         """

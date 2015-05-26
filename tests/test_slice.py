@@ -1,8 +1,6 @@
-from itertools import product
-
 import pytest
-
 from bidict import bidict
+from itertools import product
 
 
 @pytest.fixture
@@ -12,7 +10,6 @@ def b():
 single_test_data = {'H', 'hydrogen', -1, 0, 1}
 bad_start_values = single_test_data - {'H'}
 bad_stop_values = single_test_data - {'hydrogen'}
-pair_test_data = set(product(single_test_data, repeat=2))
 
 
 def test_good_start(b):
@@ -34,7 +31,7 @@ def test_stop(b, stop):
     with pytest.raises(KeyError):
         b[:stop]
 
-@pytest.mark.parametrize('start, stop', pair_test_data)
+@pytest.mark.parametrize('start, stop', product(single_test_data, repeat=2))
 def test_start_stop(b, start, stop):
     with pytest.raises(TypeError):
         b[start:stop]

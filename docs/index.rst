@@ -1,8 +1,8 @@
 bidict
 ======
 
-Bidirectional dict with convenient slice syntax:
-``d[65] = 'A'`` ⇔ ``d[:'A'] = 65``
+Efficient, Pythonic bidirectional map implementation
+and related functionality.
 
 .. include:: status.rst.inc
 

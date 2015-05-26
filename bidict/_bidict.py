@@ -78,7 +78,7 @@ class bidict(BidirectionalMapping, MutableMapping):
 
     def popitem(self):
         if not self._fwd:
-            raise KeyError
+            raise KeyError('popitem(): %s is empty' % self.__class__.__name__)
         key, val = self._fwd.popitem()
         del self._bwd[val]
         return key, val

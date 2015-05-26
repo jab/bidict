@@ -12,6 +12,13 @@ Test script for :func:`bidict.namedbidict`::
     >>> noble_gases
     ElementMap({'Ne': 'neon'})
 
+Invalid names are rejected::
+
+    >>> invalid = namedbidict('0xabad1d3a', 'keys', 'vals')
+    Traceback (most recent call last):
+    ...
+    ValueError: "0xabad1d3a" does not match pattern ^[a-zA-Z][a-zA-Z0-9_]*$
+
 Comparison works as expected::
 
     >>> from bidict import bidict

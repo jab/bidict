@@ -11,7 +11,7 @@ from operator import or_
 from hypothesis import assume, given, strategy
 from hypothesis.specifiers import dictionary
 
-from bidict import bidict
+from bidict import bidict, frozenbidict
 
 
 def inv(d):
@@ -79,3 +79,8 @@ def test_equality(d):
     assert ~b == i
     assert not b != d
     assert not ~b != i
+
+@given(d)
+def test_frozenbidict_hash(d):
+    f = frozenbidict(d)
+    assert hash(f)

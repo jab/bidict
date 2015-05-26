@@ -61,7 +61,7 @@ copyright = u'2015 ' + author
 # built documents.
 with io.open('../VERSION', encoding='utf8') as f:
     # The full version, including alpha/beta/rc tags.
-    release = f.read()
+    release = f.read().strip()
 
 # The short X.Y version.
 version = '.'.join(release.split('.')[:2])

@@ -3,7 +3,7 @@
 Changelog
 =========
 
-0.9.0-dev (not yet released)
+0.9.0 (not yet released)
 ----------------------------
 
 - Add a Changelog!
