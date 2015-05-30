@@ -1,16 +1,21 @@
 from io import open
 from setuptools import setup, Command
+from warnings import warn
 
 try:
-    with open('VERSION', encoding='utf8') as f:
-        version = f.read()
-except:
+    with open('bidict/VERSION', encoding='utf8') as f:
+        version = f.read().strip()
+except Exception as e:
     version = '999999'
+    warn('Could not open bidict/VERSION, using bogus version (%s): %r' %
+         (version, e))
 try:
     with open('README.rst', encoding='utf8') as f:
         long_description = f.read()
-except:
+except Exception as e:
     long_description = 'See https://bidict.readthedocs.org'
+    warn('Could not open README.rst, using provisional long_description '
+         '(%r): %r' % (long_description, e))
 
 tests_require = [
     'tox',
@@ -44,8 +49,8 @@ setup(
     keywords='dict, dictionary, mapping, bidirectional, bijection, bijective, injective, two-way, 2-way, double, inverse, reverse',
     url='https://github.com/jab/bidict',
     license='ISCL',
-    py_modules=['bidict'],
-    data_files=[('', ['VERSION'])],
+    packages=['bidict'],
+    package_data=dict(bidict=['VERSION']),
     zip_safe=True,
     classifiers=[
         'Development Status :: 4 - Beta',

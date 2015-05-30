@@ -59,7 +59,7 @@ copyright = u'2015 ' + author
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
 # built documents.
-with io.open('../VERSION', encoding='utf8') as f:
+with io.open(os.path.abspath('../bidict/VERSION'), encoding='utf8') as f:
     # The full version, including alpha/beta/rc tags.
     release = f.read().strip()
 

@@ -1,2 +1,2 @@
 include README.rst
-include VERSION
+include bidict/VERSION

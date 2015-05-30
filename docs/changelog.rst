@@ -3,7 +3,7 @@
 Changelog
 =========
 
-0.9.0 (not yet released)
+0.9.0rc0 (2015-05-30)
 ----------------------------
 
 - Add a Changelog!
