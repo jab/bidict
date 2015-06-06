@@ -6,7 +6,7 @@ try:
     with open('bidict/VERSION', encoding='utf8') as f:
         version = f.read().strip()
 except Exception as e:
-    version = '999999'
+    version = '0.0.0'
     warn('Could not open bidict/VERSION, using bogus version (%s): %r' %
          (version, e))
 try:

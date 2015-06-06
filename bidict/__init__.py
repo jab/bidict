@@ -1,7 +1,14 @@
+# -*- coding: utf-8 -*-
+
 """
-Main package which pulls in all bidirectional dict types
-and utilities for working with one-to-one mappings.
+Efficient, Pythonic bidirectional map implementation
+and related functionality.
+
+.. :copyright: (c) 2015 Joshua Bronson.
+.. :license: ISCL. See LICENSE for details.
+
 """
+
 from ._common import BidirectionalMapping, CollapseException
 from ._bidict import bidict
 from ._collapsing import collapsingbidict
@@ -19,3 +26,10 @@ __all__ = (
     'pairs',
     'inverted',
 )
+
+try:
+    from pkg_resources import resource_string
+    __version__ = resource_string(__name__, 'VERSION').decode('ascii').strip()
+except Exception as e:
+    from warnings import warn
+    warn('Failed to read/set version: %r' % e)
