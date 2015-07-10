@@ -23,17 +23,14 @@ so it can't tell whether you wrote
 referring to an inverse mapping,
 or
 ``b[None:]``,
-referring to a forward mapping.
-or for that matter
-``b[:]``,
-which wouldn't be meaningful at all.
+referring to a forward mapping
+(or for that matter ``b[:]``).
 
 In this case,
 lacking any known good alternatives,
 bidict currently throws a :class:`TypeError`,
 which unfairly puts the burden of disambiguation on the user
 for something that was unambiguous to the user in the first place.
-Sometimes Python syntax hacks have their limits.
 
 The upshot of this is
 if you will be storing ``None`` as a key (or value) in a bidict,
@@ -44,5 +41,7 @@ Instead you have to do something like::
     >>> b.inv[None]
     'foo'
 
-Suggestions for better ways to handle this edge case
-would be gratefully received.
+Ideas have been explored to make this edge case work
+but no robust solutions have been found.
+The limits of Python syntax hacks.
+Faugh!
