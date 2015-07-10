@@ -8,9 +8,10 @@ python:
 install:
   - pip install -e .[test]
   - pip install coveralls
+  - pip install tox-travis
 
 script:
-  - py.test --doctest-modules bidict
+  - tox
   - py.test --cov bidict tests
 
 after_success:
