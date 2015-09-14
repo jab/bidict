@@ -30,13 +30,13 @@ Status
     :target: https://www.codacy.com/app/jab/bidict
     :alt: Code quality
 
-.. .. image:: https://pypip.in/py_versions/bidict/badge.svg
-..     :target: https://pypi.python.org/pypi/bidict
-..     :alt: Supported Python versions
-..
-.. .. image:: https://pypip.in/implementation/bidict/badge.svg
-..     :target: https://pypi.python.org/pypi/bidict
-..     :alt: Supported Python implementations
+ .. image:: https://img.shields.io/pypi/pyversions/bidict.svg
+     :target: https://pypi.python.org/pypi/bidict
+     :alt: Supported Python versions
+
+ .. image:: https://img.shields.io/pypi/implementation/bidict.svg
+     :target: https://pypi.python.org/pypi/bidict
+     :alt: Supported Python implementations
 
 .. image:: https://img.shields.io/pypi/l/bidict.svg
     :target: https://raw.githubusercontent.com/jab/bidict/master/LICENSE
