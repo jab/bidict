@@ -32,6 +32,19 @@ and finally
 :class:`bidict.collapsingbidict`,
 the leaf on this side of the tree.
 
+Polymorphism
+++++++++++++
+
+Note that none of the bidict types inherit from dict.
+The following example demonstrates a recommended way to verify
+that a bidict is dict-like::
+
+    >>> from collections import Mapping
+    >>> from bidict import bidict
+    >>> b = bidict()
+    >>> isinstance(b, Mapping)
+    True
+
 .. include:: frozenbidict.rst.inc
 
 .. include:: namedbidict.rst.inc
