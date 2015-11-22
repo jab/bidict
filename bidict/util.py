@@ -18,7 +18,7 @@ def pairs(*map_or_it, **kw):
     if map_or_it:
         l = len(map_or_it)
         if l != 1:
-            raise TypeError('expected at most 1 argument, got %d' % l)
+            raise TypeError('Pass at most 1 positional argument (got %d)' % l)
         map_or_it = map_or_it[0]
         try:
             it = iteritems(map_or_it)   # mapping?
