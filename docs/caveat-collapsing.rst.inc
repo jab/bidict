@@ -52,3 +52,11 @@ bidict provides some better options:
     bidict({0: 'one'})
 
 - Use a :class:`bidict.collapsingbidict` instead.
+
+In the spirit of the
+`Zen of Python <https://www.python.org/dev/peps/pep-0020/>`_,
+
+::
+
+    Errors should never pass silently.
+    Unless explicitly silenced.
