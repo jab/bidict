@@ -6,33 +6,52 @@ Changelog
 0.10.0 (not yet released)
 -------------------------
 
-API
-^^^
+- Removed several features in favor of keeping the API simpler
+  and the code more maintainable
 
-- removed :func:`bidict.invert`; ``b = b.inv`` makes it superfluous
+Breaking API Changes
+^^^^^^^^^^^^^^^^^^^^
+
+- Removed ``bidict.__invert__``, and with it, support for the ``~b`` syntax.
+  Use ``b.inv`` instead.
+  `#19 <https://github.com/jab/bidict/issues/19>`_
+- Removed support for the slice syntax.
+  Use ``b.inv[val]`` rather than ``b[:val]``.
+  `#19 <https://github.com/jab/bidict/issues/19>`_
+- Removed ``bidict.invert``.
+  Use ``b.inv`` rather than inverting a bidict in place.
+  `#20 <https://github.com/jab/bidict/issues/20>`_
+
+
+0.9.0.post1 (2015-06-06)
+------------------------
+
+- Fixed metadata missing in the 0.9.0rc0 release
+
 
 0.9.0rc0 (2015-05-30)
-----------------------------
+---------------------
 
-- Add a Changelog!
+- Added a Changelog!
   Also a
   `Contributors' Guide <https://github.com/jab/bidict/blob/master/CONTRIBUTING.rst>`_,
   `Gitter chat room <https://gitter.im/jab/bidict>`_,
   and other community-oriented improvements
-- Adopt Pytest (thanks Tom Viner and Adopt Pytest Month)
-- Add property-based tests via `hypothesis <https://hypothesis.readthedocs.org>`_
+- Adopted Pytest (thanks Tom Viner and Adopt Pytest Month)
+- Added property-based tests via
+  `hypothesis <https://hypothesis.readthedocs.org>`_
 - Other code, tests, and docs improvements
 
-API
-^^^
+Breaking API Changes
+^^^^^^^^^^^^^^^^^^^^
 
-- moved :func:`bidict.iteritems` and :func:`bidict.viewitems`
+- Moved :func:`bidict.iteritems` and :func:`bidict.viewitems`
   to new :attr:`bidict.compat` module
-- moved :class:`bidict.inverted`
+- Moved :class:`bidict.inverted`
   to new :attr:`bidict.util` module
   (still available from top-level :mod:`bidict` module as well)
-- moved/renamed ``bidict.fancy_iteritems``
+- Moved/renamed ``bidict.fancy_iteritems``
   to :func:`bidict.util.pairs`
   (also available from top level as :func:`bidict.pairs`)
-- renamed ``bidict_type`` keyword arg to ``base_type``
+- Renamed ``bidict_type`` keyword arg to ``base_type``
   in :func:`bidict.namedbidict`

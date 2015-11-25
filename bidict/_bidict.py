@@ -12,25 +12,11 @@ class bidict(BidirectionalMapping, MutableMapping):
         del self._fwd[key]
         del self._bwd[val]
 
-    def __delitem__(self, keyorslice):
-        if isinstance(keyorslice, slice):
-            # delete by key: del b[key:]
-            if self._fwd_slice(keyorslice):
-                self._del(keyorslice.start)
-            else:  # delete by value: del b[:val]
-                self._del(self._bwd[keyorslice.stop])
-        else:  # keyorslice is a key: del b[key]
-            self._del(keyorslice)
+    def __delitem__(self, key):
+        self._del(key)
 
-    def __setitem__(self, keyorslice, keyorval):
-        if isinstance(keyorslice, slice):
-            # keyorslice.start is key, keyorval is val: b[key:] = val
-            if self._fwd_slice(keyorslice):
-                self._put(keyorslice.start, keyorval)
-            else:  # keyorval is key, keyorslice.stop is val: b[:val] = key
-                self._put(keyorval, keyorslice.stop)
-        else:  # keyorslice is a key, keyorval is a val: b[key] = val
-            self._put(keyorslice, keyorval)
+    def __setitem__(self, key, val):
+        self._put(key, val)
 
     def put(self, key, val):
         """

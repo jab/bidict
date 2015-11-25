@@ -14,29 +14,15 @@ bidict.bidict
 
 :class:`bidict.bidict`
 is the main bidirectional map data structure provided.
-It implements the dict API
-and thus supports the familiar getitem (bracket) syntax.
-It also supports a convenient slice syntax to express inverse mapping::
+It implements the familiar API you're used to from dict::
 
     >>> element_by_symbol = bidict(H='hydrogen')
-    >>> # use standard dict getitem syntax for forward mapping:
     >>> element_by_symbol['H']
     'hydrogen'
-    >>> # use slice syntax for inverse mapping:
-    >>> element_by_symbol[:'hydrogen']
-    'H'
+    >>> element_by_symbol
+    bidict({'H': 'hydrogen'})
 
-You can also access a bidict's inverse
-using the unary inverse operator::
-
-    >>> symbol_by_element = ~element_by_symbol
-    >>> symbol_by_element
-    bidict({'hydrogen': 'H'})
-
-Concise, efficient, Pythonic.
-
-And if you're not a fan of the ``~`` or the slice syntax,
-you can also use the ``.inv`` property to achieve the same results::
+But it also maintains the inverse mapping via the ``.inv`` property::
 
     >>> element_by_symbol.inv
     bidict({'hydrogen': 'H'})
@@ -44,6 +30,9 @@ you can also use the ``.inv`` property to achieve the same results::
     'H'
     >>> element_by_symbol.inv.inv is element_by_symbol
     True
+
+Concise, efficient, Pythonic.
+
 
 Is This Really Necessary?
 -------------------------

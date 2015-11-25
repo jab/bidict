@@ -7,7 +7,7 @@ Test script for bidict.bidict::
     >>> bi == bidict({1: 'one', 2: 'two', 3: 'three'})
     True
 
-Standard getitem syntax gets and sets forward mappings::
+Works like dict for getting and changing forward mappings::
 
     >>> bi[2]
     'two'
@@ -18,36 +18,11 @@ Standard getitem syntax gets and sets forward mappings::
     Traceback (most recent call last):
         ...
     KeyError: 4
-
-As does slice with only a ``start``::
-
-    >>> bi[2:]
-    'twain'
-    >>> bi[0:] = 'naught'
-    >>> bi[0:]
-    'naught'
-
-Slice with only a ``stop`` gets and sets inverse mappings::
-
-    >>> bi[:'one']
-    1
-    >>> bi[:'aught'] = 1
-    >>> bi[:'aught']
-    1
-    >>> bi[1]
-    'aught'
-    >>> bi[:'one']
-    Traceback (most recent call last):
-        ...
-    KeyError: 'one'
-
-Likewise, deleting items::
-
-    >>> del bi[0]
-    >>> del bi[2:]
-    >>> del bi[:'three']
+    >>> del bi[2]
+    >>> bi.pop(3)
+    'three'
     >>> bi
-    bidict({1: 'aught'})
+    bidict({1: 'one'})
 
 ``put`` can also be used to update mappings::
 
@@ -67,23 +42,17 @@ which can also be used to access or modify them::
     bidict({'aught': 1})
     >>> bi.inv['aught']
     1
-    >>> bi.inv[:1]
-    'aught'
-    >>> bi.inv[:1] = 'one'
-    >>> bi.inv
-    bidict({'one': 1})
+    >>> bi.inv['aught'] = 'one'
+    >>> bi
+    bidict({'one': 'aught'})
+    >>> bi.inv.pop('aught')
+    'one'
+    >>> bi.inv.update(one=1)
     >>> bi
     bidict({1: 'one'})
     >>> bi.inv.inv is bi
     True
     >>> bi.inv.inv.inv is bi.inv
-    True
-
-A bidict's inverse can also be accessed via ~ operator::
-
-    >>> ~bi
-    bidict({'one': 1})
-    >>> ~bi is bi.inv
     True
 
 bidicts work with ``inverted`` as expected::
@@ -100,14 +69,11 @@ This created a new object (equivalent but not identical)::
     >>> biinv is bi.inv
     False
 
-To replace a bidict with its inverse (and in constant time), simply do::
-
-    >>> bi = bi.inv
-    >>> bi
-    bidict({'one': 1})
-
 Inverting the inverse should round-trip::
 
+    >>> bi == bidict(inverted(inverted(bi)))
+    True
+    >>> bi = bi.inv
     >>> bi == bidict(inverted(inverted(bi)))
     True
 
@@ -172,7 +138,7 @@ Collapsing updates fail::
     Traceback (most recent call last):
     ...
     CollapseException: ((1, 1), (2, 2))
-    >>> b[:2] = 1  # doctest: +IGNORE_EXCEPTION_DETAIL
+    >>> b.inv[2] = 1  # doctest: +IGNORE_EXCEPTION_DETAIL
     Traceback (most recent call last):
     ...
     CollapseException: ((1, 1), (2, 2))
@@ -193,6 +159,6 @@ Trying to insert an existing mapping does not raise, and is a no-op::
     >>> b[1] = 'one'
     >>> b[1]
     'one'
-    >>> b[:'one'] = 1
-    >>> b[:'one']
+    >>> b.inv['one'] = 1
+    >>> b.inv['one']
     1

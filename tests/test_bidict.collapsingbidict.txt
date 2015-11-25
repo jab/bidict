@@ -14,7 +14,7 @@ Collapsing updates succeed::
     >>> b
     collapsingbidict({1: 2})
     >>> b = collapsingbidict({1: 1, 2: 2})
-    >>> b[:2] = 1
+    >>> b.inv[2] = 1
     >>> b
     collapsingbidict({1: 2})
     >>> b = collapsingbidict({1: 1, 2: 2})

@@ -3,8 +3,6 @@ Credits
 
 - Thanks to Gregory Ewing for the name.
 
-- Thanks to Terry Reedy for suggesting the slice syntax.
-
 - Thanks to Raymond Hettinger for suggesting namedbidict
   and pointing out various caveats.
 
