@@ -3,6 +3,14 @@
 Changelog
 =========
 
+0.10.0 (not yet released)
+-------------------------
+
+API
+^^^
+
+- removed :func:`bidict.invert`; ``b = b.inv`` makes it superfluous
+
 0.9.0rc0 (2015-05-30)
 ----------------------------
 

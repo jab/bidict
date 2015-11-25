@@ -67,10 +67,6 @@ class bidict(BidirectionalMapping, MutableMapping):
         self._fwd.clear()
         self._bwd.clear()
 
-    def invert(self):
-        self._fwd, self._bwd = self._bwd, self._fwd
-        self._inv._fwd, self._inv._bwd = self._inv._bwd, self._inv._fwd
-
     def pop(self, key, *args):
         val = self._fwd.pop(key, *args)
         del self._bwd[val]

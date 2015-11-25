@@ -100,16 +100,16 @@ This created a new object (equivalent but not identical)::
     >>> biinv is bi.inv
     False
 
+To replace a bidict with its inverse (and in constant time), simply do::
+
+    >>> bi = bi.inv
+    >>> bi
+    bidict({'one': 1})
+
 Inverting the inverse should round-trip::
 
     >>> bi == bidict(inverted(inverted(bi)))
     True
-
-Use ``invert`` to invert the mapping in place (and in constant time)::
-
-    >>> bi.invert()
-    >>> bi
-    bidict({'one': 1})
 
 The rest of the ``MutableMapping`` interface is supported::
 
