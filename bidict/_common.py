@@ -83,19 +83,19 @@ class BidirectionalMapping(Mapping):
         try:
             oldval = self._fwd[key]
         except KeyError:
-            oldval = _sentinel
+            oldval = _missing
         try:
             oldkey = self._bwd[val]
         except KeyError:
-            oldkey = _sentinel
+            oldkey = _missing
 
-        if oldval is not _sentinel and oldkey is not _sentinel:
+        if oldval is not _missing and oldkey is not _missing:
             if key == oldkey and val == oldval:
                 return
             raise CollapseException((key, oldval), (oldkey, val))
-        elif oldval is not _sentinel:
+        elif oldval is not _missing:
             del self._bwd[oldval]
-        elif oldkey is not _sentinel:
+        elif oldkey is not _missing:
             del self._fwd[oldkey]
 
         self._fwd[key] = val
@@ -144,4 +144,4 @@ class CollapseException(Exception):
     """
 
 
-_sentinel = object()
+_missing = object()

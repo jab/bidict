@@ -158,25 +158,36 @@ The rest of the ``MutableMapping`` interface is supported::
     >>> bi
     bidict({})
 
+Initializing with collapsing mappings fails::
+
+    >>> bidict([(1, 1), (2, 2), (1, 2)])  # doctest: +IGNORE_EXCEPTION_DETAIL
+    Traceback (most recent call last):
+    ...
+    CollapseException: ((1, 1), (2, 2))
+
 Collapsing updates fail::
 
-    >>> b = bidict({1: 'one', 2: 'two'})
-    >>> b[1] = 'two'  # doctest: +IGNORE_EXCEPTION_DETAIL
+    >>> b = bidict({1: 1, 2: 2})
+    >>> b[1] = 2  # doctest: +IGNORE_EXCEPTION_DETAIL
     Traceback (most recent call last):
     ...
-    CollapseException: ((1, 'one'), (2, 'two'))
-    >>> b[:'two'] = 1  # doctest: +IGNORE_EXCEPTION_DETAIL
+    CollapseException: ((1, 1), (2, 2))
+    >>> b[:2] = 1  # doctest: +IGNORE_EXCEPTION_DETAIL
     Traceback (most recent call last):
     ...
-    CollapseException: ((1, 'one'), (2, 'two'))
+    CollapseException: ((1, 1), (2, 2))
+    >>> b.update({1: 2})  # doctest: +IGNORE_EXCEPTION_DETAIL
+    Traceback (most recent call last):
+    ...
+    CollapseException: ((1, 1), (2, 2))
 
 ``forceput`` can be used instead::
 
-    >>> b.forceput(1, 'two')
+    >>> b.forceput(1, 2)
     >>> b
-    bidict({1: 'two'})
+    bidict({1: 2})
 
-Trying to insert an existing mapping behaves as expected::
+Trying to insert an existing mapping does not raise, and is a no-op::
 
     >>> b = bidict({1: 'one'})
     >>> b[1] = 'one'

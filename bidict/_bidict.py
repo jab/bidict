@@ -1,4 +1,4 @@
-from ._common import BidirectionalMapping, _sentinel
+from ._common import BidirectionalMapping, _missing
 from .util import pairs
 from collections import MutableMapping
 
@@ -54,11 +54,11 @@ class bidict(BidirectionalMapping, MutableMapping):
             bidict({0: 'one'})
 
         """
-        oldval = self._fwd.get(key, _sentinel)
-        oldkey = self._bwd.get(val, _sentinel)
-        if oldval is not _sentinel:
+        oldval = self._fwd.get(key, _missing)
+        oldkey = self._bwd.get(val, _missing)
+        if oldval is not _missing:
             del self._bwd[oldval]
-        if oldkey is not _sentinel:
+        if oldkey is not _missing:
             del self._fwd[oldkey]
         self._fwd[key] = val
         self._bwd[val] = key
@@ -86,4 +86,4 @@ class bidict(BidirectionalMapping, MutableMapping):
 
     def update(self, *args, **kw):
         for k, v in pairs(*args, **kw):
-            self[k] = v
+            self._put(k, v)
