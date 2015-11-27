@@ -80,3 +80,8 @@ Other Verbiage, Esoterica, Navel Gazing, &c.
   as long as you don't ``gc.disable()``.
   If you do, reclaiming a bidict's memory is up to you,
   but if you're disabling GC you knew that already.
+
+  **NOTE:** Prior to Python 3.4,
+  ``__del__()`` methods prevented reference cycles from being garbage collected.
+  No bidicts define ``__del__()``,
+  so this is only an issue if you define ``__del__()`` in a bidict subclass.
