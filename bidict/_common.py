@@ -12,8 +12,7 @@ class BidirectionalMapping(Mapping):
     def __init__(self, *args, **kw):
         self._fwd = {}
         self._bwd = {}
-        for (k, v) in pairs(*args, **kw):
-            self._put(k, v)
+        self._update(*args, **kw)
         inv = object.__new__(self.__class__)
         inv._fwd = self._bwd
         inv._bwd = self._fwd
@@ -47,26 +46,22 @@ class BidirectionalMapping(Mapping):
         return self._fwd[key]
 
     def _put(self, key, val):
-        try:
-            oldval = self._fwd[key]
-        except KeyError:
-            oldval = _missing
-        try:
-            oldkey = self._bwd[val]
-        except KeyError:
-            oldkey = _missing
-
-        if oldval is not _missing and oldkey is not _missing:
-            if key == oldkey and val == oldval:
-                return
+        oldkey = self._bwd.get(val, _missing)
+        oldval = self._fwd.get(key, _missing)
+        if key == oldkey and val == oldval:
+            return
+        if oldkey is not _missing and oldval is not _missing:
             raise CollapseException((key, oldval), (oldkey, val))
-        elif oldval is not _missing:
+        if oldkey is not _missing:
+            raise ValueExistsException((oldkey, val))
+        if oldval is not _missing:
             del self._bwd[oldval]
-        elif oldkey is not _missing:
-            del self._fwd[oldkey]
-
         self._fwd[key] = val
         self._bwd[val] = key
+
+    def _update(self, *args, **kw):
+        for k, v in pairs(*args, **kw):
+            self._put(k, v)
 
     get = lambda self, k, *args: self._fwd.get(k, *args)
     copy = lambda self: self.__class__(self._fwd)
@@ -104,7 +99,18 @@ class BidirectionalMapping(Mapping):
         values.__doc__ = dict.values.__doc__
 
 
-class CollapseException(Exception):
+class BidictException(Exception):
+    """
+    Base class for bidict exceptions.
+    """
+
+class ValueExistsException(BidictException):
+    """
+    Raised when an attempt is made to insert a new mapping into a bidict whose
+    key maps to the value of an existing mapping, violating one-to-one-ness.
+    """
+
+class CollapseException(BidictException):
     """
     Raised when an attempt is made to insert a new mapping into a bidict that
     would collapse two existing mappings.

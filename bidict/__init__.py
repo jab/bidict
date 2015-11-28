@@ -9,18 +9,20 @@ and related functionality.
 
 """
 
-from ._common import BidirectionalMapping, CollapseException
+from ._common import BidirectionalMapping, BidictException, CollapseException, ValueExistsException
 from ._bidict import bidict
-from ._collapsing import collapsingbidict
+from ._loose import loosebidict
 from ._frozen import frozenbidict
 from ._named import namedbidict
 from .util import pairs, inverted
 
 __all__ = (
     'BidirectionalMapping',
+    'BidictException',
     'CollapseException',
+    'ValueExistsException',
     'bidict',
-    'collapsingbidict',
+    'loosebidict',
     'frozenbidict',
     'namedbidict',
     'pairs',

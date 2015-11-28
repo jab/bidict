@@ -15,8 +15,12 @@ class bidict(BidirectionalMapping, MutableMapping):
     def __delitem__(self, key):
         self._del(key)
 
+    __delitem__.__doc__ = dict.__delitem__.__doc__
+
     def __setitem__(self, key, val):
         self._put(key, val)
+
+    __setitem__.__doc__ = dict.__setitem__.__doc__
 
     def put(self, key, val):
         """
@@ -27,18 +31,10 @@ class bidict(BidirectionalMapping, MutableMapping):
     def forceput(self, key, val):
         """
         Like :attr:`bidict.bidict.put` but silently removes any existing
-        mapping that would otherwise cause a :class:`bidict.CollapseException`
-        before inserting the given mapping::
-
-            >>> b = bidict({0: 'zero', 1: 'one'})
-            >>> b.put(0, 'one')  # doctest: +IGNORE_EXCEPTION_DETAIL
-            Traceback (most recent call last):
-            ...
-            CollapseException: ((0, 'zero'), (1, 'one'))
-            >>> b.forceput(0, 'one')
-            >>> b
-            bidict({0: 'one'})
-
+        mapping that would otherwise cause
+        :class:`bidict.ValueExistsException` or
+        :class:`bidict.CollapseException`
+        before inserting the given mapping.
         """
         oldval = self._fwd.get(key, _missing)
         oldkey = self._bwd.get(val, _missing)
@@ -53,10 +49,14 @@ class bidict(BidirectionalMapping, MutableMapping):
         self._fwd.clear()
         self._bwd.clear()
 
+    clear.__doc__ = dict.clear.__doc__
+
     def pop(self, key, *args):
         val = self._fwd.pop(key, *args)
         del self._bwd[val]
         return val
+
+    pop.__doc__ = dict.pop.__doc__
 
     def popitem(self):
         if not self._fwd:
@@ -65,11 +65,22 @@ class bidict(BidirectionalMapping, MutableMapping):
         del self._bwd[val]
         return key, val
 
+    popitem.__doc__ = dict.popitem.__doc__
+
     def setdefault(self, key, default=None):
         val = self._fwd.setdefault(key, default)
         self._bwd[val] = key
         return val
 
     def update(self, *args, **kw):
+        return self._update(*args, **kw)
+
+    update.__doc__ = dict.update.__doc__
+
+    def forceupdate(self, *args, **kw):
+        """
+        Equivalent to calling :attr:`bidict.bidict.forceput`
+        with each of the given mappings.
+        """
         for k, v in pairs(*args, **kw):
-            self._put(k, v)
+            self.forceput(k, v)
