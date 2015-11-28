@@ -10,7 +10,7 @@
     :target: https://bidict.readthedocs.org/
     :alt: Documentation
 
-.. image:: https://travis-ci.org/jab/bidict.svg
+.. image:: https://travis-ci.org/jab/bidict.svg?branch=master
     :target: https://travis-ci.org/jab/bidict
     :alt: Build status
 
