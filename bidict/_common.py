@@ -52,10 +52,9 @@ class BidirectionalMapping(Mapping):
             return
         if oldkey is not _missing:
             raise ValueExistsException((oldkey, val))
-        if oldval is not _missing:
-            del self._bwd[oldval]
         self._fwd[key] = val
         self._bwd[val] = key
+        self._bwd.pop(oldval, None)
 
     def _update(self, *args, **kw):
         for k, v in pairs(*args, **kw):
