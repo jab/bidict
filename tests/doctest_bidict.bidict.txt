@@ -100,7 +100,7 @@ The rest of the ``MutableMapping`` interface is supported::
     ('two', 2)
     >>> bi.popitem()
     Traceback (most recent call last):
-    ...
+        ...
     KeyError: 'popitem(): bidict is empty'
     >>> bi.inv.setdefault(3, 'three')
     'three'
@@ -128,7 +128,7 @@ Initializing with different keys mapping to the same value fails::
 
     >>> bidict([(1, 1), (2, 1)])
     Traceback (most recent call last):
-    ...
+        ...
     ValueExistsException: (1, 1)
 
 Adding a new key associated with an existing value fails::
@@ -136,11 +136,11 @@ Adding a new key associated with an existing value fails::
     >>> b = bidict({1: 1})
     >>> b[2] = 1
     Traceback (most recent call last):
-    ...
+        ...
     ValueExistsException: (1, 1)
     >>> b.update({2: 1})
     Traceback (most recent call last):
-    ...
+        ...
     ValueExistsException: (1, 1)
 
 ``forceput`` and ``forceupdate`` can be used instead::

@@ -24,19 +24,19 @@ and resolve the conflict before it's too late:
     >>> b = bidict({1: 1})
     >>> b[2] = 1
     Traceback (most recent call last):
-    ...
+        ...
     ValueExistsException: (1, 1)
 
 The same thing happens with offending initializations and updates::
 
     >>> b = bidict({1: 1, 2: 1})
     Traceback (most recent call last):
-    ...
+        ...
     ValueExistsException: (1, 1)
     >>> b = bidict({1: 1})
     >>> b.update({2: 1})
     Traceback (most recent call last):
-    ...
+        ...
     ValueExistsException: (1, 1)
 
 You can use :attr:`bidict.bidict.forceput` and :attr:`bidict.bidict.forceupdate`
@@ -82,14 +82,14 @@ you can perform the inverse operations on ``b.inv``::
     >>> b = bidict({1: 1})
     >>> b.inv[2] = 1
     Traceback (most recent call last):
-    ...
+        ...
     ValueExistsException: (1, 1)
     >>> from bidict import inverted
     >>> b.inv.update(inverted([(1, 3), (1, 4), (1, 5)]))
     Traceback (most recent call last):
-    ...
+        ...
     ValueExistsException: (1, 1)
     >>> bidict(inverted([(1, 1), (1, 2)]))
     Traceback (most recent call last):
-    ...
+        ...
     ValueExistsException: (1, 1)
