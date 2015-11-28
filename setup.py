@@ -19,6 +19,7 @@ except Exception as e:
 
 tests_require = [
     'tox',
+    'py>=1.4.31',
     'pytest>=2.8.3',
     'pytest-cov',
     'hypothesis',
