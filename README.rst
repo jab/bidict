@@ -3,6 +3,10 @@ bidict
  
 Efficient, Pythonic bidirectional map implementation and related functionality.
 
+.. image:: ./docs/_static/logo.png
+    :alt: bidict logo
+
+
 Status
 ------
 
@@ -30,29 +34,37 @@ Status
     :target: https://www.codacy.com/app/jab/bidict
     :alt: Code quality
 
- .. image:: https://img.shields.io/pypi/pyversions/bidict.svg
-     :target: https://pypi.python.org/pypi/bidict
-     :alt: Supported Python versions
+.. image:: https://img.shields.io/pypi/pyversions/bidict.svg
+    :target: https://pypi.python.org/pypi/bidict
+    :alt: Supported Python versions
 
- .. image:: https://img.shields.io/pypi/implementation/bidict.svg
-     :target: https://pypi.python.org/pypi/bidict
-     :alt: Supported Python implementations
+.. image:: https://img.shields.io/pypi/implementation/bidict.svg
+    :target: https://pypi.python.org/pypi/bidict
+    :alt: Supported Python implementations
 
 .. image:: https://img.shields.io/pypi/l/bidict.svg
     :target: https://raw.githubusercontent.com/jab/bidict/master/LICENSE
     :alt: License
 
+.. image:: https://img.shields.io/badge/gumroad-support%20bidict-brightgreen.svg
+    :target: https://gum.co/XGXTp
+    :alt: Support bidict
+
 .. image:: https://img.shields.io/badge/Paypal-Buy%20a%20Drink-blue.svg
     :target: https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=jab%40math%2ebrown%2eedu&lc=US&item_name=Buy%20a%20drink%20for%20jab&button_subtype=services&currency_code=USD&bn=PP%2dBuyNowBF%3aPaypal%2dBuy%2520a%2520Drink%2dblue%2esvg%3aNonHosted
     :alt: PayPal - Buy a drink
 
-.. image:: https://api.bountysource.com/badge/team?team_id=72966&style=raised
+.. image:: https://img.shields.io/bountysource/team/jab/activity.svg
     :target: https://www.bountysource.com/teams/jab
-    :alt: Donate via Bountysource
+    :alt: Bountysource
 
 .. image:: https://badges.gitter.im/Join%20Chat.svg
     :alt: Chat
     :target: https://gitter.im/jab/bidict
+
+.. image:: https://img.shields.io/github/stars/jab/bidict.svg?style=social&label=Star
+    :target: https://github.com/jab/bidict/stargazers
+    :alt: Star on GitHub
 
 Installation
 ------------
@@ -69,9 +81,19 @@ Participation
 
 Please feel free to `create an issue <https://github.com/jab/bidict/issues/new>`_
 or `join the chat room <https://gitter.im/jab/bidict>`_
-if you have any questions, feedback, or just want to say hi /
-tell us about your use case.
+if you have any questions, feedback, or just want to say hi or
+talk about your use case.
+
+bidict is the result of hundreds of hours of voluntary, unpaid work.
+If bidict has helped you accomplish work you've been paid for,
+please `support bidict <https://gumroad.com/l/XGXTp>`_
+and/or ask your employer to do the same.
+Your support directly contributes to bidict's sustainability.
+
+.. image:: ./docs/_static/support-on-gumroad.png
+    :target: https://gumroad.com/l/XGXTp
+    :alt: Support bidict
 
 Check out
 `CONTRIBUTING.rst <https://github.com/jab/bidict/blob/master/CONTRIBUTING.rst>`_
-for information about contributing.
+for more information about contributing.
