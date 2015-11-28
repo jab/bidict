@@ -13,7 +13,5 @@ Please bear the following in mind while using bidict.
 
 .. include:: caveat-hashable-values.rst.inc
 
-.. include:: caveat-none-slice.rst.inc
-
 With those out of the way,
 let's turn now to considering bidict's :ref:`performance`.

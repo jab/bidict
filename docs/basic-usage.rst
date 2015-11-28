@@ -7,13 +7,12 @@ Let's return to the example from the :ref:`intro`::
 
     >>> element_by_symbol = bidict(H='hydrogen')
 
-As we saw, we can use standard dict getitem (bracket) syntax
-to reference a forward mapping ``d[key]``,
-and slice syntax to reference an inverse mapping ``d[:value]``.
-The slice syntax works for setting and deleting items too::
+As we saw, this behaves just like a dict,
+but maintains a special ``.inv`` property
+giving access to inverse mappings::
 
-    >>> element_by_symbol[:'helium'] = 'He'
-    >>> del element_by_symbol[:'hydrogen']
+    >>> element_by_symbol.inv['helium'] = 'He'
+    >>> del element_by_symbol.inv['hydrogen']
     >>> element_by_symbol
     bidict({'He': 'helium'})
 
@@ -32,14 +31,9 @@ is also supported::
     >>> element_by_symbol.update(Hg='mercury')
     >>> element_by_symbol
     bidict({'Hg': 'mercury'})
-
-As we saw, we can also use the unary inverse operator ``~``
-to reference a bidict's inverse.
-This can be handy for composing with other operations::
-
-    >>> 'mercury' in ~element_by_symbol
+    >>> 'mercury' in element_by_symbol.inv
     True
-    >>> (~element_by_symbol).pop('mercury')
+    >>> element_by_symbol.inv.pop('mercury')
     'Hg'
 
 Because inverse mappings are maintained alongside forward mappings,

@@ -32,52 +32,19 @@ class BidirectionalMapping(Mapping):
     def __ne__(self, other):
         return self._fwd != other
 
-    def __invert__(self):
+    @property
+    def inv(self):
         """
-        Called when the unary inverse operator (~) is applied.
+        Property providing access to the inverse bidict.
+        Can be chained as in: ``B.inv.inv is B``.
         """
         return self._inv
-
-    inv = property(__invert__, doc='Property providing access to the inverse '
-                   'bidict. Can be chained as in: ``B.inv.inv is B``')
 
     def __inverted__(self):
         return iteritems(self._bwd)
 
-    @staticmethod
-    def _fwd_slice(slice):
-        """
-        Raises :class:`TypeError` if the given slice does not have either only
-        its start or only its stop set to a non-None value.
-
-        Returns True if only its start is not None and False if only its stop
-        is not None.
-        """
-        if slice.step is not None:
-            raise TypeError('Slice may not specify step')
-        none_start = slice.start is None
-        none_stop = slice.stop is None
-        if none_start == none_stop:
-            raise TypeError('Exactly one of slice start or stop must be None '
-                            'and the other must not be')
-        return not none_start
-
-    def __getitem__(self, keyorslice):
-        """
-        Provides a __getitem__ implementation
-        which accepts a slice (e.g. ``b[:val]``)
-        to allow referencing an inverse mapping.
-        A non-slice value (e.g. ``b[key]``)
-        is considered a reference to a forward mapping.
-        """
-        if isinstance(keyorslice, slice):
-            # forward lookup (by key): b[key:]
-            if self._fwd_slice(keyorslice):
-                return self._fwd[keyorslice.start]
-            else:  # inverse lookup (by val): b[:val]
-                return self._bwd[keyorslice.stop]
-        else:  # keyorslice is a key: b[key]
-            return self._fwd[keyorslice]
+    def __getitem__(self, key):
+        return self._fwd[key]
 
     def _put(self, key, val):
         try:

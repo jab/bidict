@@ -46,22 +46,10 @@ def test_bidirectional_mappings(d):
         assert v == v_ or both_nan(v, v_)
 
 @given(d)
-def test_getitem_with_slice(d):
-    b = bidict(d)
-    for k, v in b.items():
-        # https://bidict.readthedocs.org/en/latest/caveats.html#none-breaks-the-slice-syntax
-        if v is not None:
-            k_ = b[:v]
-            assert k == k_ or both_nan(k, k_)
-        if k is not None:
-            v_ = b.inv[:k]
-            assert v == v_ or both_nan(v, v_)
-
-@given(d)
 def test_inv_identity(d):
     b = bidict(d)
-    assert b is b.inv.inv is ~~b
-    assert b.inv is b.inv.inv.inv is ~b
+    assert b is b.inv.inv
+    assert b.inv is b.inv.inv.inv
 
 # work around https://bitbucket.org/pypy/pypy/issue/1974
 nan = float('nan')
@@ -76,9 +64,9 @@ def test_equality(d):
         assume(nan not in i)
     b = bidict(d)
     assert b == d
-    assert ~b == i
+    assert b.inv == i
     assert not b != d
-    assert not ~b != i
+    assert not b.inv != i
 
 @given(d)
 def test_frozenbidict_hash(d):
