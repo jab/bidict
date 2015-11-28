@@ -45,9 +45,9 @@ that a bidict is dict-like::
     >>> isinstance(b, Mapping)
     True
 
-.. include:: frozenbidict.rst.inc
+.. include:: frozenbidict.doctest.rst.inc
 
-.. include:: namedbidict.rst.inc
+.. include:: namedbidict.doctest.rst.inc
 
 There's one last useful bit of functionality to mention:
 :ref:`the "inverted" iterator <inverted>`.

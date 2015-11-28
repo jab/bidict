@@ -1,0 +1,18 @@
+Test script for bidict.loosebidict::
+
+    >>> from bidict import loosebidict
+
+Initializing with different keys mapping to the same value succeeds::
+
+    >>> loosebidict([(1, 1), (2, 1)])
+    loosebidict({2: 1})
+
+Adding a new key associated with an existing value succeeds::
+
+    >>> b = loosebidict({1: 1})
+    >>> b[2] = 1
+    >>> b
+    loosebidict({2: 1})
+    >>> b.update({3: 1})
+    >>> b
+    loosebidict({3: 1})

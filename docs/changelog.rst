@@ -8,8 +8,8 @@ Changelog
 
 - Removed several features in favor of keeping the API simpler
   and the code more maintainable
-- Stricter one-to-one checking checking by default
-- New :attr:`bidict.bidict.forceupdate`` method for bulk forceput
+- Raise on non-unique value rather than overwriting by default
+- New :attr:`bidict.bidict.forceupdate` method for bulk forceput
 
 Breaking API Changes
 ^^^^^^^^^^^^^^^^^^^^
@@ -23,10 +23,12 @@ Breaking API Changes
 - Removed ``bidict.invert``.
   Use ``b.inv`` rather than inverting a bidict in place.
   `#20 <https://github.com/jab/bidict/issues/20>`_
-- Raise :class:`bidict.ValueExistsException`` when attempting to insert a new
+- Raise :class:`bidict.ValueExistsException` when attempting to insert a new
   key associated with an existing value
-- Rename ``collapsingbidict`` to :class:`bidict.loosebidict`` now that it's
-  loose in the case of :class:`bidict.ValueExistsException`` too
+  `#21 <https://github.com/jab/bidict/issues/21>`_
+- Rename ``collapsingbidict`` to :class:`bidict.loosebidict` now that
+  :class:`bidict.ValueExistsException` has replaced ``CollapseException``
+  `#21 <https://github.com/jab/bidict/issues/21>`_
 
 
 0.9.0.post1 (2015-06-06)

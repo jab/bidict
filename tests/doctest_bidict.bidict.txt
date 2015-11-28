@@ -152,35 +152,6 @@ Adding a new key associated with an existing value fails::
     >>> b
     bidict({1: 1})
 
-Initializing with collapsing mappings fails::
-
-    >>> bidict([(1, 1), (2, 2), (1, 2)])
-    Traceback (most recent call last):
-    ...
-    CollapseException: ((1, 1), (2, 2))
-
-Collapsing updates fail::
-
-    >>> b = bidict({1: 1, 2: 2})
-    >>> b[1] = 2
-    Traceback (most recent call last):
-    ...
-    CollapseException: ((1, 1), (2, 2))
-    >>> b.inv[2] = 1
-    Traceback (most recent call last):
-    ...
-    CollapseException: ((1, 1), (2, 2))
-    >>> b.update({1: 2})
-    Traceback (most recent call last):
-    ...
-    CollapseException: ((1, 1), (2, 2))
-
-``forceput`` can be used instead::
-
-    >>> b.forceput(1, 2)
-    >>> b
-    bidict({1: 2})
-
 Trying to insert an existing mapping does not raise, and is a no-op::
 
     >>> b = bidict({1: 'one'})

@@ -31,9 +31,7 @@ class bidict(BidirectionalMapping, MutableMapping):
     def forceput(self, key, val):
         """
         Like :attr:`bidict.bidict.put` but silently removes any existing
-        mapping that would otherwise cause
-        :class:`bidict.ValueExistsException` or
-        :class:`bidict.CollapseException`
+        mapping that would otherwise cause :class:`bidict.ValueExistsException`
         before inserting the given mapping.
         """
         oldval = self._fwd.get(key, _missing)

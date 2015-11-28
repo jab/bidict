@@ -1,7 +1,7 @@
 .. _caveat-unique-values:
 
-Uniqueness of Values
---------------------
+Values Must Be Unique
+---------------------
 
 Consider the following::
 

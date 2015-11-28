@@ -36,9 +36,9 @@ where bidicts could be used for fun and profit
 More Caveats
 ------------
 
-.. include:: caveat-frozenbidict-hash.rst.inc
+.. include:: caveat-frozenbidict-hash.doctest.rst.inc
 
-.. include:: caveat-mutation.rst.inc
+.. include:: caveat-mutation.doctest.rst.inc
 
 Other Verbiage, Esoterica, Navel Gazing, &c.
 --------------------------------------------

@@ -50,8 +50,6 @@ class BidirectionalMapping(Mapping):
         oldval = self._fwd.get(key, _missing)
         if key == oldkey and val == oldval:
             return
-        if oldkey is not _missing and oldval is not _missing:
-            raise CollapseException((key, oldval), (oldkey, val))
         if oldkey is not _missing:
             raise ValueExistsException((oldkey, val))
         if oldval is not _missing:
@@ -109,12 +107,5 @@ class ValueExistsException(BidictException):
     Raised when an attempt is made to insert a new mapping into a bidict whose
     key maps to the value of an existing mapping, violating one-to-one-ness.
     """
-
-class CollapseException(BidictException):
-    """
-    Raised when an attempt is made to insert a new mapping into a bidict that
-    would collapse two existing mappings.
-    """
-
 
 _missing = object()
