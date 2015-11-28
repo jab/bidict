@@ -87,7 +87,7 @@ talk about your use case.
 bidict is the result of hundreds of hours of voluntary, unpaid work.
 If bidict has helped you accomplish work you've been paid for,
 please `support bidict <https://gumroad.com/l/XGXTp>`_
-and/or ask your employer to do the same.
+and/or ask your organization to do the same.
 Your support directly contributes to bidict's sustainability.
 
 .. image:: ./docs/_static/support-on-gumroad.png

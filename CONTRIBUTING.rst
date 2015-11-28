@@ -107,10 +107,17 @@ Besides creating issues and pull requests, there are other ways to contribute.
 If you read the code and learned something new, let us know and it'll give us the warm fuzzies.
 If you're using bidict in a project you work on, blog about your experience.
 If you come across other people who could find it useful, spread the word.
-If you or your organization has benefited from bidict commercially or otherwise,
-you can use `Bountysource <https://www.bountysource.com/teams/jab>`_
-to sponsor a new feature or bugfix, or make a general donation.
-You can also use this if it's more your cup of tea:
+If bidict has helped you accomplish work you've been paid for,
+please `support bidict <https://gumroad.com/l/XGXTp>`_
+and/or ask your organization to do the same.
+
+.. image:: ./docs/_static/support-on-gumroad.png
+    :target: https://gumroad.com/l/XGXTp
+    :alt: Support bidict
+
+You can also use `Bountysource <https://www.bountysource.com/teams/jab>`_
+to sponsor a new feature/bugfix or make a general contribution,
+or use this if it's more your cup of tea:
 
 .. image:: https://img.shields.io/badge/Paypal-Buy%20a%20Drink-blue.svg
     :target: https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=jab%40math%2ebrown%2eedu&lc=US&item_name=Buy%20a%20drink%20for%20jab&button_subtype=services&currency_code=USD&bn=PP%2dBuyNowBF%3aPaypal%2dBuy%2520a%2520Drink%2dblue%2esvg%3aNonHosted
@@ -119,4 +126,4 @@ You can also use this if it's more your cup of tea:
 Thanks
 ------
 
-Thank you for stopping by. Any contributions gratefully received!
+Thank you for stopping by. All contributions are gratefully received!
