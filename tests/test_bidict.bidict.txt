@@ -126,7 +126,7 @@ The rest of the ``MutableMapping`` interface is supported::
 
 Initializing with different keys mapping to the same value fails::
 
-    >>> bidict([(1, 1), (2, 1)])  # doctest: +IGNORE_EXCEPTION_DETAIL
+    >>> bidict([(1, 1), (2, 1)])
     Traceback (most recent call last):
     ...
     ValueExistsException: (1, 1)
@@ -134,11 +134,11 @@ Initializing with different keys mapping to the same value fails::
 Adding a new key associated with an existing value fails::
 
     >>> b = bidict({1: 1})
-    >>> b[2] = 1  # doctest: +IGNORE_EXCEPTION_DETAIL
+    >>> b[2] = 1
     Traceback (most recent call last):
     ...
     ValueExistsException: (1, 1)
-    >>> b.update({2: 1})  # doctest: +IGNORE_EXCEPTION_DETAIL
+    >>> b.update({2: 1})
     Traceback (most recent call last):
     ...
     ValueExistsException: (1, 1)
@@ -154,7 +154,7 @@ Adding a new key associated with an existing value fails::
 
 Initializing with collapsing mappings fails::
 
-    >>> bidict([(1, 1), (2, 2), (1, 2)])  # doctest: +IGNORE_EXCEPTION_DETAIL
+    >>> bidict([(1, 1), (2, 2), (1, 2)])
     Traceback (most recent call last):
     ...
     CollapseException: ((1, 1), (2, 2))
@@ -162,15 +162,15 @@ Initializing with collapsing mappings fails::
 Collapsing updates fail::
 
     >>> b = bidict({1: 1, 2: 2})
-    >>> b[1] = 2  # doctest: +IGNORE_EXCEPTION_DETAIL
+    >>> b[1] = 2
     Traceback (most recent call last):
     ...
     CollapseException: ((1, 1), (2, 2))
-    >>> b.inv[2] = 1  # doctest: +IGNORE_EXCEPTION_DETAIL
+    >>> b.inv[2] = 1
     Traceback (most recent call last):
     ...
     CollapseException: ((1, 1), (2, 2))
-    >>> b.update({1: 2})  # doctest: +IGNORE_EXCEPTION_DETAIL
+    >>> b.update({1: 2})
     Traceback (most recent call last):
     ...
     CollapseException: ((1, 1), (2, 2))

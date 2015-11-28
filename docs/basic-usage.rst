@@ -5,6 +5,7 @@ Basic Usage
 
 Let's return to the example from the :ref:`intro`::
 
+    >>> from bidict import bidict
     >>> element_by_symbol = bidict(H='hydrogen')
 
 As we saw, this behaves just like a dict,

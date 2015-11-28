@@ -16,6 +16,7 @@ bidict.bidict
 is the main bidirectional map data structure provided.
 It implements the familiar API you're used to from dict::
 
+    >>> from bidict import bidict
     >>> element_by_symbol = bidict(H='hydrogen')
     >>> element_by_symbol['H']
     'hydrogen'
@@ -50,9 +51,9 @@ For one, you don't have to manually update the mapping from *b* → *a*
 every time the mapping from *a* → *b* changes.
 With the skeptic's method, you have to write::
 
-    >>> d[a] = c
-    >>> d[c] = a
-    >>> del d[b]
+    >>> d[a] = c  # doctest: +SKIP
+    >>> d[c] = a  # doctest: +SKIP
+    >>> del d[b]  # doctest: +SKIP
 
 instead of just ``d[a] = c``.
 
@@ -87,7 +88,7 @@ for working with one-to-one relations:
 
 - :class:`bidict.frozenbidict`
 - :class:`bidict.namedbidict`
-- :class:`bidict.collapsingbidict`
+- :class:`bidict.loosebidict`
 - :class:`bidict.inverted`
 
 These will be covered in later sections.

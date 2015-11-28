@@ -5,16 +5,16 @@ Other bidict Types
 
 Now that we've covered
 :class:`bidict.bidict`,
-:class:`bidict.collapsingbidict`,
+:class:`bidict.loosebidict`,
 and some other basics,
 let's look at the remaining bidict types
 and the hierarchy they belong to.
 
-bidict Type Hierarchy
----------------------
+bidict Class Hierarchy
+----------------------
 
-.. image:: _static/bidict_types.png
-    :alt: bidict type hierarchy
+.. image:: _static/class-hierarchy.svg
+    :alt: bidict class hierarchy
 
 At the top of the bidict type hierarchy is
 :class:`bidict.BidirectionalMapping`.
@@ -29,7 +29,7 @@ On the mutable side we have
 :class:`bidict.bidict`
 (which implements :class:`collections.abc.MutableMapping`)
 and finally
-:class:`bidict.collapsingbidict`,
+:class:`bidict.loosebidict`,
 the leaf on this side of the tree.
 
 Polymorphism

@@ -10,6 +10,7 @@ and makes up the other branch of the tree.
 As you would expect,
 attempting to mutate a frozenbidict after initializing it causes an error::
 
+    >>> from bidict import frozenbidict
     >>> f = frozenbidict()
     >>> f['C'] = 'carbon'
     Traceback (most recent call last):

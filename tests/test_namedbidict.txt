@@ -46,7 +46,7 @@ Test ``base_type`` keyword arg::
     >>> noble = ElMap(He='helium')
     >>> hash(noble) is not 'an exception'
     True
-    >>> noble['C'] = 'carbon'  # doctest: +ELLIPSIS
+    >>> noble['C'] = 'carbon'
     Traceback (most recent call last):
     ...
     TypeError...

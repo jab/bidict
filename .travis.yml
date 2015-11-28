@@ -13,7 +13,7 @@ install:
 
 script:
   - tox
-  - py.test --cov bidict tests
+  - python setup.py test
 
 after_success:
   coveralls

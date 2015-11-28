@@ -72,10 +72,13 @@ class bidict(BidirectionalMapping, MutableMapping):
         self._bwd[val] = key
         return val
 
-    def update(self, *args, **kw):
-        return self._update(*args, **kw)
+    setdefault.__doc__ = dict.setdefault.__doc__
 
-    update.__doc__ = dict.update.__doc__
+    def update(self, *args, **kw):
+        """
+        Analogous to dict.update().
+        """
+        return self._update(*args, **kw)
 
     def forceupdate(self, *args, **kw):
         """

@@ -5,14 +5,15 @@ Collapsing Mappings
 
 Consider the following::
 
+    >>> from bidict import bidict
     >>> b = bidict({0: 'zero', 1: 'one'})
-    >>> b[0] = 'one'
+    >>> b[0] = 'one'  # doctest: +SKIP
 
 What should happen next?
 
 We could just let this happen::
 
-    >>> b
+    >>> b  # doctest: +SKIP
     bidict({0: 'one'})
 
 In other words,
@@ -28,7 +29,7 @@ But there are two problems with this.
 
 - Users who need to detect when this would happen
   and only update the mapping conditionally
-  would have to litter their code with ugly containment checks.
+  would have to litter their code with containment checks.
 
 Instead, :class:`bidict.bidict` rejects the update
 and throws a :class:`bidict.CollapseException`::
@@ -51,12 +52,4 @@ bidict provides some better options:
     >>> b
     bidict({0: 'one'})
 
-- Use a :class:`bidict.collapsingbidict` instead.
-
-In the spirit of the
-`Zen of Python <https://www.python.org/dev/peps/pep-0020/>`_,
-
-::
-
-    Errors should never pass silently.
-    Unless explicitly silenced.
+- Use a :class:`bidict.loosebidict` instead (covered ahead).
