@@ -20,5 +20,5 @@ and related functionality.
     inverted.doctest
     api
     changelog
-    credits
-    cut
+    thanks
+    addendum

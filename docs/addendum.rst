@@ -1,7 +1,5 @@
-Not Worth Reading?
-==================
-
-This whole page should maybe just get cut from the docs.
+Addendum
+========
 
 Missing bidicts in Stdlib!
 --------------------------
@@ -61,12 +59,12 @@ Other Verbiage, Esoterica, Navel Gazing, &c.
   or even "forward keys" and "inverse keys", respectively.
   bidict sticks with the terms "keys" and "values"
   for the sake of familiarity and to avoid potential confusion,
-  but it's worth noting that technically values are also keys themselves.
+  but technically values are also keys themselves.
 
-  Concretely, this allows us to return a set-like ``dict_keys`` object
-  for :attr:`bidict.BidirectionalMapping.values` (Python 3) /
-  :attr:`bidict.BidirectionalMapping.viewvalues` (Python 2),
-  rather than a (non-set-like) ``dict_values`` object.
+  Concretely, this allows bidict to return a set-like (``dict_keys``) object
+  for :attr:`bidict.values <bidict.BidirectionalMapping.values>` (Python 3) /
+  :attr:`bidict.viewvalues <bidict.BidirectionalMapping.viewvalues>`
+  (Python 2.7), rather than a non-set-like ``dict_values`` object.
 
 - A bidict ``b`` keeps a reference to its inverse ``b.inv``.
   By extension, its inverse bidict keeps a reference to it (``b.inv.inv is b``).
@@ -76,12 +74,8 @@ Other Verbiage, Esoterica, Navel Gazing, &c.
   Python's garbage collector will detect this
   and reclaim the memory allocated for a bidict
   when you no longer have any references to it.
-  In other words, bidict won't leak memory
-  as long as you don't ``gc.disable()``.
-  If you do, reclaiming a bidict's memory is up to you,
-  but if you're disabling GC you knew that already.
 
   **NOTE:** Prior to Python 3.4,
   ``__del__()`` methods prevented reference cycles from being garbage collected.
-  No bidicts define ``__del__()``,
-  so this is only an issue if you define ``__del__()`` in a bidict subclass.
+  No bidicts implement ``__del__()``,
+  so this is only an issue if you implement ``__del__()`` in a bidict subclass.
