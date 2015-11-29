@@ -1,4 +1,4 @@
-from .compat import PY2, iteritems, viewitems
+from .compat import PY2, iteritems
 from .util import pairs
 from collections import Mapping
 
