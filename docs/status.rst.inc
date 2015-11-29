@@ -35,7 +35,7 @@
     :alt: License
 
 .. image:: https://img.shields.io/badge/gumroad-support%20bidict-brightgreen.svg
-    :target: https://gum.co/XGXTp
+    :target: https://gumroad.com/l/bidict
     :alt: Support bidict
 
 .. image:: https://img.shields.io/badge/Paypal-Buy%20a%20Drink-blue.svg

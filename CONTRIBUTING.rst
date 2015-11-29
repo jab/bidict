@@ -107,12 +107,13 @@ Besides creating issues and pull requests, there are other ways to contribute.
 If you read the code and learned something new, let us know and it'll give us the warm fuzzies.
 If you're using bidict in a project you work on, blog about your experience.
 If you come across other people who could find it useful, spread the word.
-If bidict has helped you accomplish work you've been paid for,
-please `support bidict <https://gumroad.com/l/XGXTp>`_
+If bidict has helped you accomplish your work,
+especially work you've been paid for,
+please `support bidict <https://gumroad.com/l/bidict>`_
 and/or ask your organization to do the same.
 
 .. image:: ./docs/_static/support-on-gumroad.png
-    :target: https://gumroad.com/l/XGXTp
+    :target: https://gumroad.com/l/bidict
     :alt: Support bidict
 
 You can also use `Bountysource <https://www.bountysource.com/teams/jab>`_
