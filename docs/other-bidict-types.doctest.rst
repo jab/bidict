@@ -35,19 +35,39 @@ the leaf on this side of the tree.
 Polymorphism
 ++++++++++++
 
-Note that none of the bidict types inherit from dict.
-The following example demonstrates a recommended way to verify
-that a bidict is dict-like::
+Note that none of the bidict types inherit from dict::
 
-    >>> from collections import Mapping
-    >>> from bidict import bidict
-    >>> b = bidict()
-    >>> isinstance(b, Mapping)
+    >>> from bidict import bidict, frozenbidict
+    >>> isinstance(bidict(), dict)
+    False
+    >>> isinstance(frozenbidict(), dict)
+    False
+
+If you must use ``isinstance`` to check whether a bidict is dict-like,
+you can use the abstract base classes from the ``collections`` module,
+which is a better way to check for interface conformance::
+
+    >>> from collections import Mapping, MutableMapping
+    >>> isinstance(bidict(), MutableMapping)
     True
+    >>> isinstance(frozenbidict(), Mapping)
+    True
+
+Though sometimes you can write more polymorphic code
+by using duck typing rather than ``isinstance``::
+
+    >>> mystery = object()
+    >>> try:
+    ...     mystery[0] = 1
+    ... except TypeError:
+    ...     pass
+    >>> mystery2 = object()
+    >>> if hasattr(mystery2, '__setitem__'):
+    ...     mystery2[0] = 1
 
 .. include:: frozenbidict.doctest.rst.inc
 
 .. include:: namedbidict.doctest.rst.inc
 
-There's one last useful bit of functionality to mention:
+There's one more bit of functionality to cover,
 :ref:`the "inverted" iterator <inverted>`.
