@@ -13,25 +13,30 @@ class bidict(BidirectionalMapping, MutableMapping):
         del self._bwd[val]
 
     def __delitem__(self, key):
+        """
+        Analogous to dict.__delitem__(), keeping bidirectionality intact.
+        """
         self._del(key)
 
-    __delitem__.__doc__ = dict.__delitem__.__doc__
-
     def __setitem__(self, key, val):
-        self._put(key, val)
+        """
+        Analogous to dict.__setitem__(), keeping bidirectionality intact.
 
-    __setitem__.__doc__ = dict.__setitem__.__doc__
+        :raises ValueExistsException: if attempting to insert a mapping with a
+            non-unique value.
+        """
+        self._put(key, val)
 
     def put(self, key, val):
         """
-        Alternative to using the setitem syntax to insert a mapping.
+        Alternative to using :attr:`__setitem__` to insert a mapping.
         """
         self._put(key, val)
 
     def forceput(self, key, val):
         """
-        Like :attr:`bidict.bidict.put` but silently removes any existing
-        mapping that would otherwise cause :class:`bidict.ValueExistsException`
+        Like :attr:`put`, but silently removes any existing
+        mapping that would otherwise cause :class:`ValueExistsException`
         before inserting the given mapping.
         """
         oldval = self._fwd.get(key, _missing)
@@ -44,44 +49,49 @@ class bidict(BidirectionalMapping, MutableMapping):
         self._bwd[val] = key
 
     def clear(self):
+        """
+        Removes all items.
+        """
         self._fwd.clear()
         self._bwd.clear()
 
-    clear.__doc__ = dict.clear.__doc__
-
     def pop(self, key, *args):
+        """
+        Analogous to dict.pop(), keeping bidirectionality intact.
+        """
         val = self._fwd.pop(key, *args)
         del self._bwd[val]
         return val
 
-    pop.__doc__ = dict.pop.__doc__
-
     def popitem(self):
+        """
+        Analogous to dict.popitem(), keeping bidirectionality intact.
+        """
         if not self._fwd:
             raise KeyError('popitem(): %s is empty' % self.__class__.__name__)
         key, val = self._fwd.popitem()
         del self._bwd[val]
         return key, val
 
-    popitem.__doc__ = dict.popitem.__doc__
-
     def setdefault(self, key, default=None):
+        """
+        Analogous to dict.setdefault(), keeping bidirectionality intact.
+        """
         val = self._fwd.setdefault(key, default)
         self._bwd[val] = key
         return val
 
-    setdefault.__doc__ = dict.setdefault.__doc__
-
     def update(self, *args, **kw):
         """
-        Analogous to dict.update().
+        Analogous to dict.update(), keeping bidirectionality intact.
         """
         return self._update(*args, **kw)
 
     def forceupdate(self, *args, **kw):
         """
-        Equivalent to calling :attr:`bidict.bidict.forceput`
-        with each of the given mappings.
+        Like :attr:`update`, but silently removes any existing
+        mappings that would otherwise cause :class:`ValueExistsException`
+        allowing key-overwriting updates to succeed.
         """
         for k, v in pairs(*args, **kw):
             self.forceput(k, v)

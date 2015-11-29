@@ -34,32 +34,18 @@ def pairs(*map_or_it, **kw):
 
 class inverted(Iterator):
     """
-    An iterator analogous to the :func:`reversed` built-in.
-    Useful for inverting a mapping.
+    An iterator yielding the inverses of the provided mappings.
+    Works with any object that can be iterated over as a mapping or in pairs
+    or that implements its own __inverted__ method.
     """
     def __init__(self, data):
         self._data = data
 
     def __iter__(self):
-        """
-        First try to call ``__inverted__`` on the wrapped object
-        and return the result if the call succeeds
-        (i.e. delegate to the object if it supports inverting natively).
-        This complements :attr:`bidict.BidirectionalMapping.__inverted__`.
-
-        If the call fails, fall back on calling our own ``__next__`` method.
-        """
-        try:
-            it = self._data.__inverted__
-        except AttributeError:
-            it = self.__next__
-        return it()
+        makeit = getattr(self._data, '__inverted__', self.__next__)
+        return makeit()
 
     def __next__(self):
-        """
-        Yields the inverse of each pair yielded by calling :attr:`bidict.pairs`
-        on the wrapped object.
-        """
         for (k, v) in pairs(self._data):
             yield (v, k)
 

@@ -13,5 +13,9 @@ Attempting to insert an unhashable value will result in an error::
     Traceback (most recent call last):
         ...
     TypeError...
+
+In this example, using a tuple instead of a list does the trick,
+and confers additional benefits of immutability::
+
     >>> bidict(opt=('opt', 'pot', 'top'))
     bidict({'opt': ('opt', 'pot', 'top')})

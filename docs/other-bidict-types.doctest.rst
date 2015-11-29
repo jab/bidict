@@ -32,8 +32,13 @@ and finally
 :class:`bidict.loosebidict`,
 the leaf on this side of the tree.
 
+.. include:: frozenbidict.doctest.rst.inc
+
+.. include:: namedbidict.doctest.rst.inc
+
+
 Polymorphism
-++++++++++++
+------------
 
 Note that none of the bidict types inherit from dict::
 
@@ -43,8 +48,8 @@ Note that none of the bidict types inherit from dict::
     >>> isinstance(frozenbidict(), dict)
     False
 
-If you must use ``isinstance`` to check whether a bidict is dict-like,
-you can use the abstract base classes from the ``collections`` module,
+If you must use :func:`isinstance` to check whether a bidict is dict-like,
+you can use the abstract base classes from the :mod:`collections` module,
 which is a better way to check for interface conformance::
 
     >>> from collections import Mapping, MutableMapping
@@ -53,8 +58,8 @@ which is a better way to check for interface conformance::
     >>> isinstance(frozenbidict(), Mapping)
     True
 
-Though sometimes you can write more polymorphic code
-by using duck typing rather than ``isinstance``::
+Though you can often write more polymorphic code
+by using duck typing rather than :func:`isinstance`::
 
     >>> mystery = object()
     >>> try:
@@ -65,9 +70,5 @@ by using duck typing rather than ``isinstance``::
     >>> if hasattr(mystery2, '__setitem__'):
     ...     mystery2[0] = 1
 
-.. include:: frozenbidict.doctest.rst.inc
-
-.. include:: namedbidict.doctest.rst.inc
-
 There's one more bit of functionality to cover,
-:ref:`the "inverted" iterator <inverted>`.
+the :ref:`inverted` iterator.

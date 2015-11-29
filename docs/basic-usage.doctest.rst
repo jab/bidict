@@ -9,7 +9,7 @@ Let's return to the example from the :ref:`intro`::
     >>> element_by_symbol = bidict(H='hydrogen')
 
 As we saw, this behaves just like a dict,
-but maintains a special ``.inv`` property
+but maintains a special :attr:`.inv <bidict.BidirectionalMapping.inv>` property
 giving access to inverse mappings::
 
     >>> element_by_symbol.inv['helium'] = 'He'
@@ -40,7 +40,6 @@ is also supported::
 Because inverse mappings are maintained alongside forward mappings,
 referencing a bidict's inverse
 is always a constant-time operation.
-No need to go through the entire collection.
 
 One last thing, bidicts interoperate well with other types of maps.
 For example, they support (efficient) polymorphic equality testing::
@@ -55,7 +54,6 @@ And converting back and forth works as expected::
     >>> bidict(dict(a=1))
     bidict({'a': 1})
 
-Straightforward so far?
 Hopefully bidict feels right at home
 among the Python built-ins you already know.
 

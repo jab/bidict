@@ -7,7 +7,7 @@ class BidirectionalMapping(Mapping):
     """
     Mutable and immutable bidict types extend this class,
     which implements all the shared logic.
-    Users typically won't need to touch this.
+    Users will typically only interact with subclasses of this class.
     """
     def __init__(self, *args, **kw):
         self._fwd = {}
@@ -40,6 +40,9 @@ class BidirectionalMapping(Mapping):
         return self._inv
 
     def __inverted__(self):
+        """
+        Returns an iterator over the inverse mappings.
+        """
         return iteritems(self._bwd)
 
     def __getitem__(self, key):
@@ -62,24 +65,24 @@ class BidirectionalMapping(Mapping):
 
     get = lambda self, k, *args: self._fwd.get(k, *args)
     copy = lambda self: self.__class__(self._fwd)
-    get.__doc__ = dict.get.__doc__
-    copy.__doc__ = dict.copy.__doc__
+    get.__doc__ = 'Analogous to dict.get()'
+    copy.__doc__ = 'Analogous to dict.copy()'
     __len__ = lambda self: len(self._fwd)
     __iter__ = lambda self: iter(self._fwd)
     __contains__ = lambda self, x: x in self._fwd
-    __len__.__doc__ = dict.__len__.__doc__
-    __iter__.__doc__ = dict.__iter__.__doc__
-    __contains__.__doc__ = dict.__contains__.__doc__
+    __len__.__doc__ = 'Analogous to dict.__len__()'
+    __iter__.__doc__ = 'Analogous to dict.__iter__()'
+    __contains__.__doc__ = 'Analogous to dict.__contains__()'
     keys = lambda self: self._fwd.keys()
     items = lambda self: self._fwd.items()
-    keys.__doc__ = dict.keys.__doc__
-    items.__doc__ = dict.items.__doc__
+    keys.__doc__ = 'Analogous to dict.keys()'
+    items.__doc__ = 'Analogous to dict.items()'
     values = lambda self: self._bwd.keys()
     values.__doc__ = \
-        "D.values() -> a set-like object providing a view on D's values. " \
-        'Note that because values of a BidirectionalMapping are also keys, ' \
-        'this returns a ``dict_keys`` object rather than a ``dict_values`` ' \
-        'object.'
+        "B.values() -> a set-like object providing a view on B's values. " \
+        'Note that because values of a BidirectionalMapping are also keys ' \
+        'of its inverse, this returns a ``dict_keys`` object rather than a ' \
+        '``dict_values`` object, conferring set-like benefits.'
     if PY2:
         iterkeys = lambda self: self._fwd.iterkeys()
         viewkeys = lambda self: self._fwd.viewkeys()
@@ -104,7 +107,8 @@ class BidictException(Exception):
 class ValueExistsException(BidictException):
     """
     Raised when an attempt is made to insert a new mapping into a bidict whose
-    key maps to the value of an existing mapping, violating one-to-one-ness.
+    key maps to the value of an existing mapping, violating the uniqueness
+    constraint.
     """
 
 _missing = object()
