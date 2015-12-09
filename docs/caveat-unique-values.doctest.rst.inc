@@ -26,7 +26,7 @@ and resolve the conflict before it causes problems later on::
     >>> b[2] = 1
     Traceback (most recent call last):
         ...
-    ValueExistsException: (1, 1)
+    ValueExistsException: Value 1 exists for key 1
 
 The same thing happens with initializations and
 :attr:`update <bidict.bidict.update>` calls
@@ -35,12 +35,12 @@ that would overwrite the key of an existing value::
     >>> b = bidict({1: 1, 2: 1})
     Traceback (most recent call last):
         ...
-    ValueExistsException: (1, 1)
+    ValueExistsException: Value 1 exists for key 1
     >>> b = bidict({1: 1})
     >>> b.update({2: 1})
     Traceback (most recent call last):
         ...
-    ValueExistsException: (1, 1)
+    ValueExistsException: Value 1 exists for key 1
 
 You can use
 :attr:`forceput <bidict.bidict.forceput>` and
@@ -106,16 +106,16 @@ though this should not be used if it obscures the intention of the code::
     >>> b.inv[2] = 1
     Traceback (most recent call last):
         ...
-    ValueExistsException: (1, 1)
+    ValueExistsException: Value 1 exists for key 1
     >>> from bidict import inverted
     >>> b.inv.update(inverted([(1, 3), (1, 4), (1, 5)]))
     Traceback (most recent call last):
         ...
-    ValueExistsException: (1, 1)
+    ValueExistsException: Value 1 exists for key 1
     >>> bidict(inverted([(1, 1), (1, 2)]))
     Traceback (most recent call last):
         ...
-    ValueExistsException: (1, 1)
+    ValueExistsException: Value 1 exists for key 1
 
 The :func:`inverted <bidict.util.inverted>` iterator will be covered further
 in a subsequent section.

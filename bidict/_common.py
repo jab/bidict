@@ -110,5 +110,10 @@ class ValueExistsException(BidictException):
     key maps to the value of an existing mapping, violating the uniqueness
     constraint.
     """
+    def __str__(self):
+        return 'Value {1!r} exists for key {0!r}'.format(*self.args[0])
+
+    def __repr__(self):
+        return '<%s \'%s\'>' % (self.__class__.__name__, self)
 
 _missing = object()
