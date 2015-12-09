@@ -39,6 +39,10 @@ Breaking API Changes
 - ``CollapseException`` has been subsumed by
   :class:`ValueExistsException <bidict.ValueExistsException>`.
   `#21 <https://github.com/jab/bidict/issues/21>`_
+- :attr:`put <bidict.bidict.put>` now raises :class:`KeyExistsException
+  <bidict.KeyExistsException>` when attempting to insert an already-existing
+  key, and :class:`ValueExistsException <bidict.ValueExistsException>` when
+  attempting to insert an already-existing value.
 
 
 0.9.0.post1 (2015-06-06)

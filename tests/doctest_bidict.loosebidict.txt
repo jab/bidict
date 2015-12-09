@@ -16,3 +16,12 @@ Adding a new key associated with an existing value succeeds::
     >>> b.update({3: 1})
     >>> b
     loosebidict({3: 1})
+
+Using ``put`` and ``update`` with an existing key successfully overwrites::
+
+    >>> b.put(3, 'three')
+    >>> b
+    loosebidict({3: 'three'})
+    >>> b.update({3: 4})
+    >>> b
+    loosebidict({3: 4})

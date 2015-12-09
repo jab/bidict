@@ -48,20 +48,28 @@ class BidirectionalMapping(Mapping):
     def __getitem__(self, key):
         return self._fwd[key]
 
-    def _put(self, key, val):
+    def _put(self, key, val, overwrite_key=False, overwrite_val=True):
         oldkey = self._bwd.get(val, _missing)
         oldval = self._fwd.get(key, _missing)
         if key == oldkey and val == oldval:
             return
+        if oldval is not _missing:
+            if overwrite_val:
+                del self._bwd[oldval]
+            else:
+                raise KeyExistsException((key, oldval))
         if oldkey is not _missing:
-            raise ValueExistsException((oldkey, val))
+            if overwrite_key:
+                del self._fwd[oldkey]
+            else:
+                raise ValueExistsException((oldkey, val))
         self._fwd[key] = val
         self._bwd[val] = key
         self._bwd.pop(oldval, None)
 
     def _update(self, *args, **kw):
         for k, v in pairs(*args, **kw):
-            self._put(k, v)
+            self._put(k, v, overwrite_key=False, overwrite_val=True)
 
     get = lambda self, k, *args: self._fwd.get(k, *args)
     copy = lambda self: self.__class__(self._fwd)
@@ -103,17 +111,23 @@ class BidictException(Exception):
     """
     Base class for bidict exceptions.
     """
+    def __repr__(self):
+        return '<%s \'%s\'>' % (self.__class__.__name__, self)
+
+class KeyExistsException(BidictException):
+    """
+    Raised when an attempt is made to insert a new mapping into a bidict whose
+    value maps to the key of an existing mapping.
+    """
+    def __str__(self):
+        return 'Key {0!r} exists with value {1!r}'.format(*self.args[0])
 
 class ValueExistsException(BidictException):
     """
     Raised when an attempt is made to insert a new mapping into a bidict whose
-    key maps to the value of an existing mapping, violating the uniqueness
-    constraint.
+    key maps to the value of an existing mapping.
     """
     def __str__(self):
-        return 'Value {1!r} exists for key {0!r}'.format(*self.args[0])
-
-    def __repr__(self):
-        return '<%s \'%s\'>' % (self.__class__.__name__, self)
+        return 'Value {1!r} exists with key {0!r}'.format(*self.args[0])
 
 _missing = object()

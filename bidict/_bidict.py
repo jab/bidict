@@ -1,4 +1,4 @@
-from ._common import BidirectionalMapping, _missing
+from ._common import BidirectionalMapping
 from .util import pairs
 from collections import MutableMapping
 
@@ -20,33 +20,41 @@ class bidict(BidirectionalMapping, MutableMapping):
 
     def __setitem__(self, key, val):
         """
-        Analogous to dict.__setitem__(), keeping bidirectionality intact.
+        Inserts the given mapping iff it wouldn't overwrite an existing key
+        associated with the given value.
+
+        If there is an existing value associated with the given key,
+        it is silently overwritten, as with dict.
+
+        Use :attr:`put` to guard against overwriting an existing value
+        associated with the given key.
+
+        Use :attr:`forceput` to overwrite in both cases.
 
         :raises ValueExistsException: if attempting to insert a mapping with a
             non-unique value.
         """
-        self._put(key, val)
+        self._put(key, val, overwrite_key=False, overwrite_val=True)
 
     def put(self, key, val):
         """
-        Alternative to using :attr:`__setitem__` to insert a mapping.
+        Inserts the given mapping iff it wouldn't overwrite any existing
+        key or value.
+
+        :raises KeyExistsException: if attempting to insert a mapping with the
+            same key as an existing mapping.
+
+        :raises ValueExistsException: if attempting to insert a mapping with
+            the same value as an existing mapping.
         """
-        self._put(key, val)
+        self._put(key, val, overwrite_key=False, overwrite_val=False)
 
     def forceput(self, key, val):
         """
-        Like :attr:`put`, but silently removes any existing
-        mapping that would otherwise cause :class:`ValueExistsException`
-        before inserting the given mapping.
+        Silently removes any existing mappings that would be overwritten by
+        the given mapping before inserting it.
         """
-        oldval = self._fwd.get(key, _missing)
-        oldkey = self._bwd.get(val, _missing)
-        if oldval is not _missing:
-            del self._bwd[oldval]
-        if oldkey is not _missing:
-            del self._fwd[oldkey]
-        self._fwd[key] = val
-        self._bwd[val] = key
+        self._put(key, val, overwrite_key=True, overwrite_val=True)
 
     def clear(self):
         """
@@ -84,6 +92,12 @@ class bidict(BidirectionalMapping, MutableMapping):
     def update(self, *args, **kw):
         """
         Analogous to dict.update(), keeping bidirectionality intact.
+
+        If there is an existing value associated with the given key,
+        it is silently overwritten, as with dict.
+
+        :raises ValueExistsException: if attempting to insert a mapping with a
+            non-unique value.
         """
         return self._update(*args, **kw)
 

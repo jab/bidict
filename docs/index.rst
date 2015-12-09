@@ -14,7 +14,6 @@ and related functionality.
 
     intro.doctest
     basic-usage.doctest
-    caveats.doctest
     performance.doctest
     other-bidict-types.doctest
     inverted.doctest
