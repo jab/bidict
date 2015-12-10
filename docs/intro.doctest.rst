@@ -36,7 +36,7 @@ But it also maintains the inverse mapping via the
 Concise, efficient, Pythonic.
 
 
-Why Can't I Just Use Dict?
+Why Can't I Just Use dict?
 --------------------------
 
 A skeptic writes:
