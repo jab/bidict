@@ -5,8 +5,9 @@ Property-based tests using https://warehouse.python.org/project/hypothesis/
 from math import isnan
 
 from hypothesis import assume, given
-from hypothesis.strategies import dictionaries, none, booleans, integers, floats, text, binary, one_of, frozensets, \
-    lists, recursive
+from hypothesis.strategies import (
+    binary, booleans, dictionaries, floats, frozensets, integers, lists, none,
+    one_of, text, recursive)
 
 from bidict import bidict, frozenbidict
 
@@ -17,12 +18,13 @@ def inv(d):
 
 def prune_dup_vals(d):
     pruned = inv(inv(d))
-    assume(len(pruned) >= 0.5 * len(d))
+    assume(len(pruned) >= len(d) // 2)
     return pruned
 
 
-immutable_types = recursive(one_of(none(), booleans(), integers(), floats(), text(), binary()),
-                            lambda elts: one_of(frozensets(elts), lists(elts).map(tuple)))
+immutable_types = recursive(
+    one_of(none(), booleans(), integers(), floats(), text(), binary()),
+    lambda elts: one_of(frozensets(elts), lists(elts).map(tuple)))
 d = dictionaries(immutable_types, immutable_types).map(prune_dup_vals)
 
 
