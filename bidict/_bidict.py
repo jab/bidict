@@ -20,26 +20,33 @@ class bidict(BidirectionalMapping, MutableMapping):
 
     def __setitem__(self, key, val):
         """
-        Inserts the given mapping iff it wouldn't overwrite an existing key
-        associated with the given value.
+        Sets the value for ``key`` to ``val``.
 
-        If there is an existing value associated with the given key,
-        it is silently overwritten, as with dict.
+        If ``key`` is already associated with a different value,
+        the old value will be replaced with ``val``.
+        Use :attr:`put` to raise an exception in this case instead.
 
-        Use :attr:`put` to guard against overwriting an existing value
-        associated with the given key.
+        If ``val`` is already associated with a different key,
+        an exception is raised
+        to protect against accidentally replacing the existing mapping.
 
-        Use :attr:`forceput` to overwrite in both cases.
+        If ``key`` is already associated with ``val``, this is a no-op.
 
-        :raises ValueExistsException: if attempting to insert a mapping with a
+        Use :attr:`forceput` to unconditionally associate ``key`` with ``val``,
+        replacing any existing mappings necessary to preserve uniqueness.
+
+        :raises ValueExistsException: if attempting to set a mapping with a
             non-unique value.
         """
         self._put(key, val, overwrite_key=False, overwrite_val=True)
 
     def put(self, key, val):
         """
-        Inserts the given mapping iff it wouldn't overwrite any existing
-        key or value.
+        Inserts the given mapping iff
+        ``key`` is not already associated with an existing value and
+        ``val`` is not already associated with an existing key.
+
+        If ``key`` is already associated with ``val``, this is a no-op.
 
         :raises KeyExistsException: if attempting to insert a mapping with the
             same key as an existing mapping.
@@ -51,8 +58,9 @@ class bidict(BidirectionalMapping, MutableMapping):
 
     def forceput(self, key, val):
         """
-        Silently removes any existing mappings that would be overwritten by
-        the given mapping before inserting it.
+        Associates ``key`` with ``val``,
+        replacing any existing mappings with ``key`` or ``val``
+        necessary to preserve uniqueness.
         """
         self._put(key, val, overwrite_key=True, overwrite_val=True)
 
@@ -93,8 +101,7 @@ class bidict(BidirectionalMapping, MutableMapping):
         """
         Analogous to dict.update(), keeping bidirectionality intact.
 
-        If there is an existing value associated with the given key,
-        it is silently overwritten, as with dict.
+        Like calling :attr:`__setitem__` for each mapping given.
 
         :raises ValueExistsException: if attempting to insert a mapping with a
             non-unique value.
@@ -103,9 +110,7 @@ class bidict(BidirectionalMapping, MutableMapping):
 
     def forceupdate(self, *args, **kw):
         """
-        Like :attr:`update`, but silently removes any existing
-        mappings that would otherwise cause :class:`ValueExistsException`
-        allowing key-overwriting updates to succeed.
+        Calls :attr:`forceput` for each mapping given.
         """
         for k, v in pairs(*args, **kw):
             self.forceput(k, v)
