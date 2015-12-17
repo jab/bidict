@@ -122,6 +122,7 @@ class BidictException(Exception):
         return "<%s '%s'>" % (self.__class__.__name__, self)
 
 
+
 class KeyExistsException(BidictException):
     """
     Guards against replacing an existing mapping whose key matches the given.
@@ -146,5 +147,6 @@ class ValueExistsException(BidictException):
     def __str__(self):
         """Get a "friendly" string representation of this exception."""
         return 'Value {1!r} exists with key {0!r}'.format(*self.args[0])
+
 
 _missing = object()

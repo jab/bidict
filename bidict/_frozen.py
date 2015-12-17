@@ -4,6 +4,7 @@ from .compat import viewitems
 from ._common import BidirectionalMapping
 from collections import Hashable
 
+
 class frozenbidict(BidirectionalMapping, Hashable):
     """Immutable, hashable bidict type."""
 

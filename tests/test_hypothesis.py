@@ -2,14 +2,11 @@
 Property-based tests using https://warehouse.python.org/project/hypothesis/
 """
 
-import pytest
-
-from functools import reduce
 from math import isnan
-from operator import or_
 
-from hypothesis import assume, given, strategy
-from hypothesis.specifiers import dictionary
+from hypothesis import assume, given
+from hypothesis.strategies import dictionaries, none, booleans, integers, floats, text, binary, one_of, frozensets, \
+    lists, recursive
 
 from bidict import bidict, frozenbidict
 
@@ -17,24 +14,30 @@ from bidict import bidict, frozenbidict
 def inv(d):
     return {v: k for (k, v) in d.items()}
 
+
 def prune_dup_vals(d):
     pruned = inv(inv(d))
     assume(len(pruned) >= 0.5 * len(d))
     return pruned
 
-immutable_types_ = (None, bool, int, float, str, bytes, tuple(), frozenset())
-immutable_types = reduce(or_, map(strategy, immutable_types_))
-d = strategy(dictionary(immutable_types, immutable_types)).map(prune_dup_vals)
+
+immutable_types = recursive(one_of(none(), booleans(), integers(), floats(), text(), binary()),
+                            lambda elts: one_of(frozensets(elts), lists(elts).map(tuple)))
+d = dictionaries(immutable_types, immutable_types).map(prune_dup_vals)
+
 
 @given(d)
 def test_len(d):
     assert len(d) == len(inv(d)) == len(bidict(d))
 
-def isnan_(x):
+
+def _isnan(x):
     return isnan(x) if isinstance(x, float) else False
 
-def both_nan(a, b):
-    return isnan_(a) and isnan_(b)
+
+def _both_nan(a, b):
+    return _isnan(a) and _isnan(b)
+
 
 @given(d)
 def test_bidirectional_mappings(d):
@@ -42,8 +45,9 @@ def test_bidirectional_mappings(d):
     for k, v in b.items():
         v_ = b[k]
         k_ = b.inv[v]
-        assert k == k_ or both_nan(k, k_)
-        assert v == v_ or both_nan(v, v_)
+        assert k == k_ or _both_nan(k, k_)
+        assert v == v_ or _both_nan(v, v_)
+
 
 @given(d)
 def test_inv_identity(d):
@@ -51,9 +55,11 @@ def test_inv_identity(d):
     assert b is b.inv.inv
     assert b.inv is b.inv.inv.inv
 
+
 # work around https://bitbucket.org/pypy/pypy/issue/1974
 nan = float('nan')
 WORKAROUND_NAN_BUG = (nan, nan) != (nan, nan)
+
 
 @given(d)
 def test_equality(d):
@@ -67,6 +73,7 @@ def test_equality(d):
     assert b.inv == i
     assert not b != d
     assert not b.inv != i
+
 
 @given(d)
 def test_frozenbidict_hash(d):
