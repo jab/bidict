@@ -18,10 +18,11 @@ except Exception as e:
          '(%r): %r' % (long_description, e))
 
 tests_require = [
+    'pep257>=0.7.0',
     'py>=1.4.31',
-    'pytest>=2.8.3',
+    'pytest>=2.8.5',
     'pytest-cov>=2.2.0',
-    'hypothesis>=1.15.0',
+    'hypothesis>=1.17.1',
     'hypothesis-pytest>=0.19.0',
 ]
 

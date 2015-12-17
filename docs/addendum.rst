@@ -9,8 +9,8 @@ where bidicts could be used for fun and profit
 (depending on your ideas of fun and profit):
 
 - The :mod:`logging` module
-  contains a private ``_levelToName`` dict
-  which maps integer levels like ``10`` to their string names like ``DEBUG``.
+  contains a private :attr:`_levelToName <logging._levelToName>` dict
+  which maps integer levels like *10* to their string names like *DEBUG*.
   If I had a nickel for every time I wanted that exposed in a bidirectional map
   (and as a public attribute, no less), 
   I bet I could afford some better turns of phrase.
@@ -40,8 +40,8 @@ More Caveats
 
 .. include:: caveat-inv-reference-cycle.rst.inc
 
-Other Verbiage, Esoterica, Navel Gazing, &c.
---------------------------------------------
+Other
+-----
 
 - It's intentional that the term "inverse" is used rather than "reverse".
 
@@ -63,7 +63,7 @@ Other Verbiage, Esoterica, Navel Gazing, &c.
   for the sake of familiarity and to avoid potential confusion,
   but technically values are also keys themselves.
 
-  Concretely, this allows bidict to return a set-like (``dict_keys``) object
+  Concretely, this allows bidict to return a set-like (*dict_keys*) object
   for :attr:`bidict.values <bidict.BidirectionalMapping.values>` (Python 3) /
   :attr:`bidict.viewvalues <bidict.BidirectionalMapping.viewvalues>`
-  (Python 2.7), rather than a non-set-like ``dict_values`` object.
+  (Python 2.7), rather than a non-set-like *dict_values* object.

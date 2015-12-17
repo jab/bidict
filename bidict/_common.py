@@ -1,3 +1,9 @@
+"""
+Implements :class:`BidirectionalMapping`, the bidirectional map base class.
+
+Also provides related exception classes.
+"""
+
 from .compat import PY2, iteritems
 from .util import pairs
 from collections import Mapping
@@ -5,11 +11,15 @@ from collections import Mapping
 
 class BidirectionalMapping(Mapping):
     """
+    Base class for all provided bidirectional map types.
+
     Mutable and immutable bidict types extend this class,
     which implements all the shared logic.
     Users will typically only interact with subclasses of this class.
     """
+
     def __init__(self, *args, **kw):
+        """Like :py:meth:`dict.__init__`, but maintaining bidirectionality."""
         self._fwd = {}
         self._bwd = {}
         self._update(*args, **kw)
@@ -21,31 +31,28 @@ class BidirectionalMapping(Mapping):
         self._hash = None
 
     def __repr__(self):
+        """Get an "official" string representation of this bidict."""
         return '%s(%r)' % (self.__class__.__name__, self._fwd)
 
-    __str__ = __repr__
-
     def __eq__(self, other):
+        """Test for equality with *other*."""
         return self._fwd == other
 
     def __ne__(self, other):
+        """Test for inequality with *other*."""
         return self._fwd != other
 
     @property
     def inv(self):
-        """
-        Property providing access to the inverse bidict.
-        Can be chained as in: ``B.inv.inv is B``.
-        """
+        """Property providing access to the inverse bidict."""
         return self._inv
 
     def __inverted__(self):
-        """
-        Returns an iterator over the inverse mappings.
-        """
+        """Get an iterator over the inverse mappings."""
         return iteritems(self._bwd)
 
     def __getitem__(self, key):
+        """Retrieve the value associated with *key*."""
         return self._fwd[key]
 
     def _put(self, key, val, overwrite_key=False, overwrite_val=True):
@@ -73,24 +80,24 @@ class BidirectionalMapping(Mapping):
 
     get = lambda self, k, *args: self._fwd.get(k, *args)
     copy = lambda self: self.__class__(self._fwd)
-    get.__doc__ = 'Analogous to dict.get()'
-    copy.__doc__ = 'Analogous to dict.copy()'
+    get.__doc__ = 'Like :py:meth:`dict.get`.'
+    copy.__doc__ = 'Like :py:meth:`dict.copy`.'
     __len__ = lambda self: len(self._fwd)
     __iter__ = lambda self: iter(self._fwd)
     __contains__ = lambda self, x: x in self._fwd
-    __len__.__doc__ = 'Analogous to dict.__len__()'
-    __iter__.__doc__ = 'Analogous to dict.__iter__()'
-    __contains__.__doc__ = 'Analogous to dict.__contains__()'
+    __len__.__doc__ = 'Like :py:meth:`dict.__len__`.'
+    __iter__.__doc__ = 'Like :py:meth:`dict.__iter__`.'
+    __contains__.__doc__ = 'Like :py:meth:`dict.__contains__`.'
     keys = lambda self: self._fwd.keys()
     items = lambda self: self._fwd.items()
-    keys.__doc__ = 'Analogous to dict.keys()'
-    items.__doc__ = 'Analogous to dict.items()'
+    keys.__doc__ = 'Like :py:meth:`dict.keys`.'
+    items.__doc__ = 'Like :py:meth:`dict.items`.'
     values = lambda self: self._bwd.keys()
     values.__doc__ = \
-        "B.values() -> a set-like object providing a view on B's values. " \
+        "B.values() -> a set-like object providing a view on B's values.\n\n" \
         'Note that because values of a BidirectionalMapping are also keys ' \
-        'of its inverse, this returns a ``dict_keys`` object rather than a ' \
-        '``dict_values`` object, conferring set-like benefits.'
+        'of its inverse, this returns a *dict_keys* object rather than a ' \
+        '*dict_values* object, conferring set-like benefits.'
     if PY2:
         iterkeys = lambda self: self._fwd.iterkeys()
         viewkeys = lambda self: self._fwd.viewkeys()
@@ -108,26 +115,36 @@ class BidirectionalMapping(Mapping):
 
 
 class BidictException(Exception):
-    """
-    Base class for bidict exceptions.
-    """
+    """Base class for bidict exceptions."""
+
     def __repr__(self):
-        return '<%s \'%s\'>' % (self.__class__.__name__, self)
+        """Get an "official" string representation of this exception."""
+        return "<%s '%s'>" % (self.__class__.__name__, self)
+
 
 class KeyExistsException(BidictException):
     """
+    Guards against replacing an existing mapping whose key matches the given.
+
     Raised when an attempt is made to insert a new mapping into a bidict whose
     value maps to the key of an existing mapping.
     """
+
     def __str__(self):
+        """Get a "friendly" string representation of this exception."""
         return 'Key {0!r} exists with value {1!r}'.format(*self.args[0])
+
 
 class ValueExistsException(BidictException):
     """
+    Guards against replacing an existing mapping whose value matches the given.
+
     Raised when an attempt is made to insert a new mapping into a bidict whose
     key maps to the value of an existing mapping.
     """
+
     def __str__(self):
+        """Get a "friendly" string representation of this exception."""
         return 'Value {1!r} exists with key {0!r}'.format(*self.args[0])
 
 _missing = object()

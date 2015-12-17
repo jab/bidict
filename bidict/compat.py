@@ -1,6 +1,4 @@
-"""
-Python 2/3 compatibility helpers.
-"""
+"""Python 2/3 compatibility helpers."""
 
 from sys import version_info
 
