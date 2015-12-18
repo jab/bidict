@@ -4,6 +4,7 @@ bidict
 Efficient, Pythonic bidirectional map implementation and related functionality.
 
 .. image:: ./docs/_static/logo.png
+    :target: https://bidict.readthedocs.org/
     :alt: bidict logo
 
 
@@ -47,7 +48,7 @@ Status
     :alt: License
 
 .. image:: https://img.shields.io/badge/gumroad-support%20bidict-brightgreen.svg
-    :target: https://gum.co/XGXTp
+    :target: https://gumroad.com/l/bidict
     :alt: Support bidict
 
 .. image:: https://img.shields.io/badge/Paypal-Buy%20a%20Drink-blue.svg
@@ -86,12 +87,12 @@ talk about your use case.
 
 bidict is the result of hundreds of hours of voluntary, unpaid work.
 If bidict has helped you accomplish work you've been paid for,
-please `support bidict <https://gumroad.com/l/XGXTp>`_
+please `support bidict <https://gumroad.com/l/bidict>`_
 and/or ask your organization to do the same.
 Your support directly contributes to bidict's sustainability.
 
 .. image:: ./docs/_static/support-on-gumroad.png
-    :target: https://gumroad.com/l/XGXTp
+    :target: https://gumroad.com/l/bidict
     :alt: Support bidict
 
 Check out

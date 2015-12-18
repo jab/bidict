@@ -5,10 +5,11 @@ Basic Usage
 
 Let's return to the example from the :ref:`intro`::
 
+    >>> from bidict import bidict
     >>> element_by_symbol = bidict(H='hydrogen')
 
 As we saw, this behaves just like a dict,
-but maintains a special ``.inv`` property
+but maintains a special :attr:`.inv <bidict.BidirectionalMapping.inv>` property
 giving access to inverse mappings::
 
     >>> element_by_symbol.inv['helium'] = 'He'
@@ -39,9 +40,35 @@ is also supported::
 Because inverse mappings are maintained alongside forward mappings,
 referencing a bidict's inverse
 is always a constant-time operation.
-No need to go through the entire collection.
 
-One last thing, bidicts interoperate well with other types of maps.
+
+.. include:: unique-values.doctest.rst.inc
+
+
+Values Must Be Hashable
++++++++++++++++++++++++
+
+Because you must be able to look up keys by value as well as values by key,
+values must also be hashable.
+
+Attempting to insert an unhashable value will result in an error::
+
+    >>> anagrams_by_alphagram = bidict(opt=['opt', 'pot', 'top'])
+    Traceback (most recent call last):
+        ...
+    TypeError...
+
+In this example, using a tuple instead of a list does the trick,
+and confers additional benefits of immutability::
+
+    >>> bidict(opt=('opt', 'pot', 'top'))
+    bidict({'opt': ('opt', 'pot', 'top')})
+
+
+Interop
++++++++
+
+bidicts interoperate well with other types of maps.
 For example, they support (efficient) polymorphic equality testing::
 
     >>> bidict(a=1) == dict(a=1)
@@ -54,8 +81,7 @@ And converting back and forth works as expected::
     >>> bidict(dict(a=1))
     bidict({'a': 1})
 
-Straightforward so far?
 Hopefully bidict feels right at home
 among the Python built-ins you already know.
 
-But read on to make sure you cover some important :ref:`caveats`.
+Let's turn now to considering bidict's :ref:`performance`.

@@ -1,17 +1,18 @@
-"""
-Utilities for working with one-to-one relations.
-"""
+"""Utilities for working with one-to-one relations."""
 
 from .compat import PY2, iteritems
 from collections import Iterator
+from math import isnan
 
 
 def pairs(*map_or_it, **kw):
     """
-    Yields the pairs provided. Signature matches dict's.
+    Yield the pairs provided. Signature matches dict's.
+
     Accepts zero or one positional argument which it first tries iterating over
     as a mapping, and if that fails, falls back to iterating over as
     a sequence, yielding items two at a time.
+
     Mappings may also be passed as keyword arguments, which will be yielded
     after any passed via positional argument.
     """
@@ -34,35 +35,36 @@ def pairs(*map_or_it, **kw):
 
 class inverted(Iterator):
     """
-    An iterator analogous to the :func:`reversed` built-in.
-    Useful for inverting a mapping.
+    An iterator yielding the inverses of the provided mappings.
+
+    Works with any object that can be iterated over as a mapping or in pairs
+    or that implements its own __inverted__ method.
     """
+
     def __init__(self, data):
+        """Create an :class:`inverted` instance."""
         self._data = data
 
     def __iter__(self):
-        """
-        First try to call ``__inverted__`` on the wrapped object
-        and return the result if the call succeeds
-        (i.e. delegate to the object if it supports inverting natively).
-        This complements :attr:`bidict.BidirectionalMapping.__inverted__`.
-
-        If the call fails, fall back on calling our own ``__next__`` method.
-        """
-        try:
-            it = self._data.__inverted__
-        except AttributeError:
-            it = self.__next__
-        return it()
+        """Create an instance of the actual generator."""
+        makeit = getattr(self._data, '__inverted__', self.__next__)
+        return makeit()
 
     def __next__(self):
-        """
-        Yields the inverse of each pair yielded by calling :attr:`bidict.pairs`
-        on the wrapped object.
-        """
+        """Yield the inverse of each pair in the associated data."""
         for (k, v) in pairs(self._data):
             yield (v, k)
 
     # compat
     if PY2:
         next = __next__
+
+
+def isnan_(x):
+    """Like :py:func:`math.isnan` but works with any type."""
+    return isnan(x) if isinstance(x, float) else False
+
+
+def both_nan(a, b):
+    """Return True iff both *a* and *b* are *nan*."""
+    return isnan_(a) and isnan_(b)

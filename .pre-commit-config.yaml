@@ -1,7 +1,12 @@
 -   repo: git://github.com/pre-commit/pre-commit-hooks
-    sha: 0ff8620e03bf7acfb4dfdc86de14baf032c604f5
+    sha: v0.4.2
     hooks:
     -   id: trailing-whitespace
     -   id: end-of-file-fixer
     -   id: debug-statements
     -   id: double-quote-string-fixer
+
+#-   repo: git://github.com/FalconSocial/pre-commit-mirrors-pep257
+#    sha: v0.3.2
+#    hooks:
+#    -   id: pep257

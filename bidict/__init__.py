@@ -1,26 +1,29 @@
 # -*- coding: utf-8 -*-
 
 """
-Efficient, Pythonic bidirectional map implementation
-and related functionality.
+Efficient, Pythonic bidirectional map implementation and related functionality.
+
+See https://bidict.readthedocs.org/ for comprehensive documentation.
 
 .. :copyright: (c) 2015 Joshua Bronson.
 .. :license: ISCL. See LICENSE for details.
 
 """
 
-from ._common import BidirectionalMapping, CollapseException
+from ._common import BidirectionalMapping, BidictException, KeyExistsException, ValueExistsException
 from ._bidict import bidict
-from ._collapsing import collapsingbidict
+from ._loose import loosebidict
 from ._frozen import frozenbidict
 from ._named import namedbidict
 from .util import pairs, inverted
 
 __all__ = (
     'BidirectionalMapping',
-    'CollapseException',
+    'BidictException',
+    'KeyExistsException',
+    'ValueExistsException',
     'bidict',
-    'collapsingbidict',
+    'loosebidict',
     'frozenbidict',
     'namedbidict',
     'pairs',

@@ -18,25 +18,21 @@ except Exception as e:
          '(%r): %r' % (long_description, e))
 
 tests_require = [
-    'tox',
-    'pytest',
-    'pytest-cov',
-    'hypothesis',
-    'hypothesis-pytest',
+    'pep257>=0.7.0',
+    'py>=1.4.31',
+    'pytest>=2.8.5',
+    'pytest-cov>=2.2.0',
+    'hypothesis>=1.17.1',
+    'hypothesis-pytest>=0.19.0',
 ]
 
 class PyTest(Command):
     user_options = []
-    def initialize_options(self):
-        pass
-
-    def finalize_options(self):
-        pass
-
+    def initialize_options(self): pass
+    def finalize_options(self): pass
     def run(self):
-        import subprocess
-        import sys
-        errno = subprocess.call(['py.test'])
+        from subprocess import call
+        errno = call(['py.test'])
         raise SystemExit(errno)
 
 setup(

@@ -1,75 +1,116 @@
-from ._common import BidirectionalMapping, _missing
+"""Implements :class:`bidict.bidict`, the mutable bidirectional map type."""
+
+from ._common import BidirectionalMapping
 from .util import pairs
 from collections import MutableMapping
 
 
 class bidict(BidirectionalMapping, MutableMapping):
-    """
-    Mutable bidirectional map type.
-    """
+    """Mutable bidirectional map type."""
+
     def _del(self, key):
         val = self._fwd[key]
         del self._fwd[key]
         del self._bwd[val]
+        return val
 
     def __delitem__(self, key):
+        """Like :py:meth:`dict.__delitem__`, keeping bidirectionality intact."""
         self._del(key)
 
     def __setitem__(self, key, val):
-        self._put(key, val)
+        """
+        Set the value for *key* to *val*.
+
+        If *key* is already associated with a different value,
+        the old value will be replaced with *val*.
+        Use :attr:`put` to raise an exception in this case instead.
+
+        If *val* is already associated with a different key,
+        an exception is raised
+        to protect against accidentally replacing the existing mapping.
+
+        If *key* is already associated with *val*, this is a no-op.
+
+        Use :attr:`forceput` to unconditionally associate *key* with *val*,
+        replacing any existing mappings as necessary to preserve uniqueness.
+
+        :raises bidict.ValueExistsException: if attempting to set a mapping
+            with a non-unique value.
+        """
+        self._put(key, val, overwrite_key=False, overwrite_val=True)
 
     def put(self, key, val):
         """
-        Alternative to using the setitem syntax to insert a mapping.
+        Associate *key* with *val* iff *key* and *val* are both unique.
+
+        That is, insert the given mapping iff
+        *key* is not already associated with an existing value and
+        *val* is not already associated with an existing key.
+
+        If *key* is already associated with *val*, this is a no-op.
+
+        :raises bidict.KeyExistsException: if attempting to insert a mapping
+            with the same key as an existing mapping.
+
+        :raises bidict.ValueExistsException: if attempting to insert a mapping
+            with the same value as an existing mapping.
         """
-        self._put(key, val)
+        self._put(key, val, overwrite_key=False, overwrite_val=False)
 
     def forceput(self, key, val):
         """
-        Like :attr:`bidict.bidict.put` but silently removes any existing
-        mapping that would otherwise cause a :class:`bidict.CollapseException`
-        before inserting the given mapping::
+        Associate *key* with *val* unconditionally.
 
-            >>> b = bidict({0: 'zero', 1: 'one'})
-            >>> b.put(0, 'one')  # doctest: +IGNORE_EXCEPTION_DETAIL
-            Traceback (most recent call last):
-            ...
-            CollapseException: ((0, 'zero'), (1, 'one'))
-            >>> b.forceput(0, 'one')
-            >>> b
-            bidict({0: 'one'})
-
+        Replace any existing mappings containing key *key* or value *val*
+        as necessary to preserve uniqueness.
         """
-        oldval = self._fwd.get(key, _missing)
-        oldkey = self._bwd.get(val, _missing)
-        if oldval is not _missing:
-            del self._bwd[oldval]
-        if oldkey is not _missing:
-            del self._fwd[oldkey]
-        self._fwd[key] = val
-        self._bwd[val] = key
+        self._put(key, val, overwrite_key=True, overwrite_val=True)
 
     def clear(self):
+        """Remove all items."""
         self._fwd.clear()
         self._bwd.clear()
 
     def pop(self, key, *args):
-        val = self._fwd.pop(key, *args)
-        del self._bwd[val]
+        """Like :py:meth:`dict.pop`, keeping bidirectionality intact."""
+        ln = len(args) + 1
+        if ln > 2:
+            raise TypeError('pop expected at most 2 arguments, got %d' % ln)
+        try:
+            val = self._del(key)
+        except KeyError:
+            if args:
+                return args[0]
+            raise
         return val
 
     def popitem(self):
-        if not self._fwd:
+        """Like :py:meth:`dict.popitem`, keeping bidirectionality intact."""
+        if not self:
             raise KeyError('popitem(): %s is empty' % self.__class__.__name__)
         key, val = self._fwd.popitem()
         del self._bwd[val]
         return key, val
 
     def setdefault(self, key, default=None):
-        val = self._fwd.setdefault(key, default)
-        self._bwd[val] = key
-        return val
+        """Like :py:meth:`dict.setdefault`, keeping bidirectionality intact."""
+        if key not in self:
+            self[key] = default
+        return self[key]
 
     def update(self, *args, **kw):
+        """
+        Like :py:meth:`dict.update`, keeping bidirectionality intact.
+
+        Similar to calling :attr:`__setitem__` for each mapping given.
+
+        :raises bidict.ValueExistsException: if attempting to insert a mapping
+            with a non-unique value.
+        """
+        return self._update(*args, **kw)
+
+    def forceupdate(self, *args, **kw):
+        """Call :attr:`forceput` for each mapping given."""
         for k, v in pairs(*args, **kw):
-            self._put(k, v)
+            self.forceput(k, v)
