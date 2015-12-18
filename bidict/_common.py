@@ -5,7 +5,7 @@ Also provides related exception classes.
 """
 
 from .compat import PY2, iteritems
-from .util import pairs
+from .util import both_nan, pairs
 from collections import Mapping
 
 
@@ -58,18 +58,20 @@ class BidirectionalMapping(Mapping):
     def _put(self, key, val, overwrite_key=False, overwrite_val=True):
         oldkey = self._bwd.get(val, _missing)
         oldval = self._fwd.get(key, _missing)
-        if key == oldkey and val == oldval:
+        samekey = key == oldkey or both_nan(key, oldkey)
+        sameval = val == oldval or both_nan(val, oldval)
+        if samekey and sameval:
             return
-        if oldval is not _missing:
-            if overwrite_val:
-                del self._bwd[oldval]
-            else:
-                raise KeyExistsException((key, oldval))
-        if oldkey is not _missing:
-            if overwrite_key:
-                del self._fwd[oldkey]
-            else:
-                raise ValueExistsException((oldkey, val))
+        keyexists = oldval is not _missing
+        if keyexists and not overwrite_val:
+            raise KeyExistsException((key, oldval))
+        valexists = oldkey is not _missing
+        if valexists and not overwrite_key:
+            raise ValueExistsException((oldkey, val))
+        if keyexists:  # overwrite_val == True
+            del self._bwd[oldval]
+        if valexists:  # overwrite_key == True
+            del self._fwd[oldkey]
         self._fwd[key] = val
         self._bwd[val] = key
         self._bwd.pop(oldval, None)

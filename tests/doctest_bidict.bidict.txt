@@ -168,3 +168,14 @@ Trying to insert an existing mapping does not raise, and is a no-op::
     >>> b.inv['one'] = 1
     >>> b.inv['one']
     1
+
+The following case does not half-succeed,
+leaving a bidict in an inconsistent state::
+
+    >>> b = bidict(one=1, two=2)
+    >>> b['one'] = 2
+    Traceback (most recent call last):
+        ...
+    ValueExistsException: Value 2 exists with key 'two'
+    >>> len(b) == len(b.inv)
+    True

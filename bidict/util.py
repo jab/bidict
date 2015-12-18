@@ -2,6 +2,7 @@
 
 from .compat import PY2, iteritems
 from collections import Iterator
+from math import isnan
 
 
 def pairs(*map_or_it, **kw):
@@ -57,3 +58,13 @@ class inverted(Iterator):
     # compat
     if PY2:
         next = __next__
+
+
+def isnan_(x):
+    """Like :py:func:`math.isnan` but works with any type."""
+    return isnan(x) if isinstance(x, float) else False
+
+
+def both_nan(a, b):
+    """Return True iff both *a* and *b* are *nan*."""
+    return isnan_(a) and isnan_(b)

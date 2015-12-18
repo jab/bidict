@@ -12,6 +12,7 @@ class bidict(BidirectionalMapping, MutableMapping):
         val = self._fwd[key]
         del self._fwd[key]
         del self._bwd[val]
+        return val
 
     def __delitem__(self, key):
         """Like :py:meth:`dict.__delitem__`, keeping bidirectionality intact."""
@@ -73,13 +74,20 @@ class bidict(BidirectionalMapping, MutableMapping):
 
     def pop(self, key, *args):
         """Like :py:meth:`dict.pop`, keeping bidirectionality intact."""
-        val = self._fwd.pop(key, *args)
-        del self._bwd[val]
+        ln = len(args) + 1
+        if ln > 2:
+            raise TypeError('pop expected at most 2 arguments, got %d' % ln)
+        try:
+            val = self._del(key)
+        except KeyError:
+            if args:
+                return args[0]
+            raise
         return val
 
     def popitem(self):
         """Like :py:meth:`dict.popitem`, keeping bidirectionality intact."""
-        if not self._fwd:
+        if not self:
             raise KeyError('popitem(): %s is empty' % self.__class__.__name__)
         key, val = self._fwd.popitem()
         del self._bwd[val]
@@ -87,9 +95,9 @@ class bidict(BidirectionalMapping, MutableMapping):
 
     def setdefault(self, key, default=None):
         """Like :py:meth:`dict.setdefault`, keeping bidirectionality intact."""
-        val = self._fwd.setdefault(key, default)
-        self._bwd[val] = key
-        return val
+        if key not in self:
+            self[key] = default
+        return self[key]
 
     def update(self, *args, **kw):
         """

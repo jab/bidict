@@ -14,6 +14,10 @@ Changelog
   See discussion in `#21 <https://github.com/jab/bidict/issues/21>`_.
 - New :attr:`forceupdate <bidict.bidict.forceupdate>` method
   for bulk :attr:`forceput <bidict.bidict.forceput>`.
+- Fix bugs in
+  :attr:`pop <bidict.bidict.pop>` and
+  :attr:`setdefault <bidict.bidict.setdefault>`
+  which could leave a bidict in an inconsistent state.
 
 Breaking API Changes
 ^^^^^^^^^^^^^^^^^^^^
