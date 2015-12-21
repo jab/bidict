@@ -25,3 +25,12 @@ notifications:
   webhooks:
     urls:
       - https://webhooks.gitter.im/e/bf64fb45a633c0935b9b
+
+deploy:
+  provider: pypi
+  user: jab
+  password:
+    secure: B9LLgXkTbtjeC/IbH4wh9PEBzvKEAuYo3EBNW5f1xuLqVqtsysIyxJa5ar/FQ4qwUCBwZPFAXFurN3lLzRhb2Tc04YQ0GYVv6f8lkzwrjoWau4iB9Qt/nnvdRa7KryEJvtenHCAnwoEUaADCjkZjwo6fIA0hEOLB6/AYfhfgXYA=
+  on:
+    tags: true
+    branch: master
