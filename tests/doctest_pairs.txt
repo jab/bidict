@@ -52,3 +52,10 @@ be yielded, whereas with dict the last repeat clobbers earlier ones::
     {'a': 3}
     >>> list(pairs([('a', 1), ('a', 2)], a=3))
     [('a', 1), ('a', 2), ('a', 3)]
+
+Invalid calls result in errors::
+
+    >>> list(pairs(1, 2))
+    Traceback (most recent call last):
+        ...
+    TypeError: Pass at most 1 positional argument (got 2)

@@ -1,6 +1,7 @@
 language: python
 python:
   - "2.7"
+  - "3.3"
   - "3.4"
   - "3.5"
   - "pypy"
@@ -12,8 +13,8 @@ install:
   - pip install tox-travis
 
 script:
-  - tox
-  - py.test --cov bidict tests
+  - python setup.py test
+  - pep257 bidict
 
 after_success:
   coveralls

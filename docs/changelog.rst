@@ -7,20 +7,46 @@ Changelog
 -------------------------
 
 - Removed several features in favor of keeping the API simpler
-  and the code more maintainable
+  and the code more maintainable.
+- In the interest of protecting data safety more proactively, by default
+  bidict now raises an error on attempting to insert a non-unique value,
+  rather than allowing its associated key to be silently overwritten.
+  See discussion in `#21 <https://github.com/jab/bidict/issues/21>`_.
+- New :attr:`forceupdate <bidict.bidict.forceupdate>` method
+  for bulk :attr:`forceput <bidict.bidict.forceput>`.
+- Fix bugs in
+  :attr:`pop <bidict.bidict.pop>` and
+  :attr:`setdefault <bidict.bidict.setdefault>`
+  which could leave a bidict in an inconsistent state.
 
 Breaking API Changes
 ^^^^^^^^^^^^^^^^^^^^
 
 - Removed ``bidict.__invert__``, and with it, support for the ``~b`` syntax.
-  Use ``b.inv`` instead.
+  Use :attr:`b.inv <bidict.BidirectionalMapping.inv>` instead.
   `#19 <https://github.com/jab/bidict/issues/19>`_
 - Removed support for the slice syntax.
   Use ``b.inv[val]`` rather than ``b[:val]``.
   `#19 <https://github.com/jab/bidict/issues/19>`_
 - Removed ``bidict.invert``.
-  Use ``b.inv`` rather than inverting a bidict in place.
+  Use :attr:`b.inv <bidict.BidirectionalMapping.inv>`
+  rather than inverting a bidict in place.
   `#20 <https://github.com/jab/bidict/issues/20>`_
+- Raise :class:`ValueExistsException <bidict.ValueExistsException>`
+  when attempting to insert a mapping with a non-unique key.
+  `#21 <https://github.com/jab/bidict/issues/21>`_
+- Renamed ``collapsingbidict`` to :class:`loosebidict <bidict.loosebidict>`
+  now that it suppresses
+  :class:`ValueExistsException <bidict.ValueExistsException>`
+  rather than the less general ``CollapseException``.
+  `#21 <https://github.com/jab/bidict/issues/21>`_
+- ``CollapseException`` has been subsumed by
+  :class:`ValueExistsException <bidict.ValueExistsException>`.
+  `#21 <https://github.com/jab/bidict/issues/21>`_
+- :attr:`put <bidict.bidict.put>` now raises :class:`KeyExistsException
+  <bidict.KeyExistsException>` when attempting to insert an already-existing
+  key, and :class:`ValueExistsException <bidict.ValueExistsException>` when
+  attempting to insert an already-existing value.
 
 
 0.9.0.post1 (2015-06-06)

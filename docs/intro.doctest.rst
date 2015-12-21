@@ -16,13 +16,15 @@ bidict.bidict
 is the main bidirectional map data structure provided.
 It implements the familiar API you're used to from dict::
 
+    >>> from bidict import bidict
     >>> element_by_symbol = bidict(H='hydrogen')
-    >>> element_by_symbol['H']
-    'hydrogen'
     >>> element_by_symbol
     bidict({'H': 'hydrogen'})
+    >>> element_by_symbol['H']
+    'hydrogen'
 
-But it also maintains the inverse mapping via the ``.inv`` property::
+But it also maintains the inverse bidict via the
+:attr:`inv <bidict.BidirectionalMapping.inv>` attribute::
 
     >>> element_by_symbol.inv
     bidict({'hydrogen': 'H'})
@@ -34,49 +36,57 @@ But it also maintains the inverse mapping via the ``.inv`` property::
 Concise, efficient, Pythonic.
 
 
-Is This Really Necessary?
--------------------------
+Why Can't I Just Use dict?
+--------------------------
 
 A skeptic writes:
 
-    If I want a mapping *a* <-> *b*,
-    I would just create a dict *{a: b, b: a}*.
+    If I want a mapping *a* ↔︎ *b*,
+    I would just create a dict *{a: b, b: a}*.
     What is the advantage of bidict
     over the simplicity of the dict approach?
 
 Glad you asked.
 
-For one, you don't have to manually update the mapping from *b* → *a*
-every time the mapping from *a* → *b* changes.
-With the skeptic's method, you have to write::
+For one, you don't have to manually update the mapping *b* → *a*
+whenever the mapping *a* → *b* changes.
+With the skeptic's method,
+if *a* → *b* needs to change to *a* → *c*,
+you have to write::
 
-    >>> d[a] = c
-    >>> d[c] = a
-    >>> del d[b]
+    >>> d[a] = c  # doctest: +SKIP
+    >>> d[c] = a  # doctest: +SKIP
+    >>> del d[b]  # doctest: +SKIP
 
-instead of just ``d[a] = c``.
+With bidicit, you can instead just write::
 
-More significantly,
-since there's no distinction between keys and values
-in the skeptic's approach,
-it's less a bidirectional map
-than two one-directional maps destructively merged into one.
+    >>> d[a] = c  # doctest: +SKIP
+
+and the rest is taken care of for you.
+
+But even more important,
+since the dict approach
+inserts values as keys into the same one-directional map it inserts keys into,
+it's not a bidirectional map so much as
+the destructive merge of two one-directional maps into one.
+
 In other words,
-with this approach,
 you lose information about which mappings are the forward mappings
 and which are the inverse.
 ``d.keys()`` and ``d.values()`` would each give you
-the same jumble of keys and values together
-with no clean way to tease them apart,
-and ``d.items()`` would be the two-times-too-big
-messy combination.
+the same 2x-too-big jumble of keys and values
+all mixed together,
+and ``d.items()`` would likewise be
+the 2x-too-big combination of forward and inverse mappings
+all mixed together.
 
 In short,
 to model a bidirectional map,
-you need two separate one-way maps
+you need two separate one-directional maps
 that are kept in sync as the bidirectional map changes.
-What bidict does is provide a clean abstraction over this,
-so you don't have to keep them in sync manually.
+This is exactly what bidict does under the hood,
+abstracting this into a clean and simple interface,
+while providing complementary functionality to boot.
 
 Additional Functionality
 ------------------------
@@ -87,7 +97,7 @@ for working with one-to-one relations:
 
 - :class:`bidict.frozenbidict`
 - :class:`bidict.namedbidict`
-- :class:`bidict.collapsingbidict`
+- :class:`bidict.loosebidict`
 - :class:`bidict.inverted`
 
 These will be covered in later sections.

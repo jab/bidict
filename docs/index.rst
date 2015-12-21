@@ -12,13 +12,11 @@ and related functionality.
     :maxdepth: 2
     :hidden:
 
-    intro
-    basic-usage
-    caveats
-    performance
-    other-bidict-types
-    inverted
-    api
+    intro.doctest
+    basic-usage.doctest
+    performance.doctest
+    other-bidict-types.doctest
+    inverted.doctest
+    addendum
     changelog
-    credits
-    cut
+    api

@@ -1,0 +1,8 @@
+Test script for bidict.frozenbidict::
+
+    >>> from bidict import frozenbidict
+    >>> f = frozenbidict(one=1)
+    >>> hash(f) is not 'an error'
+    True
+    >>> {f: 1}
+    {frozenbidict({'one': 1}): 1}
