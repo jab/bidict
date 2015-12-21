@@ -6,7 +6,7 @@
     :target: https://pypi.python.org/pypi/bidict
     :alt: Latest release
 
-.. image:: https://readthedocs.org/projects/bidict/badge/
+.. image:: https://readthedocs.org/projects/bidict/badge/?version=master
     :target: https://bidict.readthedocs.org/
     :alt: Documentation
 
