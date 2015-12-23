@@ -1,3 +1,5 @@
+.. _contributing:
+
 Contributors' Guide
 ===================
 
@@ -112,7 +114,7 @@ especially work you've been paid for,
 please `support bidict <https://gumroad.com/l/bidict>`_
 and/or ask your organization to do the same.
 
-.. image:: ./docs/_static/support-on-gumroad.png
+.. image:: https://raw.githubusercontent.com/jab/bidict/master/docs/_static/support-on-gumroad.png
     :target: https://gumroad.com/l/bidict
     :alt: Support bidict
 
