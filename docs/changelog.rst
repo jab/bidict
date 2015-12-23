@@ -3,8 +3,14 @@
 Changelog
 =========
 
-0.10.0 (not yet released)
+0.10.0.post1 (2015-12-23)
 -------------------------
+
+- Minor documentation fixes/improvements
+
+
+0.10.0 (2015-12-23)
+-------------------
 
 - Removed several features in favor of keeping the API simpler
   and the code more maintainable.
