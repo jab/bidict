@@ -3,10 +3,14 @@
 Changelog
 =========
 
-0.10.1 (not yet released)
+0.11.0 (not yet released)
 -------------------------
 
-- TODO
+- Add
+  :class:`bidict.orderedbidict`, 
+  :class:`bidict.looseorderedbidict`,
+  and
+  :class:`bidict.frozenorderedbidict`.
 
 0.10.0.post1 (2015-12-23)
 -------------------------

@@ -19,7 +19,7 @@ with custom attribute-based access to forward and inverse mappings::
     >>> noble_gases
     ElementMap({'Ne': 'neon'})
 
-The ``base_type`` keyword arg,
+The *base_type* keyword arg,
 whose default value is :class:`bidict.bidict`,
 allows overriding the bidict type used as the base class,
 allowing the creation of e.g. namedfrozenbidicts::

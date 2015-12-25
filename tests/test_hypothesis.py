@@ -2,7 +2,7 @@
 Property-based tests using https://warehouse.python.org/project/hypothesis/
 """
 
-from bidict import bidict
+from bidict import bidict, orderedbidict
 from hypothesis import assume, given
 from hypothesis.strategies import (
     binary, booleans, choices, dictionaries, floats, frozensets, integers,
@@ -30,8 +30,9 @@ def eq_nan(a, b):
 
 
 mutating_methods_by_arity = {
-    0: (bidict.clear, bidict.popitem,),
-    1: (bidict.__delitem__, bidict.pop, bidict.setdefault,),
+    0: (bidict.clear, bidict.popitem, orderedbidict.popitem,),
+    1: (bidict.__delitem__, bidict.pop, bidict.setdefault,
+        orderedbidict.move_to_end,),
     2: (bidict.__setitem__, bidict.pop, bidict.put, bidict.forceput,
         bidict.setdefault,),
     -1: (bidict.update, bidict.forceupdate,),
@@ -77,7 +78,7 @@ def test_equality(d):
 def test_consistency_after_mutation(d, arg, itemlist):
     for arity, mms in mutating_methods_by_arity.items():
         for mm in mms:
-            b = bidict(d)
+            b = orderedbidict(d) if 'orderedbidict' in repr(mm) else bidict(d)
             args = []
             if arity > 0:
                 args.append(arg)

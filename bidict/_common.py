@@ -23,10 +23,12 @@ class BidirectionalMapping(Mapping):
 
     """
 
+    _dcls = dict
+
     def __init__(self, *args, **kw):
         """Like :py:meth:`dict.__init__`, but maintaining bidirectionality."""
-        self._fwd = {}  # dictionary of forward mappings
-        self._inv = {}  # dictionary of inverse mappings
+        self._fwd = self._dcls()  # dictionary of forward mappings
+        self._inv = self._dcls()  # dictionary of inverse mappings
         self._update(*args, **kw)
         inv = object.__new__(self.__class__)
         inv._fwd = self._inv

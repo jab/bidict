@@ -73,10 +73,10 @@ the destructive merge of two one-directional maps into one.
 In other words,
 you lose information about which mappings are the forward mappings
 and which are the inverse.
-``d.keys()`` and ``d.values()`` would each give you
+*d.keys()* and *d.values()* would each give you
 the same 2x-too-big jumble of keys and values
 all mixed together,
-and ``d.items()`` would likewise be
+and *d.items()* would likewise be
 the 2x-too-big combination of forward and inverse mappings
 all mixed together.
 
@@ -96,8 +96,11 @@ the :mod:`bidict` package provides additional tools
 for working with one-to-one relations:
 
 - :class:`bidict.frozenbidict`
-- :class:`bidict.namedbidict`
 - :class:`bidict.loosebidict`
+- :class:`bidict.orderedbidict`
+- :class:`bidict.frozenorderedbidict`
+- :class:`bidict.looseorderedbidict`
+- :class:`bidict.namedbidict`
 - :class:`bidict.inverted`
 
 These will be covered in later sections.

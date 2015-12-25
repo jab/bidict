@@ -15,10 +15,12 @@ from ._bidict import bidict
 from ._loose import loosebidict
 from ._frozen import frozenbidict
 from ._named import namedbidict
+from ._ordered import OrderedBidirectionalMapping, orderedbidict, frozenorderedbidict, looseorderedbidict
 from .util import pairs, inverted
 
 __all__ = (
     'BidirectionalMapping',
+    'OrderedBidirectionalMapping',
     'BidictException',
     'KeyExistsException',
     'ValueExistsException',
@@ -26,6 +28,9 @@ __all__ = (
     'loosebidict',
     'frozenbidict',
     'namedbidict',
+    'orderedbidict',
+    'frozenorderedbidict',
+    'looseorderedbidict',
     'pairs',
     'inverted',
 )

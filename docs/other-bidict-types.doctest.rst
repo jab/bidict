@@ -34,6 +34,8 @@ the leaf on this side of the tree.
 
 .. include:: frozenbidict.doctest.rst.inc
 
+.. include:: orderedbidict.doctest.rst.inc
+
 .. include:: namedbidict.doctest.rst.inc
 
 
