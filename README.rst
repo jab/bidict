@@ -47,6 +47,10 @@ Status
     :target: https://raw.githubusercontent.com/jab/bidict/master/LICENSE
     :alt: License
 
+.. image:: https://img.shields.io/badge/code%20of%20conduct-open-brightgreen.svg
+    :target: http://todogroup.org/opencodeofconduct/#bidict/jab@math.brown.edu
+    :alt: Code of Conduct
+
 .. image:: https://badges.gitter.im/Join%20Chat.svg
     :alt: Chat
     :target: https://gitter.im/jab/bidict
@@ -63,6 +67,10 @@ See https://bidict.readthedocs.org.
 
 Participation
 -------------
+
+This project adheres to the
+`Open Code of Conduct <http://todogroup.org/opencodeofconduct/#bidict/jab@math.brown.edu>`_.
+By participating, you are expected to honor this code.
 
 Please feel free to `create an issue <https://github.com/jab/bidict/issues/new>`_
 or `join the chat room <https://gitter.im/jab/bidict>`_

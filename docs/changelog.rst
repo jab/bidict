@@ -11,6 +11,8 @@ Changelog
   :class:`bidict.looseorderedbidict`,
   and
   :class:`bidict.frozenorderedbidict`.
+- Adopt `Open Code of Conduct
+  <http://todogroup.org/opencodeofconduct/#bidict/jab@math.brown.edu>`_.
 
 0.10.0.post1 (2015-12-23)
 -------------------------

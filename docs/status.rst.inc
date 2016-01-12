@@ -34,6 +34,10 @@
     :target: https://raw.githubusercontent.com/jab/bidict/master/LICENSE
     :alt: License
 
+.. image:: https://img.shields.io/badge/code%20of%20conduct-open-brightgreen.svg
+    :target: http://todogroup.org/opencodeofconduct/#bidict/jab@math.brown.edu
+    :alt: Code of Conduct
+
 .. image:: https://badges.gitter.im/Join%20Chat.svg
     :alt: Chat
     :target: https://gitter.im/jab/bidict

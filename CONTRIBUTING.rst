@@ -3,6 +3,8 @@
 Contributors' Guide
 ===================
 
+.. include:: code-of-conduct.rst.inc
+
 Bug reports, feature requests, patches, and other contributions are more than welcome.
 We want to make contribution as easy and friendly as possible.
 Here are a few guidelines we ask contributors to follow to facilitate the process:
