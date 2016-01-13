@@ -19,7 +19,7 @@ Status
     :target: https://pypi.python.org/pypi/bidict
     :alt: Latest release
 
-.. image:: https://readthedocs.org/projects/bidict/badge/?version=stable
+.. image:: https://readthedocs.org/projects/bidict/badge/?version=latest
     :target: https://bidict.readthedocs.org/
     :alt: Documentation
 
@@ -34,6 +34,10 @@ Status
 .. image:: https://www.codacy.com/project/badge/1c5bfb83d2d54d57898d4ede1c9157ee
     :target: https://www.codacy.com/app/jab/bidict
     :alt: Code quality
+
+.. image:: https://requires.io/github/jab/bidict/requirements.svg?branch=master
+     :target: https://requires.io/github/jab/bidict/requirements/?branch=master
+     :alt: Requirements Status
 
 .. image:: https://img.shields.io/pypi/pyversions/bidict.svg
     :target: https://pypi.python.org/pypi/bidict
@@ -52,8 +56,8 @@ Status
     :alt: Code of Conduct
 
 .. image:: https://badges.gitter.im/Join%20Chat.svg
-    :alt: Chat
     :target: https://gitter.im/jab/bidict
+    :alt: Chat
 
 Installation
 ------------
