@@ -3,11 +3,15 @@ Property-based tests using https://warehouse.python.org/project/hypothesis/
 """
 
 from bidict import bidict, orderedbidict
-from hypothesis import assume, given
+from hypothesis import assume, given, settings
 from hypothesis.strategies import (
     binary, booleans, choices, dictionaries, floats, frozensets, integers,
     lists, none, recursive, text, tuples)
 from math import isnan
+
+
+# https://groups.google.com/d/msg/hypothesis-users/8FVs--1yUl4/JEkJ02euEwAJ
+settings.strict = True
 
 
 def inv(d):
@@ -37,8 +41,10 @@ mutating_methods_by_arity = {
         bidict.setdefault,),
     -1: (bidict.update, bidict.forceupdate,),
 }
+kw = dict(average_size=2)
 immu_atom = none() | booleans() | integers() | floats() | text() | binary()
-immutable = recursive(immu_atom, lambda e: frozensets(e) | lists(e).map(tuple))
+immu_coll = lambda e: frozensets(e, **kw) | lists(e, **kw).map(tuple)
+immutable = recursive(immu_atom, immu_coll)
 d = dictionaries(immutable, immutable).map(prune_dup_vals)
 
 
