@@ -41,11 +41,12 @@ mutating_methods_by_arity = {
         bidict.setdefault,),
     -1: (bidict.update, bidict.forceupdate,),
 }
+# otherwise data gen. in hypothesis>=1.19 is so slow the health checks fail:
 kw = dict(average_size=2)
-immu_atom = none() | booleans() | integers() | floats() | text() | binary()
+immu_atom = none() | booleans() | integers() | floats() | text(**kw) | binary(**kw)
 immu_coll = lambda e: frozensets(e, **kw) | lists(e, **kw).map(tuple)
 immutable = recursive(immu_atom, immu_coll)
-d = dictionaries(immutable, immutable).map(prune_dup_vals)
+d = dictionaries(immutable, immutable, average_size=5).map(prune_dup_vals)
 
 
 @given(d)
