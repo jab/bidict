@@ -8,11 +8,12 @@ from hypothesis.strategies import (
     binary, booleans, choices, dictionaries, floats, frozensets, integers,
     lists, none, recursive, text, tuples)
 from math import isnan
+from os import getenv
 
 
 # https://groups.google.com/d/msg/hypothesis-users/8FVs--1yUl4/JEkJ02euEwAJ
 settings.register_profile('default', settings(strict=True))
-settings.load_profile(os.getenv('HYPOTHESIS_PROFILE', 'default'))
+settings.load_profile(getenv('HYPOTHESIS_PROFILE', 'default'))
 
 
 def inv(d):
