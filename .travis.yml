@@ -7,13 +7,30 @@ python:
   - "pypy"
 
 install:
-  - pip install -e .[test]
-  # coverage + hypothesis + pypy is currently so slow hypothesis's health checks fail
-  - test "${TRAVIS_PYTHON_VERSION}" != "pypy" && pip install pytest-cov==2.2.0 coveralls
+  # https://github.com/travis-ci/travis-ci/issues/5027#issuecomment-170939193
+  - |
+      if [ "$TRAVIS_PYTHON_VERSION" = "pypy" ]; then
+        export PYENV_ROOT="$HOME/.pyenv"
+        if [ -f "$PYENV_ROOT/bin/pyenv" ]; then
+          cd "$PYENV_ROOT" && git pull
+        else
+          rm -rf "$PYENV_ROOT" && git clone --depth 1 https://github.com/yyuu/pyenv.git "$PYENV_ROOT"
+        fi
+        export PYPY_VERSION="4.0.1"
+        "$PYENV_ROOT/bin/pyenv" install "pypy-$PYPY_VERSION"
+        virtualenv --python="$PYENV_ROOT/versions/pypy-$PYPY_VERSION/bin/python" "$HOME/virtualenvs/pypy-$PYPY_VERSION"
+        source "$HOME/virtualenvs/pypy-$PYPY_VERSION/bin/activate"
+      fi
+  - travis_retry pip install -e .[test]
+  - travis_retry pip install coveralls
 
 script:
-  - python setup.py test
-  - pep257 bidict
+  - ./test.sh
+
+cache:
+  directories:
+    - $HOME/.cache/pip
+    - $HOME/.pyenv
 
 after_success:
   coveralls
