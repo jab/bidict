@@ -8,8 +8,8 @@ python:
 
 install:
   - pip install -e .[test]
-  - pip install coveralls
-  - pip install tox-travis
+  # coverage + hypothesis + pypy is currently so slow hypothesis's health checks fail
+  - test "${TRAVIS_PYTHON_VERSION}" != "pypy" && pip install pytest-cov==2.2.0 coveralls
 
 script:
   - python setup.py test

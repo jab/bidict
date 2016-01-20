@@ -21,7 +21,6 @@ tests_require = [
     'pep257==0.7.0',
     'py==1.4.31',
     'pytest==2.8.5',
-    'pytest-cov==2.2.0',
     'hypothesis==2.0.0',
     'hypothesis-pytest==0.19.0',
 ]
@@ -67,7 +66,7 @@ setup(
     cmdclass=dict(test=PyTest),
     tests_require=tests_require,
     extras_require=dict(
-        dev=['pre-commit'] + tests_require,
         test=tests_require,
+        dev=tests_require + ['pre-commit==0.7.6'],
     ),
 )
