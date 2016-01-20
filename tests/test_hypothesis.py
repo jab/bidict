@@ -11,7 +11,8 @@ from math import isnan
 
 
 # https://groups.google.com/d/msg/hypothesis-users/8FVs--1yUl4/JEkJ02euEwAJ
-settings.strict = True
+settings.register_profile('default', settings(strict=True))
+settings.load_profile(os.getenv('HYPOTHESIS_PROFILE', 'default'))
 
 
 def inv(d):
