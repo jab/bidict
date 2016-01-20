@@ -13,6 +13,9 @@ Changelog
   :class:`bidict.frozenorderedbidict`.
 - Adopt `Open Code of Conduct
   <http://todogroup.org/opencodeofconduct/#bidict/jab@math.brown.edu>`_.
+- Drop official support for pypy3
+  (it still may work but is no longer being tested).
+  bidict may add back support for pypy3 once it's made more progress.
 
 0.10.0.post1 (2015-12-23)
 -------------------------
