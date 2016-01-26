@@ -23,7 +23,7 @@ tests_require = [
     'hypothesis-pytest==0.19.0',
     'pep257==0.7.0',
     'py==1.4.31',
-    'pytest==2.8.5',
+    'pytest==2.8.7',
     'pytest-cov==2.2.0'
 ]
 
