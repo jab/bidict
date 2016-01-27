@@ -3,11 +3,14 @@
 
 set -ev
 
-# on python2 and hypothesis>=1.19.0,
-# hypothesis data generation is so slow when using --cov
-# that it causes health checks to fail,
-# so only pass --cov when on python3:
-python -c 'import sys; exit(sys.version_info.major == 2)' && COV="--cov=bidict"
+COV="--cov=bidict"
+# With hypothesis>=1.19.0,
+# data generation is so slow when using --cov
+# that it can cause health checks to fail
+# in slow environments such as Travis-CI
+# with certain Python versions such as pypy.
+# Don't pass --cov in these cases:
+[[ $TRAVIS_PYTHON_VERSION =~ ^(pypy)$ ]] && COV=""
 py.test $COV || FAILED=1
 pep257 bidict || FAILED=1
 exit $FAILED
