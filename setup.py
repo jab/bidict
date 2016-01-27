@@ -1,5 +1,5 @@
 from io import open
-from setuptools import setup, Command
+from setuptools import setup
 from warnings import warn
 
 try:
@@ -18,22 +18,14 @@ except Exception as e:
          '(%r): %r' % (long_description, e))
 
 tests_require = [
-    'pep257>=0.7.0',
-    'py>=1.4.31',
-    'pytest>=2.8.5',
-    'pytest-cov>=2.2.0',
-    'hypothesis==1.18.1',
-    'hypothesis-pytest>=0.19.0',
+    'coverage==4.1.b2',
+    'hypothesis==2.0.0',
+    'hypothesis-pytest==0.19.0',
+    'pep257==0.7.0',
+    'py==1.4.31',
+    'pytest==2.8.7',
+    'pytest-cov==2.2.0'
 ]
-
-class PyTest(Command):
-    user_options = []
-    def initialize_options(self): pass
-    def finalize_options(self): pass
-    def run(self):
-        from subprocess import call
-        errno = call(['py.test'])
-        raise SystemExit(errno)
 
 setup(
     name='bidict',
@@ -64,10 +56,9 @@ setup(
         'Topic :: Scientific/Engineering :: Mathematics',
         'Topic :: Software Development :: Libraries :: Python Modules',
         ],
-    cmdclass=dict(test=PyTest),
     tests_require=tests_require,
     extras_require=dict(
-        dev=['pre-commit'] + tests_require,
         test=tests_require,
+        dev=tests_require + ['pre-commit==0.7.6', 'tox==2.3.1'],
     ),
 )
