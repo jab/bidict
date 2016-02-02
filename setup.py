@@ -24,7 +24,7 @@ tests_require = [
     'pep257==0.7.0',
     'py==1.4.31',
     'pytest==2.8.7',
-    'pytest-cov==2.2.0'
+    'pytest-cov==2.2.1'
 ]
 
 setup(
