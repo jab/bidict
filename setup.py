@@ -21,8 +21,8 @@ tests_require = [
     'coverage==4.1.b2',
     'hypothesis==2.0.0',
     'hypothesis-pytest==0.19.0',
-    'pep257==0.7.0',
     'py==1.4.31',
+    'pydocstyle==1.0.0',
     'pytest==2.8.7',
     'pytest-cov==2.2.1'
 ]
