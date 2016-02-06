@@ -3,8 +3,8 @@
 Changelog
 =========
 
-0.11.0 (not yet released)
--------------------------
+0.11.0 (2016-02-05)
+-------------------
 
 - Add
   :class:`bidict.orderedbidict`, 
