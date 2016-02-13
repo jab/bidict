@@ -4,9 +4,20 @@ Implements :class:`BidirectionalMapping`, the bidirectional map base class.
 Also provides related exception classes.
 """
 
-from .compat import PY2, iteritems
-from .util import pairs
+from .compat import PY2, iteritems, viewkeys
+from .util import inverted, pairs
 from collections import Mapping
+
+
+def _proxied(methodname, ivarname='_fwd', doc=None):
+    """Make a func that calls methodname on the indicated instance variable."""
+    def proxy(self, *args):
+        ivar = getattr(self, ivarname)
+        meth = getattr(ivar, methodname)
+        return meth(*args)
+    proxy.__name__ = methodname
+    proxy.__doc__ = doc or 'Like :py:meth:`dict.%s`.' % methodname
+    return proxy
 
 
 class BidirectionalMapping(Mapping):
@@ -24,12 +35,15 @@ class BidirectionalMapping(Mapping):
     """
 
     _dcls = dict
+    _overwrite_key_default = False
+    _missing = object()
 
     def __init__(self, *args, **kw):
         """Like :py:meth:`dict.__init__`, but maintaining bidirectionality."""
         self._fwd = self._dcls()  # dictionary of forward mappings
         self._inv = self._dcls()  # dictionary of inverse mappings
-        self._update(*args, **kw)
+        if args or kw:
+            self._update(self._overwrite_key_default, True, *args, **kw)
         inv = object.__new__(self.__class__)
         inv._fwd = self._inv
         inv._inv = self._fwd
@@ -56,66 +70,88 @@ class BidirectionalMapping(Mapping):
         """Retrieve the value associated with *key*."""
         return self._fwd[key]
 
-    def _put(self, key, val, overwrite_key=False, overwrite_val=True):
-        oldkey = self._inv.get(val, _missing)
-        oldval = self._fwd.get(key, _missing)
+    def _put(self, key, val, overwrite_key, overwrite_val):
+        _fwd = self._fwd
+        _inv = self._inv
+        _missing = self._missing
+        oldkey = _inv.get(val, _missing)
+        oldval = _fwd.get(key, _missing)
         if key == oldkey and val == oldval:
             return
         keyexists = oldval is not _missing
         if keyexists and not overwrite_val:
             # since multiple values can have the same hash value,
-            # refer to the existing key via self._inv[oldval] rather than key
-            raise KeyExistsException((self._inv[oldval], oldval))
+            # refer to the existing key via `_inv[oldval]` rather than `key`
+            raise KeyExistsException((_inv[oldval], oldval))
         valexists = oldkey is not _missing
         if valexists and not overwrite_key:
             # since multiple values can have the same hash value,
-            # refer to the existing value via self._fwd[oldkey]
-            raise ValueExistsException((oldkey, self._fwd[oldkey]))
-        if keyexists:  # overwrite_val == True
-            del self._inv[oldval]
-        if valexists:  # overwrite_key == True
-            del self._fwd[oldkey]
-        self._fwd[key] = val
-        self._inv[val] = key
+            # refer to the existing value via `_fwd[oldkey]` rather than `val`
+            raise ValueExistsException((oldkey, _fwd[oldkey]))
+        _fwd.pop(oldkey, None)
+        _inv.pop(oldval, None)
+        _fwd[key] = val
+        _inv[val] = key
 
-    def _update(self, *args, **kw):
-        for k, v in pairs(*args, **kw):
-            self._put(k, v, overwrite_key=False, overwrite_val=True)
+    def _update(self, overwrite_key, overwrite_val, *args, **kw):
+        if not args and not kw:
+            return
+        _fwd = self._fwd
+        _inv = self._inv
+        _missing = self._missing
+        updatefwd = self._dcls()
+        updateinv = self._dcls()
+        for (k, v) in pairs(*args, **kw):
+            oldkey = _inv.get(v, _missing)
+            oldval = _fwd.get(k, _missing)
+            if k == oldkey and v == oldval:
+                continue
+            if not overwrite_val:
+                if oldval is not _missing:
+                    raise KeyExistsException((_inv[oldval], oldval))
+                if k in updatefwd:
+                    raise KeyExistsException((k, updatefwd[k]))
+            if not overwrite_key:
+                if oldkey is not _missing:
+                    raise ValueExistsException((oldkey, _fwd[oldkey]))
+                if v in updateinv:
+                    raise ValueExistsException((updateinv[v], v))
+            updatefwd[k] = v
+            updateinv[v] = k
+        if not updatefwd:
+            return
+        for (k, v) in inverted(updateinv):
+            _fwd.pop(_inv.pop(v, _missing), None)
+            _inv.pop(_fwd.pop(k, _missing), None)
+            _fwd[k] = v
+            _inv[v] = k
 
-    get = lambda self, k, *args: self._fwd.get(k, *args)
-    copy = lambda self: self.__class__(self._fwd)
-    get.__doc__ = 'Like :py:meth:`dict.get`.'
-    copy.__doc__ = 'Like :py:meth:`dict.copy`.'
-    __len__ = lambda self: len(self._fwd)
-    __iter__ = lambda self: iter(self._fwd)
-    __contains__ = lambda self, x: x in self._fwd
-    __len__.__doc__ = 'Like :py:meth:`dict.__len__`.'
-    __iter__.__doc__ = 'Like :py:meth:`dict.__iter__`.'
-    __contains__.__doc__ = 'Like :py:meth:`dict.__contains__`.'
-    keys = lambda self: self._fwd.keys()
-    items = lambda self: self._fwd.items()
-    keys.__doc__ = 'Like :py:meth:`dict.keys`.'
-    items.__doc__ = 'Like :py:meth:`dict.items`.'
-    values = lambda self: self._inv.keys()
+    def copy(self):
+        """Like :py:meth:`dict.copy`."""
+        return self.__class__(self._fwd)
+
+    __len__ = _proxied('__len__')
+    __iter__ = _proxied('__iter__')
+    __contains__ = _proxied('__contains__')
+    get = _proxied('get')
+    keys = _proxied('keys')
+    items = _proxied('items')
+    values = _proxied('keys', ivarname='_inv')
     values.__doc__ = \
         "B.values() -> a set-like object providing a view on B's values.\n\n" \
         'Note that because values of a BidirectionalMapping are also keys ' \
         'of its inverse, this returns a *dict_keys* object rather than a ' \
         '*dict_values* object, conferring set-like benefits.'
     if PY2:  # pragma: no cover
-        iterkeys = lambda self: self._fwd.iterkeys()
-        viewkeys = lambda self: self._fwd.viewkeys()
-        iteritems = lambda self: self._fwd.iteritems()
-        viewitems = lambda self: self._fwd.viewitems()
-        itervalues = lambda self: self._inv.iterkeys()
-        viewvalues = lambda self: self._inv.viewkeys()
-        iterkeys.__doc__ = dict.iterkeys.__doc__
-        viewkeys.__doc__ = dict.viewkeys.__doc__
-        iteritems.__doc__ = dict.iteritems.__doc__
-        viewitems.__doc__ = dict.viewitems.__doc__
-        itervalues.__doc__ = dict.itervalues.__doc__
-        viewvalues.__doc__ = values.__doc__.replace('values()', 'viewvalues()')
-        values.__doc__ = dict.values.__doc__
+        iterkeys = _proxied('iterkeys')
+        viewkeys = _proxied('viewkeys')
+        iteritems = _proxied('iteritems')
+        viewitems = _proxied('viewitems')
+        itervalues = _proxied('iterkeys', ivarname='_inv',
+                              doc=dict.itervalues.__doc__)
+        viewvalues = _proxied('viewkeys', ivarname='_inv',
+                              doc=values.__doc__.replace('values()', 'viewvalues()'))
+        values.__doc__ = 'Like :py:meth:`dict.values`.'
 
 
 class BidictException(Exception):
@@ -150,6 +186,3 @@ class ValueExistsException(BidictException):
     def __str__(self):
         """Get a string representation of this exception for use with str."""
         return 'Value {1!r} exists with key {0!r}'.format(*self.args[0])
-
-
-_missing = object()

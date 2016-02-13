@@ -75,29 +75,43 @@ in keeping with dict's behavior::
     >>> bidict([('one', 1), ('one', 2)])
     bidict({'one': 2})
 
-To ensure uniqueness of both the value and the key before inserting them,
-use :attr:`put <bidict.bidict.put>`
-instead of :attr:`__setitem__ <bidict.bidict.__setitem__>`,
-which raises a
-:class:`KeyExistsException <bidict.KeyExistsException>`
-or a
-:class:`ValueExistsException <bidict.ValueExistsException>`
-if the key or value being inserted is not unique::
+Also note that :attr:`update <bidict.bidict.update>` calls are atomic.
+That is, either all the specified updates will be applied successfully,
+or none of them will be applied, and an exception will be raised::
 
     >>> b = bidict({'one': 1})
-    >>> b.put('one', 2)
-    Traceback (most recent call last):
-        ...
-    KeyExistsException: Key 'one' exists with value 1
-    >>> b.put('two', 1)
+    >>> b.update([('two', 2), ('uno', 1)])
     Traceback (most recent call last):
         ...
     ValueExistsException: Value 1 exists with key 'one'
+    >>> b  # note that ('two', 2) was not added:
+    bidict({'one': 1})
 
-To explicitly opt out of unique value checking,
-You can use
+To customize the default key- or value-overwriting behavior,
+use :attr:`put <bidict.bidict.put>`
+instead of :attr:`__setitem__ <bidict.bidict.__setitem__>`,
+and instead of :attr:`update <bidict.bidict.update>`,
+use :attr:`putall <bidict.bidict.putall>` (which is also atomic)::
+
+    >>> b = bidict({2: 4})
+    >>> opt = dict(overwrite_key=False, overwrite_val=False)
+    >>> b.put(2, 8, **opt)
+    Traceback (most recent call last):
+        ...
+    KeyExistsException: Key 2 exists with value 4
+    >>> b.putall(opt['overwrite_key'], opt['overwrite_val'], [(3, 9), (2, 8)])
+    Traceback (most recent call last):
+        ...
+    KeyExistsException: Key 2 exists with value 4
+    >>> b  # note that (3, 9) was not added:
+    bidict({2: 4})
+
+*overwrite_key* and *overwrite_val* default to *False* for both methods.
+
+You can also use
 :attr:`forceput <bidict.bidict.forceput>` and
-:attr:`forceupdate <bidict.bidict.forceupdate>`::
+:attr:`forceupdate <bidict.bidict.forceupdate>`
+to explicitly overwrite existing keys and values::
 
     >>> b = bidict({'one': 1})
     >>> b.forceput('two', 1)
@@ -107,10 +121,13 @@ You can use
     >>> b
     bidict({'three': 1})
 
-Or to explicitly opt out of all uniqueness checking,
-you can instead use a :class:`loosebidict <bidict.loosebidict>`,
-whose default semantics are to always overwrite existing mappings
-with whatever new ones are given::
+To always opt out of uniqueness checking,
+you can use a :class:`loosebidict <bidict.loosebidict>`, whose
+:attr:`__setitem__ <bidict.loosebidict.__setitem__>` and
+:attr:`update <bidict.loosebidict.update>`
+methods always overwrite existing keys and values,
+and whose :attr:`put <bidict.loosebidict.put>`
+method defaults to key- and value-overwriting behavior::
 
     >>> from bidict import loosebidict
     >>> b = loosebidict({'one': 1})
@@ -120,6 +137,9 @@ with whatever new ones are given::
     >>> b.update({'three': 1})
     >>> b
     loosebidict({'three': 1})
+    >>> b.put('four', 1)
+    >>> b
+    loosebidict({'four': 1})
 
 Beware that these semantics enable the following often surprising behavior::
 
