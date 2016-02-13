@@ -1,17 +1,17 @@
 """Implements :class:`bidict.loosebidict`."""
 
+from ._common import OVERWRITE
 from ._bidict import bidict
 
 
 class loosebidict(bidict):
     """A mutable bidict which uses forcing put operations by default."""
 
-    _overwrite_key_default = True
+    _default_val_collision_behavior = OVERWRITE
 
     __setitem__ = bidict.forceput
     update = bidict.forceupdate
 
-    def put(self, key, val, overwrite_key=True, overwrite_val=True):
-        """Appease pydocstyle."""  # https://github.com/PyCQA/pydocstyle/issues/97
-        self._put(key, val, overwrite_key, overwrite_val)
-    put.__doc__ = bidict.put.__doc__
+    def put(self, key, val, key_clbhv=OVERWRITE, val_clbhv=OVERWRITE):
+        """Like :attr:`bidict.put` with default collision behavior OVERWRITE."""
+        self._put(key, val, key_clbhv, val_clbhv)

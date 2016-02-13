@@ -7,9 +7,15 @@ import pytest
 
 n = 1024
 # TODO: test with other sizes? putting the below inside a for loop doesn't work
+
 d = {object(): object() for _ in range(n)}
 
+##############################################################################
+
 group = 'init_%s' % n
+
+# TODO: test with some duplicate values?
+
 @pytest.mark.benchmark(group=group)
 def test_bidict_init(benchmark):
     benchmark(bidict, d)
@@ -26,9 +32,12 @@ def invdict(d, _missing=object()):
 def test_invdict_init(benchmark):
     benchmark(invdict, d)
 
+##############################################################################
 
 group = 'setitem_%s' % n
-# TODO: test with some value-overwriting __setitem__ calls?
+
+# TODO: test with some duplicate values?
+
 @pytest.mark.benchmark(group=group)
 def test_bidict_setitem(benchmark):
     b = bidict(d)
@@ -51,9 +60,13 @@ def test_invdict_setitem(benchmark):
     inv = invdict(d)
     benchmark(setitem, d, inv)
 
+##############################################################################
 
 group = 'get_key_by_val_%s' % n
-randvalsubsetsize = 10  # TODO: is this a good way to do this test?
+
+# TODO: is this a good way to do this test?
+randvalsubsetsize = 10
+
 @pytest.mark.benchmark(group=group)
 def test_bidict_get_key_by_val(benchmark):
     b = bidict(d)

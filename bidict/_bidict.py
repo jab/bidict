@@ -1,6 +1,6 @@
 """Implements :class:`bidict.bidict`, the mutable bidirectional map type."""
 
-from ._common import BidirectionalMapping
+from ._common import BidirectionalMapping, OVERWRITE, RAISE
 from .util import pairs
 from collections import MutableMapping
 
@@ -41,28 +41,30 @@ class bidict(BidirectionalMapping, MutableMapping):
         :raises bidict.ValueExistsException: if attempting to set a mapping
             with a non-unique value.
         """
-        self._put(key, val, False, True)
+        self._put(key, val, OVERWRITE, RAISE)
 
-    def put(self, key, val, overwrite_key=False, overwrite_val=False):
+    def put(self, key, val, key_clbhv=RAISE, val_clbhv=RAISE):
         """
-        Associate *key* with *val* with the specified overwrite behavior.
+        Associate *key* with *val* with the specified collision behaviors.
 
-        For example, if *overwrite_key* and *overwrite_val* are both *False*,
+        For example, if *key_clbhv* and *val_clbhv* are both
+        :attr:`CollisionBehavior.RAISE <bidict.CollisionBehavior.RAISE>`,
         then *key* will be associated with *val* if and only if
         *key* is not already associated with an existing value and
-        *val* is not already associated with an existing key.
+        *val* is not already associated with an existing key,
+        otherwise an exception will be raised.
 
         If *key* is already associated with *val*, this is a no-op.
 
         :raises bidict.KeyExistsException: if attempting to insert a mapping
-            with the same key as an existing mapping, and *overwrite_key* is
-            *False*.
+            with the same key as an existing mapping, and *key_clbhv* is
+            :attr:`CollisionBehavior.RAISE <bidict.CollisionBehavior.RAISE>`.
 
         :raises bidict.ValueExistsException: if attempting to insert a mapping
-            with the same value as an existing mapping, and *overwrite_val* is
-            *False*.
+            with the same value as an existing mapping, and *val_clbhv* is
+            :attr:`CollisionBehavior.RAISE <bidict.CollisionBehavior.RAISE>`.
         """
-        self._put(key, val, overwrite_key, overwrite_val)
+        self._put(key, val, key_clbhv, val_clbhv)
 
     def forceput(self, key, val):
         """
@@ -71,7 +73,7 @@ class bidict(BidirectionalMapping, MutableMapping):
         Replace any existing mappings containing key *key* or value *val*
         as necessary to preserve uniqueness.
         """
-        self._put(key, val, True, True)
+        self._put(key, val, OVERWRITE, OVERWRITE)
 
     def clear(self):
         """Remove all items."""
@@ -115,19 +117,19 @@ class bidict(BidirectionalMapping, MutableMapping):
         :raises bidict.ValueExistsException: if attempting to insert a mapping
             with a non-unique value.
         """
-        self._update(False, True, *args, **kw)
+        self._update(OVERWRITE, RAISE, *args, **kw)
 
     def forceupdate(self, *args, **kw):
-        """Like :attr:`update`, with key-overwriting ."""
-        self._update(True, True, *args, **kw)
+        """Like :attr:`bidict.update <bidict.bidict.update>`, with OVERWRITE collision behavior."""
+        self._update(OVERWRITE, OVERWRITE, *args, **kw)
 
-    def putall(self, overwrite_key, overwrite_val, *args, **kw):
+    def putall(self, key_clbhv, val_clbhv, *args, **kw):
         """
-        Like an atomic bulk :attr:`put` with the specified overwrite behavior.
+        Like an atomic bulk :attr:`put` with the specified collision behaviors.
 
         If adding any of the items given in *args* or *kw* would cause a
         :class:`KeyExistsException <bidict.ValueExistsException>` or
         :class:`ValueExistsException <bidict.ValueExistsException>`,
         none of them will be added.
         """
-        self._update(overwrite_key, overwrite_val, *args, **kw)
+        self._update(key_clbhv, val_clbhv, *args, **kw)

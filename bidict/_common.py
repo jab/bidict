@@ -20,6 +20,43 @@ def _proxied(methodname, ivarname='_fwd', doc=None):
     return proxy
 
 
+class CollisionBehavior(object):
+    """
+    Provide RAISE, OVERWRITE, and IGNORE collision behaviors.
+
+    .. py:attribute:: RAISE
+
+        Raise an exception when a collision is encountered.
+
+    .. py:attribute:: OVERWRITE
+
+        Overwrite an existing item when a collision is encountered.
+
+    .. py:attribute:: IGNORE
+
+        Keep the existing item and ignore the new item when a collision is
+        encountered.
+
+    """
+
+    def __repr__(self):
+        """Get a string representation of this object for use with repr."""
+        return '<CollisionBehavior:%s>' % self.__class__.__name__
+
+class RAISE(CollisionBehavior):
+    """Raise an exception when a collision is encountered."""
+
+class OVERWRITE(CollisionBehavior):
+    """Overwrite an existing item when a collision is encountered."""
+
+class IGNORE(CollisionBehavior):
+    """Ignore the new item when a collision is encountered."""
+
+CollisionBehavior.RAISE = RAISE = RAISE()
+CollisionBehavior.OVERWRITE = OVERWRITE = OVERWRITE()
+CollisionBehavior.IGNORE = IGNORE = IGNORE()
+
+
 class BidirectionalMapping(Mapping):
     """
     Base class for all provided bidirectional map types.
@@ -35,7 +72,8 @@ class BidirectionalMapping(Mapping):
     """
 
     _dcls = dict
-    _overwrite_key_default = False
+    _default_key_collision_behavior = OVERWRITE
+    _default_val_collision_behavior = RAISE
     _missing = object()
 
     def __init__(self, *args, **kw):
@@ -43,7 +81,8 @@ class BidirectionalMapping(Mapping):
         self._fwd = self._dcls()  # dictionary of forward mappings
         self._inv = self._dcls()  # dictionary of inverse mappings
         if args or kw:
-            self._update(self._overwrite_key_default, True, *args, **kw)
+            self._update(self._default_key_collision_behavior,
+                         self._default_val_collision_behavior, *args, **kw)
         inv = object.__new__(self.__class__)
         inv._fwd = self._inv
         inv._inv = self._fwd
@@ -70,7 +109,7 @@ class BidirectionalMapping(Mapping):
         """Retrieve the value associated with *key*."""
         return self._fwd[key]
 
-    def _put(self, key, val, overwrite_key, overwrite_val):
+    def _put(self, key, val, key_clbhv, val_clbhv):
         _fwd = self._fwd
         _inv = self._inv
         _missing = self._missing
@@ -79,21 +118,27 @@ class BidirectionalMapping(Mapping):
         if key == oldkey and val == oldval:
             return
         keyexists = oldval is not _missing
-        if keyexists and not overwrite_val:
-            # since multiple values can have the same hash value,
-            # refer to the existing key via `_inv[oldval]` rather than `key`
-            raise KeyExistsException((_inv[oldval], oldval))
+        if keyexists:
+            if key_clbhv is RAISE:
+                # since multiple values can have the same hash value, refer
+                # to the existing key via `_inv[oldval]` rather than `key`
+                raise KeyExistsException((_inv[oldval], oldval))
+            elif key_clbhv is IGNORE:
+                return
         valexists = oldkey is not _missing
-        if valexists and not overwrite_key:
-            # since multiple values can have the same hash value,
-            # refer to the existing value via `_fwd[oldkey]` rather than `val`
-            raise ValueExistsException((oldkey, _fwd[oldkey]))
+        if valexists:
+            if val_clbhv is RAISE:
+                # since multiple values can have the same hash value, refer
+                # to the existing value via `_fwd[oldkey]` rather than `val`
+                raise ValueExistsException((oldkey, _fwd[oldkey]))
+            elif val_clbhv is IGNORE:
+                return
         _fwd.pop(oldkey, None)
         _inv.pop(oldval, None)
         _fwd[key] = val
         _inv[val] = key
 
-    def _update(self, overwrite_key, overwrite_val, *args, **kw):
+    def _update(self, key_clbhv, val_clbhv, *args, **kw):
         if not args and not kw:
             return
         _fwd = self._fwd
@@ -106,20 +151,22 @@ class BidirectionalMapping(Mapping):
             oldval = _fwd.get(k, _missing)
             if k == oldkey and v == oldval or updatefwd.get(k, _missing) == v:
                 continue
-            if not overwrite_val:
+            if key_clbhv is RAISE:
                 if oldval is not _missing:
                     raise KeyExistsException((_inv[oldval], oldval))
                 if k in updatefwd:
                     raise KeyExistsException((k, updatefwd[k]))
-            if not overwrite_key:
+            elif key_clbhv is IGNORE and oldval is not _missing:
+                continue
+            if val_clbhv is RAISE:
                 if oldkey is not _missing:
                     raise ValueExistsException((oldkey, _fwd[oldkey]))
                 if v in updateinv:
                     raise ValueExistsException((updateinv[v], v))
+            elif val_clbhv is IGNORE and oldkey is not _missing:
+                continue
             updatefwd[k] = v
             updateinv[v] = k
-        if not updatefwd:
-            return
         for (k, v) in inverted(updateinv):
             _fwd.pop(_inv.pop(v, _missing), None)
             _inv.pop(_fwd.pop(k, _missing), None)

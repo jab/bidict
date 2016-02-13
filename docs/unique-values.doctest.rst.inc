@@ -76,37 +76,46 @@ in keeping with dict's behavior::
     bidict({'one': 2})
 
 Also note that :attr:`update <bidict.bidict.update>` calls are atomic.
-That is, either all the specified updates will be applied successfully,
-or none of them will be applied, and an exception will be raised::
+That is, if the call results in an exception,
+you can be sure that none of the specified items were added::
 
     >>> b = bidict({'one': 1})
     >>> b.update([('two', 2), ('uno', 1)])
     Traceback (most recent call last):
         ...
     ValueExistsException: Value 1 exists with key 'one'
-    >>> b  # note that ('two', 2) was not added:
+    >>> b  # note that ('two', 2) was not added because the call failed:
     bidict({'one': 1})
 
-To customize the default key- or value-overwriting behavior,
+To customize the default behavior when a key or value already exists,
 use :attr:`put <bidict.bidict.put>`
 instead of :attr:`__setitem__ <bidict.bidict.__setitem__>`,
 and instead of :attr:`update <bidict.bidict.update>`,
-use :attr:`putall <bidict.bidict.putall>` (which is also atomic)::
+use :attr:`putall <bidict.bidict.putall>` (which is also atomic).
+These methods allow you to specify different strategies for handling
+key collisions (*key_clbhv*) and value collisions (*val_clbhv*).
+Possible options are
+:class:`IGNORE <bidict.CollisionBehavior.RAISE>`,
+:class:`IGNORE <bidict.CollisionBehavior.OVERWRITE>`, and
+:class:`IGNORE <bidict.CollisionBehavior.IGNORE>`::
 
+    >>> from bidict import RAISE, IGNORE
     >>> b = bidict({2: 4})
-    >>> opt = dict(overwrite_key=False, overwrite_val=False)
-    >>> b.put(2, 8, **opt)
+    >>> b.put(2, 8, key_clbhv=RAISE, val_clbhv=IGNORE)
     Traceback (most recent call last):
         ...
     KeyExistsException: Key 2 exists with value 4
-    >>> b.putall(opt['overwrite_key'], opt['overwrite_val'], [(3, 9), (2, 8)])
+    >>> b.putall(RAISE, IGNORE, [(3, 9), (2, 8)])
     Traceback (most recent call last):
         ...
     KeyExistsException: Key 2 exists with value 4
-    >>> b  # note that (3, 9) was not added:
+    >>> b  # note that (3, 9) was not added because the call failed:
     bidict({2: 4})
+    >>> b.putall(RAISE, IGNORE, {3: 9, 1: 4})
+    >>> sorted(b.items())  # note that (1, 4) is ignored, as per val_clbhv
+    [(2, 4), (3, 9)]
 
-*overwrite_key* and *overwrite_val* default to *False* for both methods.
+*key_clbhv* and *val_clbhv* default to *RAISE* for both methods.
 
 You can also use
 :attr:`forceput <bidict.bidict.forceput>` and

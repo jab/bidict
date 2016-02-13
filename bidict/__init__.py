@@ -10,17 +10,24 @@ See https://bidict.readthedocs.org/ for comprehensive documentation.
 
 """
 
-from ._common import BidirectionalMapping, BidictException, KeyExistsException, ValueExistsException
+from ._common import (BidirectionalMapping,
+                      CollisionBehavior, RAISE, OVERWRITE, IGNORE,
+                      BidictException, KeyExistsException, ValueExistsException)
 from ._bidict import bidict
 from ._loose import loosebidict
 from ._frozen import frozenbidict
 from ._named import namedbidict
-from ._ordered import OrderedBidirectionalMapping, orderedbidict, frozenorderedbidict, looseorderedbidict
+from ._ordered import (OrderedBidirectionalMapping,
+                       orderedbidict, frozenorderedbidict, looseorderedbidict)
 from .util import pairs, inverted
 
 __all__ = (
     'BidirectionalMapping',
     'OrderedBidirectionalMapping',
+    'CollisionBehavior',
+    'RAISE',
+    'OVERWRITE',
+    'IGNORE',
     'BidictException',
     'KeyExistsException',
     'ValueExistsException',

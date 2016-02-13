@@ -3,35 +3,47 @@
 Changelog
 =========
 
-master
-------
-
-0.12.0 (not yet released)
--------------------------
+0.12.0-dev (not yet released)
+-----------------------------
 
 - Add
-  :func:`bidict.compat.viewkeys`,
-  :func:`bidict.compat.viewvalues`,
-  :func:`bidict.compat.iterkeys`,
-  :func:`bidict.compat.itervalues`,
-  and :func:`bidict.compat.izip`
+
+  - :func:`bidict.compat.viewkeys`
+  - :func:`bidict.compat.viewvalues`
+  - :func:`bidict.compat.iterkeys`
+  - :func:`bidict.compat.itervalues`
+  - :func:`bidict.compat.izip`
+
   to complement the existing
-  :func:`bidict.compat.iteritems`,
-  :func:`bidict.compat.viewitems`
+  :func:`iteritems() <bidict.compat.iteritems>` and
+  :func:`viewitems() <bidict.compat.viewitems>`
   compatibility helpers.
 - Add benchmarking to tests.
-- :attr:`put <bidict.bidict.put>`
-  now accepts *overwrite_key* and *overwrite_val* keyword arguments
-  which allow you to override the default behavior,
-  which for a :class:`bidict <bidict.bidict>`
-  was equivalent to passing *False* for both arguments
-  and for a :class:`loosebidict <bidict.loosebidict>`
-  was equivalent to passing *True* for both arguments.
-- New :func:`putall <bidict.bidict.putall>` method
-  allows for specifying *overwrite_key* and *overwrite_val* behavior
-  like a bulk :attr:`put <bidict.bidict.put>` operation.
+- :attr:`put() <bidict.bidict.put>`
+  now accepts ``key_clbhv`` and ``val_clbhv`` keyword arguments
+  which allow you to override the default behavior
+  when the key or value of a new item collides with that of an existing one.
+  These can take the following values:
+
+  - :attr:`bidict.CollisionBehavior.RAISE`
+  - :attr:`bidict.CollisionBehavior.OVERWRITE`
+  - :attr:`bidict.CollisionBehavior.IGNORE`
+
+  For a :class:`bidict <bidict.bidict>`,
+  ``key_clbhv`` defaults to
+  :attr:`OVERWRITE <bidict.CollisionBehavior.OVERWRITE>` and
+  ``val_clbhv`` defaults to
+  :attr:`RAISE <bidict.CollisionBehavior.RAISE>`,
+  while for a :class:`loosebidict <bidict.loosebidict>`
+  both default to :attr:`OVERWRITE <bidict.CollisionBehavior.OVERWRITE>`,
+  maintaining backwards compatibility with the previous behavior
+  when called with no keyword arguments.
+- New :func:`putall() <bidict.bidict.putall>` method
+  provides a bulk :attr:`put() <bidict.bidict.put>` API.
 - Make initialization and bulk update operations safer
-  by not allowing any inserts to succeed unless all of them will succeed.
+  by not allowing any inserts to succeed if any of them would cause a
+  :class:`KeyExistsException <bidict.KeyExistsException>` or
+  :class:`ValueExistsException <bidict.ValueExistsException>`.
 
 0.11.0 (2016-02-05)
 -------------------
@@ -62,11 +74,11 @@ master
   bidict now raises an error on attempting to insert a non-unique value,
   rather than allowing its associated key to be silently overwritten.
   See discussion in `#21 <https://github.com/jab/bidict/issues/21>`_.
-- New :attr:`forceupdate <bidict.bidict.forceupdate>` method
-  for bulk :attr:`forceput <bidict.bidict.forceput>`.
+- New :attr:`forceupdate() <bidict.bidict.forceupdate>` method
+  for bulk :attr:`forceput() <bidict.bidict.forceput>`.
 - Fix bugs in
-  :attr:`pop <bidict.bidict.pop>` and
-  :attr:`setdefault <bidict.bidict.setdefault>`
+  :attr:`pop() <bidict.bidict.pop>` and
+  :attr:`setdefault() <bidict.bidict.setdefault>`
   which could leave a bidict in an inconsistent state.
 
 Breaking API Changes
