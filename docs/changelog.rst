@@ -6,6 +6,33 @@ Changelog
 master
 ------
 
+0.12.0 (not yet released)
+-------------------------
+
+- Add
+  :func:`bidict.compat.viewkeys`,
+  :func:`bidict.compat.viewvalues`,
+  :func:`bidict.compat.iterkeys`,
+  :func:`bidict.compat.itervalues`,
+  and :func:`bidict.compat.izip`
+  to complement the existing
+  :func:`bidict.compat.iteritems`,
+  :func:`bidict.compat.viewitems`
+  compatibility helpers.
+- Add benchmarking to tests.
+- :attr:`put <bidict.bidict.put>`
+  now accepts *overwrite_key* and *overwrite_val* keyword arguments
+  which allow you to override the default behavior,
+  which for a :class:`bidict <bidict.bidict>`
+  was equivalent to passing *False* for both arguments
+  and for a :class:`loosebidict <bidict.loosebidict>`
+  was equivalent to passing *True* for both arguments.
+- New :func:`putall <bidict.bidict.putall>` method
+  allows for specifying *overwrite_key* and *overwrite_val* behavior
+  like a bulk :attr:`put <bidict.bidict.put>` operation.
+- Make initialization and bulk update operations safer
+  by not allowing any inserts to succeed unless all of them will succeed.
+
 0.11.0 (2016-02-05)
 -------------------
 

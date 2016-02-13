@@ -4,15 +4,14 @@ from ._bidict import bidict
 
 
 class loosebidict(bidict):
-    """
-    A mutable bidict which always uses forcing put operations.
+    """A mutable bidict which uses forcing put operations by default."""
 
-    Unlike :class:`bidict.bidict`,
-    never raises :class:`KeyExistsException` or :class:`ValueExistsException`.
-    """
+    _overwrite_key_default = True
 
-    ___ = '<ignored>'
+    __setitem__ = bidict.forceput
+    update = bidict.forceupdate
 
-    def _put(self, key, val, overwrite_key=___, overwrite_val=___):
-        return super(self.__class__, self)._put(
-            key, val, overwrite_key=True, overwrite_val=True)
+    def put(self, key, val, overwrite_key=True, overwrite_val=True):
+        """Appease pydocstyle."""  # https://github.com/PyCQA/pydocstyle/issues/97
+        self._put(key, val, overwrite_key, overwrite_val)
+    put.__doc__ = bidict.put.__doc__

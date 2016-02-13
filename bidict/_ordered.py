@@ -1,7 +1,7 @@
 """Implements :class:`bidict.orderedbidict` and friends."""
 
 from ._bidict import bidict
-from ._common import BidirectionalMapping
+from ._common import BidirectionalMapping, _proxied
 from ._frozen import frozenbidict
 from ._loose import loosebidict
 from collections import OrderedDict
@@ -12,8 +12,8 @@ class OrderedBidirectionalMapping(BidirectionalMapping):
 
     _dcls = OrderedDict
 
-    __reversed__ = lambda self: reversed(self._fwd)
-    __reversed__.__doc__ = 'Like :meth:`collections.OrderedDict.__reversed__`.'
+    __reversed__ = _proxied('__reversed__',
+                            doc='Like :func:`collections.OrderedDict.__reversed__`.')
 
 
 class orderedbidict(OrderedBidirectionalMapping, bidict):
