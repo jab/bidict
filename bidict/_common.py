@@ -141,37 +141,55 @@ class BidirectionalMapping(Mapping):
     def _update(self, key_clbhv, val_clbhv, *args, **kw):
         if not args and not kw:
             return
-        _fwd = self._fwd
-        _inv = self._inv
-        _missing = self._missing
-        updatefwd = self._dcls()
-        updateinv = self._dcls()
-        for (k, v) in pairs(*args, **kw):
-            oldkey = _inv.get(v, _missing)
-            oldval = _fwd.get(k, _missing)
-            if k == oldkey and v == oldval or updatefwd.get(k, _missing) == v:
-                continue
+
+        _fwd, _inv, _missing = self._fwd, self._inv, self._missing
+
+        # take fast path if passed only another bidict
+        if not kw and args and isinstance(args[0], BidirectionalMapping):
+            updatefwd = self._dcls(args[0]._fwd)
+            updateinv = self._dcls(args[0]._inv)
+        else:
             if key_clbhv is RAISE:
-                if oldval is not _missing:
-                    raise KeyExistsException((_inv[oldval], oldval))
-                if k in updatefwd:
-                    raise KeyExistsException((k, updatefwd[k]))
-            elif key_clbhv is IGNORE and oldval is not _missing:
-                continue
-            if val_clbhv is RAISE:
-                if oldkey is not _missing:
-                    raise ValueExistsException((oldkey, _fwd[oldkey]))
-                if v in updateinv:
-                    raise ValueExistsException((updateinv[v], v))
-            elif val_clbhv is IGNORE and oldkey is not _missing:
-                continue
-            updatefwd[k] = v
-            updateinv[v] = k
-        for (k, v) in inverted(updateinv):
-            _fwd.pop(_inv.pop(v, _missing), None)
-            _inv.pop(_fwd.pop(k, _missing), None)
-            _fwd[k] = v
-            _inv[v] = k
+                items = tuple(pairs(*args, **kw))
+                updatefwd = self._dcls(items)
+                if len(items) > len(updatefwd):
+                    raise KeyExistsException(args, kw)
+            else:
+                updatefwd = self._dcls(*args, **kw)
+            updateinv = self._dcls(inverted(updatefwd))
+            if len(updatefwd) > len(updateinv):
+                if val_clbhv is RAISE:
+                    raise ValueExistsException(args, kw)
+                updatefwd = self._dcls(inverted(updateinv))
+
+        common_vals = viewkeys(updateinv) & viewkeys(_inv)
+        if common_vals and val_clbhv is RAISE:
+            v = next(iter(common_vals))
+            raise ValueExistsException((_inv[v], v))
+
+        common_keys = viewkeys(updatefwd) & viewkeys(_fwd)
+        if common_keys and key_clbhv is RAISE:
+            k = next(iter(common_keys))
+            raise KeyExistsException((k, _fwd[k]))
+
+        if common_vals:
+            if val_clbhv is IGNORE:
+                delfwd, delinv = updatefwd, updateinv
+            else:  # val_clbhv is OVERWRITE
+                delfwd, delinv = _fwd, _inv
+            for v in common_vals:
+                del delfwd[delinv.pop(v)]
+
+        if common_keys:
+            if key_clbhv is IGNORE:
+                delfwd, delinv = updatefwd, updateinv
+            else:  # key_clbhv is OVERWRITE
+                delfwd, delinv = _fwd, _inv
+            for k in common_keys:
+                del delinv[delfwd.pop(k)]
+
+        _fwd.update(updatefwd)
+        _inv.update(updateinv)
 
     def copy(self):
         """Like :py:meth:`dict.copy`."""
