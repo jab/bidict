@@ -20,7 +20,6 @@ class orderedbidict(OrderedBidirectionalMapping, bidict):
     """Mutable, ordered bidict type."""
 
     def __repr__(self):
-        """Get a string representation of this bidict for use with repr."""
         s = repr(self._fwd)
         s = s.replace(self._fwd.__class__.__name__, self.__class__.__name__, 1)
         return s
