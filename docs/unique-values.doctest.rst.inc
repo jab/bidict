@@ -44,12 +44,12 @@ that would overwrite the key of an existing value::
     >>> b = bidict([('one', 1), ('two', 1)])
     Traceback (most recent call last):
         ...
-    ValueExistsException: Value 1 exists with key 'one'
+    NonuniqueValuesException: ...
     >>> b = bidict({'one': 1})
     >>> b.update({'two': 1})
     Traceback (most recent call last):
         ...
-    ValueExistsException: Value 1 exists with key 'one'
+    ValuesExistException: ...
 
 The purpose of this is to be more in line with the
 `Zen of Python <https://www.python.org/dev/peps/pep-0020/>`_,
@@ -83,7 +83,7 @@ you can be sure that none of the specified items were added::
     >>> b.update([('two', 2), ('uno', 1)])
     Traceback (most recent call last):
         ...
-    ValueExistsException: Value 1 exists with key 'one'
+    ValuesExistException: ...
     >>> b  # note that ('two', 2) was not added because the call failed:
     bidict({'one': 1})
 
@@ -105,10 +105,14 @@ Possible options are
     Traceback (most recent call last):
         ...
     KeyExistsException: Key 2 exists with value 4
+    >>> b.putall(RAISE, IGNORE, [(5, 10), (5, 25)])
+    Traceback (most recent call last):
+        ...
+    NonuniqueKeysException: ...
     >>> b.putall(RAISE, IGNORE, [(3, 9), (2, 8)])
     Traceback (most recent call last):
         ...
-    KeyExistsException: Key 2 exists with value 4
+    KeysExistException: ...
     >>> b  # note that (3, 9) was not added because the call failed:
     bidict({2: 4})
     >>> b.putall(RAISE, IGNORE, {3: 9, 1: 4})

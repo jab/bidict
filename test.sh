@@ -12,5 +12,5 @@ COV="--cov=bidict"
 # Don't pass --cov in these cases:
 [[ $TRAVIS_PYTHON_VERSION =~ ^(3\.3|3\.4|pypy)$ ]] && COV=""
 py.test $COV || FAILED=1
-pydocstyle bidict || FAILED=1
+pydocstyle bidict --add-ignore=D105 || FAILED=1
 exit $FAILED

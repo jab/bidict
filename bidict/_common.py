@@ -40,7 +40,6 @@ class CollisionBehavior(object):
     """
 
     def __repr__(self):
-        """Get a string representation of this object for use with repr."""
         return '<CollisionBehavior:%s>' % self.__class__.__name__
 
 class RAISE(CollisionBehavior):
@@ -90,15 +89,12 @@ class BidirectionalMapping(Mapping):
         self.inv = inv
 
     def __repr__(self):
-        """Get a string representation of this bidict for use with repr."""
         return '%s(%r)' % (self.__class__.__name__, self._fwd)
 
     def __eq__(self, other):
-        """Test for equality with *other*."""
         return self._fwd == other
 
     def __ne__(self, other):
-        """Test for inequality with *other*."""
         return self._fwd != other
 
     def __inverted__(self):
@@ -106,7 +102,6 @@ class BidirectionalMapping(Mapping):
         return iteritems(self._inv)
 
     def __getitem__(self, key):
-        """Retrieve the value associated with *key*."""
         return self._fwd[key]
 
     def _put(self, key, val, key_clbhv, val_clbhv):
@@ -150,27 +145,25 @@ class BidirectionalMapping(Mapping):
             updateinv = self._dcls(args[0]._inv)
         else:
             if key_clbhv is RAISE:
-                items = tuple(pairs(*args, **kw))
+                items = frozenset(pairs(*args, **kw))
                 updatefwd = self._dcls(items)
                 if len(items) > len(updatefwd):
-                    raise KeyExistsException(args, kw)
+                    raise NonuniqueKeysException(items)
             else:
                 updatefwd = self._dcls(*args, **kw)
             updateinv = self._dcls(inverted(updatefwd))
             if len(updatefwd) > len(updateinv):
                 if val_clbhv is RAISE:
-                    raise ValueExistsException(args, kw)
+                    raise NonuniqueValuesException(updatefwd)
                 updatefwd = self._dcls(inverted(updateinv))
 
         common_vals = viewkeys(updateinv) & viewkeys(_inv)
         if common_vals and val_clbhv is RAISE:
-            v = next(iter(common_vals))
-            raise ValueExistsException((_inv[v], v))
+            raise ValuesExistException(common_vals)
 
         common_keys = viewkeys(updatefwd) & viewkeys(_fwd)
         if common_keys and key_clbhv is RAISE:
-            k = next(iter(common_keys))
-            raise KeyExistsException((k, _fwd[k]))
+            raise KeysExistException(common_keys)
 
         if common_vals:
             if val_clbhv is IGNORE:
@@ -222,32 +215,48 @@ class BidirectionalMapping(Mapping):
 class BidictException(Exception):
     """Base class for bidict exceptions."""
 
-    def __repr__(self):  # pragma: no cover
-        """Get a string representation of this exception for use with repr."""
-        return "<%s '%s'>" % (self.__class__.__name__, self)
+
+class UniquenessException(BidictException):
+    """Base class for NonuniqueKeysException and NonuniqueValuesException."""
 
 
-class KeyExistsException(BidictException):
-    """
-    Guards against replacing an existing mapping whose key matches the given.
-
-    Raised when an attempt is made to insert a new mapping into a bidict whose
-    value maps to the key of an existing mapping.
-    """
+class NonuniqueKeysException(UniquenessException):
+    """Raised when not all keys are unique."""
 
     def __str__(self):
-        """Get a string representation of this exception for use with str."""
+        return 'Keys not unique: %r' % self.args[0]
+
+
+class NonuniqueValuesException(UniquenessException):
+    """Raised when not all values are unique."""
+
+    def __str__(self):
+        return 'Values not unique: %r' % self.args[0]
+
+
+class KeysExistException(NonuniqueKeysException):
+    """Raised when attempting to insert keys which overlap with existing keys."""
+
+    def __str__(self):
+        return 'Keys already exist: %r' % self.args[0]
+
+
+class ValuesExistException(NonuniqueValuesException):
+    """Raised when attempting to insert values which overlap with existing values."""
+
+    def __str__(self):
+        return 'Values already exist: %r' % self.args[0]
+
+
+class KeyExistsException(KeysExistException):
+    """Raised when attempting to insert a non-unique key."""
+
+    def __str__(self):
         return 'Key {0!r} exists with value {1!r}'.format(*self.args[0])
 
 
-class ValueExistsException(BidictException):
-    """
-    Guards against replacing an existing mapping whose value matches the given.
-
-    Raised when an attempt is made to insert a new mapping into a bidict whose
-    key maps to the value of an existing mapping.
-    """
+class ValueExistsException(ValuesExistException):
+    """Raised when attempting to insert a non-unique value."""
 
     def __str__(self):
-        """Get a string representation of this exception for use with str."""
         return 'Value {1!r} exists with key {0!r}'.format(*self.args[0])
