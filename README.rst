@@ -3,7 +3,7 @@ bidict
  
 Efficient, Pythonic bidirectional map implementation and related functionality.
 
-.. image:: https://raw.githubusercontent.com/jab/bidict/master/docs/_static/logo.png
+.. image:: https://raw.githubusercontent.com/jab/bidict/master/docs/_static/logo-256.png
     :target: https://bidict.readthedocs.org/
     :alt: bidict logo
 
