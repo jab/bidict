@@ -12,7 +12,10 @@ See https://bidict.readthedocs.org/ for comprehensive documentation.
 
 from ._common import (BidirectionalMapping,
                       CollisionBehavior, RAISE, OVERWRITE, IGNORE,
-                      BidictException, KeyExistsException, ValueExistsException)
+                      BidictException, UniquenessException,
+                      NonuniqueKeysException, NonuniqueValuesException,
+                      KeysExistException, ValuesExistException,
+                      KeyExistsException, ValueExistsException)
 from ._bidict import bidict
 from ._loose import loosebidict
 from ._frozen import frozenbidict
@@ -29,6 +32,11 @@ __all__ = (
     'OVERWRITE',
     'IGNORE',
     'BidictException',
+    'UniquenessException',
+    'NonuniqueKeysException',
+    'NonuniqueValuesException',
+    'KeysExistException',
+    'ValuesExistException',
     'KeyExistsException',
     'ValueExistsException',
     'bidict',

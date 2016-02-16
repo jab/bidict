@@ -1,7 +1,7 @@
 """
 Implements :class:`BidirectionalMapping`, the bidirectional map base class.
 
-Also provides related exception classes.
+Also provides related exception classes and collision behaviors.
 """
 
 from .compat import PY2, iteritems, viewkeys
