@@ -80,9 +80,9 @@ class bidict(BidirectionalMapping, MutableMapping):
 
     def pop(self, key, *args):
         """Like :py:meth:`dict.pop`, maintaining bidirectionality."""
-        ln = len(args) + 1
-        if ln > 2:
-            raise TypeError('pop expected at most 2 arguments, got %d' % ln)
+        l = len(args) + 1
+        if l > 2:
+            raise TypeError('pop expected at most 2 arguments, got %d' % l)
         try:
             return self._del(key)
         except KeyError:

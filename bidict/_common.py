@@ -141,9 +141,9 @@ class BidirectionalMapping(Mapping):
 
         # take fast path if passed only another bidict
         if not kw and args and isinstance(args[0], BidirectionalMapping):
-            if len(args) != 1:
-                raise TypeError('%s expected at most 1 argument, got %d' %
-                                (self.__class__.__name__, len(args)))
+            l = len(args)
+            if l != 1:
+                raise TypeError('Expected at most 1 argument, got %d' % l)
             updatefwd = self._dcls(args[0]._fwd)
             updateinv = self._dcls(args[0]._inv)
         else:
