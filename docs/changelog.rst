@@ -40,14 +40,13 @@ Changelog
   when called with no keyword arguments.
 - New :func:`putall() <bidict.bidict.putall>` method
   provides a bulk :attr:`put() <bidict.bidict.put>` API.
-- Make bulk insert update operations (including initialization) safer
-  by not allowing any inserts to succeed if any of them would cause
+- Make bulk insert operations (including initialization) safer
+  by not allowing any inserts to succeed if any one would cause
   an exception to be raised.
 - Improve performance of bulk insert operations (including initialization)
   by at least 2-3x in common cases.
 - New exceptions provide more specificity
-  and allow more efficient indication of
-  various exceptional cases:
+  in various exceptional cases:
 
   - :class:`UniquenessException <bidict.UniquenessException>`
   - :class:`NonuniqueKeysException <bidict.NonuniqueKeysException>`
