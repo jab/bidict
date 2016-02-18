@@ -1,39 +1,40 @@
 language: python
 
+env:
+  global:
+    - PYENV_ROOT="$HOME/.pyenv"
+    - PYENV="$PYENV_ROOT/bin/pyenv"
+
 matrix:
   include:
     - python: "2.7"
       env:
         - PYENV_PYTHON_VER=2.7.11
-        - PYENV_ROOT="$HOME/.pyenv"
-    - python: "3.3"
-      env:
-        - PYENV_PYTHON_VER=3.3.6
-        - PYENV_ROOT="$HOME/.pyenv"
     - python: "3.4"
       env:
-        - PYENV_PYTHON_VER=3.4.3
-        - PYENV_ROOT="$HOME/.pyenv"
+        - PYENV_PYTHON_VER=3.4.4
+        - BIDICT_COVERAGE_DISABLE=1
     - python: "3.5"
       env:
         - PYENV_PYTHON_VER=3.5.1
-        - PYENV_ROOT="$HOME/.pyenv"
     - python: "pypy"
       env:
         - PYENV_PYTHON_VER=pypy-4.0.1
-        - PYENV_ROOT="$HOME/.pyenv"
+        - BIDICT_COVERAGE_DISABLE=1
 
 install:
   # based on https://github.com/frol/flask-restplus-server-example/blob/018f48e5/.travis.yml
   - |
-      if [ -f "$PYENV_ROOT/bin/pyenv" ]; then
+      if [ -f "$PYENV" ]; then
         pushd "$PYENV_ROOT" && git pull && popd
       else
         rm -rf "$PYENV_ROOT" && git clone --depth 1 https://github.com/yyuu/pyenv.git "$PYENV_ROOT"
       fi
-      "$PYENV_ROOT/bin/pyenv" install --skip-existing "$PYENV_PYTHON_VER"
-      virtualenv --python="$PYENV_ROOT/versions/$PYENV_PYTHON_VER/bin/python" "$HOME/virtualenvs/$PYENV_PYTHON_VER"
-      source "$HOME/virtualenvs/$PYENV_PYTHON_VER/bin/activate"
+      "$PYENV" install --skip-existing "$PYENV_PYTHON_VER"
+      export PYTHON="$PYENV_ROOT/versions/$PYENV_PYTHON_VER/bin/python"
+      export VENV="$HOME/virtualenvs/$PYENV_PYTHON_VER"
+      virtualenv --python="$PYTHON" "$VENV"
+      source "$VENV/bin/activate"
   - travis_retry pip install -e .[test]
   - travis_retry pip install coveralls
 
@@ -43,10 +44,11 @@ script:
 cache:
   directories:
     - $HOME/.cache/pip
-    - $HOME/.pyenv
+    - $HOME/.hypothesis
+    - $PYENV_ROOT
 
 after_success:
-  coveralls
+  - test -n "$BIDICT_COVERAGE_DISABLE" && coveralls
 
 sudo: false
 

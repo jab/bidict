@@ -2,15 +2,7 @@
 # this is what .travis.yml and tox.ini use to run tests
 
 set -ev
-
-COV="--cov=bidict"
-# With hypothesis>=1.19.0,
-# data generation is so slow when using --cov
-# that it can cause health checks to fail
-# in slow environments such as Travis-CI
-# with certain Python versions such as pypy.
-# Don't pass --cov in these cases:
-[[ $TRAVIS_PYTHON_VERSION =~ ^(3\.3|3\.4|pypy)$ ]] && COV=""
-py.test $COV || FAILED=1
-pydocstyle bidict --add-ignore=D105 || FAILED=1
-exit $FAILED
+test -z "$BIDICT_COVERAGE_DISABLE" && COV="--cov=bidict"
+py.test $COV || EXIT=1
+pydocstyle bidict --add-ignore=D105 || EXIT=1
+exit $EXIT

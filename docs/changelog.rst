@@ -53,6 +53,8 @@ Changelog
   - :class:`NonuniqueValuesException <bidict.NonuniqueValuesException>`
   - :class:`KeysExistException <bidict.KeysExistException>`
   - :class:`ValuesExistException <bidict.ValuesExistException>`
+- Drop official support for CPython 3.3
+  (it will probably continue to work but is no longer being tested).
 
 0.11.0 (2016-02-05)
 -------------------
