@@ -31,6 +31,11 @@ Python 2/3 compatibility helpers.
 
         Alias for :func:`zip` on Python 3 / :func:`itertools.izip` on Python 2.
 
+    .. py:attribute:: izip_longest
+
+        Alias for :func:`itertools.zip_longest` on Python 2 on Python 3 /
+        :func:`itertools.izip_longest` on Python 2.
+
 """
 
 from operator import methodcaller
@@ -46,7 +51,7 @@ if PY2:  # pragma: no cover
     iterkeys = methodcaller('iterkeys')
     itervalues = methodcaller('itervalues')
     iteritems = methodcaller('iteritems')
-    from itertools import izip
+    from itertools import izip, izip_longest
 else:  # pragma: no cover
     viewkeys = methodcaller('keys')
     viewvalues = methodcaller('values')
@@ -56,3 +61,4 @@ else:  # pragma: no cover
     itervalues = _compose(iter, viewvalues)
     iteritems = _compose(iter, viewitems)
     izip = zip
+    from itertools import zip_longest as izip_longest

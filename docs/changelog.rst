@@ -13,6 +13,7 @@ Changelog
   - :func:`bidict.compat.iterkeys`
   - :func:`bidict.compat.itervalues`
   - :func:`bidict.compat.izip`
+  - :func:`bidict.compat.izip_longest`
 
   to complement the existing
   :func:`iteritems() <bidict.compat.iteritems>` and
