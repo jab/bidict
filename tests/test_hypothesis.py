@@ -47,9 +47,9 @@ mutating_methods_by_arity = {
     -1: ('update', 'forceupdate',),
 }
 # otherwise data gen. in hypothesis>=1.19 is so slow the health checks fail:
-kw = dict(average_size=2)
-immu_atom = none() | booleans() | integers() | floats() | text(**kw) | binary(**kw)
-immu_coll = lambda e: frozensets(e, **kw) | lists(e, **kw).map(tuple)
+sz = dict(average_size=2)
+immu_atom = none() | booleans() | integers() | floats() | text(**sz) | binary(**sz)
+immu_coll = lambda e: frozensets(e, **sz) | lists(e, **sz).map(tuple)
 immutable = recursive(immu_atom, immu_coll)
 d = dictionaries(immutable, immutable, average_size=5).map(prune_dup_vals)
 
@@ -86,7 +86,9 @@ def test_equality(d):
     assert not b.inv != i
 
 
-@given(d, immutable, immutable, lists(tuples(immutable, immutable)))
+sz['average_size'] = 3
+
+@given(d, immutable, immutable, lists(tuples(immutable, immutable), **sz))
 def test_consistency(d, arg1, arg2, itemlist):
     for B in bidict_types:
         ordered = issubclass(B, OrderedBidirectionalMapping)
