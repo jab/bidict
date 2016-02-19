@@ -3,6 +3,7 @@ Property-based tests using https://warehouse.python.org/project/hypothesis/
 """
 
 from bidict import (bidict, loosebidict, looseorderedbidict, orderedbidict,
+                    frozenbidict, frozenorderedbidict,
                     OrderedBidirectionalMapping)
 from bidict.compat import iteritems, viewitems
 from hypothesis import assume, given, settings
@@ -37,7 +38,8 @@ def eq_nan(a, b):
     return a == b or both_nan(a, b)
 
 
-mutable_bidict_types = (bidict, loosebidict, looseorderedbidict, orderedbidict)
+bidict_types = (bidict, loosebidict, looseorderedbidict, orderedbidict,
+                frozenbidict, frozenorderedbidict)
 mutating_methods_by_arity = {
     0: ('clear', 'popitem',),
     1: ('__delitem__', 'pop', 'setdefault', 'move_to_end',),
@@ -85,41 +87,42 @@ def test_equality(d):
 
 
 @given(d, immutable, immutable, lists(tuples(immutable, immutable)))
-def test_consistency_after_mutation(d, arg1, arg2, itemlist):
-    for arity, mms in iteritems(mutating_methods_by_arity):
-        for B in mutable_bidict_types:
-            ordered = issubclass(B, OrderedBidirectionalMapping)
-            for mname in mms:
-                mm = getattr(B, mname, None)
-                if not mm:
+def test_consistency(d, arg1, arg2, itemlist):
+    for B in bidict_types:
+        ordered = issubclass(B, OrderedBidirectionalMapping)
+        b0 = B(d)
+        assert dict(b0) == inv(b0.inv)
+        assert dict(b0.inv) == inv(b0)
+        for arity, methods in iteritems(mutating_methods_by_arity):
+            for methodname in methods:
+                method = getattr(B, methodname, None)
+                if not method:
                     continue
-                b = B(d)
+                b = B(b0)
+                if ordered:
+                    items0 = list(viewitems(b))
                 args = []
+                if arity == -1:
+                    args.append(itemlist)
                 if arity > 0:
                     args.append(arg1)
                 if arity > 1:
                     args.append(arg2)
-                if arity == -1:  # update and forceupdate
-                    args.append(itemlist)
-                assert dict(b) == inv(b.inv)
-                assert dict(b.inv) == inv(b)
-                if ordered:
-                    items1 = list(viewitems(b))
                 try:
-                    mm(b, *args)
+                    method(b, *args)
                 except:
                     pass
                 assert dict(b) == inv(b.inv)
                 assert dict(b.inv) == inv(b)
-                if ordered and mname != 'move_to_end':
-                    items2 = list(viewitems(b))
-                    common = set(items1) & set(items2)
+                if ordered and methodname != 'move_to_end':
+                    items1 = list(viewitems(b))
+                    common = set(items0) & set(items1)
                     for i in common:
+                        idx0 = items0.index(i)
                         idx1 = items1.index(i)
-                        idx2 = items2.index(i)
+                        beforei0 = [j for j in items0[:idx0] if j in common]
                         beforei1 = [j for j in items1[:idx1] if j in common]
-                        beforei2 = [j for j in items2[:idx2] if j in common]
-                        assert beforei1 == beforei2
+                        assert beforei0 == beforei1
+                        afteri0 = [j for j in items0[idx0+1:] if j in common]
                         afteri1 = [j for j in items1[idx1+1:] if j in common]
-                        afteri2 = [j for j in items2[idx2+1:] if j in common]
-                        assert afteri1 == afteri2
+                        assert afteri0 == afteri1
