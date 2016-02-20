@@ -1,7 +1,14 @@
 .. _changelog:
 
+Release Notifications
+=====================
+
+`Follow bidict on VersionEye <https://www.versioneye.com/python/bidict>`_
+to automatically be notified via email
+when a new version of bidict is released.
+
 Changelog
-=========
+---------
 
 0.12.0-dev (not yet released)
 -----------------------------
