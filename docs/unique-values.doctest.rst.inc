@@ -28,14 +28,14 @@ resulting in::
 This could easily result in surprises or problems down the line.
 
 Instead, bidict raises a
-:class:`ValueExistsException <bidict.ValueExistsException>`
+:class:`ValueExistsError <bidict.ValueExistsError>`
 so you have an opportunity to catch this early
 and resolve the conflict before it causes problems later on::
 
     >>> b['two'] = 1
     Traceback (most recent call last):
         ...
-    ValueExistsException: Value 1 exists with key 'one'
+    ValueExistsError: Value 1 exists with key 'one'
 
 The same thing happens with initializations and
 :attr:`update <bidict.bidict.update>` calls
@@ -44,12 +44,12 @@ that would overwrite the key of an existing value::
     >>> b = bidict([('one', 1), ('two', 1)])
     Traceback (most recent call last):
         ...
-    NonuniqueValuesException: ...
+    NonuniqueValuesError: ...
     >>> b = bidict({'one': 1})
     >>> b.update({'two': 1})
     Traceback (most recent call last):
         ...
-    ValuesExistException: ...
+    ValuesExistError: ...
 
 The purpose of this is to be more in line with the
 `Zen of Python <https://www.python.org/dev/peps/pep-0020/>`_,
@@ -83,7 +83,7 @@ you can be sure that none of the specified items were added::
     >>> b.update([('two', 2), ('uno', 1)])
     Traceback (most recent call last):
         ...
-    ValuesExistException: ...
+    ValuesExistError: ...
     >>> b  # note that ('two', 2) was not added because the call failed:
     bidict({'one': 1})
 
@@ -104,15 +104,15 @@ Possible options are
     >>> b.put(2, 8, key_clbhv=RAISE, val_clbhv=IGNORE)
     Traceback (most recent call last):
         ...
-    KeyExistsException: Key 2 exists with value 4
+    KeyExistsError: Key 2 exists with value 4
     >>> b.putall(RAISE, IGNORE, [(5, 10), (5, 25)])
     Traceback (most recent call last):
         ...
-    NonuniqueKeysException: ...
+    NonuniqueKeysError: ...
     >>> b.putall(RAISE, IGNORE, [(3, 9), (2, 8)])
     Traceback (most recent call last):
         ...
-    KeysExistException: ...
+    KeysExistError: ...
     >>> b  # note that (3, 9) was not added because the call failed:
     bidict({2: 4})
     >>> b.putall(RAISE, IGNORE, {3: 9, 1: 4})

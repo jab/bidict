@@ -1,14 +1,14 @@
 .. _changelog:
 
+Changelog
+=========
+
 Release Notifications
-=====================
+---------------------
 
 `Follow bidict on VersionEye <https://www.versioneye.com/python/bidict>`_
 to automatically be notified via email
 when a new version of bidict is released.
-
-Changelog
----------
 
 0.12.0-dev (not yet released)
 -----------------------------
@@ -56,13 +56,20 @@ Changelog
 - New exceptions provide more specificity
   in various exceptional cases:
 
-  - :class:`UniquenessException <bidict.UniquenessException>`
-  - :class:`NonuniqueKeysException <bidict.NonuniqueKeysException>`
-  - :class:`NonuniqueValuesException <bidict.NonuniqueValuesException>`
-  - :class:`KeysExistException <bidict.KeysExistException>`
-  - :class:`ValuesExistException <bidict.ValuesExistException>`
+  - :class:`UniquenessError <bidict.UniquenessError>`
+  - :class:`NonuniqueKeysError <bidict.NonuniqueKeysError>`
+  - :class:`NonuniqueValuesError <bidict.NonuniqueValuesError>`
+  - :class:`KeysExistError <bidict.KeysExistError>`
+  - :class:`ValuesExistError <bidict.ValuesExistError>`
 - Drop official support for CPython 3.3
   (it will probably continue to work but is no longer being tested).
+
+Breaking API Changes
+^^^^^^^^^^^^^^^^^^^^
+
+- Rename ``KeyExistsException`` :class:`KeyExistsError <bidict.KeyExistsError>`
+  and ``ValueExistsException`` :class:`ValueExistsError <bidict.ValueExistsError>`
+
 
 0.11.0 (2016-02-05)
 -------------------

@@ -117,7 +117,7 @@ class BidirectionalMapping(Mapping):
             if key_clbhv is RAISE:
                 # since multiple values can have the same hash value, refer
                 # to the existing key via `_inv[oldval]` rather than `key`
-                raise KeyExistsException((_inv[oldval], oldval))
+                raise KeyExistsError((_inv[oldval], oldval))
             elif key_clbhv is IGNORE:
                 return
         valexists = oldkey is not _missing
@@ -125,7 +125,7 @@ class BidirectionalMapping(Mapping):
             if val_clbhv is RAISE:
                 # since multiple values can have the same hash value, refer
                 # to the existing value via `_fwd[oldkey]` rather than `val`
-                raise ValueExistsException((oldkey, _fwd[oldkey]))
+                raise ValueExistsError((oldkey, _fwd[oldkey]))
             elif val_clbhv is IGNORE:
                 return
         _fwd.pop(oldkey, None)
@@ -151,22 +151,22 @@ class BidirectionalMapping(Mapping):
                 items = frozenset(pairs(*args, **kw))
                 updatefwd = self._dcls(items)
                 if len(items) > len(updatefwd):
-                    raise NonuniqueKeysException(items)
+                    raise NonuniqueKeysError(items)
             else:
                 updatefwd = self._dcls(*args, **kw)
             updateinv = self._dcls(inverted(updatefwd))
             if len(updatefwd) > len(updateinv):
                 if val_clbhv is RAISE:
-                    raise NonuniqueValuesException(updatefwd)
+                    raise NonuniqueValuesError(updatefwd)
                 updatefwd = self._dcls(inverted(updateinv))
 
         common_vals = viewkeys(updateinv) & viewkeys(_inv)
         if common_vals and val_clbhv is RAISE:
-            raise ValuesExistException(common_vals)
+            raise ValuesExistError(common_vals)
 
         common_keys = viewkeys(updatefwd) & viewkeys(_fwd)
         if common_keys and key_clbhv is RAISE:
-            raise KeysExistException(common_keys)
+            raise KeysExistError(common_keys)
 
         if common_vals:
             if val_clbhv is IGNORE:
@@ -219,46 +219,46 @@ class BidictException(Exception):
     """Base class for bidict exceptions."""
 
 
-class UniquenessException(BidictException):
-    """Base class for NonuniqueKeysException and NonuniqueValuesException."""
+class UniquenessError(BidictException):
+    """Base class for NonuniqueKeysError and NonuniqueValuesError."""
 
 
-class NonuniqueKeysException(UniquenessException):
+class NonuniqueKeysError(UniquenessError):
     """Raised when not all keys are unique."""
 
     def __str__(self):
         return 'Keys not unique: %r' % self.args[0]
 
 
-class NonuniqueValuesException(UniquenessException):
+class NonuniqueValuesError(UniquenessError):
     """Raised when not all values are unique."""
 
     def __str__(self):
         return 'Values not unique: %r' % self.args[0]
 
 
-class KeysExistException(NonuniqueKeysException):
+class KeysExistError(NonuniqueKeysError):
     """Raised when attempting to insert keys which overlap with existing keys."""
 
     def __str__(self):
         return 'Keys already exist: %r' % self.args[0]
 
 
-class ValuesExistException(NonuniqueValuesException):
+class ValuesExistError(NonuniqueValuesError):
     """Raised when attempting to insert values which overlap with existing values."""
 
     def __str__(self):
         return 'Values already exist: %r' % self.args[0]
 
 
-class KeyExistsException(KeysExistException):
+class KeyExistsError(KeysExistError):
     """Raised when attempting to insert a non-unique key."""
 
     def __str__(self):
         return 'Key {0!r} exists with value {1!r}'.format(*self.args[0])
 
 
-class ValueExistsException(ValuesExistException):
+class ValueExistsError(ValuesExistError):
     """Raised when attempting to insert a non-unique value."""
 
     def __str__(self):
