@@ -86,7 +86,7 @@ def test_equality(d):
     assert not b.inv != i
 
 
-sz['average_size'] = 3
+sz['average_size'] = 2
 
 @given(d, immutable, immutable, lists(tuples(immutable, immutable), **sz))
 def test_consistency(d, arg1, arg2, itemlist):
