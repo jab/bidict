@@ -3,6 +3,10 @@
 u"""
 Python 2/3 compatibility helpers.
 
+    .. py:attribute:: PY2
+
+        True iff running on Python 2.
+
     .. py:attribute:: viewkeys
 
         viewkeys(D) → a set-like object providing a view on D's keys.
