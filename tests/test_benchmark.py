@@ -6,7 +6,7 @@ import pytest
 
 
 n = 1024
-# TODO: test with other sizes? putting the below inside a for loop doesn't work
+# TODO: test with other sizes? can use pytest.mark.parametrize?
 
 d = {object(): object() for _ in range(n)}
 
