@@ -1,24 +1,21 @@
+"""
+Benchmarks to compare performing various tasks using a bidict
+against manually keeping two inverse dicts ("2idict") consistent.
+"""
+
 from bidict import bidict
-from bidict.compat import iteritems, viewvalues
-from itertools import islice
-from random import choice
+from bidict.compat import iteritems, itervalues, viewvalues
+from itertools import islice, product
+from operator import attrgetter, itemgetter
+from random import choice, randint
 import pytest
 
 
-n = 1024
-# TODO: test with other sizes? can use pytest.mark.parametrize?
+try:
+    range = xrange
+except NameError:
+    pass
 
-d = {object(): object() for _ in range(n)}
-
-##############################################################################
-
-group = 'init_%s' % n
-
-# TODO: test with some duplicate values?
-
-@pytest.mark.benchmark(group=group)
-def test_bidict_init(benchmark):
-    benchmark(bidict, d)
 
 def invdict(d, _missing=object()):
     inv = {}
@@ -28,53 +25,82 @@ def invdict(d, _missing=object()):
         inv[v] = k
     return inv
 
-@pytest.mark.benchmark(group=group)
-def test_invdict_init(benchmark):
-    benchmark(invdict, d)
 
-##############################################################################
+#SIZES = [randint(2**x, 2**(x+1)) for x in range(3, 16, 3)]
+SIZES = (1024,)
+# TODO: want to use more than one input size so we can see
+# if behavior changes as number of elements increases,
+# but how to create a separate benchmark group for each size, for each test?
+# e.g.:
+# --- benchmark: 'init[32]': 2 tests ---
+# test_init[bidict-32] ...
+# test_init[2idict-32] ...
+#
+# --- benchmark: 'init[1024]: 2 tests ---
+# test_init[bidict-1024] ...
+# test_init[2idict-1024] ...
+#
+# --- benchmark: 'get_key_by_val[32]: 2 tests ---
+# test_get_key_by_val[bidict-32] ...
+# test_get_key_by_val[2idict-32] ...
+#
+# --- benchmark: 'get_key_by_val[1024]: 2 tests ---
+# test_get_key_by_val[bidict-1024] ...
+# test_get_key_by_val[2idict-1024] ...
+# ...
+@pytest.fixture(params=SIZES, ids=str)
+def data(request):
+    return {object(): object() for _ in range(request.param)}
 
-group = 'setitem_%s' % n
+@pytest.fixture(params=(bidict, invdict), ids=('bidict', '2idict'))
+def constructor(request):
+    return request.param
 
+### benchmark 1: compare initializing a bidict to initializing an inverse dict
+# TODO: test with data that has values repeated?
+@pytest.mark.benchmark(group='init')
+def test_init(benchmark, constructor, data):
+    benchmark(constructor, data)
+
+
+### benchmark 2: compare getting a key by value in a bidict vs. an inverse dict
+@pytest.mark.benchmark(group='get_key_by_val')
+def test_get_key_by_val(benchmark, constructor, data):
+    # TODO: is this a good way to do this test?
+    val = choice(list(viewvalues(data)))
+    obj = constructor(data)
+    gkbv = (lambda val: obj.inv[val]) if constructor is bidict else (
+            lambda val: obj[val])
+    key = benchmark(gkbv, val)
+    assert data[key] == val
+
+
+### benchmark 3: compare setitem for a bidict vs. an inverse dict
 # TODO: test with some duplicate values?
+@pytest.mark.benchmark(group='setitem')
+def test_setitem(benchmark, constructor, data):
+    key, val, _missing = object(), object(), object()
 
-@pytest.mark.benchmark(group=group)
-def test_bidict_setitem(benchmark):
-    b = bidict(d)
-    @benchmark
-    def setitem():
-        b[object()] = object()
+    if constructor is bidict:
+        def setup():
+            return (constructor(data),), {}
 
-def setitem(d, inv, _missing=object()):
-    k, v = object(), object()
-    if v in inv:
-        raise Exception('Value exists')
-    oldval = d.get(k, _missing)
-    d[k] = v
-    if oldval is not _missing:
-        del inv[oldval]
-    inv[v] = k
+        def setitem(b):
+            b[key] = val
 
-@pytest.mark.benchmark(group=group)
-def test_invdict_setitem(benchmark):
-    inv = invdict(d)
-    benchmark(setitem, d, inv)
+    else:
+        def setup():
+            return (data.copy(), constructor(data)), {}
 
-##############################################################################
+        def setitem(d, inv):
+            if val in inv:
+                raise Exception('Value exists')
+            oldval = d.get(key, _missing)
+            d[key] = val
+            if oldval is not _missing:
+                del inv[oldval]
+            inv[val] = key
 
-group = 'get_key_by_val_%s' % n
-
-# TODO: is this a good way to do this test?
-randvalsubsetsize = 10
-
-@pytest.mark.benchmark(group=group)
-def test_bidict_get_key_by_val(benchmark):
-    b = bidict(d)
-    somevals = list(islice(viewvalues(b), randvalsubsetsize))
-    benchmark(lambda: b.inv[choice(somevals)])
-
-@pytest.mark.benchmark(group=group)
-def test_invdict_get_key_by_val(benchmark):
-    inv = invdict(d)
-    somevals = list(islice(viewvalues(d), randvalsubsetsize))
-    benchmark(lambda: inv[choice(somevals)])
+    # TODO: iterations=100 causes: ValueError: Can't use more than 1 `iterations` with a `setup` function.
+    #benchmark.pedantic(setitem, setup=setup, iterations=100)
+    benchmark.pedantic(setitem, setup=setup)
