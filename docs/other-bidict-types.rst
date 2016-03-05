@@ -32,11 +32,11 @@ and finally
 :class:`bidict.loosebidict`,
 the leaf on this side of the tree.
 
-.. include:: frozenbidict.doctest.rst.inc
+.. include:: frozenbidict.rst.inc
 
-.. include:: orderedbidict.doctest.rst.inc
+.. include:: orderedbidict.rst.inc
 
-.. include:: namedbidict.doctest.rst.inc
+.. include:: namedbidict.rst.inc
 
 
 Polymorphism

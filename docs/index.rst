@@ -25,25 +25,25 @@ Your support directly contributes to bidict's sustainability.
     :target: https://gumroad.com/l/bidict
     :alt: Support bidict
 
-:ref:`Click here <contributing>`
-for more information about contributing.
+For more information about contributing,
+see :ref:`contributing`.
 
 
 Usage
 -----
 
-Let's get :ref:`started <intro>`.
+For usage documentation, please proceed to the :ref:`intro`.
 
 
 .. toctree::
     :maxdepth: 2
     :hidden:
 
-    intro.doctest
-    basic-usage.doctest
-    performance.doctest
-    other-bidict-types.doctest
-    inverted.doctest
+    intro
+    basic-usage
+    performance
+    other-bidict-types
+    inverted
     addendum
     changelog
     api

@@ -64,15 +64,15 @@ where bidicts could be used for fun and profit
 Caveats
 -------
 
-.. include:: caveat-frozenbidict-hash.doctest.rst.inc
+.. include:: caveat-frozenbidict-hash.rst.inc
 
-.. include:: caveat-mutation.doctest.rst.inc
+.. include:: caveat-mutation.rst.inc
 
 .. include:: caveat-inv-reference-cycle.rst.inc
 
-.. include:: caveat-different-values-same-hash.doctest.rst.inc
+.. include:: caveat-different-values-same-hash.rst.inc
 
-.. include:: caveat-nan-as-key.doctest.rst.inc
+.. include:: caveat-nan-as-key.rst.inc
 
 Thanks
 ------

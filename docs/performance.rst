@@ -9,6 +9,8 @@ In general,
 accomplishing some task using bidict
 should have about the same performance
 as keeping two inverse dicts in sync manually.
+The test suite includes benchmarks to verify this
+for some common workloads.
 If bidict ever fails to achieve
 equivalent asymptotic time and space complexity
 for general use cases,

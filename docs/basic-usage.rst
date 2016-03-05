@@ -43,7 +43,7 @@ referencing a bidict's inverse
 is always a constant-time operation.
 
 
-.. include:: unique-values.doctest.rst.inc
+.. include:: unique-values.rst.inc
 
 
 Values Must Be Hashable
