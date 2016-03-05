@@ -26,28 +26,7 @@ def invdict(d, _missing=object()):
     return inv
 
 
-#SIZES = [randint(2**x, 2**(x+1)) for x in range(3, 16, 3)]
-SIZES = (1024,)
-# TODO: want to use more than one input size so we can see
-# if behavior changes as number of elements increases,
-# but how to create a separate benchmark group for each size, for each test?
-# e.g.:
-# --- benchmark: 'init[32]': 2 tests ---
-# test_init[bidict-32] ...
-# test_init[2idict-32] ...
-#
-# --- benchmark: 'init[1024]: 2 tests ---
-# test_init[bidict-1024] ...
-# test_init[2idict-1024] ...
-#
-# --- benchmark: 'get_key_by_val[32]: 2 tests ---
-# test_get_key_by_val[bidict-32] ...
-# test_get_key_by_val[2idict-32] ...
-#
-# --- benchmark: 'get_key_by_val[1024]: 2 tests ---
-# test_get_key_by_val[bidict-1024] ...
-# test_get_key_by_val[2idict-1024] ...
-# ...
+SIZES = [randint(2**x, 2**(x+1)) for x in range(3, 16, 3)]
 @pytest.fixture(params=SIZES, ids=str)
 def data(request):
     return {object(): object() for _ in range(request.param)}
@@ -58,13 +37,11 @@ def constructor(request):
 
 ### benchmark 1: compare initializing a bidict to initializing an inverse dict
 # TODO: test with data that has values repeated?
-@pytest.mark.benchmark(group='init')
 def test_init(benchmark, constructor, data):
     benchmark(constructor, data)
 
 
 ### benchmark 2: compare getting a key by value in a bidict vs. an inverse dict
-@pytest.mark.benchmark(group='get_key_by_val')
 def test_get_key_by_val(benchmark, constructor, data):
     # TODO: is this a good way to do this test?
     val = choice(list(viewvalues(data)))
@@ -77,7 +54,6 @@ def test_get_key_by_val(benchmark, constructor, data):
 
 ### benchmark 3: compare setitem for a bidict vs. an inverse dict
 # TODO: test with some duplicate values?
-@pytest.mark.benchmark(group='setitem')
 def test_setitem(benchmark, constructor, data):
     key, val, _missing = object(), object(), object()
 
