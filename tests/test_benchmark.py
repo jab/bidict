@@ -4,7 +4,7 @@ against manually keeping two inverse dicts ("2idict") consistent.
 """
 
 from bidict import bidict
-from bidict.compat import iteritems, itervalues, viewvalues
+from bidict.compat import iteritems, itervalues, viewkeys, viewvalues
 from itertools import islice, product
 from operator import attrgetter, itemgetter
 from random import choice, randint
@@ -26,7 +26,7 @@ def invdict(d, _missing=object()):
     return inv
 
 
-SIZES = [randint(2**x, 2**(x+1)) for x in range(3, 16, 3)]
+SIZES = [randint(2**x, 2**(x+1)) for x in range(5, 12, 3)]
 @pytest.fixture(params=SIZES, ids=str)
 def data(request):
     return {object(): object() for _ in range(request.param)}
@@ -80,3 +80,42 @@ def test_setitem(benchmark, constructor, data):
     # TODO: iterations=100 causes: ValueError: Can't use more than 1 `iterations` with a `setup` function.
     #benchmark.pedantic(setitem, setup=setup, iterations=100)
     benchmark.pedantic(setitem, setup=setup)
+
+
+### benchmark 4: compare update for a bidict vs. an inverse dict
+# TODO: test with some duplicate values?
+# TODO: choose number of items in update differently?
+def test_update(benchmark, constructor, data):
+    _missing = object()
+    items = [(object(), object()) for _ in range(len(data)//2)]
+
+    if constructor is bidict:
+        def setup():
+            return (constructor(data),), {}
+
+        def update(b):
+            b.update(items)
+
+    else:
+        def setup():
+            return (data.copy(), constructor(data)), {}
+
+        def update(d, inv, items=items):
+            # only test with default collision behaviors
+            # (key: OVERWRITE, value: RAISE)
+            itemsinv = {v: k for (k, v) in items}
+            if len(items) > len(itemsinv):
+                raise Exception('Nonunique values')
+            common_vals = viewkeys(itemsinv) & viewkeys(inv)
+            if common_vals:
+                raise Exception('Values exist')
+            items = dict(items)
+            common_keys = viewkeys(items) & viewkeys(d)
+            for k in common_keys:
+                del inv[d.pop(k)]
+            d.update(items)
+            inv.update(itemsinv)
+
+    # TODO: iterations=100 causes: ValueError: Can't use more than 1 `iterations` with a `setup` function.
+    #benchmark.pedantic(update, setup=setup, iterations=100)
+    benchmark.pedantic(update, setup=setup)
