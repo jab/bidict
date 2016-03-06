@@ -26,7 +26,9 @@ when a new version of bidict is released.
   :func:`iteritems() <bidict.compat.iteritems>` and
   :func:`viewitems() <bidict.compat.viewitems>`
   compatibility helpers.
-- Add benchmarking to tests.
+- Add benchmarking to tests and
+  improve performance of bulk insert operations (including initialization)
+  by at least 2-3x in common cases.
 - :attr:`put() <bidict.bidict.put>`
   now accepts ``on_key_coll`` and ``on_val_coll`` keyword arguments
   which allow you to override the default behavior
@@ -51,8 +53,6 @@ when a new version of bidict is released.
 - Make bulk insert operations (including initialization) safer
   by not allowing any inserts to succeed if any one would cause
   an exception to be raised.
-- Improve performance of bulk insert operations (including initialization)
-  by at least 2-3x in common cases.
 - New exceptions provide more specificity
   in various exceptional cases:
 
