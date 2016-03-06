@@ -41,11 +41,11 @@ class bidict(BidirectionalMapping, MutableMapping):
         """
         self._put(key, val, OVERWRITE, RAISE)
 
-    def put(self, key, val, key_clbhv=RAISE, val_clbhv=RAISE):
+    def put(self, key, val, on_key_coll=RAISE, on_val_coll=RAISE):
         """
         Associate *key* with *val* with the specified collision behaviors.
 
-        For example, if *key_clbhv* and *val_clbhv* are both
+        For example, if *on_key_coll* and *on_val_coll* are both
         :attr:`CollisionBehavior.RAISE <bidict.CollisionBehavior.RAISE>`,
         then *key* will be associated with *val* if and only if
         *key* is not already associated with an existing value and
@@ -55,14 +55,14 @@ class bidict(BidirectionalMapping, MutableMapping):
         If *key* is already associated with *val*, this is a no-op.
 
         :raises bidict.KeyExistsException: if attempting to insert an item
-            whose key collides with an existing item's, and *key_clbhv* is
+            whose key collides with an existing item's, and *on_key_coll* is
             :attr:`CollisionBehavior.RAISE <bidict.CollisionBehavior.RAISE>`.
 
         :raises bidict.ValueExistsException: if attempting to insert an item
-            whose value collides with an existing item's, and *val_clbhv* is
+            whose value collides with an existing item's, and *on_val_coll* is
             :attr:`CollisionBehavior.RAISE <bidict.CollisionBehavior.RAISE>`.
         """
-        self._put(key, val, key_clbhv, val_clbhv)
+        self._put(key, val, on_key_coll, on_val_coll)
 
     def forceput(self, key, val):
         """
@@ -112,7 +112,7 @@ class bidict(BidirectionalMapping, MutableMapping):
         """Like a bulk :attr:`forceput`."""
         self._update(OVERWRITE, OVERWRITE, *args, **kw)
 
-    def putall(self, key_clbhv, val_clbhv, *args, **kw):
+    def putall(self, on_key_coll, on_val_coll, *args, **kw):
         """
         Like a bulk :attr:`put`.
 
@@ -121,4 +121,4 @@ class bidict(BidirectionalMapping, MutableMapping):
         would cause an exception,
         none of them will be added.
         """
-        self._update(key_clbhv, val_clbhv, *args, **kw)
+        self._update(on_key_coll, on_val_coll, *args, **kw)

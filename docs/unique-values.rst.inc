@@ -93,7 +93,7 @@ instead of :attr:`__setitem__ <bidict.bidict.__setitem__>`,
 and instead of :attr:`update <bidict.bidict.update>`,
 use :attr:`putall <bidict.bidict.putall>` (which is also atomic).
 These methods allow you to specify different strategies for handling
-key collisions (*key_clbhv*) and value collisions (*val_clbhv*).
+key collisions (*on_key_coll*) and value collisions (*on_val_coll*).
 Possible options are
 :class:`IGNORE <bidict.CollisionBehavior.RAISE>`,
 :class:`IGNORE <bidict.CollisionBehavior.OVERWRITE>`, and
@@ -101,7 +101,7 @@ Possible options are
 
     >>> from bidict import RAISE, IGNORE
     >>> b = bidict({2: 4})
-    >>> b.put(2, 8, key_clbhv=RAISE, val_clbhv=IGNORE)
+    >>> b.put(2, 8, on_key_coll=RAISE, on_val_coll=IGNORE)
     Traceback (most recent call last):
         ...
     KeyExistsError: Key 2 exists with value 4
@@ -116,10 +116,10 @@ Possible options are
     >>> b  # note that (3, 9) was not added because the call failed:
     bidict({2: 4})
     >>> b.putall(RAISE, IGNORE, {3: 9, 1: 4})
-    >>> sorted(b.items())  # note that (1, 4) is ignored, as per val_clbhv
+    >>> sorted(b.items())  # note that (1, 4) is ignored, as per on_val_coll
     [(2, 4), (3, 9)]
 
-*key_clbhv* and *val_clbhv* default to *RAISE* for both methods.
+*on_key_coll* and *on_val_coll* default to *RAISE* for both methods.
 
 You can also use
 :attr:`forceput <bidict.bidict.forceput>` and

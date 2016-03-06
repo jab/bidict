@@ -104,7 +104,7 @@ class BidirectionalMapping(Mapping):
     def __getitem__(self, key):
         return self._fwd[key]
 
-    def _put(self, key, val, key_clbhv, val_clbhv):
+    def _put(self, key, val, on_key_coll, on_val_coll):
         _fwd = self._fwd
         _inv = self._inv
         _missing = self._missing
@@ -114,26 +114,26 @@ class BidirectionalMapping(Mapping):
             return
         keyexists = oldval is not _missing
         if keyexists:
-            if key_clbhv is RAISE:
+            if on_key_coll is RAISE:
                 # since multiple values can have the same hash value, refer
                 # to the existing key via `_inv[oldval]` rather than `key`
                 raise KeyExistsError((_inv[oldval], oldval))
-            elif key_clbhv is IGNORE:
+            elif on_key_coll is IGNORE:
                 return
         valexists = oldkey is not _missing
         if valexists:
-            if val_clbhv is RAISE:
+            if on_val_coll is RAISE:
                 # since multiple values can have the same hash value, refer
                 # to the existing value via `_fwd[oldkey]` rather than `val`
                 raise ValueExistsError((oldkey, _fwd[oldkey]))
-            elif val_clbhv is IGNORE:
+            elif on_val_coll is IGNORE:
                 return
         _fwd.pop(oldkey, None)
         _inv.pop(oldval, None)
         _fwd[key] = val
         _inv[val] = key
 
-    def _update(self, key_clbhv, val_clbhv, *args, **kw):
+    def _update(self, on_key_coll, on_val_coll, *args, **kw):
         if not args and not kw:
             return
 
@@ -147,7 +147,7 @@ class BidirectionalMapping(Mapping):
             updatefwd = self._dcls(args[0]._fwd)
             updateinv = self._dcls(args[0]._inv)
         else:
-            if key_clbhv is RAISE:
+            if on_key_coll is RAISE:
                 items = frozenset(pairs(*args, **kw))
                 updatefwd = self._dcls(items)
                 if len(items) > len(updatefwd):
@@ -156,30 +156,30 @@ class BidirectionalMapping(Mapping):
                 updatefwd = self._dcls(*args, **kw)
             updateinv = self._dcls(inverted(updatefwd))
             if len(updatefwd) > len(updateinv):
-                if val_clbhv is RAISE:
+                if on_val_coll is RAISE:
                     raise NonuniqueValuesError(updatefwd)
                 updatefwd = self._dcls(inverted(updateinv))
 
         common_vals = viewkeys(updateinv) & viewkeys(_inv)
-        if common_vals and val_clbhv is RAISE:
+        if common_vals and on_val_coll is RAISE:
             raise ValuesExistError(common_vals)
 
         common_keys = viewkeys(updatefwd) & viewkeys(_fwd)
-        if common_keys and key_clbhv is RAISE:
+        if common_keys and on_key_coll is RAISE:
             raise KeysExistError(common_keys)
 
         if common_vals:
-            if val_clbhv is IGNORE:
+            if on_val_coll is IGNORE:
                 delfwd, delinv = updatefwd, updateinv
-            else:  # val_clbhv is OVERWRITE
+            else:  # on_val_coll is OVERWRITE
                 delfwd, delinv = _fwd, _inv
             for v in common_vals:
                 del delfwd[delinv.pop(v)]
 
         if common_keys:
-            if key_clbhv is IGNORE:
+            if on_key_coll is IGNORE:
                 delfwd, delinv = updatefwd, updateinv
-            else:  # key_clbhv is OVERWRITE
+            else:  # on_key_coll is OVERWRITE
                 delfwd, delinv = _fwd, _inv
             for k in common_keys:
                 del delinv[delfwd.pop(k)]

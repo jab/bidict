@@ -12,6 +12,6 @@ class loosebidict(bidict):
     __setitem__ = bidict.forceput
     update = bidict.forceupdate
 
-    def put(self, key, val, key_clbhv=OVERWRITE, val_clbhv=OVERWRITE):
+    def put(self, key, val, on_key_coll=OVERWRITE, on_val_coll=OVERWRITE):
         """Like :attr:`bidict.put` with default collision behavior OVERWRITE."""
-        self._put(key, val, key_clbhv, val_clbhv)
+        self._put(key, val, on_key_coll, on_val_coll)

@@ -28,7 +28,7 @@ when a new version of bidict is released.
   compatibility helpers.
 - Add benchmarking to tests.
 - :attr:`put() <bidict.bidict.put>`
-  now accepts ``key_clbhv`` and ``val_clbhv`` keyword arguments
+  now accepts ``on_key_coll`` and ``on_val_coll`` keyword arguments
   which allow you to override the default behavior
   when the key or value of a new item collides with that of an existing one.
   These can take the following values:
@@ -38,9 +38,9 @@ when a new version of bidict is released.
   - :attr:`bidict.CollisionBehavior.IGNORE`
 
   For a :class:`bidict <bidict.bidict>`,
-  ``key_clbhv`` defaults to
+  ``on_key_coll`` defaults to
   :attr:`OVERWRITE <bidict.CollisionBehavior.OVERWRITE>` and
-  ``val_clbhv`` defaults to
+  ``on_val_coll`` defaults to
   :attr:`RAISE <bidict.CollisionBehavior.RAISE>`,
   while for a :class:`loosebidict <bidict.loosebidict>`
   both default to :attr:`OVERWRITE <bidict.CollisionBehavior.OVERWRITE>`,
