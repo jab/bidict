@@ -13,7 +13,7 @@ See https://bidict.readthedocs.org/ for comprehensive documentation.
 from ._common import (BidirectionalMapping,
                       CollisionBehavior, RAISE, OVERWRITE, IGNORE,
                       BidictException, UniquenessError,
-                      NonuniqueKeysError, NonuniqueValuesError,
+                      KeysNotUniqueError, ValuesNotUniqueError,
                       KeysExistError, ValuesExistError,
                       KeyExistsError, ValueExistsError)
 from ._bidict import bidict
@@ -33,8 +33,8 @@ __all__ = (
     'IGNORE',
     'BidictException',
     'UniquenessError',
-    'NonuniqueKeysError',
-    'NonuniqueValuesError',
+    'KeysNotUniqueError',
+    'ValuesNotUniqueError',
     'KeysExistError',
     'ValuesExistError',
     'KeyExistsError',

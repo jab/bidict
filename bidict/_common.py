@@ -151,13 +151,13 @@ class BidirectionalMapping(Mapping):
                 items = frozenset(pairs(*args, **kw))
                 updatefwd = self._dcls(items)
                 if len(items) > len(updatefwd):
-                    raise NonuniqueKeysError(items)
+                    raise KeysNotUniqueError(items)
             else:
                 updatefwd = self._dcls(*args, **kw)
             updateinv = self._dcls(inverted(updatefwd))
             if len(updatefwd) > len(updateinv):
                 if on_val_coll is RAISE:
-                    raise NonuniqueValuesError(updatefwd)
+                    raise ValuesNotUniqueError(updatefwd)
                 updatefwd = self._dcls(inverted(updateinv))
 
         common_vals = viewkeys(updateinv) & viewkeys(_inv)
@@ -220,31 +220,31 @@ class BidictException(Exception):
 
 
 class UniquenessError(BidictException):
-    """Base class for NonuniqueKeysError and NonuniqueValuesError."""
+    """Base class for KeysNotUniqueError and ValuesNotUniqueError."""
 
 
-class NonuniqueKeysError(UniquenessError):
+class KeysNotUniqueError(UniquenessError):
     """Raised when not all keys are unique."""
 
     def __str__(self):
         return 'Keys not unique: %r' % self.args[0]
 
 
-class NonuniqueValuesError(UniquenessError):
+class ValuesNotUniqueError(UniquenessError):
     """Raised when not all values are unique."""
 
     def __str__(self):
         return 'Values not unique: %r' % self.args[0]
 
 
-class KeysExistError(NonuniqueKeysError):
+class KeysExistError(KeysNotUniqueError):
     """Raised when attempting to insert keys which overlap with existing keys."""
 
     def __str__(self):
         return 'Keys already exist: %r' % self.args[0]
 
 
-class ValuesExistError(NonuniqueValuesError):
+class ValuesExistError(ValuesNotUniqueError):
     """Raised when attempting to insert values which overlap with existing values."""
 
     def __str__(self):

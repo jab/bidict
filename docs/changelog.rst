@@ -57,8 +57,8 @@ when a new version of bidict is released.
   in various exceptional cases:
 
   - :class:`UniquenessError <bidict.UniquenessError>`
-  - :class:`NonuniqueKeysError <bidict.NonuniqueKeysError>`
-  - :class:`NonuniqueValuesError <bidict.NonuniqueValuesError>`
+  - :class:`KeysNotUniqueError <bidict.KeysNotUniqueError>`
+  - :class:`ValuesNotUniqueError <bidict.ValuesNotUniqueError>`
   - :class:`KeysExistError <bidict.KeysExistError>`
   - :class:`ValuesExistError <bidict.ValuesExistError>`
 - Drop official support for CPython 3.3
