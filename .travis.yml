@@ -36,7 +36,7 @@ install:
       virtualenv --python="$PYTHON" "$VENV"
       source "$VENV/bin/activate"
   - travis_retry pip install -e .[test]
-  - travis_retry pip install coveralls
+  - test -n "$BIDICT_COVERAGE_DISABLE" && travis_retry pip install coveralls
 
 script:
   - ./test.sh
@@ -48,7 +48,7 @@ cache:
     - $PYENV_ROOT
 
 after_success:
-  - test -n "$BIDICT_COVERAGE_DISABLE" && coveralls
+  - test -n "$BIDICT_COVERAGE_DISABLE" && echo "Running coveralls" && coveralls
 
 sudo: false
 
