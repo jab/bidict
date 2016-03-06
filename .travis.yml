@@ -36,7 +36,7 @@ install:
       virtualenv --python="$PYTHON" "$VENV"
       source "$VENV/bin/activate"
   - travis_retry pip install -e .[test]
-  - test -n "$BIDICT_COVERAGE_DISABLE" && travis_retry pip install coveralls
+  - test -n "$BIDICT_COVERAGE_DISABLE" && travis_retry pip install coveralls || echo "Skipping coveralls"
 
 script:
   - ./test.sh
