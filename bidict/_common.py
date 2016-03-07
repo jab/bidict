@@ -38,22 +38,15 @@ class CollisionBehavior(object):
         encountered.
 
     """
+    def __init__(self, id):
+        self.id = id
 
     def __repr__(self):
-        return '<CollisionBehavior:%s>' % self.__class__.__name__
+        return '<%s>' % self.id
 
-class RAISE(CollisionBehavior):
-    """Raise an exception when a collision is encountered."""
-
-class OVERWRITE(CollisionBehavior):
-    """Overwrite an existing item when a collision is encountered."""
-
-class IGNORE(CollisionBehavior):
-    """Ignore the new item when a collision is encountered."""
-
-CollisionBehavior.RAISE = RAISE = RAISE()
-CollisionBehavior.OVERWRITE = OVERWRITE = OVERWRITE()
-CollisionBehavior.IGNORE = IGNORE = IGNORE()
+CollisionBehavior.RAISE = RAISE = CollisionBehavior('RAISE')
+CollisionBehavior.OVERWRITE = OVERWRITE = CollisionBehavior('OVERWRITE')
+CollisionBehavior.IGNORE = IGNORE = CollisionBehavior('IGNORE')
 
 
 class BidirectionalMapping(Mapping):
