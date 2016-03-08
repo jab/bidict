@@ -38,7 +38,9 @@ class CollisionBehavior(object):
         encountered.
 
     """
+
     def __init__(self, id):
+        """Create a collision behavior with the given *id*."""
         self.id = id
 
     def __repr__(self):

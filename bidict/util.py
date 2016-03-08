@@ -6,7 +6,7 @@ from itertools import chain
 
 
 def pairs(*args, **kw):
-    """Yield the pairs provided. Signature matches dict's."""
+    """Yield the (k, v) pairs provided, as they'd be processed if passed to *dict*."""
     it = ()
     if args:
         l = len(args)
