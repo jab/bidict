@@ -140,7 +140,7 @@ Initializing with different keys mapping to the same value fails::
     >>> bidict([(1, 1), (2, 1)])
     Traceback (most recent call last):
         ...
-    ValuesNotUniqueError: ...
+    ValueNotUniqueError: Value not unique: 1
 
 Adding a new key associated with an existing value fails::
 
@@ -152,7 +152,7 @@ Adding a new key associated with an existing value fails::
     >>> b.update({2: 1})
     Traceback (most recent call last):
         ...
-    ValuesExistError: ...
+    ValueExistsError: Value 1 exists with key 1
 
 ``forceput`` and ``forceupdate`` can be used instead::
 
