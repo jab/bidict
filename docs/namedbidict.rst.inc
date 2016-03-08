@@ -27,7 +27,7 @@ allowing the creation of e.g. namedfrozenbidicts::
     >>> from bidict import frozenbidict
     >>> ElMap = namedbidict('ElMap', 'sym', 'el', base_type=frozenbidict)
     >>> noble = ElMap(He='helium')
-    >>> hash(noble) is not 'an exception'
+    >>> hash(noble) is not 'an error'
     True
     >>> noble['C'] = 'carbon'  # mutation fails
     Traceback (most recent call last):

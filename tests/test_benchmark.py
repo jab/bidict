@@ -101,8 +101,8 @@ def test_update(benchmark, constructor, data):
             return (data.copy(), constructor(data)), {}
 
         def update(d, inv, items=items):
-            # only test with default collision behaviors
-            # (key: OVERWRITE, value: RAISE)
+            # currently only test with default collision behaviors
+            # (i.e. as in on_key_coll=OVERWRITE, on_val_coll=RAISE)
             itemsinv = {v: k for (k, v) in items}
             if len(items) > len(itemsinv):
                 raise Exception('Nonunique values')

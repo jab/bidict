@@ -37,19 +37,19 @@ and resolve the conflict before it causes problems later on::
         ...
     ValueExistsError: Value 1 exists with key 'one'
 
-The same thing happens with initializations and
-:attr:`update <bidict.bidict.update>` calls
-that would overwrite the key of an existing value::
+Initializations and :attr:`update <bidict.bidict.update>` calls
+that would overwrite the key of an existing value
+raise an exception too::
 
     >>> b = bidict([('one', 1), ('two', 1)])
     Traceback (most recent call last):
         ...
-    ValuesNotUniqueError: ...
+    ValueNotUniqueError: Value not unique: 1
     >>> b = bidict({'one': 1})
     >>> b.update({'two': 1})
     Traceback (most recent call last):
         ...
-    ValuesExistError: ...
+    ValueExistsError: Value 1 exists with key 'one'
 
 The purpose of this is to be more in line with the
 `Zen of Python <https://www.python.org/dev/peps/pep-0020/>`_,
@@ -83,7 +83,7 @@ you can be sure that none of the specified items were added::
     >>> b.update([('two', 2), ('uno', 1)])
     Traceback (most recent call last):
         ...
-    ValuesExistError: ...
+    ValueExistsError: Value 1 exists with key 'one'
     >>> b  # note that ('two', 2) was not added because the call failed:
     bidict({'one': 1})
 
@@ -95,8 +95,8 @@ use :attr:`putall <bidict.bidict.putall>` (which is also atomic).
 These methods allow you to specify different strategies for handling
 key collisions (*on_key_coll*) and value collisions (*on_val_coll*).
 Possible options are
-:class:`IGNORE <bidict.CollisionBehavior.RAISE>`,
-:class:`IGNORE <bidict.CollisionBehavior.OVERWRITE>`, and
+:class:`RAISE <bidict.CollisionBehavior.RAISE>`,
+:class:`OVERWRITE <bidict.CollisionBehavior.OVERWRITE>`, and
 :class:`IGNORE <bidict.CollisionBehavior.IGNORE>`::
 
     >>> from bidict import RAISE, IGNORE
@@ -105,21 +105,37 @@ Possible options are
     Traceback (most recent call last):
         ...
     KeyExistsError: Key 2 exists with value 4
-    >>> b.putall(RAISE, IGNORE, [(5, 10), (5, 25)])
-    Traceback (most recent call last):
-        ...
-    KeysNotUniqueError: ...
     >>> b.putall(RAISE, IGNORE, [(3, 9), (2, 8)])
     Traceback (most recent call last):
         ...
-    KeysExistError: ...
+    KeyExistsError: Key 2 exists with value 4
     >>> b  # note that (3, 9) was not added because the call failed:
     bidict({2: 4})
     >>> b.putall(RAISE, IGNORE, {3: 9, 1: 4})
     >>> sorted(b.items())  # note that (1, 4) is ignored, as per on_val_coll
     [(2, 4), (3, 9)]
 
-*on_key_coll* and *on_val_coll* default to *RAISE* for both methods.
+The *on_key_coll* and *on_val_coll* keyword arguments
+of :attr:`put <bidict.bidict.put>`
+both default to *RAISE*.
+
+For :attr:`putall <bidict.bidict.putall>`,
+the *RAISE* collision behavior applies not only
+with respect to existing items,
+but also with respect to the items to add::
+
+    >>> 5 not in b
+    True
+    >>> b.putall(RAISE, RAISE, [(5, 10), (5, 25)])
+    Traceback (most recent call last):
+        ...
+    KeyNotUniqueError: Key not unique: 5
+    >>> 16 not in b.inv
+    True
+    >>> b.putall(RAISE, RAISE, [(4, 16), (8, 16)])
+    Traceback (most recent call last):
+        ...
+    ValueNotUniqueError: Value not unique: 16
 
 You can also use
 :attr:`forceput <bidict.bidict.forceput>` and
@@ -154,7 +170,8 @@ method defaults to key- and value-overwriting behavior::
     >>> b
     loosebidict({'four': 1})
 
-Beware that these semantics enable the following often surprising behavior::
+Beware that these semantics cause
+the following potentially surprising behavior::
 
     >>> b = loosebidict({'one': 1, 'two': 2})
     >>> b['one'] = 2

@@ -7,7 +7,7 @@ from ._bidict import bidict
 class loosebidict(bidict):
     """A mutable bidict which uses forcing put operations by default."""
 
-    _default_val_collision_behavior = OVERWRITE
+    _on_val_coll = OVERWRITE
 
     __setitem__ = bidict.forceput
     update = bidict.forceupdate

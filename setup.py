@@ -19,7 +19,7 @@ except Exception as e:
 
 tests_require = [
     'coverage==4.1.b2',
-    'hypothesis==3.0.5',
+    'hypothesis==3.1.0',
     'hypothesis-pytest==0.19.0',
     'py==1.4.31',
     'pydocstyle==1.0.0',

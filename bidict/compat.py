@@ -45,6 +45,8 @@ Python 2/3 compatibility helpers.
 from operator import methodcaller
 from sys import version_info
 
+_compose = lambda f, g: lambda x: f(g(x))
+
 PY2 = version_info[0] == 2
 
 if PY2:  # pragma: no cover
@@ -60,7 +62,6 @@ else:  # pragma: no cover
     viewkeys = methodcaller('keys')
     viewvalues = methodcaller('values')
     viewitems = methodcaller('items')
-    _compose = lambda f, g: lambda x: f(g(x))
     iterkeys = _compose(iter, viewkeys)
     itervalues = _compose(iter, viewvalues)
     iteritems = _compose(iter, viewitems)

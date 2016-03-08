@@ -116,6 +116,21 @@ class bidict(BidirectionalMapping, MutableMapping):
         """
         Like a bulk :attr:`put`.
 
+        Any items in *args* or *kw* that are already in this bidict
+        will be ignored,
+        regardless of specified collision behaviors.
+        In particular, a duplicate item will not cause an exception
+        even when *on_key_coll* or *on_val_coll* is
+        :attr:`CollisionBehavior.RAISE <bidict.CollisionBehavior.RAISE>`,
+        since an exception is typically desired
+        when only the key or only the value is not unique.
+
+        Otherwise, when using
+        :attr:`CollisionBehavior.RAISE <bidict.CollisionBehavior.RAISE>`,
+        an exception will be raised not only when the key or value of a given
+        item duplicates that of an existing item,
+        but also when it duplicates that of another given item.
+
         If adding any of the items in *args* or *kw*
         using the specified collision behaviors
         would cause an exception,

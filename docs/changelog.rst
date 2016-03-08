@@ -27,8 +27,10 @@ when a new version of bidict is released.
   :func:`viewitems() <bidict.compat.viewitems>`
   compatibility helpers.
 - Add benchmarking to tests and
-  improve performance of bulk insert operations (including initialization)
-  by at least 2-3x in common cases.
+  improve performance of
+  :func:`bidict.util.pairs`,
+  which in turn improves performance of all bulk insert operations
+  (such as :func:`update() <bidict.bidict.update>` and initialization).
 - :attr:`put() <bidict.bidict.put>`
   now accepts ``on_key_coll`` and ``on_val_coll`` keyword arguments
   which allow you to override the default behavior
@@ -53,14 +55,11 @@ when a new version of bidict is released.
 - Make bulk insert operations (including initialization) safer
   by not allowing any inserts to succeed if any one would cause
   an exception to be raised.
-- New exceptions provide more specificity
-  in various exceptional cases:
+- New exceptions for more specificity in various cases:
 
   - :class:`UniquenessError <bidict.UniquenessError>`
-  - :class:`KeysNotUniqueError <bidict.KeysNotUniqueError>`
-  - :class:`ValuesNotUniqueError <bidict.ValuesNotUniqueError>`
-  - :class:`KeysExistError <bidict.KeysExistError>`
-  - :class:`ValuesExistError <bidict.ValuesExistError>`
+  - :class:`KeyNotUniqueError <bidict.KeyNotUniqueError>`
+  - :class:`ValueNotUniqueError <bidict.ValueNotUniqueError>`
 - Drop official support for CPython 3.3
   (it will probably continue to work but is no longer being tested).
 

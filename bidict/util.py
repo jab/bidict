@@ -1,42 +1,32 @@
 """Utilities for working with one-to-one relations."""
 
-from .compat import PY2, iteritems
+from .compat import PY2, iteritems, izip
 from collections import Iterator
+from itertools import chain
 
 
-def pairs(*map_or_it, **kw):
-    """
-    Yield the pairs provided. Signature matches dict's.
-
-    Accepts zero or one positional argument which it first tries iterating over
-    as a mapping, and if that fails, falls back to iterating over as
-    a sequence, yielding items two at a time.
-
-    Mappings may also be passed as keyword arguments, which will be yielded
-    after any passed via positional argument.
-    """
-    if map_or_it:
-        l = len(map_or_it)
+def pairs(*args, **kw):
+    """Yield the pairs provided. Signature matches dict's."""
+    it = ()
+    if args:
+        l = len(args)
         if l != 1:
             raise TypeError('Expected at most 1 positional argument, got %d' % l)
-        map_or_it = map_or_it[0]
+        arg0 = args[0]
         try:
-            it = iteritems(map_or_it)   # mapping?
-        except AttributeError:          #  no
-            for (k, v) in map_or_it:    #    -> treat as sequence
-                yield (k, v)
-        else:                           #  yes
-            for (k, v) in it:           #    -> treat as mapping
-                yield (k, v)
-    for (k, v) in iteritems(kw):
-        yield (k, v)
+            it = iteritems(arg0)
+        except AttributeError:
+            it = iter(arg0)
+    if kw:
+         it = chain(it, iteritems(kw))
+    return it
 
 
 class inverted(Iterator):
     """
-    An iterator yielding the inverses of the provided mappings.
+    An iterator yielding the inverse items of the provided mapping.
 
-    Works with any object that can be iterated over as a mapping or in pairs
+    Works with any object that can be iterated over as a mapping or in pairs,
     or that implements its own __inverted__ method.
     """
 
