@@ -217,32 +217,32 @@ class BidictException(Exception):
 
 
 class UniquenessError(BidictException):
-    """Base class for KeysNotUniqueError and ValuesNotUniqueError."""
+    """Base class for KeyNotUniqueError and ValueNotUniqueError."""
 
 
 class KeyNotUniqueError(UniquenessError):
-    """Raised when not all keys are unique."""
+    """Raised when a given key is not unique."""
 
     def __str__(self):
         return 'Key not unique: %r' % self.args[0]
 
 
 class ValueNotUniqueError(UniquenessError):
-    """Raised when not all values are unique."""
+    """Raised when a given value is not unique."""
 
     def __str__(self):
         return 'Value not unique: %r' % self.args[0]
 
 
 class KeyExistsError(KeyNotUniqueError):
-    """Raised when attempting to insert a non-unique key."""
+    """Raised when attempting to insert an already-existing key."""
 
     def __str__(self):
         return 'Key {0!r} exists with value {1!r}'.format(*self.args[0])
 
 
 class ValueExistsError(ValueNotUniqueError):
-    """Raised when attempting to insert a non-unique value."""
+    """Raised when attempting to insert an already-existing value."""
 
     def __str__(self):
         return 'Value {1!r} exists with key {0!r}'.format(*self.args[0])
