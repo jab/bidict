@@ -7,7 +7,7 @@ from itertools import chain
 
 def pairs(*args, **kw):
     """Yield the (k, v) pairs provided, as they'd be processed if passed to *dict*."""
-    it = ()
+    it = None
     if args:
         l = len(args)
         if l != 1:
@@ -18,8 +18,9 @@ def pairs(*args, **kw):
         except AttributeError:
             it = iter(arg0)
     if kw:
-         it = chain(it, iteritems(kw))
-    return it
+        it2 = iteritems(kw)
+        it = chain(it, it2) if it else it2
+    return it or iter(())
 
 
 class inverted(Iterator):
