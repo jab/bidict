@@ -19,7 +19,7 @@ matrix:
         - PYENV_PYTHON_VER=3.5.1
     - python: "pypy"
       env:
-        - PYENV_PYTHON_VER=pypy-4.0.1
+        - PYENV_PYTHON_VER=pypy-5.0.0
         - BIDICT_COVERAGE_DISABLE=1
 
 install:
