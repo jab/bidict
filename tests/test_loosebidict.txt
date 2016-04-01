@@ -25,3 +25,11 @@ Using ``put`` and ``update`` with an existing key successfully overwrites::
     >>> b.update({3: 4})
     >>> b
     loosebidict({3: 4})
+
+Subclassing works as expected::
+
+    >>> class myloosebidict(loosebidict): pass
+    >>> b = myloosebidict()
+    >>> b[2] = 4
+    >>> b
+    myloosebidict({2: 4})
