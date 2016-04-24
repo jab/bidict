@@ -62,6 +62,8 @@ when a new version of bidict is released.
   - :class:`ValueNotUniqueError <bidict.ValueNotUniqueError>`
 - Drop official support for CPython 3.3
   (it will probably continue to work but is no longer being tested).
+- Fix issue preventing inheriting from loosebidict (`#34
+  <https://github.com/jab/bidict/issues/34>`_)
 
 Breaking API Changes
 ^^^^^^^^^^^^^^^^^^^^
