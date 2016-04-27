@@ -88,7 +88,7 @@ class BidirectionalMapping(Mapping):
         return self._fwd == other
 
     def __ne__(self, other):
-        return self._fwd != other
+        return not self.__eq__(other)
 
     def __inverted__(self):
         """Get an iterator over the inverse mappings."""

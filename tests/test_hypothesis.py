@@ -5,7 +5,8 @@ Property-based tests using https://warehouse.python.org/project/hypothesis/
 from bidict import (bidict, loosebidict, looseorderedbidict, orderedbidict,
                     frozenbidict, frozenorderedbidict,
                     OrderedBidirectionalMapping)
-from bidict.compat import iteritems, viewitems
+from bidict.compat import iteritems, itervalues, viewitems
+from collections import OrderedDict
 from hypothesis import assume, given, settings
 from hypothesis.strategies import (
     binary, booleans, choices, dictionaries, floats, frozensets, integers,
@@ -30,9 +31,12 @@ def prune_dup_vals(d):
     return pruned
 
 
+def isnan_(x):
+    return isinstance(x, float) and isnan(x)
+
+
 def both_nan(a, b):
-    return isinstance(a, float) and isinstance(b, float) and \
-            isnan(a) and isnan(b)
+    return isnan_(a) and isnan_(b)
 
 
 def eq_nan(a, b):
@@ -68,23 +72,29 @@ def test_bidirectional_mappings(d):
         assert eq_nan(k, b.inv[v])
 
 
-# work around https://bitbucket.org/pypy/pypy/issue/1974
-nan = float('nan')
-WORKAROUND_NAN_BUG = (nan, nan) != (nan, nan)
-
+# Work around https://bitbucket.org/pypy/pypy/issue/1974
+# Repeat float(n) calls because two nans which are reference-distinct
+# (can't happen on PyPy but happens on CPython)
+# are distinct for containers.
+n = float('nan')
+WORKAROUND_COL_NAN_BUG = (float(n), float(n)) != (float(n), float(n))
 
 @given(d)
 def test_equality(d):
-    if WORKAROUND_NAN_BUG:
-        assume(nan not in d)
+    if WORKAROUND_COL_NAN_BUG:
+        assume(not any(isnan_(k) for k in d))
+        assume(not any(isnan_(v) for v in itervalues(d)))
     i = inv(d)
-    if WORKAROUND_NAN_BUG:
-        assume(nan not in i)
     b = bidict(d)
     assert b == d
     assert b.inv == i
     assert not b != d
     assert not b.inv != i
+
+
+# Couldn't find an issue for this in bugs.python.org.
+# Appears to have been fixed in CPython 3.5.
+WORKAROUND_OD_NAN_BUG = OrderedDict({float(n): 0}) != OrderedDict({float(n): 0})
 
 
 sz['average_size'] = 2
@@ -95,15 +105,15 @@ am = [(a, m) for (a, ms) in iteritems(mutating_methods_by_arity) for m in ms]
 @given(d=d, arg1=immutable, arg2=immutable, itemlist=lists(tuples(immutable, immutable), **sz))
 def test_consistency(arity, methodname, B, d, arg1, arg2, itemlist):
     ordered = issubclass(B, OrderedBidirectionalMapping)
-    b0 = B(d)
-    assert dict(b0) == inv(b0.inv)
-    assert dict(b0.inv) == inv(b0)
+    if ordered and WORKAROUND_OD_NAN_BUG:
+        assume(not any(isnan_(k) for k in d))
+        assume(not any(isnan_(v) for v in itervalues(d)))
+    b = B(d)
+    assert dict(b) == inv(b.inv)
+    assert dict(b.inv) == inv(b)
     method = getattr(B, methodname, None)
     if not method:
         return
-    b = B(b0)
-    if ordered:
-        items0 = list(viewitems(b))
     args = []
     if arity == -1:
         args.append(itemlist)
@@ -111,13 +121,18 @@ def test_consistency(arity, methodname, B, d, arg1, arg2, itemlist):
         args.append(arg1)
     if arity > 1:
         args.append(arg2)
+    b0 = b.copy()
     try:
         method(b, *args)
     except:
-        pass
+        # When the method call fails, b should equal b0, i.e. b is unchanged.
+        # This should hold even for bulk updates since they're atomic.
+        assert b == b0
+        assert b.inv == b0.inv
     assert dict(b) == inv(b.inv)
     assert dict(b.inv) == inv(b)
     if ordered and methodname != 'move_to_end':
+        items0 = list(viewitems(b0))
         items1 = list(viewitems(b))
         common = set(items0) & set(items1)
         for i in common:
