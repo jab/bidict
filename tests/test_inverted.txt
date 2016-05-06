@@ -8,13 +8,20 @@ Test script for :class:`bidict.inverted`::
     >>> inv == dict(zip(vals, keys))
     True
 
+Works with a bidict::
+
+    >>> from bidict import bidict
+    >>> b = bidict(fwd)
+    >>> dict(inverted(b)) == inv == b.inv
+    True
+
 Passing an iterable of pairs produces an iterable of the pairs' inverses::
 
     >>> seq = [(1, 'one'), (2, 'two'), (3, 'three')]
     >>> list(inverted(seq))
     [('one', 1), ('two', 2), ('three', 3)]
 
-Anything yielding pairs works too::
+Generators work too::
 
     >>> list(inverted((i*i, i) for i in range(2, 5)))
     [(2, 4), (3, 9), (4, 16)]

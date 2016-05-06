@@ -1,7 +1,6 @@
 """Utilities for working with one-to-one relations."""
 
-from .compat import PY2, iteritems
-from collections import Iterator
+from .compat import iteritems
 from itertools import chain
 
 
@@ -36,31 +35,18 @@ def pairs(*args, **kw):
     return it or iter(())
 
 
-class inverted(Iterator):
+def inverted(data):
     """
-    An iterator yielding the inverse items of the provided mapping.
+    Yield the inverse items of the provided mapping or iterable.
 
     Works with any object that can be iterated over as a mapping or in pairs,
-    or that implements its own __inverted__ method.
+    or that implements its own *__inverted__* method.
     """
+    inv = getattr(data, '__inverted__', None)
+    return inv() if inv else _inverted(data)
 
-    def __init__(self, data):
-        """Create an :class:`inverted` instance."""
-        self._data = data
 
-    def __iter__(self):
-        """Create an instance of the actual generator."""
-        makeit = getattr(self._data, '__inverted__', self.__next__)
-        return makeit()
-
-    def __next__(self):
-        """Yield the inverse of each pair in the associated data."""
-        # 2016-05-05: Tried `return imap(tuple, imap(reversed, pairs(_data)))`
-        # but a casual benchmark using %timeit in IPython on CPython 3.5.1
-        # showed that the following is faster:
-        for (k, v) in pairs(self._data):
-            yield (v, k)
-
-    # compat
-    if PY2:
-        next = __next__
+def _inverted(data):
+    # This is faster than `return imap(tuple, imap(reversed, pairs(data)))`:
+    for (k, v) in pairs(data):
+        yield (v, k)

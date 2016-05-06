@@ -1,7 +1,6 @@
 """Implements :class:`bidict.bidict`, the mutable bidirectional map type."""
 
 from ._common import BidirectionalMapping, OVERWRITE, RAISE
-from .util import pairs
 from collections import MutableMapping
 
 
