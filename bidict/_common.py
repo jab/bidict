@@ -154,16 +154,19 @@ class BidirectionalMapping(Mapping):
 
             newk = updateinv.get(v, missing)
             newv = updatefwd.get(k, missing)
-            if newv is not missing:  # new key given twice
-                if on_key_coll is RAISE:
-                    raise KeyNotUniqueError(k)
-                elif on_key_coll is IGNORE:
-                    cont = True
-            if newk is not missing:  # new val given twice
-                if on_val_coll is RAISE:
-                    raise ValueNotUniqueError(v)
-                elif on_val_coll is IGNORE:
-                    cont = True
+            if k == newk and v == newv:
+                cont = True
+            else:
+                if newv is not missing:  # new key given twice
+                    if on_key_coll is RAISE:
+                        raise KeyNotUniqueError(k)
+                    elif on_key_coll is IGNORE:
+                        cont = True
+                if newk is not missing:  # new val given twice
+                    if on_val_coll is RAISE:
+                        raise ValueNotUniqueError(v)
+                    elif on_val_coll is IGNORE:
+                        cont = True
             if cont:
                 continue
             if newv is not missing and on_key_coll is OVERWRITE:
