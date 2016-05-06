@@ -55,6 +55,9 @@ class inverted(Iterator):
 
     def __next__(self):
         """Yield the inverse of each pair in the associated data."""
+        # 2016-05-05: Tried `return imap(tuple, imap(reversed, pairs(_data)))`
+        # but a casual benchmark using %timeit in IPython on CPython 3.5.1
+        # showed that the following is faster:
         for (k, v) in pairs(self._data):
             yield (v, k)
 

@@ -36,8 +36,8 @@ But it also maintains the inverse bidict via the
 Concise, efficient, Pythonic.
 
 
-Why Can't I Just Use dict?
---------------------------
+Why Can't I Just Use A dict?
+----------------------------
 
 A skeptic writes:
 
