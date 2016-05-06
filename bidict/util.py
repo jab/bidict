@@ -1,12 +1,25 @@
 """Utilities for working with one-to-one relations."""
 
-from .compat import PY2, iteritems, izip
+from .compat import PY2, iteritems
 from collections import Iterator
 from itertools import chain
 
 
 def pairs(*args, **kw):
-    """Yield the (k, v) pairs provided, as they'd be processed if passed to *dict*."""
+    """
+    Yield the (k, v) pairs provided, as they'd be processed if passed to *dict*.
+
+    If a positional argument is provided,
+    its pairs are yielded before those of any keyword arguments.
+    The positional argument may be a mapping or sequence or pairs.
+
+    >>> list(pairs({'a': 1}, b=2))
+    [('a', 1), ('b', 2)]
+    >>> list(pairs([('a', 1), ('b', 2)], b=3))
+    [('a', 1), ('b', 2), ('b', 3)]
+
+    :raises TypeError: if more than one positional arg is given.
+    """
     it = None
     if args:
         l = len(args)
