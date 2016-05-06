@@ -4,9 +4,10 @@ Implements :class:`BidirectionalMapping`, the bidirectional map base class.
 Also provides related exception classes and collision behaviors.
 """
 
-from .compat import PY2, iteritems, viewkeys
+from .compat import PY2, ifilter, iterkeys, iteritems, itervalues, viewkeys
 from .util import pairs
 from collections import Mapping
+from itertools import chain
 
 
 def _proxied(methodname, ivarname='_fwd', doc=None):
@@ -131,6 +132,37 @@ class BidirectionalMapping(Mapping):
         _fwd = self._fwd
         _inv = self._inv
         missing = object()
+
+        # Optimization: Try to detect duplicate keys and values early
+        # before doing any mallocs.
+        arg0 = args[0] if args else {}
+        if isinstance(arg0, Mapping):
+            if on_key_coll is RAISE:
+                if arg0 and kw:
+                    # New mappings in both arg0 and kw ->
+                    # Check if new key given twice with different values.
+                    d1, d2 = (arg0, kw) if len(arg0) < len(kw) else (kw, arg0)
+                    for (k, v) in iteritems(d1):
+                        v2 = d2.get(k, missing)
+                        if v2 is not missing and v2 != v:
+                            raise KeyNotUniqueError(k)
+                # Check if a new key duplicates an existing key.
+                dupk = next(ifilter(_fwd.__contains__,
+                                    chain(iterkeys(arg0), iterkeys(kw))), missing)
+                if dupk is not missing:
+                    raise KeyExistsError((dupk, _fwd[dupk]))
+            if on_val_coll is RAISE:
+                # Want to check if a new value was given twice with different keys,
+                # but there's no way to do this in O(n) time without a malloc.
+                # So skip checking this here; we'll catch it below.
+                # ---
+                # Check if a new value duplicates an existing value.
+                dupv = next(ifilter(_inv.__contains__,
+                                    chain(itervalues(arg0), itervalues(kw))), missing)
+                if dupv is not missing:
+                    raise ValueExistsError((_inv[dupv], dupv))
+        # End optimization.
+
         updatefwd = self._dcls()
         updateinv = self._dcls()
 

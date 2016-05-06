@@ -57,7 +57,7 @@ if PY2:  # pragma: no cover
     iterkeys = methodcaller('iterkeys')
     itervalues = methodcaller('itervalues')
     iteritems = methodcaller('iteritems')
-    from itertools import izip, izip_longest
+    from itertools import ifilter, imap, izip, izip_longest
 else:  # pragma: no cover
     viewkeys = methodcaller('keys')
     viewvalues = methodcaller('values')
@@ -65,5 +65,7 @@ else:  # pragma: no cover
     iterkeys = _compose(iter, viewkeys)
     itervalues = _compose(iter, viewvalues)
     iteritems = _compose(iter, viewitems)
+    ifilter = filter
+    imap = map
     izip = zip
     from itertools import zip_longest as izip_longest
