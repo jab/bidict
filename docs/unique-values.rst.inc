@@ -137,6 +137,23 @@ but also with respect to the items to add::
         ...
     ValueNotUniqueError: Value not unique: 16
 
+Note that if an entire *(k, v)* item in the update is duplicated
+elsewhere in the update
+or is already in the bidict,
+it will just be ignored,
+even if the key or value collision behavior is *RAISE*.
+The *RAISE* behavior is only to protect against
+unexpectedly changing mappings.
+Since no mapping is changing in this case,
+there's no reason to raise::
+
+    >>> b.putall(RAISE, RAISE, [(4, 16), (4, 16)])
+    >>> sorted(b.items())
+    [(2, 4), (3, 9), (4, 16)]
+    >>> b.putall(RAISE, RAISE, [(4, 16)])
+    >>> sorted(b.items())
+    [(2, 4), (3, 9), (4, 16)]
+
 You can also use
 :attr:`forceput <bidict.bidict.forceput>` and
 :attr:`forceupdate <bidict.bidict.forceupdate>`
