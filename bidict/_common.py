@@ -133,14 +133,16 @@ class BidirectionalMapping(Mapping):
         _inv = self._inv
         missing = object()
 
-        # Optimization: Try to detect duplicate keys and values early
-        # before doing any mallocs.
+        # Optimization: If given a mapping, try to detect duplicate keys
+        # and values early, before allocating memory for the requested update.
         arg0 = args[0] if args else {}
         if isinstance(arg0, Mapping):
             if on_key_coll is RAISE:
+                # Check if a new key was given twice with different values.
+                # Since arg0 and kw are each Mappings, the keys within each are
+                # unique, so we only have to check if the same key is present in
+                # each but set to a different value.
                 if arg0 and kw:
-                    # New mappings in both arg0 and kw ->
-                    # Check if new key given twice with different values.
                     d1, d2 = (arg0, kw) if len(arg0) < len(kw) else (kw, arg0)
                     for (k, v) in iteritems(d1):
                         v2 = d2.get(k, missing)
@@ -152,10 +154,17 @@ class BidirectionalMapping(Mapping):
                 if dupk is not missing:
                     raise KeyExistsError((dupk, _fwd[dupk]))
             if on_val_coll is RAISE:
-                # Want to check if a new value was given twice with different keys,
-                # but there's no way to do this in O(n) time without a malloc.
-                # So skip checking this here; we'll catch it below.
-                # ---
+                # Want to check if a new value was given twice with different
+                # keys. We can only detect this efficiently if it occurs across
+                # arg0 and kw, and arg0 is a BidirectionalMapping. If this occurs
+                # within arg0 or kw, or arg0 is not a BidirectionalMapping,
+                # skip the early check here; we'll catch it when we check below.
+                if isinstance(arg0, BidirectionalMapping) and kw:
+                    arg0inv = arg0.inv
+                    for (k, v) in iteritems(kw):
+                        arg0k = arg0inv.get(v, missing)
+                        if arg0k is not missing and arg0k != k:
+                            raise ValueNotUniqueError(v)
                 # Check if a new value duplicates an existing value.
                 dupv = next(ifilter(_inv.__contains__,
                                     chain(itervalues(arg0), itervalues(kw))), missing)
