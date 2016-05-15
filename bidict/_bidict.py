@@ -36,9 +36,9 @@ class bidict(BidirectionalMapping, MutableMapping):
         Or use :attr:`forceput` to unconditionally associate *key* with *val*,
         replacing any existing key or value as necessary to preserve uniqueness.
 
-        :raises bidict.ValueExistsException: if *val* is not unique.
+        :raises bidict.ValueExistsError: if *val* is not unique.
         """
-        self._put(key, val, OVERWRITE, RAISE)
+        self._update(OVERWRITE, RAISE, False, ((key, val),))
 
     def put(self, key, val, on_key_coll=RAISE, on_val_coll=RAISE):
         """
@@ -53,15 +53,15 @@ class bidict(BidirectionalMapping, MutableMapping):
 
         If *key* is already associated with *val*, this is a no-op.
 
-        :raises bidict.KeyExistsException: if attempting to insert an item
+        :raises bidict.KeyExistsError: if attempting to insert an item
             whose key collides with an existing item's, and *on_key_coll* is
             :attr:`CollisionBehavior.RAISE <bidict.CollisionBehavior.RAISE>`.
 
-        :raises bidict.ValueExistsException: if attempting to insert an item
+        :raises bidict.ValueExistsError: if attempting to insert an item
             whose value collides with an existing item's, and *on_val_coll* is
             :attr:`CollisionBehavior.RAISE <bidict.CollisionBehavior.RAISE>`.
         """
-        self._put(key, val, on_key_coll, on_val_coll)
+        self._update(on_key_coll, on_val_coll, False, ((key, val),))
 
     def forceput(self, key, val):
         """
@@ -70,7 +70,7 @@ class bidict(BidirectionalMapping, MutableMapping):
         Replace any existing mappings containing key *key* or value *val*
         as necessary to preserve uniqueness.
         """
-        self._put(key, val, OVERWRITE, OVERWRITE)
+        self._update(OVERWRITE, OVERWRITE, False, ((key, val),))
 
     def clear(self):
         """Remove all items."""
@@ -104,35 +104,38 @@ class bidict(BidirectionalMapping, MutableMapping):
         return self[key]
 
     def update(self, *args, **kw):
-        """Like a bulk :attr:`__setitem__`."""
-        self._update(OVERWRITE, RAISE, *args, **kw)
+        """Like a bulk :attr:`__setitem__`. Succeeds or fails atomically."""
+        self._update(OVERWRITE, RAISE, True, *args, **kw)
 
     def forceupdate(self, *args, **kw):
         """Like a bulk :attr:`forceput`."""
-        self._update(OVERWRITE, OVERWRITE, *args, **kw)
+        self._update(OVERWRITE, OVERWRITE, True, *args, **kw)
 
-    def putall(self, on_key_coll, on_val_coll, *args, **kw):
+    def putall(self, on_key_coll, on_val_coll, atomic, *args, **kw):
         """
         Like a bulk :attr:`put`.
 
-        Any items in *args* or *kw* that are already in this bidict
+        Any (k, v) item in *args* or *kw* that is already in this bidict
         will be ignored,
         regardless of specified collision behaviors.
-        In particular, a duplicate item will not cause an exception
+        That is, a duplicate item will not cause an exception
         even when *on_key_coll* or *on_val_coll* is
         :attr:`CollisionBehavior.RAISE <bidict.CollisionBehavior.RAISE>`,
         since an exception is typically desired
         when only the key or only the value is not unique.
 
-        Otherwise, when using
+        Otherwise, if *on_key_coll* (*on_val_coll*) is
         :attr:`CollisionBehavior.RAISE <bidict.CollisionBehavior.RAISE>`,
-        an exception will be raised not only when the key or value of a given
+        a :class:`bidict.KeyExistsError` (:class:`bidict.ValueExistsError`)
+        will be raised if the key (value) of a given
         item duplicates that of an existing item,
-        but also when it duplicates that of another given item.
+        and a :class:`KeyNotUniqueError` (:class:`ValueNotUniqueError`)
+        will be raised if the key (value) of a given
+        item duplicates that of another given item.
 
-        If adding any of the items in *args* or *kw*
-        using the specified collision behaviors
-        would cause an exception,
-        none of them will be added.
+        If *atomic* is True and either of the collision behaviors is *RAISE*,
+        extra checking of the given items
+        is done to make sure none would cause an error
+        before inserting any of them.
         """
-        self._update(on_key_coll, on_val_coll, *args, **kw)
+        self._update(on_key_coll, on_val_coll, atomic, *args, **kw)

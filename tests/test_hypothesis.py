@@ -52,7 +52,7 @@ mutating_methods_by_arity = {
     -1: ('update', 'forceupdate',),
     # TODO: test putall with all collision behaviors
 }
-sz = dict(average_size=2)
+sz = dict(average_size=3)
 immu_atom = none() | booleans() | integers() | floats() | text(**sz) | binary(**sz)
 immu_coll = lambda e: frozensets(e, **sz) | lists(e, **sz).map(tuple)
 immutable = recursive(immu_atom, immu_coll)
@@ -96,8 +96,6 @@ def test_equality(d):
 # Appears to have been fixed in CPython 3.5.
 WORKAROUND_OD_NAN_BUG = OrderedDict({float(n): 0}) != OrderedDict({float(n): 0})
 
-
-sz['average_size'] = 2
 
 am = [(a, m) for (a, ms) in iteritems(mutating_methods_by_arity) for m in ms]
 @pytest.mark.parametrize('arity,methodname', am)

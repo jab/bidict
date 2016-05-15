@@ -4,10 +4,9 @@ Implements :class:`BidirectionalMapping`, the bidirectional map base class.
 Also provides related exception classes and collision behaviors.
 """
 
-from .compat import PY2, ifilter, iterkeys, iteritems, itervalues, viewkeys
-from .util import pairs
-from collections import Mapping
-from itertools import chain
+from .compat import PY2, iteritems
+from .util import inverted, pairs
+from collections import Mapping, deque
 
 
 def _proxied(methodname, ivarname='_fwd', doc=None):
@@ -51,6 +50,7 @@ CollisionBehavior.RAISE = RAISE = CollisionBehavior('RAISE')
 CollisionBehavior.OVERWRITE = OVERWRITE = CollisionBehavior('OVERWRITE')
 CollisionBehavior.IGNORE = IGNORE = CollisionBehavior('IGNORE')
 
+_missing = object()
 
 class BidirectionalMapping(Mapping):
     """
@@ -75,7 +75,7 @@ class BidirectionalMapping(Mapping):
         self._fwd = self._dcls()  # dictionary of forward mappings
         self._inv = self._dcls()  # dictionary of inverse mappings
         if args or kw:
-            self._update(self._on_key_coll, self._on_val_coll, *args, **kw)
+            self._update(self._on_key_coll, self._on_val_coll, 1, *args, **kw)
         inv = object.__new__(self.__class__)
         inv._fwd = self._inv
         inv._inv = self._fwd
@@ -98,135 +98,91 @@ class BidirectionalMapping(Mapping):
     def __getitem__(self, key):
         return self._fwd[key]
 
-    def _put(self, key, val, on_key_coll, on_val_coll):
-        _fwd = self._fwd
-        _inv = self._inv
-        missing = object()
-        oldkey = _inv.get(val, missing)
-        oldval = _fwd.get(key, missing)
-        if key == oldkey and val == oldval:
-            return
-        if oldval is not missing:  # key exists
-            if on_key_coll is RAISE:
-                # since multiple values can have the same hash value, refer
-                # to the existing key via `_inv[oldval]` rather than `key`
-                raise KeyExistsError((_inv[oldval], oldval))
-            elif on_key_coll is IGNORE:
-                return
-        if oldkey is not missing:  # val exists
-            if on_val_coll is RAISE:
-                # since multiple values can have the same hash value, refer
-                # to the existing value via `_fwd[oldkey]` rather than `val`
-                raise ValueExistsError((oldkey, _fwd[oldkey]))
-            elif on_val_coll is IGNORE:
-                return
-        _fwd.pop(oldkey, None)
-        _inv.pop(oldval, None)
-        _fwd[key] = val
-        _inv[val] = key
-
-    def _update(self, on_key_coll, on_val_coll, *args, **kw):
+    def _update(self, on_key_coll, on_val_coll, atomic, *args, **kw):
         if not args and not kw:
             return
 
+        nodupk_update = nodupv_update = False
+        arginv = kwinv = None
+
+        if atomic and (on_key_coll is RAISE or on_val_coll is RAISE):
+            # Do an initial scan through the update to check for dupes
+            # (in which case we will raise an exception)
+            # before doing the subsequent scan below to apply the update.
+            # Thus we avoid applying an update only partially if it fails.
+            arg = args[0] if args else {}
+
+            if not hasattr(arg, '__len__'):
+                # Assume arg is a generator, so we have to allocate a new
+                # dict from it to be able to iterate over it multiple times.
+                arg = self._dcls(*arg)
+
+            if len(arg) + len(kw) <= 1:
+                # Update has most 1 mapping -> no dupes.
+                nodupk_update = nodupv_update = True
+                arginv = self._dcls(inverted(arg) if arg else {})
+                kwinv = {v: k for (k, v) in iteritems(kw)} if kw else {}
+            else:
+                # Check for dupes within the update and raise if found.
+                if on_key_coll is RAISE and arg:
+                    arg = _chkdupk(self._dcls, arg, **kw)
+                    nodupk_update = True
+                if on_val_coll is RAISE and (arg or kw):
+                    arginv, kwinv = _chkdupv(self._dcls, arg, **kw)
+                    nodupv_update = True
+
+            if self:
+                # Check if the update duplicates any existing keys or values.
+                update = self._dedup(on_key_coll, on_val_coll, pairs(arg, **kw))
+                # Feed update into a 0-length deque to consume it efficiently.
+                # This will raise according to the given collision policies.
+                deque(update, maxlen=0)
+
+        if not self and nodupk_update and nodupv_update:
+            self._inv.update(arginv, **kwinv)
+            self._fwd.update(inverted(self._inv))
+        else:
+            update = pairs(*args, **kw)
+            if self or not nodupk_update or not nodupv_update:
+                update = self._dedup(on_key_coll, on_val_coll, update)
+            update = self._dedup(on_key_coll, on_val_coll, update)
+            self._update_overwriting(update)
+
+
+    def _update_overwriting(self, update):
         _fwd = self._fwd
         _inv = self._inv
-        missing = object()
+        for (k, v) in update:
+            _inv.pop(_fwd.pop(k, _missing), None)
+            _fwd.pop(_inv.pop(v, _missing), None)
+            _fwd[k] = v
+            _inv[v] = k
 
-        # Optimization: If given a mapping, try to detect duplicate keys
-        # and values early, before allocating memory for the requested update.
-        arg0 = args[0] if args else {}
-        if isinstance(arg0, Mapping):
-            if on_key_coll is RAISE:
-                # Check if a new key was given twice with different values.
-                # Since arg0 and kw are each Mappings, the keys within each are
-                # unique, so we only have to check if the same key is present in
-                # each but set to a different value.
-                if arg0 and kw:
-                    d1, d2 = (arg0, kw) if len(arg0) < len(kw) else (kw, arg0)
-                    for (k, v) in iteritems(d1):
-                        v2 = d2.get(k, missing)
-                        if v2 is not missing and v2 != v:
-                            raise KeyNotUniqueError(k)
-                # Check if a new key duplicates an existing key.
-                dupk = next(ifilter(_fwd.__contains__,
-                                    chain(iterkeys(arg0), iterkeys(kw))), missing)
-                if dupk is not missing:
-                    raise KeyExistsError((dupk, _fwd[dupk]))
-            if on_val_coll is RAISE:
-                # Want to check if a new value was given twice with different
-                # keys. We can only detect this efficiently if it occurs across
-                # arg0 and kw, and arg0 is a BidirectionalMapping. If this occurs
-                # within arg0 or kw, or arg0 is not a BidirectionalMapping,
-                # skip the early check here; we'll catch it when we check below.
-                if isinstance(arg0, BidirectionalMapping) and kw:
-                    arg0inv = arg0.inv
-                    for (k, v) in iteritems(kw):
-                        arg0k = arg0inv.get(v, missing)
-                        if arg0k is not missing and arg0k != k:
-                            raise ValueNotUniqueError(v)
-                # Check if a new value duplicates an existing value.
-                dupv = next(ifilter(_inv.__contains__,
-                                    chain(itervalues(arg0), itervalues(kw))), missing)
-                if dupv is not missing:
-                    raise ValueExistsError((_inv[dupv], dupv))
-        # End optimization.
+    def _dedup(self, on_key_coll, on_val_coll, update):
+        _fwd = self._fwd
+        _inv = self._inv
+        on_key_coll_raise = on_key_coll is RAISE
+        on_val_coll_raise = on_val_coll is RAISE
+        on_key_coll_ignore = on_key_coll is IGNORE
+        on_val_coll_ignore = on_val_coll is IGNORE
+        for (k, v) in update:
+            skip = False
+            oldv = _fwd.get(k, _missing)
+            kcol = oldv is not _missing
+            if oldv == v or (kcol and on_key_coll_ignore):
+                skip = True
+            elif kcol and on_key_coll_raise:
+                raise KeyExistsError((k, oldv))
 
-        updatefwd = self._dcls()
-        updateinv = self._dcls()
+            oldk = _inv.get(v, _missing)
+            vcol = oldk is not _missing
+            if oldk == k or (vcol and on_val_coll_ignore):
+                skip = True
+            elif vcol and on_val_coll_raise:
+                raise ValueExistsError((oldk, v))
 
-        for (k, v) in pairs(*args, **kw):
-            cont = False
-            oldk = _inv.get(v, missing)
-            oldv = _fwd.get(k, missing)
-            if k == oldk and v == oldv:
-                cont = True
-            else:
-                if oldv is not missing:  # key exists
-                    if on_key_coll is RAISE:
-                        raise KeyExistsError((_inv[oldv], oldv))
-                    elif on_key_coll is IGNORE:
-                        cont = True
-                if oldk is not missing:  # val exists
-                    if on_val_coll is RAISE:
-                        raise ValueExistsError((oldk, _fwd[oldk]))
-                    elif on_val_coll is IGNORE:
-                        cont = True
-
-            newk = updateinv.get(v, missing)
-            newv = updatefwd.get(k, missing)
-            if k == newk and v == newv:
-                cont = True
-            else:
-                if newv is not missing:  # new key given twice
-                    if on_key_coll is RAISE:
-                        raise KeyNotUniqueError(k)
-                    elif on_key_coll is IGNORE:
-                        cont = True
-                if newk is not missing:  # new val given twice
-                    if on_val_coll is RAISE:
-                        raise ValueNotUniqueError(v)
-                    elif on_val_coll is IGNORE:
-                        cont = True
-            if cont:
-                continue
-            if newv is not missing and on_key_coll is OVERWRITE:
-                del updateinv[newv]
-            if newk is not missing and on_val_coll is OVERWRITE:
-                del updatefwd[newk]
-            updatefwd[k] = v
-            updateinv[v] = k
-
-        commonkeys = viewkeys(updatefwd) & viewkeys(_fwd)
-        for k in commonkeys:
-            del _inv[_fwd.pop(k)]
-
-        commonvals = viewkeys(updateinv) & viewkeys(_inv)
-        for v in commonvals:
-            del _fwd[_inv.pop(v)]
-
-        _fwd.update(updatefwd)
-        _inv.update(updateinv)
+            if not skip:
+                yield (k, v)
 
     def copy(self):
         """Like :py:meth:`dict.copy`."""
@@ -256,37 +212,108 @@ class BidirectionalMapping(Mapping):
         values.__doc__ = 'Like :py:meth:`dict.values`.'
 
 
+def _chkdupk(dcls, arg, **kw):
+    if arg:
+        if isinstance(arg, Mapping):
+            if kw:
+                d1, d2 = (arg, kw) if len(arg) < len(kw) else (kw, arg)
+                for (k, v) in iteritems(d1):
+                    v2 = d2.get(k, _missing)
+                    if v2 is not _missing and v2 != v:
+                        raise KeyNotUniqueError(k)
+        else:
+            it = pairs(arg)
+            arg = dcls()
+            for (k, v) in it:
+                pv = arg.get(k, _missing)
+                if pv == v:
+                    continue
+                if pv is not _missing:
+                    raise KeyNotUniqueError(k)
+                if kw:
+                    kwv = kw.get(k, _missing)
+                    if kwv is not _missing and kwv != v:
+                        raise KeyNotUniqueError(k)
+                arg[k] = v
+    return arg
+
+
+def _chkdupv(dcls, arg, **kw):
+    kwinv = {}
+    if kw:
+        for (k, v) in iteritems(kw):
+            ek = kwinv.get(v, _missing)
+            if ek != k:
+                if ek is not _missing:
+                    raise ValueNotUniqueError(v)
+                kwinv[v] = k
+    arginv = dcls()
+    if arg:
+        if isinstance(arg, BidirectionalMapping):
+            arginv = arg.inv
+            if kw:
+                if len(arg) < len(kw):
+                    b1, b2, b2inv = arg, kw, kwinv
+                else:
+                    b1, b2, b2inv = kw, arg, arg.inv
+                for (k, v) in iteritems(b1):
+                    b2k = b2inv.get(v, _missing)
+                    if b2k is not _missing and b2k != k:
+                        raise ValueNotUniqueError(v)
+        else:
+            for (k, v) in pairs(arg):
+                pk = arginv.get(v, _missing)
+                if pk == k:
+                    continue
+                if pk is not _missing:
+                    raise ValueNotUniqueError(v)
+                if kw:
+                    kwk = kwinv.get(k, _missing)
+                    if kwk is not _missing and kwk != k:
+                        raise ValueNotUniqueError(k)
+                arginv[v] = k
+    return arginv, kwinv
+
+
 class BidictException(Exception):
     """Base class for bidict exceptions."""
 
 
 class UniquenessError(BidictException):
-    """Base class for KeyNotUniqueError and ValueNotUniqueError."""
+    """Base class for exceptions raised when uniqueness is violated."""
 
 
 class KeyNotUniqueError(UniquenessError):
     """Raised when a given key is not unique."""
 
     def __str__(self):
-        return 'Key not unique: %r' % self.args[0]
+        if self.args:
+            return 'Key not unique: %r' % self.args[0]
+        return repr(self)
 
 
 class ValueNotUniqueError(UniquenessError):
     """Raised when a given value is not unique."""
 
     def __str__(self):
-        return 'Value not unique: %r' % self.args[0]
+        if self.args:
+            return 'Value not unique: %r' % self.args[0]
+        return repr(self)
 
 
 class KeyExistsError(KeyNotUniqueError):
     """Raised when attempting to insert an already-existing key."""
 
     def __str__(self):
-        return 'Key {0!r} exists with value {1!r}'.format(*self.args[0])
+        if self.args:
+            return 'Key {0!r} exists with value {1!r}'.format(*self.args[0])
+        return repr(self)
 
 
 class ValueExistsError(ValueNotUniqueError):
     """Raised when attempting to insert an already-existing value."""
 
     def __str__(self):
-        return 'Value {1!r} exists with key {0!r}'.format(*self.args[0])
+        if self.args:
+            return 'Value {1!r} exists with key {0!r}'.format(*self.args[0])
+        return repr(self)
