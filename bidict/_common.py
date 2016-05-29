@@ -6,7 +6,7 @@ Also provides related exception classes and collision behaviors.
 
 from .compat import PY2, iteritems
 from .util import inverted, pairs
-from collections import Mapping, deque
+from collections import Mapping
 
 
 def _proxied(methodname, ivarname='_fwd', doc=None):
@@ -101,55 +101,17 @@ class BidirectionalMapping(Mapping):
     def _update(self, on_key_coll, on_val_coll, atomic, *args, **kw):
         if not args and not kw:
             return
-
-        nodupk_update = nodupv_update = False
-        arginv = kwinv = None
-
-        if atomic and (on_key_coll is RAISE or on_val_coll is RAISE):
-            # Do an initial scan through the update to check for dupes
-            # (in which case we will raise an exception)
-            # before doing the subsequent scan below to apply the update.
-            # Thus we avoid applying an update only partially if it fails.
-            arg = args[0] if args else {}
-
-            if not hasattr(arg, '__len__'):
-                # Assume arg is a generator, so we have to allocate a new
-                # dict from it to be able to iterate over it multiple times.
-                arg = self._dcls(*arg)
-
-            if len(arg) + len(kw) <= 1:
-                # Update has most 1 mapping -> no dupes.
-                nodupk_update = nodupv_update = True
-                arginv = self._dcls(inverted(arg) if arg else {})
-                kwinv = {v: k for (k, v) in iteritems(kw)} if kw else {}
-            else:
-                # Check for dupes within the update and raise if found.
-                if on_key_coll is RAISE and arg:
-                    arg = _chkdupk(self._dcls, arg, **kw)
-                    nodupk_update = True
-                if on_val_coll is RAISE and (arg or kw):
-                    arginv, kwinv = _chkdupv(self._dcls, arg, **kw)
-                    nodupv_update = True
-
-            if self:
-                # Check if the update duplicates any existing keys or values.
-                update = self._dedup(on_key_coll, on_val_coll, pairs(arg, **kw))
-                # Feed update into a 0-length deque to consume it efficiently.
-                # This will raise according to the given collision policies.
-                deque(update, maxlen=0)
-
-        if not self and nodupk_update and nodupv_update:
-            self._inv.update(arginv, **kwinv)
-            self._fwd.update(inverted(self._inv))
-        else:
-            update = pairs(*args, **kw)
-            if self or not nodupk_update or not nodupv_update:
-                update = self._dedup(on_key_coll, on_val_coll, update)
+        overwrite_kv = on_key_coll is OVERWRITE and on_val_coll is OVERWRITE
+        arg = args[0] if args else {}
+        update_len_1 = hasattr(arg, '__len__') and len(arg) + len(kw) == 1
+        if overwrite_kv or update_len_1:  # No need to dupcheck within update.
+            update = pairs(arg, **kw)
+        else:  # Must check for and process dupes within the update.
+            update = _dedup(self._dcls, on_key_coll, on_val_coll, arg, **kw)
+        if self:  # Must process dupes between existing items and the update.
             update = self._dedup(on_key_coll, on_val_coll, update)
-            self._update_overwriting(update)
-
-
-    def _update_overwriting(self, update):
+        if atomic:  # Must realize update before applying.
+            update = tuple(update)  # Any dupes handled here, early.
         _fwd = self._fwd
         _inv = self._inv
         for (k, v) in update:
@@ -159,6 +121,20 @@ class BidirectionalMapping(Mapping):
             _inv[v] = k
 
     def _dedup(self, on_key_coll, on_val_coll, update):
+        """
+        Yield items in *update* according to the given collision behaviors.
+
+        If an item in *update* duplicates only an existing key in self, the
+        item is ignored or an exception is raised if *on_key_coll* is *IGNORE*
+        or *RAISE*, respectively.
+
+        If an item in *update* duplicates only an existing value in self, the
+        item is ignored or an exception is raised if *on_val_coll* is *IGNORE*
+        or *RAISE*, respectively.
+
+        If an item in *update* is already in self, it is ignored no matter what
+        *on_key_coll* and *on_val_coll* are set to.
+        """
         _fwd = self._fwd
         _inv = self._inv
         on_key_coll_raise = on_key_coll is RAISE
@@ -173,20 +149,26 @@ class BidirectionalMapping(Mapping):
                 skip = True
             elif kcol and on_key_coll_raise:
                 raise KeyExistsError((k, oldv))
-
             oldk = _inv.get(v, _missing)
             vcol = oldk is not _missing
             if oldk == k or (vcol and on_val_coll_ignore):
                 skip = True
             elif vcol and on_val_coll_raise:
                 raise ValueExistsError((oldk, v))
-
             if not skip:
                 yield (k, v)
 
     def copy(self):
         """Like :py:meth:`dict.copy`."""
-        return self.__class__(self._fwd)
+        copy = object.__new__(self.__class__)
+        copy._fwd = self._fwd.copy()
+        copy._inv = self._inv.copy()
+        cinv = object.__new__(self.__class__)
+        cinv._fwd = copy._inv
+        cinv._inv = copy._fwd
+        cinv.inv = copy
+        copy.inv = cinv
+        return copy
 
     __len__ = _proxied('__len__')
     __iter__ = _proxied('__iter__')
@@ -212,67 +194,84 @@ class BidirectionalMapping(Mapping):
         values.__doc__ = 'Like :py:meth:`dict.values`.'
 
 
-def _chkdupk(dcls, arg, **kw):
-    if arg:
-        if isinstance(arg, Mapping):
-            if kw:
-                d1, d2 = (arg, kw) if len(arg) < len(kw) else (kw, arg)
-                for (k, v) in iteritems(d1):
-                    v2 = d2.get(k, _missing)
-                    if v2 is not _missing and v2 != v:
-                        raise KeyNotUniqueError(k)
-        else:
-            it = pairs(arg)
-            arg = dcls()
-            for (k, v) in it:
-                pv = arg.get(k, _missing)
-                if pv == v:
-                    continue
-                if pv is not _missing:
-                    raise KeyNotUniqueError(k)
-                if kw:
-                    kwv = kw.get(k, _missing)
-                    if kwv is not _missing and kwv != v:
-                        raise KeyNotUniqueError(k)
-                arg[k] = v
-    return arg
+def _dedup(dcls, on_key_coll, on_val_coll, arg, **kw):
+    """
+    Yield items in *arg* and *kw*, deduplicating any duplicates within them.
 
-
-def _chkdupv(dcls, arg, **kw):
-    kwinv = {}
-    if kw:
-        for (k, v) in iteritems(kw):
-            ek = kwinv.get(v, _missing)
-            if ek != k:
-                if ek is not _missing:
-                    raise ValueNotUniqueError(v)
-                kwinv[v] = k
-    arginv = dcls()
+    Items in *arg* and *kw* that have duplicate keys or values will be ignored
+    or will cause an exception, as per the given collision behaviors.
+    """
+    argmap = None
+    on_key_coll_raise = on_key_coll is RAISE
+    on_val_coll_raise = on_val_coll is RAISE
+    on_key_coll_ignore = on_key_coll is IGNORE
+    on_val_coll_ignore = on_val_coll is IGNORE
     if arg:
         if isinstance(arg, BidirectionalMapping):
+            argmap = arg
             arginv = arg.inv
-            if kw:
-                if len(arg) < len(kw):
-                    b1, b2, b2inv = arg, kw, kwinv
-                else:
-                    b1, b2, b2inv = kw, arg, arg.inv
-                for (k, v) in iteritems(b1):
-                    b2k = b2inv.get(v, _missing)
-                    if b2k is not _missing and b2k != k:
-                        raise ValueNotUniqueError(v)
+            for (k, v) in iteritems(arg):
+                yield (k, v)
         else:
-            for (k, v) in pairs(arg):
+            argwasmap = isinstance(arg, Mapping)
+            if argwasmap:
+                it = iteritems(arg)
+                argmap = arg
+            else:
+                it = iter(arg)
+                argmap = dcls()
+            arginv = dcls()
+            for (k, v) in it:
+                if not argwasmap:
+                    pv = argmap.get(k, _missing)
+                    if pv == v:
+                        continue
+                    if pv is not _missing:
+                        if on_key_coll_raise:
+                            raise KeyNotUniqueError(k)
+                        if on_key_coll_ignore:
+                            continue
+                    argmap[k] = v
                 pk = arginv.get(v, _missing)
                 if pk == k:
                     continue
                 if pk is not _missing:
-                    raise ValueNotUniqueError(v)
-                if kw:
-                    kwk = kwinv.get(k, _missing)
-                    if kwk is not _missing and kwk != k:
-                        raise ValueNotUniqueError(k)
+                    if on_val_coll_raise:
+                        raise ValueNotUniqueError(v)
+                    if on_val_coll_ignore:
+                        continue
                 arginv[v] = k
-    return arginv, kwinv
+                yield (k, v)
+    if kw:
+        kwinv = dcls()
+        for (k, v) in iteritems(kw):
+            if argmap:
+                argv = argmap.get(k, _missing)
+                if argv == v:
+                    continue
+                elif argv is not _missing:
+                    if on_key_coll_raise:
+                        raise KeyNotUniqueError(k)
+                    if on_key_coll_ignore:
+                        continue
+                argk = arginv.get(v, _missing)
+                if argk == k:
+                    continue
+                elif argk is not _missing:
+                    if on_val_coll_raise:
+                        raise ValueNotUniqueError(v)
+                    if on_val_coll_ignore:
+                        continue
+            pk = kwinv.get(v, _missing)
+            if pk == k:
+                continue
+            if pk is not _missing:
+                if on_val_coll_raise:
+                    raise ValueNotUniqueError(v)
+                if on_val_coll_ignore:
+                    continue
+            kwinv[k] = v
+            yield (k, v)
 
 
 class BidictException(Exception):

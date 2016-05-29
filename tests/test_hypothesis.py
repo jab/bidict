@@ -52,7 +52,7 @@ mutating_methods_by_arity = {
     -1: ('update', 'forceupdate',),
     # TODO: test putall with all collision behaviors
 }
-sz = dict(average_size=3)
+sz = dict(average_size=2)
 immu_atom = none() | booleans() | integers() | floats() | text(**sz) | binary(**sz)
 immu_coll = lambda e: frozensets(e, **sz) | lists(e, **sz).map(tuple)
 immutable = recursive(immu_atom, immu_coll)

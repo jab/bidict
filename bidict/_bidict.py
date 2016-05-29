@@ -118,11 +118,10 @@ class bidict(BidirectionalMapping, MutableMapping):
         Any (k, v) item in *args* or *kw* that is already in this bidict
         will be ignored,
         regardless of specified collision behaviors.
-        That is, a duplicate item will not cause an exception
+        In particular, a duplicate item will not cause an exception
         even when *on_key_coll* or *on_val_coll* is
         :attr:`CollisionBehavior.RAISE <bidict.CollisionBehavior.RAISE>`,
-        since an exception is typically desired
-        when only the key or only the value is not unique.
+        since adding an already-existing item is construed as a no-op.
 
         Otherwise, if *on_key_coll* (*on_val_coll*) is
         :attr:`CollisionBehavior.RAISE <bidict.CollisionBehavior.RAISE>`,
@@ -133,9 +132,12 @@ class bidict(BidirectionalMapping, MutableMapping):
         will be raised if the key (value) of a given
         item duplicates that of another given item.
 
-        If *atomic* is True and either of the collision behaviors is *RAISE*,
-        extra checking of the given items
-        is done to make sure none would cause an error
-        before inserting any of them.
+        If *atomic* is truthy,
+        checking for and processing duplicates in the given items
+        is performed entirely before inserting any of them,
+        so that if e.g. one of the items would cause an exception to be raised,
+        none of the other items gets inserted before this,
+        which would otherwise result in the update being applied partially
+        before failing.
         """
         self._update(on_key_coll, on_val_coll, atomic, *args, **kw)

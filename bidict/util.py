@@ -24,12 +24,12 @@ def pairs(*args, **kw):
         l = len(args)
         if l != 1:
             raise TypeError('Expected at most 1 positional argument, got %d' % l)
-        arg0 = args[0]
-        if arg0:
+        arg = args[0]
+        if arg:
             try:
-                it = iteritems(arg0)
+                it = iteritems(arg)
             except AttributeError:
-                it = iter(arg0)
+                it = iter(arg)
     if kw:
         it2 = iteritems(kw)
         it = chain(it, it2) if it else it2

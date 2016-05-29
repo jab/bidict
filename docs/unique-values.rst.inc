@@ -19,13 +19,13 @@ What should happen next?
 
 If the bidict allowed this to succeed,
 because of the uniqueness-of-values constraint,
-it would silently clobber the existing mapping,
+it would silently clobber the existing item,
 resulting in::
 
     >>> b  # doctest: +SKIP
     bidict({'two': 1})
 
-This could easily result in surprises or problems down the line.
+This could result in surprises or problems down the line.
 
 Instead, bidict raises a
 :class:`ValueExistsError <bidict.ValueExistsError>`
@@ -33,20 +33,6 @@ so you have an opportunity to catch this early
 and resolve the conflict before it causes problems later on::
 
     >>> b['two'] = 1
-    Traceback (most recent call last):
-        ...
-    ValueExistsError: Value 1 exists with key 'one'
-
-Initializations and :attr:`update <bidict.bidict.update>` calls
-that would overwrite the key of an existing value
-raise an exception too::
-
-    >>> b = bidict([('one', 1), ('two', 1)])
-    Traceback (most recent call last):
-        ...
-    ValueNotUniqueError: Value not unique: 1
-    >>> b = bidict({'one': 1})
-    >>> b.update({'two': 1})
     Traceback (most recent call last):
         ...
     ValueExistsError: Value 1 exists with key 'one'
@@ -60,7 +46,25 @@ which advises,
     Errors should never pass silently.
     Unless explicitly silenced.
 
-Note that setting an existing key to a new value
+Similarly, initializations and :func:`update() <bidict.bidict.update>` calls
+that would overwrite the key of an existing value
+raise an exception too::
+
+    >>> b = bidict({'one': 1})
+    >>> b.update([('two', 2), ('three', 3), ('uno', 1)])
+    Traceback (most recent call last):
+        ...
+    ValueExistsError: Value 1 exists with key 'one'
+
+Application of the supplied update is atomic
+with respect to the set of items which are to be inserted;
+that is, if an update call raises,
+you can be sure that none of the supplied items were inserted::
+
+    >>> b
+    bidict({'one': 1})
+
+Setting an existing key to a new value
 does *not* cause an error,
 and is considered an intentional overwrite,
 in keeping with dict's behavior::
@@ -75,29 +79,37 @@ in keeping with dict's behavior::
     >>> bidict([('one', 1), ('one', 2)])
     bidict({'one': 2})
 
-Also note that :attr:`update <bidict.bidict.update>` calls are atomic.
-That is, if the call results in an exception,
-you can be sure that none of the specified items were added::
+Duplication of keys or values *within* a supplied update
+is also checked for and processed accordingly::
 
-    >>> b = bidict({'one': 1})
-    >>> b.update([('two', 2), ('uno', 1)])
+    >>> b.update([('one', 1), ('one', 'uno')])  # duplicate key, unique values
+    >>> b  # last item wins:
+    bidict({'one': 'uno'})
+    >>> b.update([('two', 2), ('dos', 2)])  # unique keys, duplicate values
     Traceback (most recent call last):
         ...
-    ValueExistsError: Value 1 exists with key 'one'
-    >>> b  # note that ('two', 2) was not added because the call failed:
-    bidict({'one': 1})
+    ValueNotUniqueError: Value not unique: 2
 
-To customize the default behavior when a key or value already exists,
-use :attr:`put <bidict.bidict.put>`
-instead of :attr:`__setitem__ <bidict.bidict.__setitem__>`,
-and instead of :attr:`update <bidict.bidict.update>`,
-use :attr:`putall <bidict.bidict.putall>` (which is also atomic).
+In summary,
+when attempting to insert an item with a duplicate key,
+bidict's default behavior is to allow the insertion.
+When attempting to insert an item with a duplicate value,
+bidict's default behavior is to raise.
+
+To customize this default behavior,
+use :func:`put() <bidict.bidict.put>`
+instead of :func:`__setitem__() <bidict.bidict.__setitem__>`,
+and use :func:`putall() <bidict.bidict.putall>`
+instead of :func:`update() <bidict.bidict.update>`.
 These methods allow you to specify different strategies for handling
 key collisions (*on_key_coll*) and value collisions (*on_val_coll*).
 Possible options are
 :class:`RAISE <bidict.CollisionBehavior.RAISE>`,
 :class:`OVERWRITE <bidict.CollisionBehavior.OVERWRITE>`, and
-:class:`IGNORE <bidict.CollisionBehavior.IGNORE>`::
+:class:`IGNORE <bidict.CollisionBehavior.IGNORE>`.
+:func:`putall() <bidict.bidict.putall>` also accepts an *atomic* positional arg,
+which allows you to control whether insertion of the given items
+should be performed atomically::
 
     >>> from bidict import RAISE, IGNORE
     >>> b = bidict({2: 4})
@@ -105,34 +117,35 @@ Possible options are
     Traceback (most recent call last):
         ...
     KeyExistsError: Key 2 exists with value 4
-    >>> b.putall(RAISE, IGNORE, [(3, 9), (2, 8)])
+    >>> b.putall(RAISE, IGNORE, True, [(3, 9), (2, 8)])
     Traceback (most recent call last):
         ...
     KeyExistsError: Key 2 exists with value 4
     >>> b  # note that (3, 9) was not added because the call failed:
     bidict({2: 4})
-    >>> b.putall(RAISE, IGNORE, {3: 9, 1: 4})
+    >>> b.putall(RAISE, IGNORE, True, {3: 9, 1: 4})
     >>> sorted(b.items())  # note that (1, 4) is ignored, as per on_val_coll
     [(2, 4), (3, 9)]
 
-The *on_key_coll* and *on_val_coll* keyword arguments
-of :attr:`put <bidict.bidict.put>`
+Note: The *on_key_coll* and *on_val_coll* keyword arguments
+of :func:`put() <bidict.bidict.put>`
 both default to *RAISE*.
 
-For :attr:`putall <bidict.bidict.putall>`,
-the *RAISE* collision behavior applies not only
+As with :func:`update() <bidict.bidict.update>`,
+with :func:`putall() <bidict.bidict.putall>`,
+the collision behaviors apply not only
 with respect to existing items,
 but also with respect to the items to add::
 
     >>> 5 not in b
     True
-    >>> b.putall(RAISE, RAISE, [(5, 10), (5, 25)])
+    >>> b.putall(RAISE, RAISE, True, [(5, 10), (5, 25)])
     Traceback (most recent call last):
         ...
     KeyNotUniqueError: Key not unique: 5
     >>> 16 not in b.inv
     True
-    >>> b.putall(RAISE, RAISE, [(4, 16), (8, 16)])
+    >>> b.putall(RAISE, RAISE, True, [(4, 16), (8, 16)])
     Traceback (most recent call last):
         ...
     ValueNotUniqueError: Value not unique: 16
@@ -140,23 +153,20 @@ but also with respect to the items to add::
 Note that if an entire *(k, v)* item in the update is duplicated
 elsewhere in the update
 or is already in the bidict,
-it will just be ignored,
-even if the key or value collision behavior is *RAISE*.
-The *RAISE* behavior is only to protect against
-unexpectedly changing mappings.
-Since no mapping is changing in this case,
-there's no reason to raise::
+the entire item will just be ignored,
+no matter what the key and value collision behaviors are set to.
+The insertion of a duplicate item is construed as a no-op::
 
-    >>> b.putall(RAISE, RAISE, [(4, 16), (4, 16)])
+    >>> b.putall(RAISE, RAISE, True, [(4, 16), (4, 16)])
     >>> sorted(b.items())
     [(2, 4), (3, 9), (4, 16)]
-    >>> b.putall(RAISE, RAISE, [(4, 16)])
+    >>> b.putall(RAISE, RAISE, True, [(4, 16)])
     >>> sorted(b.items())
     [(2, 4), (3, 9), (4, 16)]
 
 You can also use
-:attr:`forceput <bidict.bidict.forceput>` and
-:attr:`forceupdate <bidict.bidict.forceupdate>`
+:func:`forceput() <bidict.bidict.forceput>` and
+:func:`forceupdate() <bidict.bidict.forceupdate>`
 to explicitly overwrite existing keys and values::
 
     >>> b = bidict({'one': 1})
@@ -167,27 +177,25 @@ to explicitly overwrite existing keys and values::
     >>> b
     bidict({'three': 1})
 
-To always opt out of uniqueness checking,
-you can use a :class:`loosebidict <bidict.loosebidict>`, whose
-:attr:`__setitem__ <bidict.loosebidict.__setitem__>` and
-:attr:`update <bidict.loosebidict.update>`
-methods always overwrite existing keys and values,
-and whose :attr:`put <bidict.loosebidict.put>`
-method defaults to key- and value-overwriting behavior::
+Or you can use a :class:`loosebidict <bidict.loosebidict>`, whose
+:func:`__setitem__() <bidict.loosebidict.__setitem__>`,
+:func:`put() <bidict.loosebidict.put>`, and
+:func:`update() <bidict.loosebidict.update>`
+methods use *OVERWRITE* behaviors by default::
 
     >>> from bidict import loosebidict
     >>> b = loosebidict({'one': 1})
     >>> b['two'] = 1
     >>> b
     loosebidict({'two': 1})
-    >>> b.update({'three': 1})
+    >>> b.put('three', 1)
     >>> b
     loosebidict({'three': 1})
-    >>> b.put('four', 1)
+    >>> b.update({'four': 1})
     >>> b
     loosebidict({'four': 1})
 
-Beware that these semantics cause
+Beware that *OVERWRITE* semantics cause
 the following potentially surprising behavior::
 
     >>> b = loosebidict({'one': 1, 'two': 2})
@@ -195,5 +203,6 @@ the following potentially surprising behavior::
     >>> b
     loosebidict({'one': 2})
 
-That is, setting an existing key to the value of a different existing mapping
-in a loosebidict causes both mappings to be collapsed into one.
+That is, setting an existing key to the value of a different existing item
+with *OVERWRITE* behavior causes both existing items to be collapsed into
+a single new one.
