@@ -88,7 +88,7 @@ is also checked for and processed accordingly::
     >>> b.update([('two', 2), ('dos', 2)])  # unique keys, duplicate values
     Traceback (most recent call last):
         ...
-    ValueNotUniqueError: Value not unique: 2
+    ValueNotUniqueError: 2
 
 In summary,
 when attempting to insert an item with a duplicate key,
@@ -102,18 +102,18 @@ instead of :func:`__setitem__() <bidict.bidict.__setitem__>`,
 and use :func:`putall() <bidict.bidict.putall>`
 instead of :func:`update() <bidict.bidict.update>`.
 These methods allow you to specify different strategies for handling
-key collisions (*on_key_coll*) and value collisions (*on_val_coll*).
+key and value duplication via the *on_dup_key* and *on_dup_val* arguments.
 Possible options are
-:class:`RAISE <bidict.CollisionBehavior.RAISE>`,
-:class:`OVERWRITE <bidict.CollisionBehavior.OVERWRITE>`, and
-:class:`IGNORE <bidict.CollisionBehavior.IGNORE>`.
+:class:`RAISE <bidict.DuplicationBehavior.RAISE>`,
+:class:`OVERWRITE <bidict.DuplicationBehavior.OVERWRITE>`, and
+:class:`IGNORE <bidict.DuplicationBehavior.IGNORE>`.
 :func:`putall() <bidict.bidict.putall>` also accepts an *atomic* positional arg,
 which allows you to control whether insertion of the given items
 should be performed atomically::
 
     >>> from bidict import RAISE, IGNORE
     >>> b = bidict({2: 4})
-    >>> b.put(2, 8, on_key_coll=RAISE, on_val_coll=IGNORE)
+    >>> b.put(2, 8, on_dup_key=RAISE, on_dup_val=IGNORE)
     Traceback (most recent call last):
         ...
     KeyExistsError: Key 2 exists with value 4
@@ -124,16 +124,18 @@ should be performed atomically::
     >>> b  # note that (3, 9) was not added because the call failed:
     bidict({2: 4})
     >>> b.putall(RAISE, IGNORE, True, {3: 9, 1: 4})
-    >>> sorted(b.items())  # note that (1, 4) is ignored, as per on_val_coll
+    >>> sorted(b.items())  # note that (1, 4) is ignored, as per on_dup_val
     [(2, 4), (3, 9)]
 
-Note: The *on_key_coll* and *on_val_coll* keyword arguments
+Note: The *on_dup_key* and *on_dup_val* keyword arguments
 of :func:`put() <bidict.bidict.put>`
-both default to *RAISE*.
+both default to *RAISE*,
+providing a more-conservative-by-default alternative to
+:func:`__setitem__() <bidict.bidict.__setitem__>`.
 
 As with :func:`update() <bidict.bidict.update>`,
 with :func:`putall() <bidict.bidict.putall>`,
-the collision behaviors apply not only
+the duplication behaviors apply not only
 with respect to existing items,
 but also with respect to the items to add::
 
@@ -142,19 +144,19 @@ but also with respect to the items to add::
     >>> b.putall(RAISE, RAISE, True, [(5, 10), (5, 25)])
     Traceback (most recent call last):
         ...
-    KeyNotUniqueError: Key not unique: 5
+    KeyNotUniqueError: 5
     >>> 16 not in b.inv
     True
     >>> b.putall(RAISE, RAISE, True, [(4, 16), (8, 16)])
     Traceback (most recent call last):
         ...
-    ValueNotUniqueError: Value not unique: 16
+    ValueNotUniqueError: 16
 
 Note that if an entire *(k, v)* item in the update is duplicated
 elsewhere in the update
 or is already in the bidict,
 the entire item will just be ignored,
-no matter what the key and value collision behaviors are set to.
+no matter what the key and value duplication behaviors are set to.
 The insertion of a duplicate item is construed as a no-op::
 
     >>> b.putall(RAISE, RAISE, True, [(4, 16), (4, 16)])

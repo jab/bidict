@@ -1,7 +1,7 @@
 """
 Implements :class:`BidirectionalMapping`, the bidirectional map base class.
 
-Also provides related exception classes and collision behaviors.
+Also provides related exception classes and duplication behaviors.
 """
 
 from .compat import PY2, iteritems
@@ -20,35 +20,35 @@ def _proxied(methodname, ivarname='_fwd', doc=None):
     return proxy
 
 
-class CollisionBehavior(object):
+class DuplicationBehavior(object):
     """
-    Provide RAISE, OVERWRITE, and IGNORE collision behaviors.
+    Provide RAISE, OVERWRITE, and IGNORE duplication behaviors.
 
     .. py:attribute:: RAISE
 
-        Raise an exception when a collision is encountered.
+        Raise an exception when a duplication is encountered.
 
     .. py:attribute:: OVERWRITE
 
-        Overwrite an existing item when a collision is encountered.
+        Overwrite an existing item when a duplication is encountered.
 
     .. py:attribute:: IGNORE
 
-        Keep the existing item and ignore the new item when a collision is
+        Keep the existing item and ignore the new item when a duplication is
         encountered.
 
     """
 
     def __init__(self, id):
-        """Create a collision behavior with the given *id*."""
+        """Create a duplication behavior with the given *id*."""
         self.id = id
 
     def __repr__(self):
         return '<%s>' % self.id
 
-CollisionBehavior.RAISE = RAISE = CollisionBehavior('RAISE')
-CollisionBehavior.OVERWRITE = OVERWRITE = CollisionBehavior('OVERWRITE')
-CollisionBehavior.IGNORE = IGNORE = CollisionBehavior('IGNORE')
+DuplicationBehavior.RAISE = RAISE = DuplicationBehavior('RAISE')
+DuplicationBehavior.OVERWRITE = OVERWRITE = DuplicationBehavior('OVERWRITE')
+DuplicationBehavior.IGNORE = IGNORE = DuplicationBehavior('IGNORE')
 
 _missing = object()
 
@@ -67,15 +67,15 @@ class BidirectionalMapping(Mapping):
     """
 
     _dcls = dict
-    _on_key_coll = OVERWRITE
-    _on_val_coll = RAISE
+    _on_dup_key = OVERWRITE
+    _on_dup_val = RAISE
 
     def __init__(self, *args, **kw):
         """Like :py:meth:`dict.__init__`, but maintaining bidirectionality."""
         self._fwd = self._dcls()  # dictionary of forward mappings
         self._inv = self._dcls()  # dictionary of inverse mappings
         if args or kw:
-            self._update(self._on_key_coll, self._on_val_coll, 1, *args, **kw)
+            self._update(self._on_dup_key, self._on_dup_val, True, *args, **kw)
         inv = object.__new__(self.__class__)
         inv._fwd = self._inv
         inv._inv = self._fwd
@@ -98,18 +98,18 @@ class BidirectionalMapping(Mapping):
     def __getitem__(self, key):
         return self._fwd[key]
 
-    def _update(self, on_key_coll, on_val_coll, atomic, *args, **kw):
+    def _update(self, on_dup_key, on_dup_val, atomic, *args, **kw):
         if not args and not kw:
             return
-        overwrite_kv = on_key_coll is OVERWRITE and on_val_coll is OVERWRITE
+        overwrite_kv = on_dup_key is OVERWRITE and on_dup_val is OVERWRITE
         arg = args[0] if args else {}
         update_len_1 = hasattr(arg, '__len__') and len(arg) + len(kw) == 1
         if overwrite_kv or update_len_1:  # No need to dupcheck within update.
             update = pairs(arg, **kw)
         else:  # Must check for and process dupes within the update.
-            update = _dedup(self._dcls, on_key_coll, on_val_coll, arg, **kw)
+            update = _dedup_in(self._dcls, on_dup_key, on_dup_val, arg, **kw)
         if self:  # Must process dupes between existing items and the update.
-            update = self._dedup(on_key_coll, on_val_coll, update)
+            update = self._dedup(on_dup_key, on_dup_val, update)
         if atomic:  # Must realize update before applying.
             update = tuple(update)  # Any dupes handled here, early.
         _fwd = self._fwd
@@ -120,40 +120,40 @@ class BidirectionalMapping(Mapping):
             _fwd[k] = v
             _inv[v] = k
 
-    def _dedup(self, on_key_coll, on_val_coll, update):
+    def _dedup(self, on_dup_key, on_dup_val, update):
         """
-        Yield items in *update* according to the given collision behaviors.
+        Yield items in *update*, deduplicating with items already in self.
 
         If an item in *update* duplicates only an existing key in self, the
-        item is ignored or an exception is raised if *on_key_coll* is *IGNORE*
+        item is ignored or an exception is raised if *on_dup_key* is *IGNORE*
         or *RAISE*, respectively.
 
         If an item in *update* duplicates only an existing value in self, the
-        item is ignored or an exception is raised if *on_val_coll* is *IGNORE*
+        item is ignored or an exception is raised if *on_dup_val* is *IGNORE*
         or *RAISE*, respectively.
 
         If an item in *update* is already in self, it is ignored no matter what
-        *on_key_coll* and *on_val_coll* are set to.
+        *on_dup_key* and *on_dup_val* are set to.
         """
         _fwd = self._fwd
         _inv = self._inv
-        on_key_coll_raise = on_key_coll is RAISE
-        on_val_coll_raise = on_val_coll is RAISE
-        on_key_coll_ignore = on_key_coll is IGNORE
-        on_val_coll_ignore = on_val_coll is IGNORE
+        on_dup_key_raise = on_dup_key is RAISE
+        on_dup_val_raise = on_dup_val is RAISE
+        on_dup_key_ignore = on_dup_key is IGNORE
+        on_dup_val_ignore = on_dup_val is IGNORE
         for (k, v) in update:
             skip = False
             oldv = _fwd.get(k, _missing)
             kcol = oldv is not _missing
-            if oldv == v or (kcol and on_key_coll_ignore):
+            if oldv == v or (kcol and on_dup_key_ignore):
                 skip = True
-            elif kcol and on_key_coll_raise:
+            elif kcol and on_dup_key_raise:
                 raise KeyExistsError((k, oldv))
             oldk = _inv.get(v, _missing)
             vcol = oldk is not _missing
-            if oldk == k or (vcol and on_val_coll_ignore):
+            if oldk == k or (vcol and on_dup_val_ignore):
                 skip = True
-            elif vcol and on_val_coll_raise:
+            elif vcol and on_dup_val_raise:
                 raise ValueExistsError((oldk, v))
             if not skip:
                 yield (k, v)
@@ -194,18 +194,18 @@ class BidirectionalMapping(Mapping):
         values.__doc__ = 'Like :py:meth:`dict.values`.'
 
 
-def _dedup(dcls, on_key_coll, on_val_coll, arg, **kw):
+def _dedup_in(dcls, on_dup_key, on_dup_val, arg, **kw):
     """
     Yield items in *arg* and *kw*, deduplicating any duplicates within them.
 
     Items in *arg* and *kw* that have duplicate keys or values will be ignored
-    or will cause an exception, as per the given collision behaviors.
+    or will cause an exception, as per the given duplication behaviors.
     """
     argmap = None
-    on_key_coll_raise = on_key_coll is RAISE
-    on_val_coll_raise = on_val_coll is RAISE
-    on_key_coll_ignore = on_key_coll is IGNORE
-    on_val_coll_ignore = on_val_coll is IGNORE
+    on_dup_key_raise = on_dup_key is RAISE
+    on_dup_val_raise = on_dup_val is RAISE
+    on_dup_key_ignore = on_dup_key is IGNORE
+    on_dup_val_ignore = on_dup_val is IGNORE
     if arg:
         if isinstance(arg, BidirectionalMapping):
             argmap = arg
@@ -227,18 +227,18 @@ def _dedup(dcls, on_key_coll, on_val_coll, arg, **kw):
                     if pv == v:
                         continue
                     if pv is not _missing:
-                        if on_key_coll_raise:
+                        if on_dup_key_raise:
                             raise KeyNotUniqueError(k)
-                        if on_key_coll_ignore:
+                        if on_dup_key_ignore:
                             continue
                     argmap[k] = v
                 pk = arginv.get(v, _missing)
                 if pk == k:
                     continue
                 if pk is not _missing:
-                    if on_val_coll_raise:
+                    if on_dup_val_raise:
                         raise ValueNotUniqueError(v)
-                    if on_val_coll_ignore:
+                    if on_dup_val_ignore:
                         continue
                 arginv[v] = k
                 yield (k, v)
@@ -250,25 +250,25 @@ def _dedup(dcls, on_key_coll, on_val_coll, arg, **kw):
                 if argv == v:
                     continue
                 elif argv is not _missing:
-                    if on_key_coll_raise:
+                    if on_dup_key_raise:
                         raise KeyNotUniqueError(k)
-                    if on_key_coll_ignore:
+                    if on_dup_key_ignore:
                         continue
                 argk = arginv.get(v, _missing)
                 if argk == k:
                     continue
                 elif argk is not _missing:
-                    if on_val_coll_raise:
+                    if on_dup_val_raise:
                         raise ValueNotUniqueError(v)
-                    if on_val_coll_ignore:
+                    if on_dup_val_ignore:
                         continue
             pk = kwinv.get(v, _missing)
             if pk == k:
                 continue
             if pk is not _missing:
-                if on_val_coll_raise:
+                if on_dup_val_raise:
                     raise ValueNotUniqueError(v)
-                if on_val_coll_ignore:
+                if on_dup_val_ignore:
                     continue
             kwinv[k] = v
             yield (k, v)
@@ -285,19 +285,9 @@ class UniquenessError(BidictException):
 class KeyNotUniqueError(UniquenessError):
     """Raised when a given key is not unique."""
 
-    def __str__(self):
-        if self.args:
-            return 'Key not unique: %r' % self.args[0]
-        return repr(self)
-
 
 class ValueNotUniqueError(UniquenessError):
     """Raised when a given value is not unique."""
-
-    def __str__(self):
-        if self.args:
-            return 'Value not unique: %r' % self.args[0]
-        return repr(self)
 
 
 class KeyExistsError(KeyNotUniqueError):
@@ -306,7 +296,7 @@ class KeyExistsError(KeyNotUniqueError):
     def __str__(self):
         if self.args:
             return 'Key {0!r} exists with value {1!r}'.format(*self.args[0])
-        return repr(self)
+        return ''
 
 
 class ValueExistsError(ValueNotUniqueError):
@@ -315,4 +305,4 @@ class ValueExistsError(ValueNotUniqueError):
     def __str__(self):
         if self.args:
             return 'Value {1!r} exists with key {0!r}'.format(*self.args[0])
-        return repr(self)
+        return ''

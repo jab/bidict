@@ -20,22 +20,22 @@ when a new version of bidict is released.
   :func:`inverted() <bidict.util.inverted>`, and
   :func:`bidict.copy() <bidict.BidirectionalMapping.copy>`).
 - :func:`put() <bidict.bidict.put>`
-  now accepts ``on_key_coll`` and ``on_val_coll`` keyword arguments
+  now accepts ``on_dup_key`` and ``on_dup_val`` keyword arguments
   which allow you to override the default behavior
-  when the key or value of a new item collides with that of an existing one.
+  when the key or value of a new item duplicates that of an existing one.
   These can take the following values:
 
-  - :attr:`bidict.CollisionBehavior.RAISE`
-  - :attr:`bidict.CollisionBehavior.OVERWRITE`
-  - :attr:`bidict.CollisionBehavior.IGNORE`
+  - :attr:`bidict.DuplicationBehavior.RAISE`
+  - :attr:`bidict.DuplicationBehavior.OVERWRITE`
+  - :attr:`bidict.DuplicationBehavior.IGNORE`
 
   For a :class:`bidict <bidict.bidict>`,
-  ``on_key_coll`` defaults to
-  :attr:`OVERWRITE <bidict.CollisionBehavior.OVERWRITE>` and
-  ``on_val_coll`` defaults to
-  :attr:`RAISE <bidict.CollisionBehavior.RAISE>`,
+  ``on_dup_key`` defaults to
+  :attr:`OVERWRITE <bidict.DuplicationBehavior.OVERWRITE>` and
+  ``on_dup_val`` defaults to
+  :attr:`RAISE <bidict.DuplicationBehavior.RAISE>`,
   while for a :class:`loosebidict <bidict.loosebidict>`
-  both default to :attr:`OVERWRITE <bidict.CollisionBehavior.OVERWRITE>`,
+  both default to :attr:`OVERWRITE <bidict.DuplicationBehavior.OVERWRITE>`,
   maintaining backwards compatibility with the previous behavior
   when called with no keyword arguments.
 - New :func:`putall() <bidict.bidict.putall>` method

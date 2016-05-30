@@ -11,7 +11,7 @@ See https://bidict.readthedocs.org/ for comprehensive documentation.
 """
 
 from ._common import (BidirectionalMapping,
-                      CollisionBehavior, RAISE, OVERWRITE, IGNORE,
+                      DuplicationBehavior, RAISE, OVERWRITE, IGNORE,
                       BidictException, UniquenessError,
                       KeyNotUniqueError, ValueNotUniqueError,
                       KeyExistsError, ValueExistsError)
@@ -26,7 +26,7 @@ from .util import pairs, inverted
 __all__ = (
     'BidirectionalMapping',
     'OrderedBidirectionalMapping',
-    'CollisionBehavior',
+    'DuplicationBehavior',
     'RAISE',
     'OVERWRITE',
     'IGNORE',

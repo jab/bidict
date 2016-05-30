@@ -32,7 +32,7 @@ class bidict(BidirectionalMapping, MutableMapping):
         that's currently associated with *val*.
 
         Use :attr:`put` instead if you want to specify different behavior in
-        the case that the provided key or value collides with an existing one.
+        the case that the provided key or value duplicates an existing one.
         Or use :attr:`forceput` to unconditionally associate *key* with *val*,
         replacing any existing key or value as necessary to preserve uniqueness.
 
@@ -40,12 +40,12 @@ class bidict(BidirectionalMapping, MutableMapping):
         """
         self._update(OVERWRITE, RAISE, False, ((key, val),))
 
-    def put(self, key, val, on_key_coll=RAISE, on_val_coll=RAISE):
+    def put(self, key, val, on_dup_key=RAISE, on_dup_val=RAISE):
         """
-        Associate *key* with *val* with the specified collision behaviors.
+        Associate *key* with *val* with the specified duplication behaviors.
 
-        For example, if *on_key_coll* and *on_val_coll* are both
-        :attr:`CollisionBehavior.RAISE <bidict.CollisionBehavior.RAISE>`,
+        For example, if *on_dup_key* and *on_dup_val* are both
+        :attr:`DuplicationBehavior.RAISE <bidict.DuplicationBehavior.RAISE>`,
         then *key* will be associated with *val* if and only if
         *key* is not already associated with an existing value and
         *val* is not already associated with an existing key,
@@ -54,14 +54,14 @@ class bidict(BidirectionalMapping, MutableMapping):
         If *key* is already associated with *val*, this is a no-op.
 
         :raises bidict.KeyExistsError: if attempting to insert an item
-            whose key collides with an existing item's, and *on_key_coll* is
-            :attr:`CollisionBehavior.RAISE <bidict.CollisionBehavior.RAISE>`.
+            whose key duplicates an existing item's, and *on_dup_key* is
+            :attr:`DuplicationBehavior.RAISE <bidict.DuplicationBehavior.RAISE>`.
 
         :raises bidict.ValueExistsError: if attempting to insert an item
-            whose value collides with an existing item's, and *on_val_coll* is
-            :attr:`CollisionBehavior.RAISE <bidict.CollisionBehavior.RAISE>`.
+            whose value duplicates an existing item's, and *on_dup_val* is
+            :attr:`DuplicationBehavior.RAISE <bidict.DuplicationBehavior.RAISE>`.
         """
-        self._update(on_key_coll, on_val_coll, False, ((key, val),))
+        self._update(on_dup_key, on_dup_val, False, ((key, val),))
 
     def forceput(self, key, val):
         """
@@ -111,20 +111,20 @@ class bidict(BidirectionalMapping, MutableMapping):
         """Like a bulk :attr:`forceput`."""
         self._update(OVERWRITE, OVERWRITE, True, *args, **kw)
 
-    def putall(self, on_key_coll, on_val_coll, atomic, *args, **kw):
+    def putall(self, on_dup_key, on_dup_val, atomic, *args, **kw):
         """
         Like a bulk :attr:`put`.
 
         Any (k, v) item in *args* or *kw* that is already in this bidict
         will be ignored,
-        regardless of specified collision behaviors.
+        regardless of specified duplication behaviors.
         In particular, a duplicate item will not cause an exception
-        even when *on_key_coll* or *on_val_coll* is
-        :attr:`CollisionBehavior.RAISE <bidict.CollisionBehavior.RAISE>`,
+        even when *on_dup_key* or *on_dup_val* is
+        :attr:`DuplicationBehavior.RAISE <bidict.DuplicationBehavior.RAISE>`,
         since adding an already-existing item is construed as a no-op.
 
-        Otherwise, if *on_key_coll* (*on_val_coll*) is
-        :attr:`CollisionBehavior.RAISE <bidict.CollisionBehavior.RAISE>`,
+        Otherwise, if *on_dup_key* (*on_dup_val*) is
+        :attr:`DuplicationBehavior.RAISE <bidict.DuplicationBehavior.RAISE>`,
         a :class:`bidict.KeyExistsError` (:class:`bidict.ValueExistsError`)
         will be raised if the key (value) of a given
         item duplicates that of an existing item,
@@ -140,4 +140,4 @@ class bidict(BidirectionalMapping, MutableMapping):
         which would otherwise result in the update being applied partially
         before failing.
         """
-        self._update(on_key_coll, on_val_coll, atomic, *args, **kw)
+        self._update(on_dup_key, on_dup_val, atomic, *args, **kw)
