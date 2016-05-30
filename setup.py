@@ -18,8 +18,8 @@ except Exception as e:
          '(%r): %r' % (long_description, e))
 
 tests_require = [
-    'coverage==4.1.b3',
-    'hypothesis==3.1.3',
+    'coverage==4.1',
+    'hypothesis==3.4.0',
     'hypothesis-pytest==0.19.0',
     'py==1.4.31',
     'pydocstyle==1.0.0',
