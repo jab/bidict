@@ -104,10 +104,10 @@ class BidirectionalMapping(Mapping):
         overwrite_kv = on_dup_key is OVERWRITE and on_dup_val is OVERWRITE
         arg = args[0] if args else {}
         update_len_1 = hasattr(arg, '__len__') and len(arg) + len(kw) == 1
-        if overwrite_kv or update_len_1:  # No need to dupcheck within update.
-            update = pairs(arg, **kw)
-        else:  # Must check for and process dupes within the update.
-            update = _dedup_in(self._dcls, on_dup_key, on_dup_val, arg, **kw)
+        only_bimap_arg = isinstance(arg, BidirectionalMapping) and not kw
+        skip_dedup_update = overwrite_kv or update_len_1 or only_bimap_arg
+        update = pairs(arg, **kw) if skip_dedup_update else (
+                     _dedup_in(self._dcls, on_dup_key, on_dup_val, arg, **kw))
         if self:  # Must process dupes between existing items and the update.
             update = self._dedup(on_dup_key, on_dup_val, update)
         if atomic:  # Must realize update before applying.
@@ -213,8 +213,8 @@ def _dedup_in(dcls, on_dup_key, on_dup_val, arg, **kw):
             for (k, v) in iteritems(arg):
                 yield (k, v)
         else:
-            argwasmap = isinstance(arg, Mapping)
-            if argwasmap:
+            argismap = isinstance(arg, Mapping)
+            if argismap:
                 it = iteritems(arg)
                 argmap = arg
             else:
@@ -222,7 +222,7 @@ def _dedup_in(dcls, on_dup_key, on_dup_val, arg, **kw):
                 argmap = dcls()
             arginv = dcls()
             for (k, v) in it:
-                if not argwasmap:
+                if not argismap:
                     pv = argmap.get(k, _missing)
                     if pv == v:
                         continue

@@ -1,6 +1,7 @@
 """Utilities for working with one-to-one relations."""
 
 from .compat import iteritems
+from collections import Mapping
 from itertools import chain
 
 
@@ -26,10 +27,7 @@ def pairs(*args, **kw):
             raise TypeError('Expected at most 1 positional argument, got %d' % l)
         arg = args[0]
         if arg:
-            try:
-                it = iteritems(arg)
-            except AttributeError:
-                it = iter(arg)
+            it = iteritems(arg) if isinstance(arg, Mapping) else iter(arg)
     if kw:
         it2 = iteritems(kw)
         it = chain(it, it2) if it else it2
