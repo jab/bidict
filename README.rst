@@ -71,19 +71,35 @@ Installation
 Usage
 -----
 
-See https://bidict.readthedocs.org.
+If you're reading this `on readthedocs.org <https://bidict.readthedocs.org>`_,
+please proceed to the usage documentation by clicking "Next" below.
+Otherwise, see ``docs/intro.rst`` and continue reading from there.
 
 Participation
 -------------
 
-This project adheres to the
-`Open Code of Conduct <http://todogroup.org/opencodeofconduct/#bidict/jab@math.brown.edu>`_.
-By participating, you are expected to honor this code.
+The bidict codebase is tiny (~400 sloc),
+concise, mature, well-factored, and
+`well-tested <https://github.com/jab/bidict/tree/master/tests>`_,
+so it lends itself to quick ramp-up.
+Yet for its small size,
+it's yielded a surprising amount of fun, rewarding programming:
+plugging into the collections ecosystem, careful API design,
+covering various subtle edge cases,
+writing `hypothesis <http://hypothesis.readthedocs.org/>`_-powered
+property-based tests, benchmarking, and exploring some cute
+(but ultimately `rejected <https://github.com/jab/bidict/issues/19>`_)
+Python syntax hacks, to name a few examples.
 
+Community participation is warmly welcomed!
 Please feel free to `create an issue <https://github.com/jab/bidict/issues/new>`_
 or `join the chat room <https://gitter.im/jab/bidict>`_
 if you have any questions, feedback, or just want to say hi or
 talk about your use case.
+
+This project adheres to the
+`Open Code of Conduct <http://todogroup.org/opencodeofconduct/#bidict/jab@math.brown.edu>`_.
+By participating, you are expected to honor this code.
 
 bidict is the result of hundreds of hours of voluntary, unpaid work.
 If bidict has helped you accomplish work you've been paid for,
@@ -95,6 +111,28 @@ Your support directly contributes to bidict's sustainability.
     :target: https://gumroad.com/l/bidict
     :alt: Support bidict
 
+For more information about contributing,
+please see `CONTRIBUTING.rst
+<https://bidict.readthedocs.io/contributing.html>`_.
+
+Changelog
+---------
+
 Check out
-`CONTRIBUTING.rst <https://github.com/jab/bidict/blob/master/CONTRIBUTING.rst>`_
-for more information about contributing.
+`CHANGELOG.rst <https://bidict.readthedocs.org/changelog.html>`_
+for a history of notable changes to bidict.
+
+
+.. toctree::
+    :maxdepth: 2
+    :hidden:
+
+    intro
+    basic-usage
+    performance
+    other-bidict-types
+    inverted
+    addendum
+    changelog
+    api
+    contributing
