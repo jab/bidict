@@ -5,7 +5,7 @@ Also provides related exception classes and duplication behaviors.
 """
 
 from .compat import PY2, iteritems
-from .util import inverted, pairs
+from .util import pairs
 from collections import Mapping
 
 
@@ -51,6 +51,7 @@ DuplicationBehavior.OVERWRITE = OVERWRITE = DuplicationBehavior('OVERWRITE')
 DuplicationBehavior.IGNORE = IGNORE = DuplicationBehavior('IGNORE')
 
 _missing = object()
+
 
 class BidirectionalMapping(Mapping):
     """
@@ -138,8 +139,8 @@ class BidirectionalMapping(Mapping):
         only_bimap_arg = isinstance(arg, BidirectionalMapping) and not kw
         overwrite_kv = on_dup_key is OVERWRITE and on_dup_val is OVERWRITE
         skip_dedup_update = update_len_1 or only_bimap_arg or overwrite_kv
-        update = pairs(arg, **kw) if skip_dedup_update else (
-                     _dedup_in(self._dcls, on_dup_key, on_dup_val, arg, **kw))
+        update = pairs(arg, **kw) if skip_dedup_update else _dedup_in(
+                self._dcls, on_dup_key, on_dup_val, arg, **kw)
         _fwd = self._fwd
         if _fwd:  # Must process dups between self (existing items) and update.
             update = self._dedup(on_dup_key, on_dup_val, update)

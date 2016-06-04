@@ -32,7 +32,6 @@ class orderedbidict(OrderedBidirectionalMapping, bidict):
         del self._inv[val]
         return key, val
 
-
     def move_to_end(self, key, last=True):
         """
         Similar to :meth:`collections.OrderedDict.move_to_end`.

@@ -68,4 +68,4 @@ else:  # pragma: no cover
     ifilter = filter
     imap = map
     izip = zip
-    from itertools import zip_longest as izip_longest
+    from itertools import zip_longest as izip_longest  # noqa
