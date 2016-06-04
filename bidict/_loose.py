@@ -14,4 +14,4 @@ class loosebidict(bidict):
 
     def put(self, key, val, on_dup_key=OVERWRITE, on_dup_val=OVERWRITE):
         """Like :attr:`bidict.put` with default collision behavior OVERWRITE."""
-        self._update(on_dup_key, on_dup_val, False, ((key, val),))
+        self._put(key, val, on_dup_key, on_dup_val)

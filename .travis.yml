@@ -43,6 +43,7 @@ script:
 
 cache:
   directories:
+    - $HOME/.benchmarks
     - $HOME/.cache/pip
     - $HOME/.hypothesis
     - $PYENV_ROOT

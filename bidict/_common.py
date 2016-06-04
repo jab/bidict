@@ -98,6 +98,34 @@ class BidirectionalMapping(Mapping):
     def __getitem__(self, key):
         return self._fwd[key]
 
+    def _dedup1(self, key, val, on_dup_key, on_dup_val):
+        _fwd = self._fwd
+        _inv = self._inv
+        oldv = _fwd.get(key, _missing)
+        dupk = oldv is not _missing
+        if oldv == val or (dupk and on_dup_key is IGNORE):
+            return
+        if dupk and on_dup_key is RAISE:
+            raise KeyExistsError((_inv[oldv], oldv))
+        oldk = _inv.get(val, _missing)
+        dupv = oldk is not _missing
+        if oldk == key or (dupv and on_dup_val is IGNORE):
+            return
+        if dupv and on_dup_val is RAISE:
+            raise ValueExistsError((oldk, _fwd[oldk]))
+        return (key, val), (oldk, oldv)
+
+    def _put(self, key, val, on_dup_key, on_dup_val):
+        # Could just call _update(on_dup_key, on_dup_val, False, ((key, val),))
+        # but special-casing single-item update is faster.
+        result = self._dedup1(key, val, on_dup_key, on_dup_val)
+        if result:
+            (key, val), (oldk, oldv) = result
+            self._fwd.pop(oldk, None)
+            self._inv.pop(oldv, None)
+            self._fwd[key] = val
+            self._inv[val] = key
+
     def _update(self, on_dup_key, on_dup_val, atomic, *args, **kw):
         if not args and not kw:
             return
@@ -141,28 +169,10 @@ class BidirectionalMapping(Mapping):
         If an item in *update* is already in self, it is ignored no matter what
         *on_dup_key* and *on_dup_val* are set to.
         """
-        _fwd = self._fwd
-        _inv = self._inv
-        on_dup_key_raise = on_dup_key is RAISE
-        on_dup_val_raise = on_dup_val is RAISE
-        on_dup_key_ignore = on_dup_key is IGNORE
-        on_dup_val_ignore = on_dup_val is IGNORE
         for (k, v) in update:
-            skip = False
-            oldv = _fwd.get(k, _missing)
-            kcol = oldv is not _missing
-            if oldv == v or (kcol and on_dup_key_ignore):
-                skip = True
-            elif kcol and on_dup_key_raise:
-                raise KeyExistsError((k, oldv))
-            oldk = _inv.get(v, _missing)
-            vcol = oldk is not _missing
-            if oldk == k or (vcol and on_dup_val_ignore):
-                skip = True
-            elif vcol and on_dup_val_raise:
-                raise ValueExistsError((oldk, v))
-            if not skip:
-                yield (k, v)
+            result = self._dedup1(k, v, on_dup_key, on_dup_val)
+            if result:
+                yield result[0]
 
     def copy(self):
         """Like :py:meth:`dict.copy`."""

@@ -38,7 +38,7 @@ class bidict(BidirectionalMapping, MutableMapping):
 
         :raises bidict.ValueExistsError: if *val* is not unique.
         """
-        self._update(OVERWRITE, RAISE, False, ((key, val),))
+        self._put(key, val, OVERWRITE, RAISE)
 
     def put(self, key, val, on_dup_key=RAISE, on_dup_val=RAISE):
         """
@@ -61,7 +61,7 @@ class bidict(BidirectionalMapping, MutableMapping):
             whose value duplicates an existing item's, and *on_dup_val* is
             :attr:`DuplicationBehavior.RAISE <bidict.DuplicationBehavior.RAISE>`.
         """
-        self._update(on_dup_key, on_dup_val, False, ((key, val),))
+        self._put(key, val, on_dup_key, on_dup_val)
 
     def forceput(self, key, val):
         """
@@ -70,7 +70,7 @@ class bidict(BidirectionalMapping, MutableMapping):
         Replace any existing mappings containing key *key* or value *val*
         as necessary to preserve uniqueness.
         """
-        self._update(OVERWRITE, OVERWRITE, False, ((key, val),))
+        self._put(key, val, OVERWRITE, OVERWRITE)
 
     def clear(self):
         """Remove all items."""

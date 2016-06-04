@@ -1,121 +1,67 @@
-"""
-Benchmarks to compare performing various tasks using a bidict
-against manually keeping two inverse dicts ("2idict") consistent.
-"""
-
-from bidict import bidict
-from bidict.compat import iteritems, itervalues, viewkeys, viewvalues
-from itertools import islice, product
-from operator import attrgetter, itemgetter
-from random import choice, randint
+from bidict import bidict, orderedbidict, ValueExistsError, OVERWRITE, RAISE
 import pytest
 
 
-try:
-    range = xrange
-except NameError:
-    pass
+elements = orderedbidict((
+    ('H', 'hydrogen'), ('He', 'helium'),
+    ('Li', 'lithium'), ('Be', 'beryllium'), ('B', 'boron'), ('C', 'carbon'),
+    ('N', 'nitrogen'), ('O', 'oxygen'), ('F', 'fluorine'),  ('Ne', 'neon'),
+    ('Na', 'sodium'), ('Mg', 'magnesium'), ('Al', 'aluminum'), ('Si', 'silicon'),
+    ('P', 'phosphorus'), ('S', 'sulfur'), ('Cl', 'chlorine'), ('Ar', 'argon'),
+))
 
+update_nodup = orderedbidict((
+    ('K', 'potassium'), ('Ca', 'calcium'), ('Sc', 'Scandium'), ('Ti', 'titanium'),
+    ('V', 'vanadium'), ('Cr', 'chromium'), ('Mn', 'manganese'), ('Fe', 'iron'), ('Co', 'cobalt'),
+    ('Ni', 'nickel'), ('Cu', 'copper'), ('Zn', 'zinc'), ('Ga', 'gallium'), ('Ge', 'germanium'),
+    ('As', 'arsenic'), ('Se', 'selenium'), ('Br', 'bromine'), ('Kr', 'krypton'), ('Rb', 'rubidium'),
+    ('Sr', 'strontium'), ('Y', 'yttrium'), ('Zr', 'zirconium'), ('Nb', 'niobium'),
+    ('Mo', 'molybdenum'), ('Tc', 'technetium'), ('Ru', 'ruthenium'), ('Rh', 'rhodium'),
+    ('Pd', 'palladium'), ('Ag', 'silver'), ('Cd', 'cadmium'), ('In', 'indium'), ('Sn', 'tin'),
+    ('Sb', 'antimony'), ('Te', 'tellurium'), ('I', 'iodine'), ('Xe', 'xenon'), ('Cs', 'cesium'),
+    ('Ba', 'barium'), ('La', 'lanthanum'), ('Ce', 'cerium'), ('Pr', 'praseodymium'),
+    ('Nd', 'neodymium'), ('Pm', 'promethium'), ('Sm', 'samarium'), ('Eu', 'europium'),
+    ('Gd', 'gadolinium'), ('Tb', 'terbium'), ('Dy', 'dysprosium'), ('Ho', 'holmium'),
+    ('Er', 'erbium'), ('Tm', 'thulium'), ('Yb', 'ytterbium'), ('Lu', 'lutetium'), ('Hf', 'hafnium'),
+    ('Ta', 'tantalum'), ('W', 'tungsten'), ('Re', 'rhenium'), ('Os', 'osmium'), ('Ir', 'iridium'),
+    ('Pt', 'platinum'), ('Au', 'gold'), ('Hg', 'mercury'), ('Tl', 'thallium'), ('Pb', 'lead'),
+    ('Bi', 'bismuth'), ('Po', 'polonium'), ('At', 'astatine'), ('Rn', 'radon'), ('Fr', 'francium'),
+    ('Ra', 'radium'), ('Ac', 'actinium'), ('Th', 'thorium'), ('Pa', 'protactinium'),
+    ('U', 'uranium'), ('Np', 'neptunium'), ('Pu', 'plutonium'), ('Am', 'americium'),
+    ('Cm', 'curium'), ('Bk', 'berkelium'), ('Cf', 'californium'), ('Es', 'einsteinium'),
+    ('Fm', 'fermium'), ('Md', 'mendelevium'), ('No', 'nobelium'), ('Lr', 'lawrencium'),
+    ('Rf', 'rutherfordium'), ('Db', 'dubnium'), ('Sg', 'seaborgium'), ('Bh', 'bohrium'),
+    ('Hs', 'hassium'), ('Mt', 'meitnerium'), ('Ds', 'darmstadtium'), ('Rg', 'roentgenium'),
+    ('Cn', 'copernicium'),
+))
 
-def invdict(d, _missing=object()):
-    inv = {}
-    for (k, v) in iteritems(d):
-        if v in inv:
-            raise Exception('Duplicate value')
-        inv[v] = k
-    return inv
+update_withdupval = bidict(update_nodup, key_with_dup_val='hydrogen')
 
+def test_put_nodup(benchmark):
+    elements_ = bidict(elements)
+    benchmark(elements_.put, 'K', 'potassium')
 
-SIZES = [randint(2**x, 2**(x+1)) for x in range(5, 12, 3)]
-@pytest.fixture(params=SIZES, ids=str)
-def data(request):
-    return {object(): object() for _ in range(request.param)}
+def test_put_withdup(benchmark):
+    elements_ = bidict(elements)
+    def runner():
+        with pytest.raises(ValueExistsError):
+            elements_.put('key_with_dup_val', 'hydrogen')
+    benchmark(runner)
 
-@pytest.fixture(params=(bidict, invdict), ids=('bidict', '2idict'))
-def constructor(request):
-    return request.param
+def test_update_nodup(benchmark):
+    elements_ = bidict(elements)
+    benchmark(elements_.update, update_nodup)
 
-### benchmark 1: compare initializing a bidict to initializing an inverse dict
-# TODO: test with data that has values repeated?
-def test_init(benchmark, constructor, data):
-    benchmark(constructor, data)
+def test_update_withdup(benchmark):
+    elements_ = bidict(elements)
+    def runner():
+        with pytest.raises(ValueExistsError):
+            elements_.update(update_withdupval)
+    benchmark(runner)
 
-
-### benchmark 2: compare getting a key by value in a bidict vs. an inverse dict
-def test_get_key_by_val(benchmark, constructor, data):
-    # TODO: is this a good way to do this test?
-    val = choice(list(viewvalues(data)))
-    obj = constructor(data)
-    gkbv = (lambda val: obj.inv[val]) if constructor is bidict else (
-            lambda val: obj[val])
-    key = benchmark(gkbv, val)
-    assert data[key] == val
-
-
-### benchmark 3: compare setitem for a bidict vs. an inverse dict
-# TODO: test with some duplicate values?
-def test_setitem(benchmark, constructor, data):
-    key, val, _missing = object(), object(), object()
-
-    if constructor is bidict:
-        def setup():
-            return (constructor(data),), {}
-
-        def setitem(b):
-            b[key] = val
-
-    else:
-        def setup():
-            return (data.copy(), constructor(data)), {}
-
-        def setitem(d, inv):
-            if val in inv:
-                raise Exception('Value exists')
-            oldval = d.get(key, _missing)
-            d[key] = val
-            if oldval is not _missing:
-                del inv[oldval]
-            inv[val] = key
-
-    # TODO: iterations=100 causes: ValueError: Can't use more than 1 `iterations` with a `setup` function.
-    #benchmark.pedantic(setitem, setup=setup, iterations=100)
-    benchmark.pedantic(setitem, setup=setup)
-
-
-### benchmark 4: compare update for a bidict vs. an inverse dict
-# TODO: test with some duplicate values?
-# TODO: choose number of items in update differently?
-def test_update(benchmark, constructor, data):
-    _missing = object()
-    items = [(object(), object()) for _ in range(len(data)//2)]
-
-    if constructor is bidict:
-        def setup():
-            return (constructor(data),), {}
-
-        def update(b):
-            b.update(items)
-
-    else:
-        def setup():
-            return (data.copy(), constructor(data)), {}
-
-        def update(d, inv, items=items):
-            # currently only test with default collision behaviors
-            # (i.e. as in on_key_coll=OVERWRITE, on_val_coll=RAISE)
-            itemsinv = {v: k for (k, v) in items}
-            if len(items) > len(itemsinv):
-                raise Exception('Nonunique values')
-            common_vals = viewkeys(itemsinv) & viewkeys(inv)
-            if common_vals:
-                raise Exception('Values exist')
-            items = dict(items)
-            common_keys = viewkeys(items) & viewkeys(d)
-            for k in common_keys:
-                del inv[d.pop(k)]
-            d.update(items)
-            inv.update(itemsinv)
-
-    # TODO: iterations=100 causes: ValueError: Can't use more than 1 `iterations` with a `setup` function.
-    #benchmark.pedantic(update, setup=setup, iterations=100)
-    benchmark.pedantic(update, setup=setup)
+def test_update_withdup_nonatomic(benchmark):
+    elements_ = bidict(elements)
+    def runner():
+        with pytest.raises(ValueExistsError):
+            elements_.putall(OVERWRITE, RAISE, False, update_withdupval)
+    benchmark(runner)
