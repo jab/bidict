@@ -4,6 +4,7 @@ env:
   global:
     - PYENV_ROOT="$HOME/.pyenv"
     - PYENV="$PYENV_ROOT/bin/pyenv"
+    - BENCHMARK_DIR="$HOME/.benchmarks"
 
 matrix:
   include:
@@ -43,10 +44,13 @@ script:
 
 cache:
   directories:
-    - $HOME/.benchmarks
     - $HOME/.cache/pip
     - $HOME/.hypothesis
     - $PYENV_ROOT
+    - $BENCHMARK_DIR
+
+before_cache:
+  - rm -rf $HOME/.cache/pip/log
 
 after_success:
   - test -n "$BIDICT_COVERAGE_DISABLE" && echo "Skipping coveralls" || coveralls
