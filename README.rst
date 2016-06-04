@@ -4,7 +4,7 @@ bidict
 Efficient, Pythonic bidirectional map implementation and related functionality.
 
 .. image:: https://raw.githubusercontent.com/jab/bidict/master/docs/_static/logo-256.png
-    :target: https://bidict.readthedocs.org/
+    :target: https://bidict.readthedocs.io/
     :alt: bidict logo
 
 
@@ -19,12 +19,12 @@ Status
     :target: https://pypi.python.org/pypi/bidict
     :alt: Latest release
 
-.. image:: https://img.shields.io/badge/VersionEye-follow-brightgreen.svg
+.. image:: https://img.shields.io/badge/versionEye-follow-brightgreen.svg
     :target: https://www.versioneye.com/python/bidict
     :alt: Follow on VersionEye
 
 .. image:: https://readthedocs.org/projects/bidict/badge/?version=latest
-    :target: https://bidict.readthedocs.org/
+    :target: https://bidict.readthedocs.io/
     :alt: Documentation
 
 .. image:: https://travis-ci.org/jab/bidict.svg?branch=master
@@ -59,7 +59,7 @@ Status
     :target: http://todogroup.org/opencodeofconduct/#bidict/jab@math.brown.edu
     :alt: Code of Conduct
 
-.. image:: https://badges.gitter.im/Join%20Chat.svg
+.. image:: https://badges.gitter.im/join%20chat.svg
     :target: https://gitter.im/jab/bidict
     :alt: Chat
 
@@ -71,7 +71,7 @@ Installation
 Usage
 -----
 
-If you're reading this `on readthedocs.org <https://bidict.readthedocs.org>`_,
+If you're reading this `on readthedocs <https://bidict.readthedocs.io>`_,
 please proceed to the usage documentation by clicking "Next" below.
 Otherwise, see ``docs/intro.rst`` and continue reading from there.
 
@@ -86,7 +86,7 @@ Yet for its small size,
 it's yielded a surprising amount of fun, rewarding programming:
 plugging into the collections ecosystem, careful API design,
 covering various subtle edge cases,
-writing `hypothesis <http://hypothesis.readthedocs.org/>`_-powered
+writing `hypothesis <http://hypothesis.readthedocs.io>`_-powered
 property-based tests, benchmarking, and exploring some cute
 (but ultimately `rejected <https://github.com/jab/bidict/issues/19>`_)
 Python syntax hacks, to name a few examples.
@@ -119,7 +119,7 @@ Changelog
 ---------
 
 Check out
-`CHANGELOG.rst <https://bidict.readthedocs.org/changelog.html>`_
+`CHANGELOG.rst <https://bidict.readthedocs.io/changelog.html>`_
 for a history of notable changes to bidict.
 
 

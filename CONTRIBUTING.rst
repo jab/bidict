@@ -60,7 +60,7 @@ Making Changes
   demonstrating its correctness and usage.
 
 - Run all the tests
-  with `tox <https://tox.readthedocs.org>`_
+  with `tox <https://tox.readthedocs.io>`_
   to make sure nothing else was accidentally broken.
 
 - Create a concise but comprehensive commit message in the following style::

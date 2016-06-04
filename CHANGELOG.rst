@@ -158,7 +158,7 @@ Breaking API Changes
   and other community-oriented improvements.
 - Adopt Pytest (thanks Tom Viner and Adopt Pytest Month).
 - Added property-based tests via
-  `hypothesis <https://hypothesis.readthedocs.org>`_.
+  `hypothesis <https://hypothesis.readthedocs.io>`_.
 - Other code, tests, and docs improvements.
 
 Breaking API Changes
