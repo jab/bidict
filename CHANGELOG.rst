@@ -43,6 +43,9 @@ when a new version of bidict is released.
 - Make initialization and bulk insert operations safer and more predictable
   by checking for and processing items with duplicate keys and values
   ahead of inserting any of the given items, by default.
+  So e.g. if a :class:`ValueExistsError <bidict.ValueExistsError>`
+  is raised by an :func:`update() <bidict.bidict.update>` call,
+  you can be sure that none of the given items were inserted.
   This default behavior can be overridden when calling
   :func:`putall() <bidict.bidict.putall>` by passing *atomic=False*.
 - New exceptions provide more precise information about error conditions:
@@ -68,6 +71,8 @@ when a new version of bidict is released.
   :func:`iteritems() <bidict.compat.iteritems>` and
   :func:`viewitems() <bidict.compat.viewitems>`
   compatibility helpers.
+- Implement :func:`bidict.BidirectionalMapping.__copy__`
+  for use with the :mod:`copy` module.
 
 Breaking API Changes
 ^^^^^^^^^^^^^^^^^^^^
