@@ -6,10 +6,9 @@ from bidict import (bidict, loosebidict, looseorderedbidict, orderedbidict,
                     frozenbidict, frozenorderedbidict,
                     OrderedBidirectionalMapping)
 from bidict.compat import iteritems, viewitems
-from collections import OrderedDict
 from hypothesis import assume, given, settings
 from hypothesis.strategies import (
-    binary, booleans, choices, dictionaries, floats, frozensets, integers,
+    binary, booleans, dictionaries, floats, frozensets, integers,
     lists, none, recursive, text, tuples)
 from math import isnan
 from os import getenv
@@ -85,9 +84,8 @@ def test_equality(d):
     assert not b.inv != i
 
 
-_fixeditemlist = [(None, None)] * sz['average_size']
-am = [(a, m) for (a, ms) in iteritems(mutating_methods_by_arity) for m in ms]
-@pytest.mark.parametrize('arity,methodname', am)
+@pytest.mark.parametrize('arity,methodname',
+    [(a, m) for (a, ms) in iteritems(mutating_methods_by_arity) for m in ms])
 @pytest.mark.parametrize('B', bidict_types)
 @given(d=d, arg1=immutable, arg2=immutable, itemlist=lists(tuples(immutable, immutable), **sz))
 def test_consistency(arity, methodname, B, d, arg1, arg2, itemlist):
@@ -130,6 +128,6 @@ def test_consistency(arity, methodname, B, d, arg1, arg2, itemlist):
             beforei0 = [j for j in items0[:idx0] if j in common]
             beforei1 = [j for j in items1[:idx1] if j in common]
             assert beforei0 == beforei1
-            afteri0 = [j for j in items0[idx0+1:] if j in common]
-            afteri1 = [j for j in items1[idx1+1:] if j in common]
+            afteri0 = [j for j in items0[idx0 + 1:] if j in common]
+            afteri1 = [j for j in items1[idx1 + 1:] if j in common]
             assert afteri0 == afteri1

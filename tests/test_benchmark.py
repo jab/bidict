@@ -5,7 +5,7 @@ import pytest
 elements = orderedbidict((
     ('H', 'hydrogen'), ('He', 'helium'),
     ('Li', 'lithium'), ('Be', 'beryllium'), ('B', 'boron'), ('C', 'carbon'),
-    ('N', 'nitrogen'), ('O', 'oxygen'), ('F', 'fluorine'),  ('Ne', 'neon'),
+    ('N', 'nitrogen'), ('O', 'oxygen'), ('F', 'fluorine'), ('Ne', 'neon'),
     ('Na', 'sodium'), ('Mg', 'magnesium'), ('Al', 'aluminum'), ('Si', 'silicon'),
     ('P', 'phosphorus'), ('S', 'sulfur'), ('Cl', 'chlorine'), ('Ar', 'argon'),
 ))
@@ -37,31 +37,42 @@ update_nodup = orderedbidict((
 
 update_withdupval = bidict(update_nodup, key_with_dup_val='hydrogen')
 
+
 def test_put_nodup(benchmark):
     elements_ = bidict(elements)
     benchmark(elements_.put, 'K', 'potassium')
 
+
 def test_put_withdup(benchmark):
     elements_ = bidict(elements)
+
     def runner():
         with pytest.raises(ValueExistsError):
             elements_.put('key_with_dup_val', 'hydrogen')
+
     benchmark(runner)
+
 
 def test_update_nodup(benchmark):
     elements_ = bidict(elements)
     benchmark(elements_.update, update_nodup)
 
+
 def test_update_withdup(benchmark):
     elements_ = bidict(elements)
+
     def runner():
         with pytest.raises(ValueExistsError):
             elements_.update(update_withdupval)
+
     benchmark(runner)
+
 
 def test_update_withdup_nonatomic(benchmark):
     elements_ = bidict(elements)
+
     def runner():
         with pytest.raises(ValueExistsError):
             elements_.putall(OVERWRITE, RAISE, False, update_withdupval)
+
     benchmark(runner)
