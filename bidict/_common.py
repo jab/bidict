@@ -101,22 +101,28 @@ class BidirectionalMapping(Mapping):
     def _update(self, on_dup_key, on_dup_val, atomic, *args, **kw):
         if not args and not kw:
             return
-        overwrite_kv = on_dup_key is OVERWRITE and on_dup_val is OVERWRITE
         arg = args[0] if args else {}
-        update_len_1 = hasattr(arg, '__len__') and len(arg) + len(kw) == 1
+        argsized = hasattr(arg, '__len__')
+        arglen = argsized and len(arg)
+        if argsized and not arglen and not kw:
+            return
+        update_len_1 = argsized and (arglen + len(kw) == 1)
         only_bimap_arg = isinstance(arg, BidirectionalMapping) and not kw
-        skip_dedup_update = overwrite_kv or update_len_1 or only_bimap_arg
+        overwrite_kv = on_dup_key is OVERWRITE and on_dup_val is OVERWRITE
+        skip_dedup_update = update_len_1 or only_bimap_arg or overwrite_kv
         update = pairs(arg, **kw) if skip_dedup_update else (
                      _dedup_in(self._dcls, on_dup_key, on_dup_val, arg, **kw))
-        if self:  # Must process dupes between existing items and the update.
+        _fwd = self._fwd
+        if _fwd:  # Must process dups between self (existing items) and update.
             update = self._dedup(on_dup_key, on_dup_val, update)
         if atomic:  # Must realize update before applying.
-            update = tuple(update)  # Any dupes handled here, early.
-        _fwd = self._fwd
+            update = tuple(update)  # Any exceptions raised here, early.
         _inv = self._inv
-        for (k, v) in update:
-            _inv.pop(_fwd.pop(k, _missing), None)
-            _fwd.pop(_inv.pop(v, _missing), None)
+        _fwdpop = _fwd.pop
+        _invpop = _inv.pop
+        for (k, v) in update:  # Finally, apply the update.
+            _invpop(_fwdpop(k, _missing), None)
+            _fwdpop(_invpop(v, _missing), None)
             _fwd[k] = v
             _inv[v] = k
 
