@@ -97,6 +97,9 @@ def test_consistency(arity, methodname, B, d, arg1, arg2, itemlist):
     if not method:
         return
     args = []
+    # The assume calls below tell hypothesis to not waste time exploring
+    # different values of args that aren't used with the current arity,
+    # leaving more time to explore interesting values of args that are used.
     if arity == -1:
         assume(arg1 is None and arg2 is None)
         args.append(itemlist)
