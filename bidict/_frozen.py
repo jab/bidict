@@ -10,8 +10,7 @@ class frozenbidict(BidirectionalMapping, Hashable):
 
     def __hash__(self):
         """Return the hash of this bidict."""
-        try:
+        if hasattr(self, '_hash'):
             return self._hash
-        except AttributeError:
-            self._hash = hash(frozenset(viewitems(self)))
-            return self._hash
+        h = self._hash = hash(tuple(viewitems(self._fwd)))
+        return h
