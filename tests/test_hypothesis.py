@@ -5,7 +5,7 @@ Property-based tests using https://warehouse.python.org/project/hypothesis/
 from bidict import (bidict, loosebidict, looseorderedbidict, orderedbidict,
                     frozenbidict, frozenorderedbidict,
                     OrderedBidirectionalMapping)
-from bidict.compat import iteritems, itervalues, viewitems
+from bidict.compat import iteritems, viewitems
 from collections import OrderedDict
 from hypothesis import assume, given, settings
 from hypothesis.strategies import (
@@ -50,7 +50,7 @@ mutating_methods_by_arity = {
     1: ('__delitem__', 'pop', 'setdefault', 'move_to_end',),
     2: ('__setitem__', 'pop', 'put', 'forceput', 'setdefault',),
     -1: ('update', 'forceupdate',),
-    # TODO: test putall with all collision behaviors
+    # TODO: test putall with all duplication behaviors
 }
 sz = dict(average_size=2)
 immu_atom = none() | booleans() | integers() | floats() | text(**sz) | binary(**sz)
@@ -70,20 +70,13 @@ def test_bidirectional_mappings(d):
     b = bidict(d)
     for k, v in iteritems(b):
         assert eq_nan(k, b.inv[v])
+    for v, k in iteritems(b.inv):
+        assert eq_nan(b[k], v)
 
-
-# Work around https://bitbucket.org/pypy/pypy/issue/1974
-# Repeat float(n) calls because two nans which are reference-distinct
-# (can't happen on PyPy but happens on CPython)
-# are distinct for containers.
-n = float('nan')
-WORKAROUND_COL_NAN_BUG = (float(n), float(n)) != (float(n), float(n))
 
 @given(d)
 def test_equality(d):
-    if WORKAROUND_COL_NAN_BUG:
-        assume(not any(isnan_(k) for k in d))
-        assume(not any(isnan_(v) for v in itervalues(d)))
+    assume(not any(isnan_(k) or isnan_(v) for (k, v) in iteritems(d)))
     i = inv(d)
     b = bidict(d)
     assert b == d
@@ -92,20 +85,13 @@ def test_equality(d):
     assert not b.inv != i
 
 
-# Couldn't find an issue for this in bugs.python.org.
-# Appears to have been fixed in CPython 3.5.
-WORKAROUND_OD_NAN_BUG = OrderedDict({float(n): 0}) != OrderedDict({float(n): 0})
-
-
+_fixeditemlist = [(None, None)] * sz['average_size']
 am = [(a, m) for (a, ms) in iteritems(mutating_methods_by_arity) for m in ms]
 @pytest.mark.parametrize('arity,methodname', am)
 @pytest.mark.parametrize('B', bidict_types)
 @given(d=d, arg1=immutable, arg2=immutable, itemlist=lists(tuples(immutable, immutable), **sz))
 def test_consistency(arity, methodname, B, d, arg1, arg2, itemlist):
-    ordered = issubclass(B, OrderedBidirectionalMapping)
-    if ordered and WORKAROUND_OD_NAN_BUG:
-        assume(not any(isnan_(k) for k in d))
-        assume(not any(isnan_(v) for v in itervalues(d)))
+    assume(not any(isnan_(k) or isnan_(v) for (k, v) in iteritems(d)))
     b = B(d)
     assert dict(b) == inv(b.inv)
     assert dict(b.inv) == inv(b)
@@ -114,11 +100,15 @@ def test_consistency(arity, methodname, B, d, arg1, arg2, itemlist):
         return
     args = []
     if arity == -1:
+        assume(arg1 is None and arg2 is None)
         args.append(itemlist)
-    if arity > 0:
-        args.append(arg1)
-    if arity > 1:
-        args.append(arg2)
+    else:
+        assume(not itemlist)
+        assume((arity > 0 or arg1 is None) and (arity > 1 or arg2 is None))
+        if arity > 0:
+            args.append(arg1)
+        if arity > 1:
+            args.append(arg2)
     b0 = b.copy()
     try:
         method(b, *args)
@@ -129,6 +119,7 @@ def test_consistency(arity, methodname, B, d, arg1, arg2, itemlist):
         assert b.inv == b0.inv
     assert dict(b) == inv(b.inv)
     assert dict(b.inv) == inv(b)
+    ordered = issubclass(B, OrderedBidirectionalMapping)
     if ordered and methodname != 'move_to_end':
         items0 = list(viewitems(b0))
         items1 = list(viewitems(b))
