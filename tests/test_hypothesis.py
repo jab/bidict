@@ -16,7 +16,10 @@ import pytest
 
 
 # https://groups.google.com/d/msg/hypothesis-users/8FVs--1yUl4/JEkJ02euEwAJ
-settings.register_profile('default', settings(strict=True))
+settings.register_profile('default', settings(
+    strict=True,
+    min_satisfying_examples=4,
+))
 settings.load_profile(getenv('HYPOTHESIS_PROFILE', 'default'))
 
 
