@@ -5,7 +5,7 @@ Also provides related exception classes and duplication behaviors.
 """
 
 from .compat import PY2, iteritems
-from .util import pairs
+from .util import pairs, _arg0
 from collections import Mapping
 
 
@@ -44,7 +44,7 @@ class DuplicationBehavior(object):
         self.id = id
 
     def __repr__(self):
-        return '<%s>' % self.id
+        return '<%s>' % self.id  # pragma: no cover
 
 DuplicationBehavior.RAISE = RAISE = DuplicationBehavior('RAISE')
 DuplicationBehavior.OVERWRITE = OVERWRITE = DuplicationBehavior('OVERWRITE')
@@ -100,6 +100,21 @@ class BidirectionalMapping(Mapping):
         return self._fwd[key]
 
     def _dedup1(self, key, val, on_dup_key, on_dup_val):
+        """
+        Check the given key and value for any duplication in self.
+
+        Handle any duplication as per *on_dup_key* and *on_dup_val*.
+
+        If duplication is found and the corresponding duplication behavior is
+        *RAISE*, raise the appropriate error.
+
+        If duplication is found and the corresponding duplication behavior is
+        *IGNORE*, return *None*.
+
+        If duplication is found and the corresponding duplication behavior is
+        *OVERWRITE*, or if no duplication is found,
+        return *(key, val), (oldkey, oldval)*.
+        """
         _fwd = self._fwd
         _inv = self._inv
         oldv = _fwd.get(key, _missing)
@@ -107,12 +122,14 @@ class BidirectionalMapping(Mapping):
         if oldv == val or (dupk and on_dup_key is IGNORE):
             return
         if dupk and on_dup_key is RAISE:
+            # Use `_inv[oldv]` rather than `key`. Hash-equivalent != identical.
             raise KeyExistsError((_inv[oldv], oldv))
         oldk = _inv.get(val, _missing)
         dupv = oldk is not _missing
         if oldk == key or (dupv and on_dup_val is IGNORE):
             return
         if dupv and on_dup_val is RAISE:
+            # Use `_fwd[oldk]` rather than `val`. Hash-equivalent != identical.
             raise ValueExistsError((oldk, _fwd[oldk]))
         return (key, val), (oldk, oldv)
 
@@ -127,10 +144,10 @@ class BidirectionalMapping(Mapping):
             self._fwd[key] = val
             self._inv[val] = key
 
-    def _update(self, on_dup_key, on_dup_val, atomic, *args, **kw):
+    def _update(self, on_dup_key, on_dup_val, precheck, *args, **kw):
         if not args and not kw:
             return
-        arg = args[0] if args else {}
+        arg = _arg0(args) if args else {}
         argsized = hasattr(arg, '__len__')
         arglen = argsized and len(arg)
         if argsized and not arglen and not kw:
@@ -140,11 +157,11 @@ class BidirectionalMapping(Mapping):
         overwrite_kv = on_dup_key is OVERWRITE and on_dup_val is OVERWRITE
         skip_dedup_update = update_len_1 or only_bimap_arg or overwrite_kv
         update = pairs(arg, **kw) if skip_dedup_update else _dedup_in(
-                self._dcls, on_dup_key, on_dup_val, arg, **kw)
+                on_dup_key, on_dup_val, arg, **kw)
         _fwd = self._fwd
         if _fwd:  # Must process dups between self (existing items) and update.
             update = self._dedup(on_dup_key, on_dup_val, update)
-        if atomic:  # Must realize update before applying.
+        if precheck:  # Must realize update before applying.
             update = tuple(update)  # Any exceptions raised here, early.
         _inv = self._inv
         _fwdpop = _fwd.pop
@@ -213,12 +230,12 @@ class BidirectionalMapping(Mapping):
         values.__doc__ = 'Like :py:meth:`dict.values`.'
 
 
-def _dedup_in(dcls, on_dup_key, on_dup_val, arg, **kw):
+def _dedup_in(on_dup_key, on_dup_val, arg, **kw):
     """
-    Yield items in *arg* and *kw*, deduplicating any duplicates within them.
+    Yield items in *arg* and *kw* as per the given duplication behaviors.
 
-    Items in *arg* and *kw* that have duplicate keys or values will be ignored
-    or will cause an exception, as per the given duplication behaviors.
+    An item in *arg* or *kw* that duplicates the key or value of another item
+    in *arg* or *kw* will be raised, ignored, or yielded, as appropriate.
     """
     argmap = None
     on_dup_key_raise = on_dup_key is RAISE
@@ -238,8 +255,8 @@ def _dedup_in(dcls, on_dup_key, on_dup_val, arg, **kw):
                 argmap = arg
             else:
                 it = iter(arg)
-                argmap = dcls()
-            arginv = dcls()
+                argmap = {}
+            arginv = {}
             for (k, v) in it:
                 if not argismap:
                     pv = argmap.get(k, _missing)
@@ -262,7 +279,7 @@ def _dedup_in(dcls, on_dup_key, on_dup_val, arg, **kw):
                 arginv[v] = k
                 yield (k, v)
     if kw:
-        kwinv = dcls()
+        kwinv = {}
         for (k, v) in iteritems(kw):
             if argmap:
                 argv = argmap.get(k, _missing)
@@ -313,15 +330,11 @@ class KeyExistsError(KeyNotUniqueError):
     """Raised when attempting to insert an already-existing key."""
 
     def __str__(self):
-        if self.args:
-            return 'Key {0!r} exists with value {1!r}'.format(*self.args[0])
-        return ''
+        return 'Key {0!r} exists with value {1!r}'.format(*self.args[0]) if self.args else ''
 
 
 class ValueExistsError(ValueNotUniqueError):
     """Raised when attempting to insert an already-existing value."""
 
     def __str__(self):
-        if self.args:
-            return 'Value {1!r} exists with key {0!r}'.format(*self.args[0])
-        return ''
+        return 'Value {1!r} exists with key {0!r}'.format(*self.args[0]) if self.args else ''

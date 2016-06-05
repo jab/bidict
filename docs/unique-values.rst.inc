@@ -56,9 +56,7 @@ raise an exception too::
         ...
     ValueExistsError: Value 1 exists with key 'one'
 
-Application of the supplied update is atomic
-with respect to the set of items which are to be inserted;
-that is, if an update call raises,
+If an update() call raises,
 you can be sure that none of the supplied items were inserted::
 
     >>> b
@@ -107,9 +105,9 @@ Possible options are
 :class:`RAISE <bidict.DuplicationBehavior.RAISE>`,
 :class:`OVERWRITE <bidict.DuplicationBehavior.OVERWRITE>`, and
 :class:`IGNORE <bidict.DuplicationBehavior.IGNORE>`.
-:func:`putall() <bidict.bidict.putall>` also accepts an *atomic* positional arg,
-which allows you to control whether insertion of the given items
-should be performed atomically::
+:func:`putall() <bidict.bidict.putall>` also accepts a *precheck* positional arg,
+which allows you to control whether the given items should be processed for
+duplication in their entirety before any of them are inserted::
 
     >>> from bidict import RAISE, IGNORE
     >>> b = bidict({2: 4})
@@ -121,10 +119,10 @@ should be performed atomically::
     Traceback (most recent call last):
         ...
     KeyExistsError: Key 2 exists with value 4
-    >>> b  # note that (3, 9) was not added because the call failed:
+    >>> b  # Note (3, 9) not added b/c call failed and we gave precheck=True:
     bidict({2: 4})
     >>> b.putall(RAISE, IGNORE, True, {3: 9, 1: 4})
-    >>> sorted(b.items())  # note that (1, 4) is ignored, as per on_dup_val
+    >>> sorted(b.items())  # Note (1, 4) ignored b/c we gave on_dup_val=IGNORE:
     [(2, 4), (3, 9)]
 
 Note: The *on_dup_key* and *on_dup_val* keyword arguments

@@ -104,14 +104,14 @@ class bidict(BidirectionalMapping, MutableMapping):
         return self[key]
 
     def update(self, *args, **kw):
-        """Like a bulk :attr:`__setitem__`. Succeeds or fails atomically."""
+        """Like :attr:`putall` with default dup. behaviors and precheck=True."""
         self._update(OVERWRITE, RAISE, True, *args, **kw)
 
     def forceupdate(self, *args, **kw):
         """Like a bulk :attr:`forceput`."""
         self._update(OVERWRITE, OVERWRITE, True, *args, **kw)
 
-    def putall(self, on_dup_key, on_dup_val, atomic, *args, **kw):
+    def putall(self, on_dup_key, on_dup_val, precheck, *args, **kw):
         """
         Like a bulk :attr:`put`.
 
@@ -132,7 +132,7 @@ class bidict(BidirectionalMapping, MutableMapping):
         will be raised if the key (value) of a given
         item duplicates that of another given item.
 
-        If *atomic* is truthy,
+        If *precheck* is truthy,
         checking for and processing duplicates in the given items
         is performed entirely before inserting any of them,
         so that if e.g. one of the items would cause an exception to be raised,
@@ -140,4 +140,4 @@ class bidict(BidirectionalMapping, MutableMapping):
         which would otherwise result in the update being applied partially
         before failing.
         """
-        self._update(on_dup_key, on_dup_val, atomic, *args, **kw)
+        self._update(on_dup_key, on_dup_val, precheck, *args, **kw)

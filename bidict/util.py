@@ -22,16 +22,20 @@ def pairs(*args, **kw):
     """
     it = None
     if args:
-        l = len(args)
-        if l != 1:
-            raise TypeError('Expected at most 1 positional argument, got %d' % l)
-        arg = args[0]
+        arg = _arg0(args)
         if arg:
             it = iteritems(arg) if isinstance(arg, Mapping) else iter(arg)
     if kw:
         it2 = iteritems(kw)
         it = chain(it, it2) if it else it2
     return it or iter(())
+
+
+def _arg0(args):
+    l = len(args)
+    if l != 1:
+        raise TypeError('Expected at most 1 positional argument, got %d' % l)
+    return args[0]
 
 
 def inverted(data):

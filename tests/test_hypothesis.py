@@ -2,15 +2,14 @@
 Property-based tests using https://warehouse.python.org/project/hypothesis/
 """
 
-from bidict import (bidict, loosebidict, looseorderedbidict, orderedbidict,
-                    frozenbidict, frozenorderedbidict,
-                    OrderedBidirectionalMapping)
+from bidict import (
+    bidict, loosebidict, looseorderedbidict, orderedbidict,
+    frozenbidict, frozenorderedbidict, OrderedBidirectionalMapping)
 from bidict.compat import iteritems, viewitems
 from hypothesis import assume, given, settings
 from hypothesis.strategies import (
     binary, booleans, dictionaries, floats, frozensets, integers,
     lists, none, recursive, text, tuples)
-from math import isnan
 from os import getenv
 import pytest
 
@@ -18,7 +17,9 @@ import pytest
 # https://groups.google.com/d/msg/hypothesis-users/8FVs--1yUl4/JEkJ02euEwAJ
 settings.register_profile('default', settings(
     strict=True,
-    min_satisfying_examples=4,
+    # adjust this to control frequency of hypothesis.errors.Unsatisfiable errors
+    # raised in test_consistency as a result of its assume() calls:
+    # min_satisfying_examples=10,
 ))
 settings.load_profile(getenv('HYPOTHESIS_PROFILE', 'default'))
 
@@ -33,18 +34,6 @@ def prune_dup_vals(d):
     return pruned
 
 
-def isnan_(x):
-    return isinstance(x, float) and isnan(x)
-
-
-def both_nan(a, b):
-    return isnan_(a) and isnan_(b)
-
-
-def eq_nan(a, b):
-    return a == b or both_nan(a, b)
-
-
 bidict_types = (bidict, loosebidict, looseorderedbidict, orderedbidict,
                 frozenbidict, frozenorderedbidict)
 mutating_methods_by_arity = {
@@ -55,7 +44,7 @@ mutating_methods_by_arity = {
     # TODO: test putall with all duplication behaviors
 }
 sz = dict(average_size=2)
-immu_atom = none() | booleans() | integers() | floats() | text(**sz) | binary(**sz)
+immu_atom = none() | booleans() | integers() | floats(allow_nan=False) | text(**sz) | binary(**sz)
 immu_coll = lambda e: frozensets(e, **sz) | lists(e, **sz).map(tuple)
 immutable = recursive(immu_atom, immu_coll)
 d = dictionaries(immutable, immutable, average_size=5).map(prune_dup_vals)
@@ -71,14 +60,13 @@ def test_len(d):
 def test_bidirectional_mappings(d):
     b = bidict(d)
     for k, v in iteritems(b):
-        assert eq_nan(k, b.inv[v])
+        assert k == b.inv[v]
     for v, k in iteritems(b.inv):
-        assert eq_nan(b[k], v)
+        assert v == b[k]
 
 
 @given(d)
 def test_equality(d):
-    assume(not any(isnan_(k) or isnan_(v) for (k, v) in iteritems(d)))
     i = inv(d)
     b = bidict(d)
     assert b == d
@@ -92,7 +80,6 @@ def test_equality(d):
 @pytest.mark.parametrize('B', bidict_types)
 @given(d=d, arg1=immutable, arg2=immutable, itemlist=lists(tuples(immutable, immutable), **sz))
 def test_consistency(arity, methodname, B, d, arg1, arg2, itemlist):
-    assume(not any(isnan_(k) or isnan_(v) for (k, v) in iteritems(d)))
     b = B(d)
     assert dict(b) == inv(b.inv)
     assert dict(b.inv) == inv(b)
@@ -101,13 +88,21 @@ def test_consistency(arity, methodname, B, d, arg1, arg2, itemlist):
         return
     args = []
     # The assume calls below tell hypothesis to not waste time exploring
-    # different values of args that aren't used with the current arity,
-    # leaving more time to explore interesting values of args that are used.
+    # different values of parameters that aren't used with the current arity,
+    # leaving more time to explore interesting values of params that are used.
     if arity == -1:
-        assume(arg1 is None and arg2 is None)
+        # This occasionally causes hypothesis.errors.Unsatisfiable when testing
+        # some methods (e.g. foo.update(), foo.forceupdate(), etc.):
+        # assume(arg1 is None and arg2 is None)
+        # So use a weaker constraint instead:
+        assume(not arg1 and not arg2)
         args.append(itemlist)
     else:
-        assume(not itemlist)
+        # This occasionally causes hypothesis.errors.Unsatisfiable when testing
+        # some methods (e.g. foo.clear(), foo.popitem(), etc.):
+        # assume(not itemlist)
+        # So use a weaker constraint instead:
+        assume(sum(bool(i[0] or i[1]) for i in itemlist) < 2)
         assume((arity > 0 or arg1 is None) and (arity > 1 or arg2 is None))
         if arity > 0:
             args.append(arg1)

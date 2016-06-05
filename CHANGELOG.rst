@@ -47,7 +47,7 @@ when a new version of bidict is released.
   is raised by an :func:`update() <bidict.bidict.update>` call,
   you can be sure that none of the given items were inserted.
   This default behavior can be overridden when calling
-  :func:`putall() <bidict.bidict.putall>` by passing *atomic=False*.
+  :func:`putall() <bidict.bidict.putall>` by passing *precheck=False*.
 - New exceptions provide more precise information about error conditions:
 
   - :class:`UniquenessError <bidict.UniquenessError>`

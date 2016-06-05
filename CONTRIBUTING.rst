@@ -3,8 +3,6 @@
 Contributors' Guide
 ===================
 
-.. include:: code-of-conduct.rst.inc
-
 Bug reports, feature requests, patches, and other contributions are more than welcome.
 We want to make contribution as easy and friendly as possible.
 Here are a few guidelines we ask contributors to follow to facilitate the process:
@@ -127,6 +125,13 @@ or use this if it's more your cup of tea:
 .. image:: https://img.shields.io/badge/Paypal-Buy%20a%20Drink-blue.svg
     :target: https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=jab%40math%2ebrown%2eedu&lc=US&item_name=Buy%20a%20drink%20for%20jab&button_subtype=services&currency_code=USD&bn=PP%2dBuyNowBF%3aPaypal%2dBuy%2520a%2520Drink%2dblue%2esvg%3aNonHosted
     :alt: PayPal - Buy a drink
+
+Code of Conduct
+---------------
+
+All participation in this project should respect our
+`Code of Conduct <https://github.com/jab/bidict/blob/master/CODE_OF_CONDUCT.md>`_.
+By participating, you are expected to honor this code.
 
 Thanks
 ------
