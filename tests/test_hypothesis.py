@@ -17,9 +17,6 @@ import pytest
 # https://groups.google.com/d/msg/hypothesis-users/8FVs--1yUl4/JEkJ02euEwAJ
 settings.register_profile('default', settings(
     strict=True,
-    # adjust this to control frequency of hypothesis.errors.Unsatisfiable errors
-    # raised in test_consistency as a result of its assume() calls:
-    # min_satisfying_examples=10,
 ))
 settings.load_profile(getenv('HYPOTHESIS_PROFILE', 'default'))
 
@@ -51,9 +48,13 @@ d = dictionaries(immutable, immutable, average_size=5).map(prune_dup_vals)
 
 
 @given(d)
-def test_len(d):
+def test_equality(d):
+    i = inv(d)
     b = bidict(d)
-    assert len(b) == len(b.inv) == len(d)
+    assert b == d
+    assert b.inv == i
+    assert not b != d
+    assert not b.inv != i
 
 
 @given(d)
@@ -66,13 +67,9 @@ def test_bidirectional_mappings(d):
 
 
 @given(d)
-def test_equality(d):
-    i = inv(d)
+def test_len(d):
     b = bidict(d)
-    assert b == d
-    assert b.inv == i
-    assert not b != d
-    assert not b.inv != i
+    assert len(b) == len(b.inv) == len(d)
 
 
 @pytest.mark.parametrize('arity,methodname',
@@ -87,23 +84,9 @@ def test_consistency(arity, methodname, B, d, arg1, arg2, itemlist):
     if not method:
         return
     args = []
-    # The assume calls below tell hypothesis to not waste time exploring
-    # different values of parameters that aren't used with the current arity,
-    # leaving more time to explore interesting values of params that are used.
     if arity == -1:
-        # This occasionally causes hypothesis.errors.Unsatisfiable when testing
-        # some methods (e.g. foo.update(), foo.forceupdate(), etc.):
-        # assume(arg1 is None and arg2 is None)
-        # So use a weaker constraint instead:
-        assume(not arg1 and not arg2)
         args.append(itemlist)
     else:
-        # This occasionally causes hypothesis.errors.Unsatisfiable when testing
-        # some methods (e.g. foo.clear(), foo.popitem(), etc.):
-        # assume(not itemlist)
-        # So use a weaker constraint instead:
-        assume(sum(bool(i[0] or i[1]) for i in itemlist) < 2)
-        assume((arity > 0 or arg1 is None) and (arity > 1 or arg2 is None))
         if arity > 0:
             args.append(arg1)
         if arity > 1:
