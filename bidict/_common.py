@@ -99,7 +99,7 @@ class BidirectionalMapping(Mapping):
     def __getitem__(self, key):
         return self._fwd[key]
 
-    def _dedup1(self, key, val, on_dup_key, on_dup_val):
+    def _dedup_item(self, key, val, on_dup_key, on_dup_val):
         """
         Check the given key and value for any duplication in self.
 
@@ -136,7 +136,7 @@ class BidirectionalMapping(Mapping):
     def _put(self, key, val, on_dup_key, on_dup_val):
         # Could just call _update(on_dup_key, on_dup_val, False, ((key, val),))
         # but special-casing single-item update is faster.
-        result = self._dedup1(key, val, on_dup_key, on_dup_val)
+        result = self._dedup_item(key, val, on_dup_key, on_dup_val)
         if result:
             (key, val), (oldk, oldv) = result
             self._fwd.pop(oldk, None)
@@ -156,7 +156,7 @@ class BidirectionalMapping(Mapping):
         only_bimap_arg = isinstance(arg, BidirectionalMapping) and not kw
         overwrite_kv = on_dup_key is OVERWRITE and on_dup_val is OVERWRITE
         skip_dedup_update = update_len_1 or only_bimap_arg or overwrite_kv
-        update = pairs(arg, **kw) if skip_dedup_update else _dedup_in(
+        update = pairs(arg, **kw) if skip_dedup_update else _dedup_update(
                 on_dup_key, on_dup_val, arg, **kw)
         _fwd = self._fwd
         if _fwd:  # Must process dups between self (existing items) and update.
@@ -188,7 +188,7 @@ class BidirectionalMapping(Mapping):
         *on_dup_key* and *on_dup_val* are set to.
         """
         for (k, v) in update:
-            result = self._dedup1(k, v, on_dup_key, on_dup_val)
+            result = self._dedup_item(k, v, on_dup_key, on_dup_val)
             if result:
                 yield result[0]
 
@@ -230,18 +230,19 @@ class BidirectionalMapping(Mapping):
         values.__doc__ = 'Like :py:meth:`dict.values`.'
 
 
-def _dedup_in(on_dup_key, on_dup_val, arg, **kw):
+def _dedup_update(on_dup_key, on_dup_val, arg, **kw):
     """
     Yield items in *arg* and *kw* as per the given duplication behaviors.
 
     An item in *arg* or *kw* that duplicates the key or value of another item
     in *arg* or *kw* will be raised, ignored, or yielded, as appropriate.
     """
-    argmap = None
     on_dup_key_raise = on_dup_key is RAISE
     on_dup_val_raise = on_dup_val is RAISE
     on_dup_key_ignore = on_dup_key is IGNORE
     on_dup_val_ignore = on_dup_val is IGNORE
+    on_dup_key_overwrite = on_dup_key is OVERWRITE
+    on_dup_val_overwrite = on_dup_val is OVERWRITE
     if arg:
         if isinstance(arg, BidirectionalMapping):
             argmap = arg
@@ -255,58 +256,63 @@ def _dedup_in(on_dup_key, on_dup_val, arg, **kw):
                 argmap = arg
             else:
                 it = iter(arg)
-                argmap = {}
-            arginv = {}
+                argmap = None if on_dup_key_overwrite else {}
+            arginv = None if on_dup_val_overwrite else {}
             for (k, v) in it:
-                if not argismap:
+                if not argismap and not on_dup_key_overwrite:
                     pv = argmap.get(k, _missing)
                     if pv == v:
                         continue
                     if pv is not _missing:
                         if on_dup_key_raise:
                             raise KeyNotUniqueError(k)
-                        if on_dup_key_ignore:
+                        elif on_dup_key_ignore:
                             continue
                     argmap[k] = v
-                pk = arginv.get(v, _missing)
-                if pk == k:
-                    continue
-                if pk is not _missing:
-                    if on_dup_val_raise:
-                        raise ValueNotUniqueError(v)
-                    if on_dup_val_ignore:
+                if not on_dup_val_overwrite:
+                    pk = arginv.get(v, _missing)
+                    if pk == k:
                         continue
-                arginv[v] = k
+                    if pk is not _missing:
+                        if on_dup_val_raise:
+                            raise ValueNotUniqueError(v)
+                        elif on_dup_val_ignore:
+                            continue
+                    arginv[v] = k
                 yield (k, v)
+    else:
+        argmap = arginv = None
     if kw:
-        kwinv = {}
+        kwinv = None if on_dup_val_overwrite else {}
         for (k, v) in iteritems(kw):
-            if argmap:
+            if not on_dup_key_overwrite and arg:
                 argv = argmap.get(k, _missing)
                 if argv == v:
                     continue
                 elif argv is not _missing:
                     if on_dup_key_raise:
                         raise KeyNotUniqueError(k)
-                    if on_dup_key_ignore:
+                    elif on_dup_key_ignore:
                         continue
-                argk = arginv.get(v, _missing)
-                if argk == k:
+            if not on_dup_val_overwrite:
+                if arg:
+                    argk = arginv.get(v, _missing)
+                    if argk == k:
+                        continue
+                    elif argk is not _missing:
+                        if on_dup_val_raise:
+                            raise ValueNotUniqueError(v)
+                        elif on_dup_val_ignore:
+                            continue
+                pk = kwinv.get(v, _missing)
+                if pk == k:
                     continue
-                elif argk is not _missing:
+                if pk is not _missing:
                     if on_dup_val_raise:
                         raise ValueNotUniqueError(v)
-                    if on_dup_val_ignore:
+                    elif on_dup_val_ignore:
                         continue
-            pk = kwinv.get(v, _missing)
-            if pk == k:
-                continue
-            if pk is not _missing:
-                if on_dup_val_raise:
-                    raise ValueNotUniqueError(v)
-                if on_dup_val_ignore:
-                    continue
-            kwinv[k] = v
+                kwinv[k] = v
             yield (k, v)
 
 
