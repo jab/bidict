@@ -20,26 +20,28 @@ when a new version of bidict is released.
   :func:`inverted() <bidict.util.inverted>`, and
   :func:`bidict.copy() <bidict.BidirectionalMapping.copy>`).
 - :func:`put() <bidict.bidict.put>`
-  now accepts ``on_dup_key`` and ``on_dup_val`` keyword arguments
+  now accepts ``on_dup_key``, ``on_dup_val``, and ``on_dup_kv`` kwargs
   which allow you to override the default behavior
-  when the key or value of a new item duplicates that of an existing one.
+  when the key and/or value of a given item
+  duplicate those/that of any existing item(s).
   These can take the following values:
 
   - :attr:`bidict.DuplicationBehavior.RAISE`
   - :attr:`bidict.DuplicationBehavior.OVERWRITE`
   - :attr:`bidict.DuplicationBehavior.IGNORE`
 
-  For a :class:`bidict <bidict.bidict>`,
+  For :class:`bidict <bidict.bidict>`,
   ``on_dup_key`` defaults to
-  :attr:`OVERWRITE <bidict.DuplicationBehavior.OVERWRITE>` and
-  ``on_dup_val`` defaults to
-  :attr:`RAISE <bidict.DuplicationBehavior.RAISE>`,
-  while for a :class:`loosebidict <bidict.loosebidict>`
-  both default to :attr:`OVERWRITE <bidict.DuplicationBehavior.OVERWRITE>`,
+  :attr:`OVERWRITE <bidict.DuplicationBehavior.OVERWRITE>`,
+  while ``on_dup_val`` and ``on_dup_kv`` default to
+  :attr:`RAISE <bidict.DuplicationBehavior.RAISE>`.
+  For :class:`loosebidict <bidict.loosebidict>`
+  all default to :attr:`OVERWRITE <bidict.DuplicationBehavior.OVERWRITE>`,
   maintaining backwards compatibility with the previous behavior
   when called with no keyword arguments.
 - New :func:`putall() <bidict.bidict.putall>` method
-  provides a bulk :func:`put() <bidict.bidict.put>` API.
+  provides a bulk :func:`put() <bidict.bidict.put>` API,
+  additionally accepting a ``precheck`` kwarg (see below).
 - Make initialization and bulk insert operations safer and more predictable
   by checking for and processing items with duplicate keys and values
   ahead of inserting any of the given items, by default.
@@ -47,12 +49,17 @@ when a new version of bidict is released.
   is raised by an :func:`update() <bidict.bidict.update>` call,
   you can be sure that none of the given items were inserted.
   This default behavior can be overridden when calling
-  :func:`putall() <bidict.bidict.putall>` by passing *precheck=False*.
-- New exceptions provide more precise information about error conditions:
+  :func:`putall() <bidict.bidict.putall>` by passing ``precheck=False``.
+  Note: :class:`loosebidict <bidict.loosebidict>` defaults to
+  ``precheck=False`` for these operations.
+- New exceptions provide more precise information about error conditions
+  which are now raised under corresponding circumstances:
 
   - :class:`UniquenessError <bidict.UniquenessError>`
   - :class:`KeyNotUniqueError <bidict.KeyNotUniqueError>`
   - :class:`ValueNotUniqueError <bidict.ValueNotUniqueError>`
+  - :class:`KeyAndValueNotUniqueError <bidict.KeyAndValueNotUniqueError>`
+  - :class:`KeyAndValueExistError <bidict.KeyAndValueExistError>`
 - Drop official support for CPython 3.3
   (it will probably continue to work but is no longer being tested).
 - Fix issue preventing a client class from inheriting from

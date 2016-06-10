@@ -15,14 +15,14 @@ class OrderedBidirectionalMapping(BidirectionalMapping):
     __reversed__ = _proxied('__reversed__',
                             doc='Like :func:`collections.OrderedDict.__reversed__`.')
 
-
-class orderedbidict(OrderedBidirectionalMapping, bidict):
-    """Mutable, ordered bidict type."""
-
     def __repr__(self):
         s = repr(self._fwd)
         s = s.replace(self._fwd.__class__.__name__, self.__class__.__name__, 1)
         return s
+
+
+class orderedbidict(OrderedBidirectionalMapping, bidict):
+    """Mutable, ordered bidict type."""
 
     def popitem(self, last=True):
         """Similar to :meth:`collections.OrderedDict.popitem`."""

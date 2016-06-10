@@ -17,14 +17,11 @@ Adding a new key associated with an existing value succeeds::
     >>> b
     loosebidict({3: 1})
 
-Using ``put`` and ``update`` with an existing key successfully overwrites::
+Using ``update`` with an existing key successfully overwrites::
 
-    >>> b.put(3, 'three')
+    >>> b.update({3: 2})
     >>> b
-    loosebidict({3: 'three'})
-    >>> b.update({3: 4})
-    >>> b
-    loosebidict({3: 4})
+    loosebidict({3: 2})
 
 Subclassing works as expected::
 

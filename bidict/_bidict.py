@@ -38,13 +38,13 @@ class bidict(BidirectionalMapping, MutableMapping):
 
         :raises bidict.ValueExistsError: if *val* is not unique.
         """
-        self._put(key, val, OVERWRITE, RAISE)
+        self._put(key, val, self._on_dup_key, self._on_dup_val, self._on_dup_kv)
 
-    def put(self, key, val, on_dup_key=RAISE, on_dup_val=RAISE):
+    def put(self, key, val, on_dup_key=RAISE, on_dup_val=RAISE, on_dup_kv=RAISE):
         """
         Associate *key* with *val* with the specified duplication behaviors.
 
-        For example, if *on_dup_key* and *on_dup_val* are both
+        For example, if all given duplication behaviors are
         :attr:`DuplicationBehavior.RAISE <bidict.DuplicationBehavior.RAISE>`,
         then *key* will be associated with *val* if and only if
         *key* is not already associated with an existing value and
@@ -60,8 +60,13 @@ class bidict(BidirectionalMapping, MutableMapping):
         :raises bidict.ValueExistsError: if attempting to insert an item
             whose value duplicates an existing item's, and *on_dup_val* is
             :attr:`DuplicationBehavior.RAISE <bidict.DuplicationBehavior.RAISE>`.
+
+        :raises bidict.KeyAndValueExistError: if attempting to insert an item
+            whose key duplicates one existing item's, and whose value
+            duplicates another existing item's, and *on_dup_kv* is
+            :attr:`DuplicationBehavior.RAISE <bidict.DuplicationBehavior.RAISE>`.
         """
-        self._put(key, val, on_dup_key, on_dup_val)
+        self._put(key, val, on_dup_key, on_dup_val, on_dup_kv)
 
     def forceput(self, key, val):
         """
@@ -70,7 +75,7 @@ class bidict(BidirectionalMapping, MutableMapping):
         Replace any existing mappings containing key *key* or value *val*
         as necessary to preserve uniqueness.
         """
-        self._put(key, val, OVERWRITE, OVERWRITE)
+        self._put(key, val, OVERWRITE, OVERWRITE, OVERWRITE)
 
     def clear(self):
         """Remove all items."""
@@ -104,40 +109,32 @@ class bidict(BidirectionalMapping, MutableMapping):
         return self[key]
 
     def update(self, *args, **kw):
-        """Like :attr:`putall` with default dup. behaviors and precheck=True."""
-        self._update(OVERWRITE, RAISE, True, *args, **kw)
+        """Like :attr:`putall` with default dup. and precheck behaviors."""
+        self._update(self._on_dup_key, self._on_dup_val, self._on_dup_kv,
+                     self._precheck, *args, **kw)
 
     def forceupdate(self, *args, **kw):
         """Like a bulk :attr:`forceput`."""
-        self._update(OVERWRITE, OVERWRITE, True, *args, **kw)
+        self._update(OVERWRITE, OVERWRITE, OVERWRITE, self._precheck, *args, **kw)
 
-    def putall(self, on_dup_key, on_dup_val, precheck, *args, **kw):
+    def putall(self, items, on_dup_key=RAISE, on_dup_val=RAISE, on_dup_kv=RAISE, precheck=True):
         """
         Like a bulk :attr:`put`.
 
-        Any (k, v) item in *args* or *kw* that is already in this bidict
-        will be ignored,
-        regardless of specified duplication behaviors.
-        In particular, a duplicate item will not cause an exception
-        even when *on_dup_key* or *on_dup_val* is
-        :attr:`DuplicationBehavior.RAISE <bidict.DuplicationBehavior.RAISE>`,
-        since adding an already-existing item is construed as a no-op.
-
-        Otherwise, if *on_dup_key* (*on_dup_val*) is
-        :attr:`DuplicationBehavior.RAISE <bidict.DuplicationBehavior.RAISE>`,
-        a :class:`bidict.KeyExistsError` (:class:`bidict.ValueExistsError`)
-        will be raised if the key (value) of a given
-        item duplicates that of an existing item,
-        and a :class:`KeyNotUniqueError` (:class:`ValueNotUniqueError`)
-        will be raised if the key (value) of a given
-        item duplicates that of another given item.
-
         If *precheck* is truthy,
-        checking for and processing duplicates in the given items
-        is performed entirely before inserting any of them,
-        so that if e.g. one of the items would cause an exception to be raised,
-        none of the other items gets inserted before this,
-        which would otherwise result in the update being applied partially
-        before failing.
+        checking for and processing duplicates
+        first both within the given items
+        and then between the given items and the existing items
+        are both performed entirely before inserting any of the given items.
+
+        This means that if one of the given items
+        causes an exception to be raised,
+        none of the items is inserted.
+
+        Note that if there is any duplication
+        that does not trigger an exception
+        as per the given duplication behaviors,
+        *precheck* still affects the order in which duplicates are processed
+        and so affects which items are inserted, overwritten, or ignored.
         """
-        self._update(on_dup_key, on_dup_val, precheck, *args, **kw)
+        self._update(on_dup_key, on_dup_val, on_dup_kv, precheck, items)

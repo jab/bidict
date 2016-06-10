@@ -180,20 +180,22 @@ leaving a bidict in an inconsistent state::
     >>> b['one'] = 2
     Traceback (most recent call last):
         ...
-    ValueExistsError: Value 2 exists with key 'two'
+    KeyAndValueExistError: Key 'one' exists with value 1, and value 2 exists with key 'two'
     >>> len(b) == len(b.inv)
     True
 
 ``put`` and ``putall`` allow you to have
 per-call control over collision behavior
 (see doctests in ``../docs/unique-values.rst.inc``).
-(Also ``putall`` gives per-call control over atomic bulk-insert behavior.)
+(Also ``putall`` gives per-call control over bulk-insert ``precheck`` behavior.)
 
 Even with RAISE collision behavior,
 inserting existing items is a no-op (i.e. it doesn't raise)::
 
     >>> from bidict import RAISE
-    >>> b.putall(RAISE, RAISE, 1, (('three', 3), ('one', 1))) is not 'an error'
+    >>> b.putall([('three', 3), ('one', 1)],
+    ...          on_dup_key=RAISE, on_dup_val=RAISE,
+    ...          precheck=True) is not 'an error'
     True
     >>> sorted(b.items(), key=lambda x: x[1])
     [('one', 1), ('two', 2), ('three', 3)]

@@ -13,8 +13,8 @@ See https://bidict.readthedocs.org/ for comprehensive documentation.
 from ._common import (BidirectionalMapping,
                       DuplicationBehavior, RAISE, OVERWRITE, IGNORE,
                       BidictException, UniquenessError,
-                      KeyNotUniqueError, ValueNotUniqueError,
-                      KeyExistsError, ValueExistsError)
+                      KeyNotUniqueError, ValueNotUniqueError, KeyAndValueNotUniqueError,
+                      KeyExistsError, ValueExistsError, KeyAndValueExistError)
 from ._bidict import bidict
 from ._loose import loosebidict
 from ._frozen import frozenbidict
@@ -25,7 +25,6 @@ from .util import pairs, inverted
 
 __all__ = (
     'BidirectionalMapping',
-    'OrderedBidirectionalMapping',
     'DuplicationBehavior',
     'RAISE',
     'OVERWRITE',
@@ -34,12 +33,15 @@ __all__ = (
     'UniquenessError',
     'KeyNotUniqueError',
     'ValueNotUniqueError',
+    'KeyAndValueNotUniqueError',
     'KeyExistsError',
     'ValueExistsError',
+    'KeyAndValueExistError',
     'bidict',
     'loosebidict',
     'frozenbidict',
     'namedbidict',
+    'OrderedBidirectionalMapping',
     'orderedbidict',
     'frozenorderedbidict',
     'looseorderedbidict',

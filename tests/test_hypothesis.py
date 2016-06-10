@@ -3,8 +3,8 @@ Property-based tests using https://warehouse.python.org/project/hypothesis/
 """
 
 from bidict import (
-    bidict, loosebidict, looseorderedbidict, orderedbidict,
-    frozenbidict, frozenorderedbidict, OrderedBidirectionalMapping)
+    OrderedBidirectionalMapping,
+    bidict, loosebidict, looseorderedbidict, orderedbidict)
 from bidict.compat import iteritems, viewitems
 from hypothesis import assume, given, settings
 from hypothesis.strategies import (
@@ -15,9 +15,7 @@ import pytest
 
 
 # https://groups.google.com/d/msg/hypothesis-users/8FVs--1yUl4/JEkJ02euEwAJ
-settings.register_profile('default', settings(
-    strict=True,
-))
+settings.register_profile('default', settings(strict=True))
 settings.load_profile(getenv('HYPOTHESIS_PROFILE', 'default'))
 
 
@@ -31,20 +29,20 @@ def prune_dup_vals(d):
     return pruned
 
 
-bidict_types = (bidict, loosebidict, looseorderedbidict, orderedbidict,
-                frozenbidict, frozenorderedbidict)
+mutable_bidict_types = (bidict, loosebidict, looseorderedbidict, orderedbidict)
 mutating_methods_by_arity = {
     0: ('clear', 'popitem',),
     1: ('__delitem__', 'pop', 'setdefault', 'move_to_end',),
     2: ('__setitem__', 'pop', 'put', 'forceput', 'setdefault',),
     -1: ('update', 'forceupdate',),
-    # TODO: test putall with all duplication behaviors
 }
 sz = dict(average_size=2)
 immu_atom = none() | booleans() | integers() | floats(allow_nan=False) | text(**sz) | binary(**sz)
 immu_coll = lambda e: frozensets(e, **sz) | lists(e, **sz).map(tuple)
 immutable = recursive(immu_atom, immu_coll)
-d = dictionaries(immutable, immutable, average_size=5).map(prune_dup_vals)
+itemlists = lists(tuples(immutable, immutable))
+dicts = dictionaries(immutable, immutable)
+d = dicts.map(prune_dup_vals)
 
 
 @given(d)
@@ -74,9 +72,11 @@ def test_len(d):
 
 @pytest.mark.parametrize('arity,methodname',
     [(a, m) for (a, ms) in iteritems(mutating_methods_by_arity) for m in ms])
-@pytest.mark.parametrize('B', bidict_types)
-@given(d=d, arg1=immutable, arg2=immutable, itemlist=lists(tuples(immutable, immutable), **sz))
-def test_consistency(arity, methodname, B, d, arg1, arg2, itemlist):
+@pytest.mark.parametrize('B', mutable_bidict_types)
+@given(d=d, arg1=immutable, arg2=immutable, itemlist=itemlists)
+def test_consistency_after_mutation(arity, methodname, B, d, arg1, arg2, itemlist):
+    loose = issubclass(B, loosebidict)
+    ordered = issubclass(B, OrderedBidirectionalMapping)
     b = B(d)
     assert dict(b) == inv(b.inv)
     assert dict(b.inv) == inv(b)
@@ -95,14 +95,15 @@ def test_consistency(arity, methodname, B, d, arg1, arg2, itemlist):
     try:
         method(b, *args)
     except:
-        # When the method call fails, b should equal b0, i.e. b is unchanged.
-        # This should hold even for bulk updates since they're atomic.
-        assert b == b0
-        assert b.inv == b0.inv
+        # When the method call fails, b should equal b0, i.e. b is unchanged,
+        # iff the method has safe precheck=True behavior by default.
+        # This is the case for all non-loosebidicts.
+        if not loose:
+            assert b == b0
+            assert b.inv == b0.inv
     assert dict(b) == inv(b.inv)
     assert dict(b.inv) == inv(b)
-    ordered = issubclass(B, OrderedBidirectionalMapping)
-    if ordered and methodname != 'move_to_end':
+    if not loose and ordered and methodname != 'move_to_end':
         items0 = list(viewitems(b0))
         items1 = list(viewitems(b))
         common = set(items0) & set(items1)

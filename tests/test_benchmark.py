@@ -1,4 +1,4 @@
-from bidict import bidict, orderedbidict, ValueExistsError, OVERWRITE, RAISE
+from bidict import bidict, orderedbidict, ValueExistsError
 import pytest
 
 
@@ -68,11 +68,11 @@ def test_update_withdup(benchmark):
     benchmark(runner)
 
 
-def test_update_withdup_nonatomic(benchmark):
+def test_putall_withdup_noprecheck(benchmark):
     elements_ = bidict(elements)
 
     def runner():
         with pytest.raises(ValueExistsError):
-            elements_.putall(OVERWRITE, RAISE, False, update_withdupval)
+            elements_.putall(update_withdupval, precheck=False)
 
     benchmark(runner)

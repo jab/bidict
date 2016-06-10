@@ -100,14 +100,17 @@ instead of :func:`__setitem__() <bidict.bidict.__setitem__>`,
 and use :func:`putall() <bidict.bidict.putall>`
 instead of :func:`update() <bidict.bidict.update>`.
 These methods allow you to specify different strategies for handling
-key and value duplication via the *on_dup_key* and *on_dup_val* arguments.
+key and value duplication via
+the *on_dup_key*, *on_dup_val*, and *on_dup_kv* arguments.
 Possible options are
 :class:`RAISE <bidict.DuplicationBehavior.RAISE>`,
 :class:`OVERWRITE <bidict.DuplicationBehavior.OVERWRITE>`, and
 :class:`IGNORE <bidict.DuplicationBehavior.IGNORE>`.
-:func:`putall() <bidict.bidict.putall>` also accepts a *precheck* positional arg,
+:func:`putall() <bidict.bidict.putall>` also accepts a *precheck* argument,
 which allows you to control whether the given items should be processed for
-duplication in their entirety before any of them are inserted::
+duplication in their entirety,
+first within them and then with respect to existing items,
+before any of them are inserted::
 
     >>> from bidict import RAISE, IGNORE
     >>> b = bidict({2: 4})
@@ -115,40 +118,54 @@ duplication in their entirety before any of them are inserted::
     Traceback (most recent call last):
         ...
     KeyExistsError: Key 2 exists with value 4
-    >>> b.putall(RAISE, IGNORE, True, [(3, 9), (2, 8)])
+    >>> b.putall([(3, 9), (2, 8)], on_dup_key=RAISE, on_dup_val=IGNORE)
     Traceback (most recent call last):
         ...
     KeyExistsError: Key 2 exists with value 4
     >>> b  # Note (3, 9) not added b/c call failed and we gave precheck=True:
     bidict({2: 4})
-    >>> b.putall(RAISE, IGNORE, True, {3: 9, 1: 4})
+    >>> b.putall({3: 9, 1: 4}, on_dup_key=RAISE, on_dup_val=IGNORE)
     >>> sorted(b.items())  # Note (1, 4) ignored b/c we gave on_dup_val=IGNORE:
     [(2, 4), (3, 9)]
 
-Note: The *on_dup_key* and *on_dup_val* keyword arguments
-of :func:`put() <bidict.bidict.put>`
-both default to *RAISE*,
-providing a more-conservative-by-default alternative to
-:func:`__setitem__() <bidict.bidict.__setitem__>`.
+Note: The *on_dup_key*, *on_dup_val*, and *on_dup_kv* keyword arguments of
+:func:`put() <bidict.bidict.put>`
+and
+:func:`putall() <bidict.bidict.putall>`
+all default to *RAISE*,
+providing more-conservative-by-default alternatives to
+:func:`__setitem__() <bidict.bidict.__setitem__>`
+and
+:func:`update() <bidict.bidict.update>`.
 
 As with :func:`update() <bidict.bidict.update>`,
 with :func:`putall() <bidict.bidict.putall>`,
 the duplication behaviors apply not only
-with respect to existing items,
-but also with respect to the items to add::
+with respect to duplication of existing items,
+but also with respect to duplication within the given items::
 
     >>> 5 not in b
     True
-    >>> b.putall(RAISE, RAISE, True, [(5, 10), (5, 25)])
+    >>> b.putall([(5, 10), (5, 25)])
     Traceback (most recent call last):
         ...
     KeyNotUniqueError: 5
     >>> 16 not in b.inv
     True
-    >>> b.putall(RAISE, RAISE, True, [(4, 16), (8, 16)])
+    >>> b.putall([(4, 16), (8, 16)])
     Traceback (most recent call last):
         ...
     ValueNotUniqueError: 16
+
+Note that it's possible for a given item to duplicate
+the key of one existing item and the value of another existing item.
+This is where *on_dup_kv* comes in::
+
+    >>> b.putall([(4, 16), (5, 25), (4, 25)],
+    ...          on_dup_key=IGNORE, on_dup_val=IGNORE, on_dup_kv=RAISE)
+    Traceback (most recent call last):
+        ...
+    KeyAndValueNotUniqueError: (4, 25)
 
 Note that if an entire *(k, v)* item in the update is duplicated
 elsewhere in the update
@@ -157,10 +174,10 @@ the entire item will just be ignored,
 no matter what the key and value duplication behaviors are set to.
 The insertion of a duplicate item is construed as a no-op::
 
-    >>> b.putall(RAISE, RAISE, True, [(4, 16), (4, 16)])
+    >>> b.putall([(4, 16), (4, 16)])
     >>> sorted(b.items())
     [(2, 4), (3, 9), (4, 16)]
-    >>> b.putall(RAISE, RAISE, True, [(4, 16)])
+    >>> b.putall([(4, 16)])
     >>> sorted(b.items())
     [(2, 4), (3, 9), (4, 16)]
 
@@ -179,7 +196,6 @@ to explicitly overwrite existing keys and values::
 
 Or you can use a :class:`loosebidict <bidict.loosebidict>`, whose
 :func:`__setitem__() <bidict.loosebidict.__setitem__>`,
-:func:`put() <bidict.loosebidict.put>`, and
 :func:`update() <bidict.loosebidict.update>`
 methods use *OVERWRITE* behaviors by default::
 
@@ -188,12 +204,9 @@ methods use *OVERWRITE* behaviors by default::
     >>> b['two'] = 1
     >>> b
     loosebidict({'two': 1})
-    >>> b.put('three', 1)
+    >>> b.update({'three': 1})
     >>> b
     loosebidict({'three': 1})
-    >>> b.update({'four': 1})
-    >>> b
-    loosebidict({'four': 1})
 
 Beware that *OVERWRITE* semantics cause
 the following potentially surprising behavior::
