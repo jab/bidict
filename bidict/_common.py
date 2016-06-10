@@ -210,7 +210,6 @@ class BidirectionalMapping(Mapping):
         return copy
 
     __copy__ = copy
-
     __len__ = _proxied('__len__')
     __iter__ = _proxied('__iter__')
     __contains__ = _proxied('__contains__')

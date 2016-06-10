@@ -17,4 +17,8 @@ nan is especially tricky when used as a dictionary key::
 
 In other Python implementations such as PyPy,
 nan behaves just like any other dictionary key.
-But in CPython, beware of this unexpected behavior.
+But in CPython, beware of this unexpected behavior,
+which applies to bidicts too.
+bidict contains no special-case logic
+for dealing with nan as a key,
+so the behavior will match dict's in the host environment.

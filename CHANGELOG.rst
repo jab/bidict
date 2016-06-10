@@ -64,7 +64,7 @@ when a new version of bidict is released.
   (it will probably continue to work but is no longer being tested).
 - Fix issue preventing a client class from inheriting from
   :class:`loosebidict <bidict.loosebidict>`
-  (see `#34 <https://github.com/jab/bidict/issues/34>`_)
+  (see `#34 <https://github.com/jab/bidict/issues/34>`_).
 - Add
 
   - :func:`bidict.compat.viewkeys`
