@@ -52,8 +52,8 @@ For example::
     >>> b[2] = True
     Traceback (most recent call last):
        ...
-    ValueExistsError: Value 1 exists with key 1
+    ValueNotUniqueError: Value duplicated in item: (1, 1)
     >>> b.put(True, 'true')
     Traceback (most recent call last):
        ...
-    KeyExistsError: Key 1 exists with value 1
+    KeyNotUniqueError: Key duplicated in item: (1, 1)

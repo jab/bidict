@@ -97,13 +97,15 @@ def test_consistency_after_mutation(arity, methodname, B, d, arg1, arg2, itemlis
     except:
         # When the method call fails, b should equal b0, i.e. b is unchanged,
         # iff the method has safe precheck=True behavior by default.
-        # This is the case for all non-loosebidicts.
-        if not loose:
+        # loosebidict has precheck=False behavior by default, so this won't
+        # hold for (arity == -1) bulk updates to loosebidict.
+        if not loose or arity != -1:
             assert b == b0
             assert b.inv == b0.inv
     assert dict(b) == inv(b.inv)
     assert dict(b.inv) == inv(b)
-    if not loose and ordered and methodname != 'move_to_end':
+    if ordered and methodname != 'move_to_end' and (
+            (not loose or arity != -1)):
         items0 = list(viewitems(b0))
         items1 = list(viewitems(b))
         common = set(items0) & set(items1)

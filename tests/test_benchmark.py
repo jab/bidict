@@ -1,4 +1,4 @@
-from bidict import bidict, orderedbidict, ValueExistsError
+from bidict import bidict, orderedbidict, ValueNotUniqueError
 import pytest
 
 
@@ -47,7 +47,7 @@ def test_put_withdup(benchmark):
     elements_ = bidict(elements)
 
     def runner():
-        with pytest.raises(ValueExistsError):
+        with pytest.raises(ValueNotUniqueError):
             elements_.put('key_with_dup_val', 'hydrogen')
 
     benchmark(runner)
@@ -62,7 +62,7 @@ def test_update_withdup(benchmark):
     elements_ = bidict(elements)
 
     def runner():
-        with pytest.raises(ValueExistsError):
+        with pytest.raises(ValueNotUniqueError):
             elements_.update(update_withdupval)
 
     benchmark(runner)
@@ -72,7 +72,7 @@ def test_putall_withdup_noprecheck(benchmark):
     elements_ = bidict(elements)
 
     def runner():
-        with pytest.raises(ValueExistsError):
+        with pytest.raises(ValueNotUniqueError):
             elements_.putall(update_withdupval, precheck=False)
 
     benchmark(runner)

@@ -102,78 +102,25 @@ class BidirectionalMapping(Mapping):
     def __getitem__(self, key):
         return self._fwd[key]
 
+    def _del(self, key):
+        val = self._fwd.pop(key)
+        del self._inv[val]
+        return val
+
     def _put(self, key, val, on_dup_key, on_dup_val, on_dup_kv):
-        result = self._dedup_item(key, val, on_dup_key, on_dup_val, on_dup_kv)
+        result = _dedup_item(self._fwd, self._inv, key, val, on_dup_key, on_dup_val, on_dup_kv)
         if result:
-            self._write_item(*result)
+            self._write_item(key, val, *result)
 
-    def _dedup_item(self, key, val, on_dup_key, on_dup_val, on_dup_kv):
-        """
-        Check the given key and value for any duplication in self.
-
-        Handle any duplication as per the given duplication behaviors.
-
-        If duplication is found and the corresponding duplication behavior is
-        *RAISE*, raise the appropriate error.
-
-        If duplication is found and the corresponding duplication behavior is
-        *IGNORE*, return *None*.
-
-        If duplication is found and the corresponding duplication behavior is
-        *OVERWRITE*, or if no duplication is found,
-        return *(key, val), (oldkey, oldval)*.
-        """
-        _fwd = self._fwd
-        _inv = self._inv
-        oldv = _fwd.get(key, _missing)
-        oldk = _inv.get(val, _missing)
-        dupitem = oldv == val
-        assert dupitem == (oldk == key)
-        dupk = oldv is not _missing
-        dupv = oldk is not _missing
-        # Rather than pass `key` and `val` to the exceptions below, pass
-        # `_inv[oldv]` and `_fwd[oldk]` so that existing values are given
-        # exactly. Hash-equivalence != identity, e.g. hash(0) == hash(0.0)
-        # but 0 is not 0.0.
-        if dupk and dupv:
-            if dupitem:  # (k, v) duplicates a previous item.
-                if on_dup_kv is RAISE:
-                    return  # Never want to raise in this case.
-                elif on_dup_kv is IGNORE:
-                    return
-                # else on_dup_kv is OVERWRITE.
-                # Fall through to the return on the last line.
-            else:
-                # k and v each duplicate a different previous item.
-                if on_dup_kv is RAISE:
-                    raise KeyAndValueExistError((_inv[oldv], oldv), (oldk, _fwd[oldk]))
-                elif on_dup_kv is IGNORE:
-                    return
-                # else on_dup_kv is OVERWRITE.
-        else:
-            if dupk:
-                if on_dup_key is RAISE:
-                    raise KeyExistsError((_inv[oldv], oldv))
-                elif on_dup_key is IGNORE:
-                    return
-                # else on_dup_key is OVERWRITE.
-            elif dupv:
-                if on_dup_val is RAISE:
-                    raise ValueExistsError((oldk, _fwd[oldk]))
-                elif on_dup_val is IGNORE:
-                    return
-                # else on_dup_val is OVERWRITE.
-        return key, val, dupk, dupv, oldk, oldv
-
-    def _write_item(self, key, val, dupk, dupv, oldk, oldv):
+    def _write_item(self, key, val, isdupkey, isdupval, oldkey, oldval):
         # Only remove old key (val) before writing if we're not about to
         # write the same key (val). Thus if this is an orderedbidict, the
         # item is changed in place rather than moved to the end.
-        if dupk and oldk != key:
-            del self._fwd[self._inv.pop(oldv)]
-        if dupv and oldv != val:
+        if isdupkey and oldkey != key:
+            del self._fwd[self._inv.pop(oldval)]
+        if isdupval and oldval != val:
             # Use pop with defaults in case we just took the branch 2 lines up.
-            self._inv.pop(self._fwd.pop(oldk, _missing), None)
+            self._inv.pop(self._fwd.pop(oldkey, _missing), None)
         self._fwd[key] = val
         self._inv[val] = key
 
@@ -184,16 +131,19 @@ class BidirectionalMapping(Mapping):
         if precheck:
             # Process dups within update.
             update = _dedup_update(on_dup_key, on_dup_val, on_dup_kv, *args, **kw)
-            # Check if any dups between update and existing items in self would
-            # cause an error. If so, raise it here, before applying the update.
-            # Feeding into a 0-length deque consumes the generator without any
-            # unnecessary accumulation.
-            deque((self._dedup_item(k, v, on_dup_key, on_dup_val, on_dup_kv)
-                   for (k, v) in pairs(update)), maxlen=0)
+            if on_dup_key is RAISE or on_dup_val is RAISE or on_dup_kv is RAISE:
+                # Check if any dups between update and existing items in self
+                # would cause an error.
+                gen = (_dedup_item(self._fwd, self._inv, k, v, on_dup_key, on_dup_val, on_dup_kv)
+                       for (k, v) in pairs(update))
+                # Feeding generator into a 0-length deque consumes it without
+                # any unnecessary accumulation. If there is any error-causing
+                # duplication, the error will be raised here, before applying
+                # the update.
+                deque(gen, maxlen=0)
             update = pairs(update)
         else:
             update = pairs(*args, **kw)
-
         for (k, v) in update:
             _put(k, v, on_dup_key=on_dup_key, on_dup_val=on_dup_val, on_dup_kv=on_dup_kv)
 
@@ -234,6 +184,64 @@ class BidirectionalMapping(Mapping):
         values.__doc__ = 'Like :py:meth:`dict.values`.'
 
 
+def _dedup_item(exfwd, exinv, key, val, on_dup_key, on_dup_val, on_dup_kv):
+    """
+    Check the given key and value for any duplication in existing forward
+    and inverse dictionaries.
+
+    Handle any duplication as per the given duplication behaviors.
+
+    If duplication is found and the corresponding duplication behavior is
+    *RAISE*, raise the appropriate error.
+
+    If duplication is found and the corresponding duplication behavior is
+    *IGNORE*, return *None*.
+
+    If duplication is found and the corresponding duplication behavior is
+    *OVERWRITE*, or if no duplication is found,
+    return *(isdupkey, isdupval, oldkey, oldval)*.
+    """
+    oldval = exfwd.get(key, _missing)
+    oldkey = exinv.get(val, _missing)
+    isdupitem = oldval == val
+    assert isdupitem == (oldkey == key)
+    isdupkey = oldval is not _missing
+    isdupval = oldkey is not _missing
+    # Rather than pass `key` and `val` to the exceptions below, pass
+    # `exinv[oldval]` and `exfwd[oldkey]` so that existing values are given
+    # exactly. Hash-equivalence != identity, e.g. hash(0) == hash(0.0)
+    # but 0 is not 0.0.
+    if isdupkey and isdupval:
+        if isdupitem:  # (k, v) duplicates an existing item.
+            if on_dup_kv is RAISE:
+                return  # Never want to raise in this case.
+            elif on_dup_kv is IGNORE:
+                return
+            # else on_dup_kv is OVERWRITE.
+            # Fall through to the return on the last line.
+        else:
+            # k and v each duplicate a different existing item.
+            if on_dup_kv is RAISE:
+                raise KeyAndValueNotUniqueError((exinv[oldval], oldval), (oldkey, exfwd[oldkey]))
+            elif on_dup_kv is IGNORE:
+                return
+            # else on_dup_kv is OVERWRITE.
+    else:
+        if isdupkey:
+            if on_dup_key is RAISE:
+                raise KeyNotUniqueError((exinv[oldval], oldval))
+            elif on_dup_key is IGNORE:
+                return
+            # else on_dup_key is OVERWRITE.
+        elif isdupval:
+            if on_dup_val is RAISE:
+                raise ValueNotUniqueError((oldkey, exfwd[oldkey]))
+            elif on_dup_val is IGNORE:
+                return
+            # else on_dup_val is OVERWRITE.
+    return isdupkey, isdupval, oldkey, oldval
+
+
 def _dedup_update(on_dup_key, on_dup_val, on_dup_kv, *args, **kw):
     arg = _arg0(args) if args else None
     if isinstance(arg, Sized) and (len(arg) + len(kw) == 1):
@@ -243,52 +251,21 @@ def _dedup_update(on_dup_key, on_dup_val, on_dup_kv, *args, **kw):
     # Must dedup.
     updatefwd = OrderedDict()  # Order affects which items survive dedup.
     updateinv = {}
-    for (k, v) in pairs(*args, **kw):
-        pv = updatefwd.get(k, _missing)
-        pk = updateinv.get(v, _missing)
-        dupitem = pv == v
-        assert dupitem == (pk == k)
-        dupk = pv is not _missing
-        dupv = pk is not _missing
-        if dupk and dupv:
-            if dupitem:  # (k, v) duplicates a previous item.
-                if on_dup_kv is RAISE:
-                    continue  # Never want to raise in this case.
-                elif on_dup_kv is IGNORE:
-                    continue
-                # else on_dup_kv is OVERWRITE.
-                # Fall through to the overwrite code below, so (k, v) comes
-                # later in the update.
-            else:
-                # k and v each duplicate a different previous item.
-                if on_dup_kv is RAISE:
-                    raise KeyAndValueNotUniqueError((k, v))
-                elif on_dup_kv is IGNORE:
-                    continue
-                # else on_dup_kv is OVERWRITE.
-        else:
-            if dupk:
-                if on_dup_key is RAISE:
-                    raise KeyNotUniqueError(k)
-                elif on_dup_key is IGNORE:
-                    continue
-                # else on_dup_key is OVERWRITE.
-            elif dupv:
-                if on_dup_val is RAISE:
-                    raise ValueNotUniqueError(v)
-                elif on_dup_val is IGNORE:
-                    continue
-                # else on_dup_val is OVERWRITE.
+    for (key, val) in pairs(*args, **kw):
+        result = _dedup_item(updatefwd, updateinv, key, val, on_dup_key, on_dup_val, on_dup_kv)
+        if not result:
+            continue
+        isdupkey, isdupval, oldkey, oldval = result
         # Popping any items we're about to overwrite first ensures that
         # the overwriting items come later, preserving relative ordering
         # within the update.
-        if dupk:
-            del updatefwd[updateinv.pop(pv)]
-        if dupv:
+        if isdupkey:
+            del updatefwd[updateinv.pop(oldval)]
+        if isdupval:
             # Use pop with defaults in case we just took the branch 2 lines up.
-            updateinv.pop(updatefwd.pop(pk, _missing), None)
-        updatefwd[k] = v
-        updateinv[v] = k
+            updateinv.pop(updatefwd.pop(oldkey, _missing), None)
+        updatefwd[key] = val
+        updateinv[val] = key
     return updatefwd
 
 
@@ -303,9 +280,15 @@ class UniquenessError(BidictException):
 class KeyNotUniqueError(UniquenessError):
     """Raised when a given key is not unique."""
 
+    def __str__(self):
+        return ('Key duplicated in item: %r' % self.args) if self.args else ''
+
 
 class ValueNotUniqueError(UniquenessError):
     """Raised when a given value is not unique."""
+
+    def __str__(self):
+        return ('Value duplicated in item: %r' % self.args) if self.args else ''
 
 
 class KeyAndValueNotUniqueError(KeyNotUniqueError, ValueNotUniqueError):
@@ -316,34 +299,5 @@ class KeyAndValueNotUniqueError(KeyNotUniqueError, ValueNotUniqueError):
     and its value duplicates that of a different other item.
     """
 
-
-class KeyExistsError(KeyNotUniqueError):
-    """
-    Raised when attempting to insert an item
-    whose key duplicates that of an already-existing item.
-    """
-
     def __str__(self):
-        return 'Key {0!r} exists with value {1!r}'.format(*self.args[0]) if self.args else ''
-
-
-class ValueExistsError(ValueNotUniqueError):
-    """
-    Raised when attempting to insert an item
-    whose value duplicates that of an already-existing item.
-    """
-
-    def __str__(self):
-        return 'Value {1!r} exists with key {0!r}'.format(*self.args[0]) if self.args else ''
-
-
-class KeyAndValueExistError(KeyExistsError, ValueExistsError, KeyAndValueNotUniqueError):
-    """
-    Raised when attempting to insert an item
-    whose key duplicates that of an already-existing item,
-    and whose value duplicates that of a different already-existing item.
-    """
-
-    def __str__(self):
-        return ('Key {0[0]!r} exists with value {0[1]!r}, and value {1[1]!r} '
-                'exists with key {1[0]!r}'.format(*self.args) if self.args else '')
+        return ('Key and value duplicated in items: %r, %r' % self.args) if self.args else ''

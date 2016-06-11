@@ -28,14 +28,14 @@ resulting in::
 This could result in surprises or problems down the line.
 
 Instead, bidict raises a
-:class:`ValueExistsError <bidict.ValueExistsError>`
+:class:`ValueNotUniqueError <bidict.ValueNotUniqueError>`
 so you have an opportunity to catch this early
 and resolve the conflict before it causes problems later on::
 
     >>> b['two'] = 1
     Traceback (most recent call last):
         ...
-    ValueExistsError: Value 1 exists with key 'one'
+    ValueNotUniqueError: Value duplicated in item: ('one', 1)
 
 The purpose of this is to be more in line with the
 `Zen of Python <https://www.python.org/dev/peps/pep-0020/>`_,
@@ -54,7 +54,7 @@ raise an exception too::
     >>> b.update([('two', 2), ('three', 3), ('uno', 1)])
     Traceback (most recent call last):
         ...
-    ValueExistsError: Value 1 exists with key 'one'
+    ValueNotUniqueError: Value duplicated in item: ('one', 1)
 
 If an update() call raises,
 you can be sure that none of the supplied items were inserted::
@@ -86,7 +86,7 @@ is also checked for and processed accordingly::
     >>> b.update([('two', 2), ('dos', 2)])  # unique keys, duplicate values
     Traceback (most recent call last):
         ...
-    ValueNotUniqueError: 2
+    ValueNotUniqueError: Value duplicated in item: ('two', 2)
 
 In summary,
 when attempting to insert an item with a duplicate key,
@@ -117,11 +117,11 @@ before any of them are inserted::
     >>> b.put(2, 8, on_dup_key=RAISE, on_dup_val=IGNORE)
     Traceback (most recent call last):
         ...
-    KeyExistsError: Key 2 exists with value 4
+    KeyNotUniqueError: Key duplicated in item: (2, 4)
     >>> b.putall([(3, 9), (2, 8)], on_dup_key=RAISE, on_dup_val=IGNORE)
     Traceback (most recent call last):
         ...
-    KeyExistsError: Key 2 exists with value 4
+    KeyNotUniqueError: Key duplicated in item: (2, 4)
     >>> b  # Note (3, 9) not added b/c call failed and we gave precheck=True:
     bidict({2: 4})
     >>> b.putall({3: 9, 1: 4}, on_dup_key=RAISE, on_dup_val=IGNORE)
@@ -149,13 +149,13 @@ but also with respect to duplication within the given items::
     >>> b.putall([(5, 10), (5, 25)])
     Traceback (most recent call last):
         ...
-    KeyNotUniqueError: 5
+    KeyNotUniqueError: Key duplicated in item: (5, 10)
     >>> 16 not in b.inv
     True
     >>> b.putall([(4, 16), (8, 16)])
     Traceback (most recent call last):
         ...
-    ValueNotUniqueError: 16
+    ValueNotUniqueError: Value duplicated in item: (4, 16)
 
 Note that it's possible for a given item to duplicate
 the key of one existing item and the value of another existing item.
@@ -165,7 +165,7 @@ This is where *on_dup_kv* comes in::
     ...          on_dup_key=IGNORE, on_dup_val=IGNORE, on_dup_kv=RAISE)
     Traceback (most recent call last):
         ...
-    KeyAndValueNotUniqueError: (4, 25)
+    KeyAndValueNotUniqueError: Key and value duplicated in items: (4, 16), (5, 25)
 
 Note that if an entire *(k, v)* item in the update is duplicated
 elsewhere in the update

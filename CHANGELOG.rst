@@ -20,7 +20,7 @@ when a new version of bidict is released.
   :func:`inverted() <bidict.util.inverted>`, and
   :func:`bidict.copy() <bidict.BidirectionalMapping.copy>`).
 - :func:`put() <bidict.bidict.put>`
-  now accepts ``on_dup_key``, ``on_dup_val``, and ``on_dup_kv`` kwargs
+  now accepts *on_dup_key*, *on_dup_val*, and *on_dup_kv* keyword args
   which allow you to override the default behavior
   when the key and/or value of a given item
   duplicate those/that of any existing item(s).
@@ -31,9 +31,9 @@ when a new version of bidict is released.
   - :attr:`bidict.DuplicationBehavior.IGNORE`
 
   For :class:`bidict <bidict.bidict>`,
-  ``on_dup_key`` defaults to
+  *on_dup_key* defaults to
   :attr:`OVERWRITE <bidict.DuplicationBehavior.OVERWRITE>`,
-  while ``on_dup_val`` and ``on_dup_kv`` default to
+  while *on_dup_val* and *on_dup_kv* default to
   :attr:`RAISE <bidict.DuplicationBehavior.RAISE>`.
   For :class:`loosebidict <bidict.loosebidict>`
   all default to :attr:`OVERWRITE <bidict.DuplicationBehavior.OVERWRITE>`,
@@ -41,25 +41,28 @@ when a new version of bidict is released.
   when called with no keyword arguments.
 - New :func:`putall() <bidict.bidict.putall>` method
   provides a bulk :func:`put() <bidict.bidict.put>` API,
-  additionally accepting a ``precheck`` kwarg (see below).
+  additionally accepting a *precheck* keyword arg (see below).
 - Make initialization and bulk insert operations safer and more predictable
   by checking for and processing items with duplicate keys and values
   ahead of inserting any of the given items, by default.
-  So e.g. if a :class:`ValueExistsError <bidict.ValueExistsError>`
+  So e.g. if a :class:`ValueNotUniqueError <bidict.ValueNotUniqueError>`
   is raised by an :func:`update() <bidict.bidict.update>` call,
   you can be sure that none of the given items were inserted.
-  This default behavior can be overridden when calling
-  :func:`putall() <bidict.bidict.putall>` by passing ``precheck=False``.
-  Note: :class:`loosebidict <bidict.loosebidict>` defaults to
-  ``precheck=False`` for these operations.
-- New exceptions provide more precise information about error conditions
-  which are now raised under corresponding circumstances:
+  Previously, any of the given items that were processed
+  before the one causing the failure would be inserted,
+  and there was no immediate way to recover
+  which were inserted and which weren't.
+  Because this safer-by-default behavior costs some performance,
+  it can be overridden when calling
+  :func:`putall() <bidict.bidict.putall>` by passing *precheck=False*.
+  Note: :class:`loosebidict <bidict.loosebidict>` instances default to
+  *precheck=False* for bulk inserts.
+- New exceptions, reflecting new cases where they're raised:
 
-  - :class:`UniquenessError <bidict.UniquenessError>`
   - :class:`KeyNotUniqueError <bidict.KeyNotUniqueError>`
   - :class:`ValueNotUniqueError <bidict.ValueNotUniqueError>`
   - :class:`KeyAndValueNotUniqueError <bidict.KeyAndValueNotUniqueError>`
-  - :class:`KeyAndValueExistError <bidict.KeyAndValueExistError>`
+  - :class:`UniquenessError <bidict.UniquenessError>` (base class for the above)
 - Drop official support for CPython 3.3
   (it will probably continue to work but is no longer being tested).
 - Fix issue preventing a client class from inheriting from
@@ -84,8 +87,8 @@ when a new version of bidict is released.
 Breaking API Changes
 ^^^^^^^^^^^^^^^^^^^^
 
-- Rename ``KeyExistsException`` :class:`KeyExistsError <bidict.KeyExistsError>`
-  and ``ValueExistsException`` :class:`ValueExistsError <bidict.ValueExistsError>`.
+- Rename ``KeyExistsException`` :class:`KeyNotUniqueError <bidict.KeyNotUniqueError>`
+  and ``ValueExistsException`` :class:`ValueNotUniqueError <bidict.ValueNotUniqueError>`.
 
 
 0.11.0 (2016-02-05)
