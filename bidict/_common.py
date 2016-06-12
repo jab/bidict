@@ -96,7 +96,7 @@ class BidirectionalMapping(Mapping):
         return not self.__eq__(other)
 
     def __inverted__(self):
-        """Get an iterator over the inverse mappings."""
+        """Get an iterator over the items in :attr:`self.inv <inv>`."""
         return iteritems(self._inv)
 
     def __getitem__(self, key):

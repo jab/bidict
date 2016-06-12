@@ -41,10 +41,8 @@ The purpose of this is to be more in line with the
 `Zen of Python <https://www.python.org/dev/peps/pep-0020/>`_,
 which advises,
 
-::
-
-    Errors should never pass silently.
-    Unless explicitly silenced.
+| *Errors should never pass silently.*
+| *Unless explicitly silenced.*
 
 Similarly, initializations and :func:`update() <bidict.bidict.update>` calls
 that would overwrite the key of an existing value
@@ -77,7 +75,7 @@ in keeping with dict's behavior::
     >>> bidict([('one', 1), ('one', 2)])
     bidict({'one': 2})
 
-Duplication of keys or values *within* a supplied update
+Duplication of keys or values ``within`` a supplied update
 is also checked for and processed accordingly::
 
     >>> b.update([('one', 1), ('one', 'uno')])  # duplicate key, unique values
@@ -89,10 +87,13 @@ is also checked for and processed accordingly::
     ValueNotUniqueError: Value duplicated in item: ('two', 2)
 
 In summary,
-when attempting to insert an item with a duplicate key,
-bidict's default behavior is to allow the insertion.
-When attempting to insert an item with a duplicate value,
+when attempting to insert an item whose key duplicates an existing item's,
+bidict's default behavior is to allow the insertion,
+overwriting the existing item with the new one.
+When attempting to insert an item whose value duplicates an existing item's,
 bidict's default behavior is to raise.
+This design naturally falls out of the behavior of Python's built-in dict,
+and protects against unexpected data loss.
 
 To customize this default behavior,
 use :func:`put() <bidict.bidict.put>`
@@ -101,12 +102,12 @@ and use :func:`putall() <bidict.bidict.putall>`
 instead of :func:`update() <bidict.bidict.update>`.
 These methods allow you to specify different strategies for handling
 key and value duplication via
-the *on_dup_key*, *on_dup_val*, and *on_dup_kv* arguments.
+the ``on_dup_key``, ``on_dup_val``, and ``on_dup_kv`` arguments.
 Possible options are
 :class:`RAISE <bidict.DuplicationBehavior.RAISE>`,
 :class:`OVERWRITE <bidict.DuplicationBehavior.OVERWRITE>`, and
 :class:`IGNORE <bidict.DuplicationBehavior.IGNORE>`.
-:func:`putall() <bidict.bidict.putall>` also accepts a *precheck* argument,
+:func:`putall() <bidict.bidict.putall>` also accepts a ``precheck`` argument,
 which allows you to control whether the given items should be processed for
 duplication in their entirety,
 first within them and then with respect to existing items,
@@ -128,11 +129,11 @@ before any of them are inserted::
     >>> sorted(b.items())  # Note (1, 4) ignored b/c we gave on_dup_val=IGNORE:
     [(2, 4), (3, 9)]
 
-Note: The *on_dup_key*, *on_dup_val*, and *on_dup_kv* keyword arguments of
+Note: The ``on_dup_key``, ``on_dup_val``, and ``on_dup_kv`` keyword arguments of
 :func:`put() <bidict.bidict.put>`
 and
 :func:`putall() <bidict.bidict.putall>`
-all default to *RAISE*,
+all default to ``RAISE``,
 providing more-conservative-by-default alternatives to
 :func:`__setitem__() <bidict.bidict.__setitem__>`
 and
@@ -159,7 +160,7 @@ but also with respect to duplication within the given items::
 
 Note that it's possible for a given item to duplicate
 the key of one existing item and the value of another existing item.
-This is where *on_dup_kv* comes in::
+This is where ``on_dup_kv`` comes in::
 
     >>> b.putall([(4, 16), (5, 25), (4, 25)],
     ...          on_dup_key=IGNORE, on_dup_val=IGNORE, on_dup_kv=RAISE)
@@ -167,7 +168,11 @@ This is where *on_dup_kv* comes in::
         ...
     KeyAndValueNotUniqueError: Key and value duplicated in items: (4, 16), (5, 25)
 
-Note that if an entire *(k, v)* item in the update is duplicated
+Because the given ``on_dup_key`` and ``on_dup_val`` behaviors may differ,
+``on_dup_kv`` allows you to indicate how you want to handle this case
+without ambiguity.
+
+Note that if an entire ``(k, v)`` item in the update is duplicated
 elsewhere in the update
 or is already in the bidict,
 the entire item will just be ignored,
@@ -193,29 +198,3 @@ to explicitly overwrite existing keys and values::
     >>> b.forceupdate({'three': 1})
     >>> b
     bidict({'three': 1})
-
-Or you can use a :class:`loosebidict <bidict.loosebidict>`, whose
-:func:`__setitem__() <bidict.loosebidict.__setitem__>`,
-:func:`update() <bidict.loosebidict.update>`
-methods use *OVERWRITE* behaviors by default::
-
-    >>> from bidict import loosebidict
-    >>> b = loosebidict({'one': 1})
-    >>> b['two'] = 1
-    >>> b
-    loosebidict({'two': 1})
-    >>> b.update({'three': 1})
-    >>> b
-    loosebidict({'three': 1})
-
-Beware that *OVERWRITE* semantics cause
-the following potentially surprising behavior::
-
-    >>> b = loosebidict({'one': 1, 'two': 2})
-    >>> b['one'] = 2
-    >>> b
-    loosebidict({'one': 2})
-
-That is, setting an existing key to the value of a different existing item
-with *OVERWRITE* behavior causes both existing items to be collapsed into
-a single new one.

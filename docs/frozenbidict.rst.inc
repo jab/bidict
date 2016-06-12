@@ -1,5 +1,5 @@
-frozenbidict
-------------
+``frozenbidict``
+----------------
 
 Having :class:`bidict.BidirectionalMapping`
 extend the Mapping ABC rather than MutableMapping

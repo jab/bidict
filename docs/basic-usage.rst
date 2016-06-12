@@ -43,44 +43,18 @@ referencing a bidict's inverse
 is always a constant-time operation.
 
 
+.. include:: values-hashable.rst.inc
+
 .. include:: unique-values.rst.inc
 
+.. include:: loosebidict.rst.inc
 
-Values Must Be Hashable
-+++++++++++++++++++++++
+.. include:: beware-on_dup_kv-overwrite.rst.inc
 
-Because you must be able to look up keys by value as well as values by key,
-values must also be hashable.
+.. include:: performance.rst.inc
 
-Attempting to insert an unhashable value will result in an error::
+.. include:: interop.rst.inc
 
-    >>> anagrams_by_alphagram = bidict(opt=['opt', 'pot', 'top'])
-    Traceback (most recent call last):
-        ...
-    TypeError...
-
-In this example, using a tuple instead of a list does the trick,
-and confers additional benefits of immutability::
-
-    >>> bidict(opt=('opt', 'pot', 'top'))
-    bidict({'opt': ('opt', 'pot', 'top')})
-
-
-Interop
-+++++++
-
-bidicts interoperate well with other types of maps.
-For example, they support (efficient) polymorphic equality testing::
-
-    >>> bidict(a=1) == dict(a=1)
-    True
-
-And converting back and forth works as expected::
-
-    >>> dict(bidict(a=1))
-    {'a': 1}
-    >>> bidict(dict(a=1))
-    bidict({'a': 1})
 
 Hopefully bidict feels right at home
 among the Python built-ins you already know.

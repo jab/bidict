@@ -1,13 +1,12 @@
 .. _intro:
 
-Intro
-=====
+Introduction
+============
 
-The :mod:`bidict` package provides a
+The :mod:`bidict` package provides a Pythonic
 `bidirectional map <https://en.wikipedia.org/wiki/Bidirectional_map>`_
-data structure
-and related functionality to work with one-to-one mappings in Python,
-Pythonically.
+implementation
+and related functionality to work with one-to-one mappings in Python.
 
 bidict.bidict
 -------------
@@ -42,7 +41,7 @@ Why Can't I Just Use A dict?
 A skeptic writes:
 
     If I want a mapping *a* ↔︎ *b*,
-    I would just create a dict *{a: b, b: a}*.
+    I would just create a dict ``{a: b, b: a}``.
     What is the advantage of bidict
     over the simplicity of the dict approach?
 
@@ -73,10 +72,10 @@ the destructive merge of two one-directional maps into one.
 In other words,
 you lose information about which mappings are the forward mappings
 and which are the inverse.
-*d.keys()* and *d.values()* would each give you
+``d.keys()`` and ``d.values()`` would each give you
 the same 2x-too-big jumble of keys and values
 all mixed together,
-and *d.items()* would likewise be
+and ``d.items()`` would likewise be
 the 2x-too-big combination of forward and inverse mappings
 all mixed together.
 
@@ -85,24 +84,27 @@ to model a bidirectional map,
 you need two separate one-directional maps
 that are kept in sync as the bidirectional map changes.
 This is exactly what bidict does under the hood,
-abstracting this into a clean and simple interface,
-while providing complementary functionality to boot.
+abstracting this into a clean and simple interface.
+bidict also provides rich and powerful facilities
+to help you handle the enforcement of the one-to-one constraint
+(for example, when attempting to set a new key to an existing value)
+exactly as you intend.
 
 Additional Functionality
 ------------------------
 
-Besides :class:`bidict.bidict`,
-the :mod:`bidict` package provides additional tools
+Besides the standard :class:`bidict.bidict` class,
+the :mod:`bidict` package provides other bidict variants,
+as well as additional tools
 for working with one-to-one relations:
 
 - :class:`bidict.frozenbidict`
 - :class:`bidict.loosebidict`
 - :class:`bidict.orderedbidict`
-- :class:`bidict.frozenorderedbidict`
-- :class:`bidict.looseorderedbidict`
 - :class:`bidict.namedbidict`
 - :class:`bidict.inverted`
+- :class:`bidict.pairs`
 
-These will be covered in later sections.
+These and other provided functionality are covered in later sections.
 
 But first let's proceed to :ref:`basic-usage`.

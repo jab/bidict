@@ -55,16 +55,16 @@ class bidict(BidirectionalMapping, MutableMapping):
 
         :raises bidict.KeyNotUniqueError: if attempting to insert an item
             whose key duplicates an existing item's, and *on_dup_key* is
-            :attr:`DuplicationBehavior.RAISE <bidict.DuplicationBehavior.RAISE>`.
+            :attr:`RAISE <bidict.DuplicationBehavior.RAISE>`.
 
         :raises bidict.ValueNotUniqueError: if attempting to insert an item
             whose value duplicates an existing item's, and *on_dup_val* is
-            :attr:`DuplicationBehavior.RAISE <bidict.DuplicationBehavior.RAISE>`.
+            :attr:`RAISE <bidict.DuplicationBehavior.RAISE>`.
 
         :raises bidict.KeyAndValueNotUniqueError: if attempting to insert an item
             whose key duplicates one existing item's, and whose value
             duplicates another existing item's, and *on_dup_kv* is
-            :attr:`DuplicationBehavior.RAISE <bidict.DuplicationBehavior.RAISE>`.
+            :attr:`RAISE <bidict.DuplicationBehavior.RAISE>`.
         """
         self._put(key, val, on_dup_key, on_dup_val, on_dup_kv)
 
@@ -134,7 +134,7 @@ class bidict(BidirectionalMapping, MutableMapping):
         Note that if there is any duplication
         that does not trigger an exception
         as per the given duplication behaviors,
-        *precheck* still affects the order in which duplicates are processed
+        *precheck* still affects the order in which duplicates are processed,
         and so affects which items are inserted, overwritten, or ignored.
         """
         self._update(on_dup_key, on_dup_val, on_dup_kv, precheck, items)

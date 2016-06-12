@@ -37,7 +37,7 @@ Python 2/3 compatibility helpers.
 
     .. py:attribute:: izip_longest
 
-        Alias for :func:`itertools.zip_longest` on Python 2 on Python 3 /
+        Alias for :func:`itertools.zip_longest` on Python 3 /
         :func:`itertools.izip_longest` on Python 2.
 
 """

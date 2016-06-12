@@ -3,9 +3,13 @@ bidict
  
 Efficient, Pythonic bidirectional map implementation and related functionality.
 
-.. image:: https://raw.githubusercontent.com/jab/bidict/master/docs/_static/logo-256.png
+.. image:: ./_static/logo-256.png
     :target: https://bidict.readthedocs.io/
     :alt: bidict logo
+
+.. image:: ./_static/support-on-gumroad.png
+    :target: https://gumroad.com/l/bidict
+    :alt: Support bidict
 
 
 Status
@@ -59,72 +63,59 @@ Status
     :target: https://gitter.im/jab/bidict
     :alt: Chat
 
+The bidict codebase is mature, well-tested, and well-reviewed.
+If you have a question or find an issue,
+please don't hesitate to
+`ask in the chat room <https://gitter.im/jab/bidict>`_,
+`file an issue <https://github.com/jab/bidict/issues/new>`_,
+or
+`submit a pull request <contributing>`_.
+
+
 Installation
 ------------
 
 ``pip install bidict``
 
+
 Usage
 -----
 
-If you're reading this `on readthedocs <https://bidict.readthedocs.io>`_,
-please proceed to the usage documentation by clicking "Next" below.
-Otherwise, see ``docs/intro.rst`` and continue reading from there.
+For usage documentation, please start at the :ref:`intro`
+and proceed from there.
 
-Participation
--------------
+`bidict.readthedocs.io <https://bidict.readthedocs.io>`_
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-The bidict codebase is tiny (~400 sloc),
-concise, mature, well-factored, and
-`well-tested <https://github.com/jab/bidict/tree/master/tests>`_,
-so it lends itself to quick ramp-up.
-Yet for its small size,
-it's yielded a surprising amount of fun, rewarding programming:
-plugging into the collections ecosystem, careful API design,
-covering various subtle edge cases,
-writing `hypothesis <http://hypothesis.readthedocs.io>`_-powered
-property-based tests, benchmarking, and exploring some cute
-(but ultimately `rejected <https://github.com/jab/bidict/issues/19>`_)
-Python syntax hacks, to name a few examples.
+*In case you're reading this on GitHub, PyPI, in your code editor,
+or in some other place that can't render/link the full docs properly,
+you can find the bidict documentation on Read the Docs at:*
 
-Community participation is warmly welcomed!
-Please feel free to `create an issue <https://github.com/jab/bidict/issues/new>`_
-or `join the chat room <https://gitter.im/jab/bidict>`_
-if you have any questions, feedback, or just want to say hi or
-talk about your use case.
+    `<https://bidict.readthedocs.io>`_
 
-bidict is the result of hundreds of hours of voluntary, unpaid work.
-If bidict has helped you accomplish work you've been paid for,
-please `support bidict <https://gumroad.com/l/bidict>`_
-and/or ask your organization to do the same.
-Your support directly contributes to bidict's sustainability.
+*(Note that multiple versions of the documentation are published there,
+and by default it will take you to the latest released version.
+You can choose different versions from the pop-up menu
+in the lower-right as needed.)*
 
-.. image:: https://raw.githubusercontent.com/jab/bidict/master/docs/_static/support-on-gumroad.png
-    :target: https://gumroad.com/l/bidict
-    :alt: Support bidict
+You can also build the docs yourself
+by running ``make html``
+from the `<docs>`_ directory
+(requires `Sphinx <https://pypi.python.org/pypi/Sphinx>`_).
 
-For more information about contributing,
-please see `CONTRIBUTING.rst
-<https://bidict.readthedocs.io/contributing.html>`_.
+
+Contributing
+------------
+
+Contributions are gratefully received!
+For information about contributing,
+please see :ref:`contributing`
+(*GitHub link:* `<CONTRIBUTING.rst>`_).
+
 
 Changelog
 ---------
 
-Check out
-`CHANGELOG.rst <https://bidict.readthedocs.io/changelog.html>`_
-for a history of notable changes to bidict.
-
-
-.. toctree::
-    :maxdepth: 2
-    :hidden:
-
-    intro
-    basic-usage
-    performance
-    other-bidict-types
-    inverted
-    addendum
-    changelog
-    api
-    contributing
+For a history of notable changes to bidict,
+check out the :ref:`changelog`
+(*GitHub link:* `<CHANGELOG.rst>`_).

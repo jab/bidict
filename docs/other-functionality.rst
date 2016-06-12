@@ -1,7 +1,8 @@
-.. _inverted:
+Other Functionality
+===================
 
-inverted 
-========
+``inverted()``
+--------------
 
 bidict provides the :class:`inverted() <bidict.inverted>` iterator
 to help you take the inverse of any kind of object that can be inverted.
@@ -30,3 +31,13 @@ can implement themselves::
     >>> from bidict import bidict
     >>> dict(inverted(bidict({1: 'one'})))
     {'one': 1}
+
+
+Extras
+------
+
+:func:`bidict.pairs`
+as well as the :mod:`bidict.compat` module
+are used internally,
+but are also exported
+since they may also be of use externally.

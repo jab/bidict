@@ -14,7 +14,7 @@ when a new version of bidict is released.
 -----------------------------
 
 - :func:`put() <bidict.bidict.put>`
-  now accepts *on_dup_key*, *on_dup_val*, and *on_dup_kv* keyword args
+  now accepts ``on_dup_key``, ``on_dup_val``, and ``on_dup_kv`` keyword args
   which allow you to override the default behavior
   when the key and/or value of a given item
   duplicate those/that of any existing item(s).
@@ -27,35 +27,36 @@ when a new version of bidict is released.
   (Note: When you try to insert an item,
   it's possible that its key duplicates the key of one existing item,
   and its value duplicates the value of another existing item.
-  Because the given *on_dup_key* and *on_dup_val* behaviors may differ,
-  *on_dup_kv* allows you to indicate unambiguously
+  Because the given ``on_dup_key`` and ``on_dup_val`` behaviors may differ,
+  ``on_dup_kv`` allows you to indicate unambiguously
   how you want to handle this case.)
 
   If not provided,
   the default value that :func:`bidict.put() <bidict.bidict.put>`
-  assigns *on_dup_key*, *on_dup_val*, and *on_dup_kv* is
-  :attr:`bidict.DuplicationBehavior.RAISE`.
+  assigns ``on_dup_key``, ``on_dup_val``, and ``on_dup_kv`` is
+  :attr:`RAISE <bidict.DuplicationBehavior.RAISE>`.
 
   In contrast,
   :func:`bidict.__setitem__() <bidict.bidict.__setitem__>`
-  behaves like a `put() <bidict.bidict.put>` call
-  with *on_dup_key=OVERWRITE*, *on_dup_val=RAISE*, and *on_dup_kv=RAISE*,
+  behaves like a :func:`put() <bidict.bidict.put>` call
+  with ``on_dup_key=OVERWRITE``, ``on_dup_val=RAISE``, and ``on_dup_kv=RAISE``,
   closely tracking the previous behavior.
 
-  And :class:`loosebidict.__setitem__() <bidict.loosebidict.__setitem__>`
-  behaves like a :class:`put() <bidict.loosebidict.put>` call
-  with all these set to :attr:`OVERWRITE <bidict.DuplicationBehavior.OVERWRITE>`,
+  And :class:`loosebidict.__setitem__() <bidict.bidict.__setitem__>`
+  behaves like a :class:`put() <bidict.bidict.put>` call
+  with all duplication behaviors set to
+  :attr:`OVERWRITE <bidict.DuplicationBehavior.OVERWRITE>`,
   tracking the previous behavior.
 
   In both cases,
   :func:`put() <bidict.bidict.put>`
-  still provides a *RAISE*-on-any-duplication-by-default alternative to
+  still provides a RAISE-on-any-duplication (by default) alternative to
   :func:`__setitem__() <bidict.bidict.__setitem__>`,
   but now allows customizing this behavior via the new keyword arguments.
 
 - New :func:`putall() <bidict.bidict.putall>` method
   provides a bulk :func:`put() <bidict.bidict.put>` API,
-  which additionally accepts a *precheck* keyword argument (see below).
+  which additionally accepts a ``precheck`` keyword argument (see below).
 
 - :func:`bidict.update() <bidict.bidict.update>` now offers stronger
   consistency guarantees by checking for and handling duplication
@@ -74,14 +75,14 @@ when a new version of bidict is released.
   not all items could be inserted.
   The new behavior makes it easier to reason about and control
   the effects of bulk insert operations.
-  This is known as default *precheck=True* behavior.
+  This is known as default ``precheck=True`` behavior.
 
   Because this improvement does require extra processing,
   you can opt out of it if you don't need it by calling
-  :func:`putall() <bidict.bidict.putall>` with *precheck=False*.
+  :func:`putall() <bidict.bidict.putall>` with ``precheck=False``.
 
   Note: :class:`loosebidict.update() <bidict.loosebidict.update>`
-  still defaults to *precheck=False* behavior.
+  still defaults to ``precheck=False`` behavior.
 
 - New exceptions, reflecting new cases where they're raised:
 

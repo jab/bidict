@@ -6,8 +6,8 @@ from ._bidict import bidict
 
 class loosebidict(bidict):
     """
-    A mutable bidict with precheck=False
-    and OVERWRITE duplication behaviors default.
+    A mutable bidict with *precheck=False*
+    and *OVERWRITE* duplication behaviors default.
     """
 
     _on_dup_val = OVERWRITE

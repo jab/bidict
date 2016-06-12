@@ -3,14 +3,15 @@
 Contributors' Guide
 ===================
 
-Bug reports, feature requests, patches, and other contributions are more than welcome.
-We want to make contribution as easy and friendly as possible.
-Here are a few guidelines we ask contributors to follow to facilitate the process:
+Bug reports, feature requests, patches, and other contributions are warmly welcomed.
+Contribution should be as easy and friendly as possible.
+Below are a few guidelines contributors should follow to facilitate the process.
 
 Getting Started
 ---------------
 
-- Make sure you have a `GitHub account <https://github.com/join>`_.
+- `Create a GitHub account <https://github.com/join>`_ if you don't have one
+  already.
 
 - Search through the `issue tracker <https://github.com/jab/bidict/issues>`_
   to see if an issue or pull request has already been created for what you're interested in.
@@ -26,7 +27,7 @@ Getting Started
 
 - If you would like to contribute a patch,
   make sure you've `created your own fork <https://github.com/jab/bidict/fork>`_
-  and have cloned it to your machine.
+  and have cloned it to your computer.
 
 Making Changes
 --------------
@@ -96,44 +97,50 @@ Submitting Changes
 Becoming a Core Contributor
 ---------------------------
 
-Currently @jab is the only person responsible for bidict maintenance and development,
-and so far all effort put into the project has been made possible only by volunteering free time.
-Additional core contributors are more than welcome.
-Feel free to ask for the commit bit if you don't have it already.
-Frequent contributors will be offered it proactively.
+Currently `@jab <https://github.com/jab>`_ is the only person responsible
+for bidict maintenance and development.
+Additional core contributors are welcome.
 
-Other Ways to Contribute
-------------------------
+Donation and Other Ways to Contribute
+-------------------------------------
 
-Besides creating issues and pull requests, there are other ways to contribute.
-If you read the code and learned something new, let us know and it'll give us the warm fuzzies.
-If you're using bidict in a project you work on, blog about your experience.
-If you come across other people who could find it useful, spread the word.
-If bidict has helped you accomplish your work,
-especially work you've been paid for,
-please `support bidict <https://gumroad.com/l/bidict>`_
-and/or ask your organization to do the same.
+Besides filing issues and pull requests, there are other ways to contribute.
 
-.. image:: https://raw.githubusercontent.com/jab/bidict/master/docs/_static/support-on-gumroad.png
-    :target: https://gumroad.com/l/bidict
-    :alt: Support bidict
+- If you read the code and learned something new,
+  let us know and it'll give us the warm fuzzies.
 
-You can also use `Bountysource <https://www.bountysource.com/teams/jab>`_
-to sponsor a new feature/bugfix or make a general contribution,
-or use this if it's more your cup of tea:
+- If you're using bidict in a project you work on, blog about your experience.
 
-.. image:: https://img.shields.io/badge/Paypal-Buy%20a%20Drink-blue.svg
-    :target: https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=jab%40math%2ebrown%2eedu&lc=US&item_name=Buy%20a%20drink%20for%20jab&button_subtype=services&currency_code=USD&bn=PP%2dBuyNowBF%3aPaypal%2dBuy%2520a%2520Drink%2dblue%2esvg%3aNonHosted
-    :alt: PayPal - Buy a drink
+- If you come across other people who could find it useful, spread the word.
+
+- If bidict has helped you accomplish your work,
+  especially work you've been paid for,
+  please `support bidict's continued maintenance and development
+  <https://gumroad.com/l/bidict>`_
+  and/or ask your organization to do the same.
+
+  .. image:: ./_static/support-on-gumroad.png
+      :target: https://gumroad.com/l/bidict
+      :alt: Support bidict
+
+  You can also use `Bountysource <https://www.bountysource.com/teams/jab>`_
+  to sponsor a new feature/bugfix or make a general contribution,
+  or use this if it's more your cup of tea:
+
+  .. image:: https://img.shields.io/badge/Paypal-Buy%20a%20Drink-blue.svg
+      :target: https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=jab%40math%2ebrown%2eedu&lc=US&item_name=Buy%20a%20drink%20for%20jab&button_subtype=services&currency_code=USD&bn=PP%2dBuyNowBF%3aPaypal%2dBuy%2520a%2520Drink%2dblue%2esvg%3aNonHosted
+      :alt: PayPal - Buy a drink
 
 Code of Conduct
 ---------------
 
-All participation in this project should respect our
-`Code of Conduct <https://github.com/jab/bidict/blob/master/CODE_OF_CONDUCT.md>`_.
+All participation in this project should respect the
+:doc:`Code of Conduct <code-of-conduct>`
+(*GitHub link:* `<CODE_OF_CONDUCT.rst>`_).
 By participating, you are expected to honor this code.
 
 Thanks
 ------
 
-Thank you for stopping by. All contributions are gratefully received!
+Contributions are gratefully received.
+Thank you for your consideration.
