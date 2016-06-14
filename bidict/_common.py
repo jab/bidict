@@ -6,7 +6,7 @@ Also provides related exception classes and duplication behaviors.
 
 from .compat import PY2, iteritems
 from .util import pairs, _arg0
-from collections import Mapping, OrderedDict, Sized, deque
+from collections import Mapping, OrderedDict, Sized
 
 
 def _proxied(methodname, ivarname='_fwd', doc=None):
@@ -133,14 +133,9 @@ class BidirectionalMapping(Mapping):
             update = _dedup_update(on_dup_key, on_dup_val, on_dup_kv, *args, **kw)
             if on_dup_key is RAISE or on_dup_val is RAISE or on_dup_kv is RAISE:
                 # Check if any dups between update and existing items in self
-                # would cause an error.
-                gen = (_dedup_item(self._fwd, self._inv, k, v, on_dup_key, on_dup_val, on_dup_kv)
-                       for (k, v) in pairs(update))
-                # Feeding generator into a 0-length deque consumes it without
-                # any unnecessary accumulation. If there is any error-causing
-                # duplication, the error will be raised here, before applying
-                # the update.
-                deque(gen, maxlen=0)
+                # would cause an error. If so, it is raised here, early.
+                for (k, v) in pairs(update):
+                    _dedup_item(self._fwd, self._inv, k, v, on_dup_key, on_dup_val, on_dup_kv)
             update = pairs(update)
         else:
             update = pairs(*args, **kw)
