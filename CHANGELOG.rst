@@ -42,7 +42,7 @@ when a new version of bidict is released.
   with ``on_dup_key=OVERWRITE``, ``on_dup_val=RAISE``, and ``on_dup_kv=RAISE``,
   closely tracking the previous behavior.
 
-  And :class:`loosebidict.__setitem__() <bidict.bidict.__setitem__>`
+  And :func:`loosebidict.__setitem__() <bidict.loosebidict.__setitem__>`
   behaves like a :class:`put() <bidict.bidict.put>` call
   with all duplication behaviors set to
   :attr:`OVERWRITE <bidict.DuplicationBehavior.OVERWRITE>`,
@@ -50,7 +50,7 @@ when a new version of bidict is released.
 
   In both cases,
   :func:`put() <bidict.bidict.put>`
-  still provides a RAISE-on-any-duplication (by default) alternative to
+  still provides a raise-on-any-duplication (by default) alternative to
   :func:`__setitem__() <bidict.bidict.__setitem__>`,
   but now allows customizing this behavior via the new keyword arguments.
 
@@ -81,7 +81,7 @@ when a new version of bidict is released.
   you can opt out of it if you don't need it by calling
   :func:`putall() <bidict.bidict.putall>` with ``precheck=False``.
 
-  Note: :class:`loosebidict.update() <bidict.loosebidict.update>`
+  Note: :func:`loosebidict.update() <bidict.loosebidict.update>`
   still defaults to ``precheck=False`` behavior.
 
 - New exceptions, reflecting new cases where they're raised:
