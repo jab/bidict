@@ -295,4 +295,5 @@ class KeyAndValueNotUniqueError(KeyNotUniqueError, ValueNotUniqueError):
     """
 
     def __str__(self):
-        return ('Key and value duplicated in items: %r, %r' % self.args) if self.args else ''
+        return ('Key {0[0]!r} and value {1[1]!r} duplicated in items: {0!r}, {1!r}'.format(
+            *self.args) if self.args else '')

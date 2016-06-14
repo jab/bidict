@@ -180,7 +180,7 @@ leaving a bidict in an inconsistent state::
     >>> b['one'] = 2
     Traceback (most recent call last):
         ...
-    KeyAndValueNotUniqueError: Key and value duplicated in items: ('one', 1), ('two', 2)
+    KeyAndValueNotUniqueError: Key 'one' and value 2 duplicated in items: ('one', 1), ('two', 2)
     >>> len(b) == len(b.inv)
     True
 

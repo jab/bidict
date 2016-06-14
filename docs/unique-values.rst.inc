@@ -166,7 +166,7 @@ This is where ``on_dup_kv`` comes in::
     ...          on_dup_key=IGNORE, on_dup_val=IGNORE, on_dup_kv=RAISE)
     Traceback (most recent call last):
         ...
-    KeyAndValueNotUniqueError: Key and value duplicated in items: (4, 16), (5, 25)
+    KeyAndValueNotUniqueError: Key 4 and value 25 duplicated in items: (4, 16), (5, 25)
 
 Because the given ``on_dup_key`` and ``on_dup_val`` behaviors may differ,
 ``on_dup_kv`` allows you to indicate how you want to handle this case
