@@ -11,9 +11,7 @@ and
 :func:`forceupdate() <bidict.bidict.forceupdate>`
 is to use a :class:`loosebidict <bidict.loosebidict>` instead.
 :class:`loosebidict <bidict.loosebidict>` ’s
-:func:`__setitem__() <bidict.loosebidict.__setitem__>`
-and
-:func:`update() <bidict.loosebidict.update>`
+``__setitem__()`` and ``update()``
 methods use ``OVERWRITE`` behaviors by default::
 
     >>> from bidict import loosebidict

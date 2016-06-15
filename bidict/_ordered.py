@@ -13,7 +13,7 @@ class OrderedBidirectionalMapping(BidirectionalMapping):
     _dcls = OrderedDict
 
     __reversed__ = _proxied('__reversed__',
-                            doc='Like :func:`collections.OrderedDict.__reversed__`.')
+                            doc='Like ``collections.OrderedDict.__reversed__``.')
 
     def __repr__(self):
         s = repr(self._fwd)

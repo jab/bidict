@@ -16,7 +16,7 @@ def _proxied(methodname, ivarname='_fwd', doc=None):
         meth = getattr(ivar, methodname)
         return meth(*args)
     proxy.__name__ = methodname
-    proxy.__doc__ = doc or 'Like :py:meth:`dict.%s`.' % methodname
+    proxy.__doc__ = doc or 'Like ``dict.%s()``.' % methodname
     return proxy
 
 
@@ -74,7 +74,7 @@ class BidirectionalMapping(Mapping):
     _precheck = True
 
     def __init__(self, *args, **kw):
-        """Like :py:meth:`dict.__init__`, but maintaining bidirectionality."""
+        """Like ``dict.__init__()``, but maintaining bidirectionality."""
         self._fwd = self._dcls()  # dictionary of forward mappings
         self._inv = self._dcls()  # dictionary of inverse mappings
         if args or kw:
@@ -164,8 +164,8 @@ class BidirectionalMapping(Mapping):
     values = _proxied('keys', ivarname='_inv')
     values.__doc__ = \
         "B.values() -> a set-like object providing a view on B's values.\n\n" \
-        'Note that because values of a BidirectionalMapping are also keys ' \
-        'of its inverse, this returns a *dict_keys* object rather than a ' \
+        'Note that because values of a BidirectionalMapping are also keys\n' \
+        'of its inverse, this returns a *dict_keys* object rather than a\n' \
         '*dict_values* object, conferring set-like benefits.'
     if PY2:  # pragma: no cover
         iterkeys = _proxied('iterkeys')
@@ -176,7 +176,7 @@ class BidirectionalMapping(Mapping):
                               doc=dict.itervalues.__doc__)
         viewvalues = _proxied('viewkeys', ivarname='_inv',
                               doc=values.__doc__.replace('values()', 'viewvalues()'))
-        values.__doc__ = 'Like :py:meth:`dict.values`.'
+        values.__doc__ = 'Like ``dict.values()``.'
 
 
 def _dedup_item(exfwd, exinv, key, val, on_dup_key, on_dup_val, on_dup_kv):

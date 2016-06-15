@@ -45,7 +45,7 @@ when a new version of bidict is released.
   with ``on_dup_key=OVERWRITE``, ``on_dup_val=RAISE``, and ``on_dup_kv=RAISE``,
   closely tracking the previous behavior.
 
-  And :func:`loosebidict.__setitem__() <bidict.loosebidict.__setitem__>`
+  And ``loosebidict.__setitem__()``
   behaves like a :class:`put() <bidict.bidict.put>` call
   with all duplication behaviors set to
   :attr:`OVERWRITE <bidict.DuplicationBehavior.OVERWRITE>`,
@@ -84,7 +84,7 @@ when a new version of bidict is released.
   you can opt out of it if you don't need it by calling
   :func:`putall() <bidict.bidict.putall>` with ``precheck=False``.
 
-  Note: :func:`loosebidict.update() <bidict.loosebidict.update>`
+  Note: ``loosebidict.update()``
   still defaults to ``precheck=False`` behavior.
 
 - New exceptions, reflecting new cases where they're raised:
@@ -142,7 +142,7 @@ Breaking API Changes
   and
   :class:`bidict.frozenorderedbidict`.
 
-- Add :doc:`Code of Conduct <code-of-conduct>`_
+- Add :doc:`Code of Conduct <code-of-conduct>`
   (*GitHub link:* `<CODE_OF_CONDUCT.rst>`_).
 
 - Drop official support for pypy3.
@@ -190,23 +190,23 @@ Breaking API Changes
   rather than inverting a bidict in place.
   `#20 <https://github.com/jab/bidict/issues/20>`_
 
-- Raise :class:`ValueExistsException <bidict.ValueExistsException>`
+- Raise ``ValueExistsException``
   when attempting to insert a mapping with a non-unique key.
   `#21 <https://github.com/jab/bidict/issues/21>`_
 
 - Rename ``collapsingbidict`` to :class:`loosebidict <bidict.loosebidict>`
   now that it suppresses
-  :class:`ValueExistsException <bidict.ValueExistsException>`
+  ``ValueExistsException``
   rather than the less general ``CollapseException``.
   `#21 <https://github.com/jab/bidict/issues/21>`_
 
 - ``CollapseException`` has been subsumed by
-  :class:`ValueExistsException <bidict.ValueExistsException>`.
+  ``ValueExistsException``.
   `#21 <https://github.com/jab/bidict/issues/21>`_
 
-- :attr:`put <bidict.bidict.put>` now raises :class:`KeyExistsException
-  <bidict.KeyExistsException>` when attempting to insert an already-existing
-  key, and :class:`ValueExistsException <bidict.ValueExistsException>` when
+- :attr:`put <bidict.bidict.put>` now raises ``KeyExistsException``
+  when attempting to insert an already-existing
+  key, and ``ValueExistsException`` when
   attempting to insert an already-existing value.
 
 
@@ -235,8 +235,8 @@ Breaking API Changes
 Breaking API Changes
 ^^^^^^^^^^^^^^^^^^^^
 
-- Move :func:`bidict.iteritems` and :func:`bidict.viewitems`
-  to new :attr:`bidict.compat` module.
+- Move ``bidict.iteritems`` and ``bidict.viewitems``
+  to new :mod:`bidict.compat` module.
 
 - Move :class:`bidict.inverted`
   to new :attr:`bidict.util` module
