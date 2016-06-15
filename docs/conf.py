@@ -289,3 +289,8 @@ htmlhelp_basename = 'bidictdoc'
 
 # If true, do not generate a @detailmenu in the "Top" node's menu.
 #texinfo_no_detailmenu = False
+
+# Ignore urls matching these regex strings when doing "make linkcheck"
+linkcheck_ignore = [
+    r'https://github.com/jab/bidict/fork',  # gives 404 if not logged in
+]

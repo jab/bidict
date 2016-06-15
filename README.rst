@@ -36,7 +36,7 @@ Status
     :alt: Build status
 
 .. image:: https://coveralls.io/repos/jab/bidict/badge.svg?branch=master
-    :target: https://coveralls.io/r/jab/bidict
+    :target: https://coveralls.io/github/jab/bidict
     :alt: Test coverage
 
 .. image:: https://www.codacy.com/project/badge/1c5bfb83d2d54d57898d4ede1c9157ee

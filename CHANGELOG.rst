@@ -142,8 +142,8 @@ Breaking API Changes
   and
   :class:`bidict.frozenorderedbidict`.
 
-- Adopt `Open Code of Conduct
-  <http://todogroup.org/opencodeofconduct/#bidict/jab@math.brown.edu>`_.
+- Add :doc:`Code of Conduct <code-of-conduct>`_
+  (*GitHub link:* `<CODE_OF_CONDUCT.rst>`_).
 
 - Drop official support for pypy3.
   (It still may work but is no longer being tested.

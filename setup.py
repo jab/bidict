@@ -26,7 +26,8 @@ tests_require = [
     'pydocstyle==1.0.0',
     'pytest==2.9.2',
     'pytest-benchmark==3.0.0',
-    'pytest-cov==2.2.1'
+    'pytest-cov==2.2.1',
+    'Sphinx==1.4.4',
 ]
 
 setup(
