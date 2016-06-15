@@ -27,6 +27,9 @@ when a new version of bidict is released.
   (Note: When you try to insert an item,
   it's possible that its key duplicates the key of one existing item,
   and its value duplicates the value of another existing item.
+  Likewise, when you try to insert multiple items by calling e.g. ``update()``,
+  it's possible that an item you provided duplicates
+  the key of another item you provided, and the value of yet another.
   Because the given ``on_dup_key`` and ``on_dup_val`` behaviors may differ,
   ``on_dup_kv`` allows you to indicate unambiguously
   how you want to handle this case.)

@@ -159,7 +159,8 @@ but also with respect to duplication within the given items::
     ValueNotUniqueError: Value duplicated in item: (4, 16)
 
 Note that it's possible for a given item to duplicate
-the key of one existing item and the value of another existing item.
+the key of a previously given (or existing) item,
+and the value of another previously given (or existing) item.
 This is where ``on_dup_kv`` comes in::
 
     >>> b.putall([(4, 16), (5, 25), (4, 25)],
