@@ -294,3 +294,4 @@ htmlhelp_basename = 'bidictdoc'
 linkcheck_ignore = [
     r'https://github.com/jab/bidict/fork',  # gives 404 if not logged in
 ]
+linkcheck_timeout = 30  # 5s default too low
