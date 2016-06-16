@@ -109,7 +109,17 @@ class bidict(BidirectionalMapping, MutableMapping):
         return self[key]
 
     def update(self, *args, **kw):
-        """Like :attr:`putall` with default precheck and duplication behaviors."""
+        """
+        Like :attr:`putall` with default precheck and duplication behaviors.
+
+        In particular, for :class:`bidict.bidict`,
+        *precheck=True*, *on_dup_key=OVERWRITE*, *on_dup_val=RAISE*,
+        and *on_dup_kv=RAISE*.
+
+        For :class:`bidict.loosebidict`,
+        *precheck=False*, *on_dup_key=OVERWRITE*, *on_dup_val=OVERWRITE*,
+        and *on_dup_kv=OVERWRITE*.
+        """
         self._update(self._on_dup_key, self._on_dup_val, self._on_dup_kv,
                      self._precheck, *args, **kw)
 
