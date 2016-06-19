@@ -202,35 +202,36 @@ def _dedup_item(key, val, fwd, inv, on_dup_key, on_dup_val, on_dup_kv):
     assert isdupitem == (oldkey == key)
     isdupkey = oldval is not _missing
     isdupval = oldkey is not _missing
-    # Rather than pass `key` and `val` to the exceptions raised below, pass
-    # `exinv[oldval]` and `fwd[oldkey]` so that the existing item is referred
-    # to exactly (hash-equivalence != identity).
-    # e.g. hash(0) == hash(False) -> {0: 'foo'}[False] == 'foo'.
-    # Thus refer to the existing item as (0, 'foo'), not (False, 'foo').
+    # Since hash-equivalence != identity, rather than pass `key` and `val` to
+    # the exceptions raised below, pass `inv[oldval]` and `fwd[oldkey]` so that
+    # existing keys/values are referred to exactly. e.g. hash(0) == hash(False)
+    # means that {0: 'foo'}[False] == 'foo'. Refer to the existing item as
+    # (0, 'foo'), not (False, 'foo').
     if isdupkey and isdupval:
-        if isdupitem:  # (k, v) duplicates an existing item.
+        if isdupitem:  # (key, val) duplicates an existing item.
             if on_dup_kv is RAISE:
                 return  # No-op. Never raise in this case.
             elif on_dup_kv is IGNORE:
                 return
             # else on_dup_kv is OVERWRITE. Fall through to return on last line.
         else:
-            # k and v each duplicate a different existing item.
+            # key and val each duplicate a different existing item.
             if on_dup_kv is RAISE:
-                raise KeyAndValueNotUniqueError((inv[oldval], oldval), (oldkey, fwd[oldkey]))
+                raise KeyAndValueNotUniqueError(
+                    (key, val), (inv[oldval], oldval), (oldkey, fwd[oldkey]))
             elif on_dup_kv is IGNORE:
                 return
             # else on_dup_kv is OVERWRITE. Fall through to return on last line.
     else:
         if isdupkey:
             if on_dup_key is RAISE:
-                raise KeyNotUniqueError((inv[oldval], oldval))
+                raise KeyNotUniqueError((key, val), (inv[oldval], oldval))
             elif on_dup_key is IGNORE:
                 return
             # else on_dup_key is OVERWRITE. Fall through to return on last line.
         elif isdupval:
             if on_dup_val is RAISE:
-                raise ValueNotUniqueError((oldkey, fwd[oldkey]))
+                raise ValueNotUniqueError((key, val), (oldkey, fwd[oldkey]))
             elif on_dup_val is IGNORE:
                 return
             # else on_dup_val is OVERWRITE. Fall through to return on last line.
@@ -250,14 +251,14 @@ class KeyNotUniqueError(UniquenessError):
     """Raised when a given key is not unique."""
 
     def __str__(self):
-        return ('Key duplicated in item: %r' % self.args) if self.args else ''
+        return ('%r duplicates key in item %r' % self.args) if self.args else ''
 
 
 class ValueNotUniqueError(UniquenessError):
     """Raised when a given value is not unique."""
 
     def __str__(self):
-        return ('Value duplicated in item: %r' % self.args) if self.args else ''
+        return ('%r duplicates value in item: %r' % self.args) if self.args else ''
 
 
 class KeyAndValueNotUniqueError(KeyNotUniqueError, ValueNotUniqueError):
@@ -269,5 +270,4 @@ class KeyAndValueNotUniqueError(KeyNotUniqueError, ValueNotUniqueError):
     """
 
     def __str__(self):
-        return ('Key {0[0]!r} and value {1[1]!r} duplicated in items: {0!r}, {1!r}'.format(
-            *self.args) if self.args else '')
+        return ('%r duplicates key and value in items: %r, %r' % self.args) if self.args else ''
