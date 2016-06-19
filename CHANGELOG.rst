@@ -58,16 +58,13 @@ when a new version of bidict is released.
   but now allows customizing this behavior via the new keyword arguments.
 
 - New :func:`putall() <bidict.bidict.putall>` method
-  provides a bulk :func:`put() <bidict.bidict.put>` API,
-  which additionally accepts a ``precheck`` keyword argument (see below).
+  provides a bulk :func:`put() <bidict.bidict.put>` API.
 
 - :func:`bidict.update() <bidict.bidict.update>` now offers stronger
   consistency guarantees by checking for and handling duplication
-  (first within the given items,
-  and then between the given items and any existing items)
   before inserting any of the given items.
-  So if a :class:`ValueNotUniqueError <bidict.ValueNotUniqueError>`
-  is raised by an :func:`update() <bidict.bidict.update>` call,
+  So if an :func:`update() <bidict.bidict.update>` call causes a
+  :class:`ValueNotUniqueError <bidict.ValueNotUniqueError>`,
   you can now be sure that none of the given items were inserted.
 
   Previously, any of the given items that were processed
@@ -78,14 +75,7 @@ when a new version of bidict is released.
   not all items could be inserted.
   The new behavior makes it easier to reason about and control
   the effects of bulk insert operations.
-  This is known as default ``precheck=True`` behavior.
-
-  Because this improvement does require extra processing,
-  you can opt out of it if you don't need it by calling
-  :func:`putall() <bidict.bidict.putall>` with ``precheck=False``.
-
-  Note: ``loosebidict.update()``
-  still defaults to ``precheck=False`` behavior.
+  This is known as "fail clean" behavior.
 
 - New exceptions, reflecting new cases where they're raised:
 

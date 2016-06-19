@@ -54,6 +54,8 @@ which can also be used to access or modify them::
     bidict({'one': 'aught'})
     >>> bi.inv.pop('aught')
     'one'
+    >>> bi == bi.inv == bidict()
+    True
     >>> bi.inv.update(one=1)
     >>> bi
     bidict({1: 'one'})
@@ -187,15 +189,13 @@ leaving a bidict in an inconsistent state::
 ``put`` and ``putall`` allow you to have
 per-call control over collision behavior
 (see doctests in ``../docs/unique-values.rst.inc``).
-(Also ``putall`` gives per-call control over bulk-insert ``precheck`` behavior.)
 
 Even with RAISE collision behavior,
 inserting existing items is a no-op (i.e. it doesn't raise)::
 
     >>> from bidict import RAISE
     >>> b.putall([('three', 3), ('one', 1)],
-    ...          on_dup_key=RAISE, on_dup_val=RAISE,
-    ...          precheck=True) is not 'an error'
+    ...          on_dup_key=RAISE, on_dup_val=RAISE) is not 'an error'
     True
     >>> sorted(b.items(), key=lambda x: x[1])
     [('one', 1), ('two', 2), ('three', 3)]

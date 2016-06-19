@@ -5,11 +5,7 @@ from ._bidict import bidict
 
 
 class loosebidict(bidict):
-    """
-    A mutable bidict with *precheck=False*
-    and *OVERWRITE* duplication behaviors default.
-    """
+    """Mutable bidict with *OVERWRITE* duplication behaviors by default."""
 
     _on_dup_val = OVERWRITE
     _on_dup_kv = OVERWRITE
-    _precheck = False

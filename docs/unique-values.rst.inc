@@ -106,12 +106,7 @@ the ``on_dup_key``, ``on_dup_val``, and ``on_dup_kv`` arguments.
 Possible options are
 :class:`RAISE <bidict.DuplicationBehavior.RAISE>`,
 :class:`OVERWRITE <bidict.DuplicationBehavior.OVERWRITE>`, and
-:class:`IGNORE <bidict.DuplicationBehavior.IGNORE>`.
-:func:`putall() <bidict.bidict.putall>` also accepts a ``precheck`` argument,
-which allows you to control whether the given items should be processed for
-duplication in their entirety,
-first within them and then with respect to existing items,
-before any of them are inserted::
+:class:`IGNORE <bidict.DuplicationBehavior.IGNORE>`::
 
     >>> from bidict import RAISE, IGNORE
     >>> b = bidict({2: 4})
@@ -123,10 +118,10 @@ before any of them are inserted::
     Traceback (most recent call last):
         ...
     KeyNotUniqueError: Key duplicated in item: (2, 4)
-    >>> b  # Note (3, 9) not added b/c call failed and we gave precheck=True:
+    >>> b  # Note that (3, 9) was not added because the call failed:
     bidict({2: 4})
     >>> b.putall({3: 9, 1: 4}, on_dup_key=RAISE, on_dup_val=IGNORE)
-    >>> sorted(b.items())  # Note (1, 4) ignored b/c we gave on_dup_val=IGNORE:
+    >>> sorted(b.items())  # Note (1, 4) was ignored as per on_dup_val=IGNORE:
     [(2, 4), (3, 9)]
 
 Note: The ``on_dup_key``, ``on_dup_val``, and ``on_dup_kv`` keyword arguments of

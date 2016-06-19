@@ -8,10 +8,7 @@ while being faithful to its purpose.
 The need for speed
 is balanced with the responsibility
 to protect users from shooting themselves in the foot.
-In places where extra protection comes at a performance cost,
-alternatives such as :class:`loosebidict <bidict.loosebidict>`
-or optional overrides such as ``precheck=False`` are provided
-for cases where performance is more important.
+
 In general,
 accomplishing some task using bidict
 should have about the same performance

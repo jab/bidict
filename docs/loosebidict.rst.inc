@@ -23,15 +23,10 @@ methods use ``OVERWRITE`` behaviors by default::
     >>> b
     loosebidict({'three': 1})
 
-:func:`loosebidict.update() <bidict.bidict.putall>`
-also uses ``precheck=False`` behavior.
-
 As with 
 :class:`bidict.bidict <bidict.bidict>`,
 :func:`loosebidict.put() <bidict.bidict.put>`
 and
 :func:`loosebidict.putall() <bidict.bidict.putall>`
 still provide per-call overrides for duplication behaviors,
-and they all still default to ``RAISE``,
-as well as ``precheck=True`` for
-:func:`loosebidict.putall() <bidict.bidict.putall>`.
+and they all still default to ``RAISE``.

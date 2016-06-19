@@ -110,41 +110,25 @@ class bidict(BidirectionalMapping, MutableMapping):
 
     def update(self, *args, **kw):
         """
-        Like :attr:`putall` with default precheck and duplication behaviors.
+        Like :attr:`putall` with default duplication behaviors.
 
         In particular, for :class:`bidict.bidict`,
-        *precheck=True*, *on_dup_key=OVERWRITE*, *on_dup_val=RAISE*,
-        and *on_dup_kv=RAISE*.
+        *on_dup_key=OVERWRITE*, *on_dup_val=RAISE*, and *on_dup_kv=RAISE*.
 
         For :class:`bidict.loosebidict`,
-        *precheck=False*, *on_dup_key=OVERWRITE*, *on_dup_val=OVERWRITE*,
-        and *on_dup_kv=OVERWRITE*.
+        *on_dup_key=OVERWRITE*, *on_dup_val=OVERWRITE*, and *on_dup_kv=OVERWRITE*.
         """
-        self._update(self._on_dup_key, self._on_dup_val, self._on_dup_kv,
-                     self._precheck, *args, **kw)
+        self._update(False, self._on_dup_key, self._on_dup_val, self._on_dup_kv, *args, **kw)
 
     def forceupdate(self, *args, **kw):
         """Like a bulk :attr:`forceput`."""
-        self._update(OVERWRITE, OVERWRITE, OVERWRITE, self._precheck, *args, **kw)
+        self._update(False, OVERWRITE, OVERWRITE, OVERWRITE, *args, **kw)
 
-    def putall(self, items, on_dup_key=RAISE, on_dup_val=RAISE, on_dup_kv=RAISE, precheck=True):
+    def putall(self, items, on_dup_key=RAISE, on_dup_val=RAISE, on_dup_kv=RAISE):
         """
         Like a bulk :attr:`put`.
 
-        If *precheck* is truthy,
-        checking for and processing duplicates
-        first both within the given items
-        and then between the given items and the existing items
-        are both performed entirely before inserting any of the given items.
-
-        This means that if one of the given items
-        causes an exception to be raised,
+        If one of the given items causes an exception to be raised,
         none of the items is inserted.
-
-        Note that if there is any duplication
-        that does not trigger an exception
-        as per the given duplication behaviors,
-        *precheck* still affects the order in which duplicates are processed,
-        and so affects which items are inserted, overwritten, or ignored.
         """
-        self._update(on_dup_key, on_dup_val, on_dup_kv, precheck, items)
+        self._update(False, on_dup_key, on_dup_val, on_dup_kv, items)

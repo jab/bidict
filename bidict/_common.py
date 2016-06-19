@@ -5,8 +5,8 @@ Also provides related exception classes and duplication behaviors.
 """
 
 from .compat import PY2, iteritems
-from .util import pairs, _arg0
-from collections import Mapping, OrderedDict, Sized
+from .util import pairs
+from collections import Mapping
 
 
 def _proxied(methodname, ivarname='_fwd', doc=None):
@@ -71,20 +71,18 @@ class BidirectionalMapping(Mapping):
     _on_dup_key = OVERWRITE
     _on_dup_val = RAISE
     _on_dup_kv = RAISE
-    _precheck = True
 
     def __init__(self, *args, **kw):
         """Like ``dict.__init__()``, but maintaining bidirectionality."""
         self._fwd = self._dcls()  # dictionary of forward mappings
         self._inv = self._dcls()  # dictionary of inverse mappings
-        if args or kw:
-            self._update(self._on_dup_key, self._on_dup_val, self._on_dup_kv,
-                         self._precheck, *args, **kw)
         inv = object.__new__(self.__class__)
         inv._fwd = self._inv
         inv._inv = self._fwd
         inv.inv = self
         self.inv = inv
+        if args or kw:
+            self._update(True, self._on_dup_key, self._on_dup_val, self._on_dup_kv, *args, **kw)
 
     def __repr__(self):
         return '%s(%r)' % (self.__class__.__name__, self._fwd)
@@ -124,23 +122,25 @@ class BidirectionalMapping(Mapping):
         self._fwd[key] = val
         self._inv[val] = key
 
-    def _update(self, on_dup_key, on_dup_val, on_dup_kv, precheck, *args, **kw):
+    def _update(self, init, on_dup_key, on_dup_val, on_dup_kv, *args, **kw):
         if not args and not kw:
             return
-        if precheck:
-            # Process dups within update.
-            update = _dedup_update(on_dup_key, on_dup_val, on_dup_kv, *args, **kw)
-            if on_dup_key is RAISE or on_dup_val is RAISE or on_dup_kv is RAISE:
-                # Check if any dups between update and existing items in self
-                # would cause an error. If so, it is raised here, early.
-                for (k, v) in pairs(update):
-                    _dedup_item(k, v, self._fwd, self._inv, on_dup_key, on_dup_val, on_dup_kv)
-            update = pairs(update)
+        if not init or RAISE in (on_dup_key, on_dup_val, on_dup_kv):
+            # Guarantee failing cleanly: If inserting any item causes an error,
+            # only a copy will have been changed.
+            copy = self.copy()
+            _put = copy._put
+            for (k, v) in pairs(*args, **kw):
+                _put(k, v, on_dup_key, on_dup_val, on_dup_kv)
+            # Got here without raising. Become copy, with the update applied.
+            self._fwd = copy._fwd
+            self._inv = copy._inv
+            self.inv._fwd = self._inv
+            self.inv._inv = self._fwd
         else:
-            update = pairs(*args, **kw)
-        _put = self._put
-        for (k, v) in update:
-            _put(k, v, on_dup_key=on_dup_key, on_dup_val=on_dup_val, on_dup_kv=on_dup_kv)
+            _put = self._put
+            for (k, v) in pairs(*args, **kw):
+                _put(k, v, on_dup_key, on_dup_val, on_dup_kv)
 
     def copy(self):
         """Like :py:meth:`dict.copy`."""
@@ -236,33 +236,6 @@ def _dedup_item(key, val, fwd, inv, on_dup_key, on_dup_val, on_dup_kv):
             # else on_dup_val is OVERWRITE. Fall through to return on last line.
         # else neither isdupkey nor isdupval (oldkey and oldval both _missing).
     return isdupkey, isdupval, oldkey, oldval
-
-
-def _dedup_update(on_dup_key, on_dup_val, on_dup_kv, *args, **kw):
-    arg = _arg0(args) if args else None
-    if isinstance(arg, Sized) and (len(arg) + len(kw) == 1):
-        return arg or kw  # No need to dedup if only 1 item.
-    if not kw and isinstance(arg, BidirectionalMapping):
-        return arg  # No need to dedup if only a bidict arg.
-    # Must dedup.
-    updatefwd = OrderedDict()  # Preserve order of provided items.
-    updateinv = {}
-    for (key, val) in pairs(*args, **kw):
-        result = _dedup_item(key, val, updatefwd, updateinv, on_dup_key, on_dup_val, on_dup_kv)
-        if not result:
-            continue
-        isdupkey, isdupval, oldkey, oldval = result
-        # Removing any items we're about to overwrite first ensures that
-        # the overwriting items come later, preserving relative ordering
-        # within the update.
-        if isdupkey:
-            del updatefwd[updateinv.pop(oldval)]
-        if isdupval:
-            # Use pop with defaults in case we just took the branch 2 lines up.
-            updateinv.pop(updatefwd.pop(oldkey, _missing), None)
-        updatefwd[key] = val
-        updateinv[val] = key
-    return updatefwd
 
 
 class BidictException(Exception):

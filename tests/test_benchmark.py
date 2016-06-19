@@ -1,4 +1,4 @@
-from bidict import bidict, orderedbidict, ValueNotUniqueError
+from bidict import bidict, orderedbidict, ValueNotUniqueError, OVERWRITE
 import pytest
 
 
@@ -68,11 +68,8 @@ def test_update_withdup(benchmark):
     benchmark(runner)
 
 
-def test_putall_withdup_noprecheck(benchmark):
+def test_overwriting_putall_withdup(benchmark):
     elements_ = bidict(elements)
-
-    def runner():
-        with pytest.raises(ValueNotUniqueError):
-            elements_.putall(update_withdupval, precheck=False)
-
-    benchmark(runner)
+    benchmark(elements_.putall, update_withdupval,
+              on_dup_key=OVERWRITE, on_dup_val=OVERWRITE, on_dup_kv=OVERWRITE)
+    assert elements_.inv['hydrogen'] == 'key_with_dup_val'
