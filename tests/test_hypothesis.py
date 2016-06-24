@@ -3,11 +3,9 @@ Property-based tests using https://warehouse.python.org/project/hypothesis/
 """
 
 from bidict import (
-    OrderedBidirectionalMapping, IGNORE, OVERWRITE, RAISE,
-    KeyNotUniqueError, ValueNotUniqueError, KeyAndValueNotUniqueError,
+    OrderedBidirectionalMapping, IGNORE, OVERWRITE, RAISE, UniquenessError,
     bidict, loosebidict, looseorderedbidict, orderedbidict)
 from bidict.compat import iteritems, viewitems
-from collections import Mapping
 from hypothesis import assume, given, settings
 from hypothesis.strategies import dictionaries, integers, lists, tuples
 from os import getenv
@@ -116,3 +114,30 @@ def test_consistency_after_mutation(arity, methodname, B, d, arg1, arg2, itemlis
             afteri0 = [j for j in items0[idx0 + 1:] if j in common]
             afteri1 = [j for j in items1[idx1 + 1:] if j in common]
             assert afteri0 == afteri1
+
+
+@pytest.mark.parametrize('B', mutable_bidict_types)
+@pytest.mark.parametrize('on_dup_key', ondupbehaviors)
+@pytest.mark.parametrize('on_dup_val', ondupbehaviors)
+@pytest.mark.parametrize('on_dup_kv', ondupbehaviors)
+@given(d=d, items=itemlists)
+def test_putall(B, on_dup_key, on_dup_val, on_dup_kv, d, items):
+    b0 = B(d)
+    expect = b0.copy()
+    expectexc = None
+    for (k, v) in items:
+        try:
+            expect.put(k, v, on_dup_key=on_dup_key, on_dup_val=on_dup_val, on_dup_kv=on_dup_kv)
+        except UniquenessError as e:
+            expectexc = e
+            expect = b0  # bulk updates fail clean
+            break
+    check = b0.copy()
+    checkexc = None
+    try:
+        check.putall(items, on_dup_key=on_dup_key, on_dup_val=on_dup_val, on_dup_kv=on_dup_kv)
+    except UniquenessError as e:
+        checkexc = e
+    assert type(checkexc) == type(expectexc)
+    assert check == expect
+    assert check.inv == expect.inv

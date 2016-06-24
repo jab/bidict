@@ -1,6 +1,6 @@
 """Implements :class:`bidict.bidict`, the mutable bidirectional map type."""
 
-from ._common import BidirectionalMapping, OVERWRITE, RAISE
+from ._common import BidirectionalMapping, OVERWRITE, RAISE, ON_DUP_VAL
 from collections import MutableMapping
 
 
@@ -40,7 +40,7 @@ class bidict(BidirectionalMapping, MutableMapping):
         """
         self._put(key, val, self._on_dup_key, self._on_dup_val, self._on_dup_kv)
 
-    def put(self, key, val, on_dup_key=RAISE, on_dup_val=RAISE, on_dup_kv=RAISE):
+    def put(self, key, val, on_dup_key=RAISE, on_dup_val=RAISE, on_dup_kv=ON_DUP_VAL):
         """
         Associate *key* with *val* with the specified duplication behaviors.
 
@@ -124,7 +124,7 @@ class bidict(BidirectionalMapping, MutableMapping):
         """Like a bulk :attr:`forceput`."""
         self._update(False, OVERWRITE, OVERWRITE, OVERWRITE, *args, **kw)
 
-    def putall(self, items, on_dup_key=RAISE, on_dup_val=RAISE, on_dup_kv=RAISE):
+    def putall(self, items, on_dup_key=RAISE, on_dup_val=RAISE, on_dup_kv=ON_DUP_VAL):
         """
         Like a bulk :attr:`put`.
 

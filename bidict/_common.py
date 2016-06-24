@@ -20,7 +20,15 @@ def _proxied(methodname, ivarname='_fwd', doc=None):
     return proxy
 
 
-class DuplicationBehavior(object):
+class _marker(object):
+    def __init__(self, id):
+        self.id = id
+
+    def __repr__(self):
+        return '<%s>' % self.id
+
+
+class DuplicationBehavior(_marker):
     """
     Provide RAISE, OVERWRITE, and IGNORE duplication behaviors.
 
@@ -37,20 +45,20 @@ class DuplicationBehavior(object):
         Keep the existing item and ignore the new item when a duplication is
         encountered.
 
+    .. py:attribute:: ON_DUP_VAL
+
+        Used with *on_dup_kv* to specify that it should match whatever the
+        duplication behavior of *on_dup_val* is.
+
     """
-
-    def __init__(self, id):
-        """Create a duplication behavior with the given *id*."""
-        self.id = id
-
-    def __repr__(self):
-        return '<%s>' % self.id  # pragma: no cover
 
 DuplicationBehavior.RAISE = RAISE = DuplicationBehavior('RAISE')
 DuplicationBehavior.OVERWRITE = OVERWRITE = DuplicationBehavior('OVERWRITE')
 DuplicationBehavior.IGNORE = IGNORE = DuplicationBehavior('IGNORE')
+DuplicationBehavior.ON_DUP_VAL = ON_DUP_VAL = DuplicationBehavior('ON_DUP_VAL')
 
-_missing = object()
+
+_missing = _marker('MISSING')
 
 
 class BidirectionalMapping(Mapping):
@@ -106,9 +114,71 @@ class BidirectionalMapping(Mapping):
         return val
 
     def _put(self, key, val, on_dup_key, on_dup_val, on_dup_kv):
-        result = _dedup_item(key, val, self._fwd, self._inv, on_dup_key, on_dup_val, on_dup_kv)
+        result = self._dedup_item(key, val, on_dup_key, on_dup_val, on_dup_kv)
         if result:
             self._write_item(key, val, *result)
+
+    def _dedup_item(self, key, val, on_dup_key, on_dup_val, on_dup_kv):
+        """
+        Check *key* and *val* for any duplication in self.
+
+        Handle any duplication as per the given duplication behaviors.
+
+        (key, val) already present is construed as a no-op, not a duplication.
+
+        If duplication is found and the corresponding duplication behavior is
+        *RAISE*, raise the appropriate error.
+
+        If duplication is found and the corresponding duplication behavior is
+        *IGNORE*, return *None*.
+
+        If duplication is found and the corresponding duplication behavior is
+        *OVERWRITE*, or if no duplication is found, return the dedup result
+        *(isdupkey, isdupval, oldkey, oldval)*.
+        """
+        fwd = self._fwd
+        inv = self._inv
+        oldval = fwd.get(key, _missing)
+        oldkey = inv.get(val, _missing)
+        isdupitem = oldval == val
+        assert isdupitem == (oldkey == key)
+        isdupkey = oldval is not _missing
+        isdupval = oldkey is not _missing
+        # Since hash-equivalence != identity, rather than pass `key` and `val` to
+        # the exceptions raised below, pass `inv[oldval]` and `fwd[oldkey]` so that
+        # existing keys/values are referred to exactly. e.g. hash(0) == hash(False)
+        # means that {0: 'foo'}[False] == 'foo'. Refer to the existing item as
+        # (0, 'foo'), not (False, 'foo').
+        if isdupkey and isdupval:
+            if isdupitem:  # (key, val) duplicates an existing item.
+                if on_dup_kv is RAISE:
+                    return  # No-op. Never raise in this case.
+                elif on_dup_kv is IGNORE:
+                    return
+                # else on_dup_kv is OVERWRITE. Fall through to return on last line.
+            else:
+                # key and val each duplicate a different existing item.
+                if on_dup_kv is RAISE:
+                    raise KeyAndValueNotUniqueError(
+                        (key, val), (inv[oldval], oldval), (oldkey, fwd[oldkey]))
+                elif on_dup_kv is IGNORE:
+                    return
+                # else on_dup_kv is OVERWRITE. Fall through to return on last line.
+        else:
+            if isdupkey:
+                if on_dup_key is RAISE:
+                    raise KeyNotUniqueError((key, val), (inv[oldval], oldval))
+                elif on_dup_key is IGNORE:
+                    return
+                # else on_dup_key is OVERWRITE. Fall through to return on last line.
+            elif isdupval:
+                if on_dup_val is RAISE:
+                    raise ValueNotUniqueError((key, val), (oldkey, fwd[oldkey]))
+                elif on_dup_val is IGNORE:
+                    return
+                # else on_dup_val is OVERWRITE. Fall through to return on last line.
+            # else neither isdupkey nor isdupval (oldkey and oldval both _missing).
+        return isdupkey, isdupval, oldkey, oldval
 
     def _write_item(self, key, val, isdupkey, isdupval, oldkey, oldval):
         # Only remove old key (val) before writing if we're not about to
@@ -125,22 +195,21 @@ class BidirectionalMapping(Mapping):
     def _update(self, init, on_dup_key, on_dup_val, on_dup_kv, *args, **kw):
         if not args and not kw:
             return
-        if not init or RAISE in (on_dup_key, on_dup_val, on_dup_kv):
-            # Guarantee failing cleanly: If inserting any item causes an error,
-            # only a copy will have been changed.
-            copy = self.copy()
-            _put = copy._put
-            for (k, v) in pairs(*args, **kw):
-                _put(k, v, on_dup_key, on_dup_val, on_dup_kv)
-            # Got here without raising. Become copy, with the update applied.
-            self._fwd = copy._fwd
-            self._inv = copy._inv
-            self.inv._fwd = self._inv
-            self.inv._inv = self._fwd
-        else:
-            _put = self._put
-            for (k, v) in pairs(*args, **kw):
-                _put(k, v, on_dup_key, on_dup_val, on_dup_kv)
+        if on_dup_kv is ON_DUP_VAL:
+            on_dup_kv = on_dup_val
+        failclean = not init or RAISE in (on_dup_key, on_dup_val, on_dup_kv)
+        updated = self.copy() if failclean else self
+        _put = updated._put
+        for (k, v) in pairs(*args, **kw):
+            _put(k, v, on_dup_key, on_dup_val, on_dup_kv)
+        if failclean:
+            self._become(updated)
+
+    def _become(self, other):
+        self._fwd = other._fwd
+        self._inv = other._inv
+        self.inv._fwd = self._inv
+        self.inv._inv = self._fwd
 
     def copy(self):
         """Like :py:meth:`dict.copy`."""
@@ -177,66 +246,6 @@ class BidirectionalMapping(Mapping):
         viewvalues = _proxied('viewkeys', ivarname='_inv',
                               doc=values.__doc__.replace('values()', 'viewvalues()'))
         values.__doc__ = 'Like ``dict.values()``.'
-
-
-def _dedup_item(key, val, fwd, inv, on_dup_key, on_dup_val, on_dup_kv):
-    """
-    Check *key* and *val* for any duplication in mutually-inverse dictionaries
-    *fwd* and *inv*. Handle any duplication as per the given duplication behaviors.
-
-    (key, val) already present is construed as a no-op, not a duplication.
-
-    If duplication is found and the corresponding duplication behavior is
-    *RAISE*, raise the appropriate error.
-
-    If duplication is found and the corresponding duplication behavior is
-    *IGNORE*, return *None*.
-
-    If duplication is found and the corresponding duplication behavior is
-    *OVERWRITE*, or if no duplication is found, return the dedup result
-    *(isdupkey, isdupval, oldkey, oldval)*.
-    """
-    oldval = fwd.get(key, _missing)
-    oldkey = inv.get(val, _missing)
-    isdupitem = oldval == val
-    assert isdupitem == (oldkey == key)
-    isdupkey = oldval is not _missing
-    isdupval = oldkey is not _missing
-    # Since hash-equivalence != identity, rather than pass `key` and `val` to
-    # the exceptions raised below, pass `inv[oldval]` and `fwd[oldkey]` so that
-    # existing keys/values are referred to exactly. e.g. hash(0) == hash(False)
-    # means that {0: 'foo'}[False] == 'foo'. Refer to the existing item as
-    # (0, 'foo'), not (False, 'foo').
-    if isdupkey and isdupval:
-        if isdupitem:  # (key, val) duplicates an existing item.
-            if on_dup_kv is RAISE:
-                return  # No-op. Never raise in this case.
-            elif on_dup_kv is IGNORE:
-                return
-            # else on_dup_kv is OVERWRITE. Fall through to return on last line.
-        else:
-            # key and val each duplicate a different existing item.
-            if on_dup_kv is RAISE:
-                raise KeyAndValueNotUniqueError(
-                    (key, val), (inv[oldval], oldval), (oldkey, fwd[oldkey]))
-            elif on_dup_kv is IGNORE:
-                return
-            # else on_dup_kv is OVERWRITE. Fall through to return on last line.
-    else:
-        if isdupkey:
-            if on_dup_key is RAISE:
-                raise KeyNotUniqueError((key, val), (inv[oldval], oldval))
-            elif on_dup_key is IGNORE:
-                return
-            # else on_dup_key is OVERWRITE. Fall through to return on last line.
-        elif isdupval:
-            if on_dup_val is RAISE:
-                raise ValueNotUniqueError((key, val), (oldkey, fwd[oldkey]))
-            elif on_dup_val is IGNORE:
-                return
-            # else on_dup_val is OVERWRITE. Fall through to return on last line.
-        # else neither isdupkey nor isdupval (oldkey and oldval both _missing).
-    return isdupkey, isdupval, oldkey, oldval
 
 
 class BidictException(Exception):
