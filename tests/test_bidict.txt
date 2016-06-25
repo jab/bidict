@@ -33,7 +33,7 @@ don't already exist::
     >>> bi.put(1, 'aught')
     Traceback (most recent call last):
         ...
-    KeyNotUniqueError: (1, 'aught') duplicates key in item: (1, 'one')
+    KeyNotUniqueError: (1, 'aught') duplicates key in item (1, 'one')
     >>> del bi[1]
     >>> bi.put(1, 'aught')
     >>> bi[1]
@@ -142,7 +142,7 @@ Initializing with different keys mapping to the same value fails::
     >>> bidict([(1, 1), (2, 1)])
     Traceback (most recent call last):
         ...
-    ValueNotUniqueError: (2, 1) duplicates value in item: (1, 1)
+    ValueNotUniqueError: (2, 1) duplicates value in item (1, 1)
 
 Adding a new key associated with an existing value fails::
 
@@ -150,11 +150,11 @@ Adding a new key associated with an existing value fails::
     >>> b[2] = 1
     Traceback (most recent call last):
         ...
-    ValueNotUniqueError: (2, 1) duplicates value in item: (1, 1)
+    ValueNotUniqueError: (2, 1) duplicates value in item (1, 1)
     >>> b.update({2: 1})
     Traceback (most recent call last):
         ...
-    ValueNotUniqueError: (2, 1) duplicates value in item: (1, 1)
+    ValueNotUniqueError: (2, 1) duplicates value in item (1, 1)
 
 ``forceput`` and ``forceupdate`` can be used instead::
 

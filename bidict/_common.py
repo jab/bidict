@@ -176,21 +176,12 @@ class BidirectionalMapping(Mapping):
         return isdupkey, isdupval, oldkey, oldval
 
     def _write_item(self, key, val, isdupkey, isdupval, oldkey, oldval):
-        oldrm = False
-        # Only remove old key (val) before writing if we're not about to
-        # write the same key (val). Thus if this is an orderedbidict, the
-        # item is changed in place rather than moved to the end.
-        if isdupkey and oldkey != key:
-            del self._fwd[self._inv.pop(oldval)]
-            oldrm = True
-        if isdupval and oldval != val:
-            # We could have just taken the previous branch too.
-            if oldkey in self._fwd:
-                self._del(oldkey)
-                oldrm = True
         self._fwd[key] = val
         self._inv[val] = key
-        return oldrm
+        if isdupkey:
+            del self._inv[oldval]
+        if isdupval:
+            del self._fwd[oldkey]
 
     def _update(self, init, on_dup_key, on_dup_val, on_dup_kv, *args, **kw):
         if not args and not kw:
@@ -208,35 +199,37 @@ class BidirectionalMapping(Mapping):
         """Update, rolling back on failure."""
         exc = None
         changes = []
+        appendchange = changes.append
+        dedup_item = self._dedup_item
+        write_item = self._write_item
         for (key, val) in pairs(*args, **kw):
             try:
-                dedup_result = self._dedup_item(key, val, on_dup_key, on_dup_val, on_dup_kv)
+                dedup_result = dedup_item(key, val, on_dup_key, on_dup_val, on_dup_kv)
             except UniquenessError as e:
                 exc = e
                 break
             if dedup_result:
-                write_result = self._write_item(key, val, *dedup_result)
-                changes.append((key, val, dedup_result, write_result))
+                write_item(key, val, *dedup_result)
+                appendchange((key, val) + dedup_result)
         if exc:
             fwd = self._fwd
             inv = self._inv
-            for (key, val, (isdupkey, isdupval, oldkey, oldval), oldrm) in reversed(changes):
-                if not oldrm or (not isdupkey and not isdupval):
-                    self._del(key)
-                elif oldrm:
-                    if isdupkey and isdupval:
-                        fwd[key] = oldval
-                        fwd[oldkey] = val
-                        inv[val] = oldkey
-                        inv[oldval] = key
-                    elif isdupkey:
-                        fwd[key] = oldval
-                        inv[oldval] = key
-                        del inv[val]
-                    elif isdupval:
-                        inv[val] = oldkey
-                        fwd[oldkey] = val
-                        del fwd[key]
+            for (key, val, isdupkey, isdupval, oldkey, oldval) in reversed(changes):
+                if isdupkey and isdupval:
+                    fwd[key] = oldval
+                    fwd[oldkey] = val
+                    inv[val] = oldkey
+                    inv[oldval] = key
+                elif isdupkey:
+                    fwd[key] = oldval
+                    inv[oldval] = key
+                    del inv[val]
+                elif isdupval:
+                    inv[val] = oldkey
+                    fwd[oldkey] = val
+                    del fwd[key]
+                else:
+                    del inv[fwd.pop(key)]
             raise exc
 
     def copy(self):
