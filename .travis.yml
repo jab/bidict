@@ -11,6 +11,7 @@ matrix:
     - python: "2.7"
       env:
         - PYENV_PYTHON_VER=2.7.11
+        - BIDICT_SPHINXBUILD_DISABLE=1
     - python: "3.4"
       env:
         - PYENV_PYTHON_VER=3.4.4
@@ -18,10 +19,12 @@ matrix:
     - python: "3.5"
       env:
         - PYENV_PYTHON_VER=3.5.1
+        - BIDICT_SPHINXBUILD_DISABLE=1
     - python: "pypy"
       env:
         - PYENV_PYTHON_VER=pypy-5.1.1
         - BIDICT_COVERAGE_DISABLE=1
+        - BIDICT_SPHINXBUILD_DISABLE=1
 
 install:
   # based on https://github.com/frol/flask-restplus-server-example/blob/018f48e5/.travis.yml

@@ -76,8 +76,6 @@ def test_len(d):
 @pytest.mark.parametrize('B', mutable_bidict_types)
 @given(d=d, arg1=immutable, arg2=immutable, itemlist=itemlists)
 def test_consistency_after_mutation(arity, methodname, B, d, arg1, arg2, itemlist):
-    loose = issubclass(B, loosebidict)
-    ordered = issubclass(B, OrderedBidirectionalMapping)
     b = B(d)
     assert dict(b) == inv(b.inv)
     assert dict(b.inv) == inv(b)
@@ -100,20 +98,23 @@ def test_consistency_after_mutation(arity, methodname, B, d, arg1, arg2, itemlis
         assert b.inv == b0.inv
     assert dict(b) == inv(b.inv)
     assert dict(b.inv) == inv(b)
-    if ordered and methodname != 'move_to_end' and (
-            (not loose or arity != -1)):
-        items0 = list(viewitems(b0))
-        items1 = list(viewitems(b))
-        common = set(items0) & set(items1)
-        for i in common:
-            idx0 = items0.index(i)
-            idx1 = items1.index(i)
-            beforei0 = [j for j in items0[:idx0] if j in common]
-            beforei1 = [j for j in items1[:idx1] if j in common]
-            assert beforei0 == beforei1
-            afteri0 = [j for j in items0[idx0 + 1:] if j in common]
-            afteri1 = [j for j in items1[idx1 + 1:] if j in common]
-            assert afteri0 == afteri1
+    ordered = issubclass(B, OrderedBidirectionalMapping)
+    if ordered and methodname != 'move_to_end':
+        items0 = viewitems(b0)
+        items1 = viewitems(b)
+        common = items0 & items1
+        if common:
+            items0 = list(items0)
+            items1 = list(items1)
+            for i in common:
+                idx0 = items0.index(i)
+                idx1 = items1.index(i)
+                beforei0 = [j for j in items0[:idx0] if j in common]
+                beforei1 = [j for j in items1[:idx1] if j in common]
+                assert beforei0 == beforei1
+                afteri0 = [j for j in items0[idx0 + 1:] if j in common]
+                afteri1 = [j for j in items1[idx1 + 1:] if j in common]
+                assert afteri0 == afteri1
 
 
 @pytest.mark.parametrize('B', mutable_bidict_types)
