@@ -30,7 +30,7 @@ class _marker(object):
 
 class DuplicationBehavior(_marker):
     """
-    Provide RAISE, OVERWRITE, and IGNORE duplication behaviors.
+    Provide RAISE, OVERWRITE, IGNORE, and ON_DUP_VAL duplication behaviors.
 
     .. py:attribute:: RAISE
 
@@ -56,8 +56,6 @@ DuplicationBehavior.RAISE = RAISE = DuplicationBehavior('RAISE')
 DuplicationBehavior.OVERWRITE = OVERWRITE = DuplicationBehavior('OVERWRITE')
 DuplicationBehavior.IGNORE = IGNORE = DuplicationBehavior('IGNORE')
 DuplicationBehavior.ON_DUP_VAL = ON_DUP_VAL = DuplicationBehavior('ON_DUP_VAL')
-
-
 _missing = _marker('MISSING')
 
 
@@ -159,20 +157,19 @@ class BidirectionalMapping(Mapping):
             elif on_dup_kv is IGNORE:
                 return
             # else on_dup_kv is OVERWRITE. Fall through to return on last line.
-        else:
-            if isdupkey:
-                if on_dup_key is RAISE:
-                    raise KeyNotUniqueError((key, val), (inv[oldval], oldval))
-                elif on_dup_key is IGNORE:
-                    return
-                # else on_dup_key is OVERWRITE. Fall through to return on last line.
-            elif isdupval:
-                if on_dup_val is RAISE:
-                    raise ValueNotUniqueError((key, val), (oldkey, fwd[oldkey]))
-                elif on_dup_val is IGNORE:
-                    return
-                # else on_dup_val is OVERWRITE. Fall through to return on last line.
-            # else neither isdupkey nor isdupval (oldkey and oldval both _missing).
+        elif isdupkey:
+            if on_dup_key is RAISE:
+                raise KeyNotUniqueError((key, val), (inv[oldval], oldval))
+            elif on_dup_key is IGNORE:
+                return
+            # else on_dup_key is OVERWRITE. Fall through to return on last line.
+        elif isdupval:
+            if on_dup_val is RAISE:
+                raise ValueNotUniqueError((key, val), (oldkey, fwd[oldkey]))
+            elif on_dup_val is IGNORE:
+                return
+            # else on_dup_val is OVERWRITE. Fall through to return on last line.
+        # else neither isdupkey nor isdupval.
         return isdupkey, isdupval, oldkey, oldval
 
     def _write_item(self, key, val, isdupkey, isdupval, oldkey, oldval):
