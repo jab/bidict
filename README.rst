@@ -15,9 +15,10 @@ Efficient, Pythonic bidirectional map implementation and related functionality.
 Status
 ------
 
-.. image:: https://img.shields.io/pypi/dm/bidict.svg
-    :target: https://pypi.python.org/pypi/bidict
-    :alt: Downloads per month
+.. Hide downloads badge pending https://github.com/badges/shields/issues/716
+.. .. image:: https://img.shields.io/pypi/dm/bidict.svg
+..     :target: https://pypi.python.org/pypi/bidict
+..     :alt: Downloads per month
 
 .. image:: https://img.shields.io/pypi/v/bidict.svg
     :target: https://pypi.python.org/pypi/bidict
@@ -38,14 +39,6 @@ Status
 .. image:: https://coveralls.io/repos/jab/bidict/badge.svg?branch=master
     :target: https://coveralls.io/github/jab/bidict
     :alt: Test coverage
-
-.. image:: https://www.codacy.com/project/badge/1c5bfb83d2d54d57898d4ede1c9157ee
-    :target: https://www.codacy.com/app/jab/bidict
-    :alt: Code quality
-
-.. image:: https://requires.io/github/jab/bidict/requirements.svg?branch=master
-     :target: https://requires.io/github/jab/bidict/requirements/?branch=master
-     :alt: Requirements Status
 
 .. image:: https://img.shields.io/pypi/pyversions/bidict.svg
     :target: https://pypi.python.org/pypi/bidict
