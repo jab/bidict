@@ -3,7 +3,7 @@ Property-based tests using https://warehouse.python.org/project/hypothesis/
 """
 
 from bidict import (
-    OrderedBidirectionalMapping, IGNORE, OVERWRITE, RAISE, UniquenessError,
+    OrderedBidirectionalMapping, IGNORE, OVERWRITE, RAISE,
     bidict, loosebidict, looseorderedbidict, orderedbidict)
 from bidict.compat import iteritems, viewitems
 from hypothesis import assume, given, settings
@@ -128,7 +128,7 @@ def test_putall(B, on_dup_key, on_dup_val, on_dup_kv, d, items):
     for (k, v) in items:
         try:
             expect.put(k, v, on_dup_key=on_dup_key, on_dup_val=on_dup_val, on_dup_kv=on_dup_kv)
-        except UniquenessError as e:
+        except Exception as e:
             expectexc = e
             expect = b0  # bulk updates fail clean
             break
@@ -136,7 +136,7 @@ def test_putall(B, on_dup_key, on_dup_val, on_dup_kv, d, items):
     checkexc = None
     try:
         check.putall(items, on_dup_key=on_dup_key, on_dup_val=on_dup_val, on_dup_kv=on_dup_kv)
-    except UniquenessError as e:
+    except Exception as e:
         checkexc = e
     assert type(checkexc) == type(expectexc)
     assert check == expect

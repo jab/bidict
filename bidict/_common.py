@@ -151,19 +151,14 @@ class BidirectionalMapping(Mapping):
         # (0, 'foo'), not (False, 'foo').
         if isdupkey and isdupval:
             if isdupitem:  # (key, val) duplicates an existing item.
-                if on_dup_kv is RAISE:
-                    return  # No-op. Never raise in this case.
-                elif on_dup_kv is IGNORE:
-                    return
-                # else on_dup_kv is OVERWRITE. Fall through to return on last line.
-            else:
-                # key and val each duplicate a different existing item.
-                if on_dup_kv is RAISE:
-                    raise KeyAndValueNotUniqueError(
-                        (key, val), (inv[oldval], oldval), (oldkey, fwd[oldkey]))
-                elif on_dup_kv is IGNORE:
-                    return
-                # else on_dup_kv is OVERWRITE. Fall through to return on last line.
+                return  # No-op. Never raise in this case.
+            # key and val each duplicate a different existing item.
+            if on_dup_kv is RAISE:
+                raise KeyAndValueNotUniqueError(
+                    (key, val), (inv[oldval], oldval), (oldkey, fwd[oldkey]))
+            elif on_dup_kv is IGNORE:
+                return
+            # else on_dup_kv is OVERWRITE. Fall through to return on last line.
         else:
             if isdupkey:
                 if on_dup_key is RAISE:
@@ -181,35 +176,68 @@ class BidirectionalMapping(Mapping):
         return isdupkey, isdupval, oldkey, oldval
 
     def _write_item(self, key, val, isdupkey, isdupval, oldkey, oldval):
+        oldrm = False
         # Only remove old key (val) before writing if we're not about to
         # write the same key (val). Thus if this is an orderedbidict, the
         # item is changed in place rather than moved to the end.
         if isdupkey and oldkey != key:
             del self._fwd[self._inv.pop(oldval)]
+            oldrm = True
         if isdupval and oldval != val:
-            # Use pop with defaults in case we just took the branch 2 lines up.
-            self._inv.pop(self._fwd.pop(oldkey, _missing), None)
+            # We could have just taken the previous branch too.
+            if oldkey in self._fwd:
+                self._del(oldkey)
+                oldrm = True
         self._fwd[key] = val
         self._inv[val] = key
+        return oldrm
 
     def _update(self, init, on_dup_key, on_dup_val, on_dup_kv, *args, **kw):
         if not args and not kw:
             return
         if on_dup_kv is ON_DUP_VAL:
             on_dup_kv = on_dup_val
-        failclean = not init or RAISE in (on_dup_key, on_dup_val, on_dup_kv)
-        updated = self.copy() if failclean else self
-        _put = updated._put
-        for (k, v) in pairs(*args, **kw):
-            _put(k, v, on_dup_key, on_dup_val, on_dup_kv)
-        if failclean:
-            self._become(updated)
+        rollbackonfail = not init or RAISE in (on_dup_key, on_dup_val, on_dup_kv)
+        if rollbackonfail:
+            return self._update_rbf(on_dup_key, on_dup_val, on_dup_kv, *args, **kw)
+        _put = self._put
+        for (key, val) in pairs(*args, **kw):
+            _put(key, val, on_dup_key, on_dup_val, on_dup_kv)
 
-    def _become(self, other):
-        self._fwd = other._fwd
-        self._inv = other._inv
-        self.inv._fwd = self._inv
-        self.inv._inv = self._fwd
+    def _update_rbf(self, on_dup_key, on_dup_val, on_dup_kv, *args, **kw):
+        """Update, rolling back on failure."""
+        exc = None
+        changes = []
+        for (key, val) in pairs(*args, **kw):
+            try:
+                dedup_result = self._dedup_item(key, val, on_dup_key, on_dup_val, on_dup_kv)
+            except UniquenessError as e:
+                exc = e
+                break
+            if dedup_result:
+                write_result = self._write_item(key, val, *dedup_result)
+                changes.append((key, val, dedup_result, write_result))
+        if exc:
+            fwd = self._fwd
+            inv = self._inv
+            for (key, val, (isdupkey, isdupval, oldkey, oldval), oldrm) in reversed(changes):
+                if not oldrm or (not isdupkey and not isdupval):
+                    self._del(key)
+                elif oldrm:
+                    if isdupkey and isdupval:
+                        fwd[key] = oldval
+                        fwd[oldkey] = val
+                        inv[val] = oldkey
+                        inv[oldval] = key
+                    elif isdupkey:
+                        fwd[key] = oldval
+                        inv[oldval] = key
+                        del inv[val]
+                    elif isdupval:
+                        inv[val] = oldkey
+                        fwd[oldkey] = val
+                        del fwd[key]
+            raise exc
 
     def copy(self):
         """Like :py:meth:`dict.copy`."""
@@ -267,7 +295,7 @@ class ValueNotUniqueError(UniquenessError):
     """Raised when a given value is not unique."""
 
     def __str__(self):
-        return ('%r duplicates value in item: %r' % self.args) if self.args else ''
+        return ('%r duplicates value in item %r' % self.args) if self.args else ''
 
 
 class KeyAndValueNotUniqueError(KeyNotUniqueError, ValueNotUniqueError):
@@ -279,4 +307,4 @@ class KeyAndValueNotUniqueError(KeyNotUniqueError, ValueNotUniqueError):
     """
 
     def __str__(self):
-        return ('%r duplicates key and value in items: %r, %r' % self.args) if self.args else ''
+        return ('%r duplicates key and value in items %r, %r' % self.args) if self.args else ''
