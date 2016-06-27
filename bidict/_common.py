@@ -73,22 +73,24 @@ class BidirectionalMapping(Mapping):
 
     """
 
-    _dcls = dict
     _on_dup_key = OVERWRITE
     _on_dup_val = RAISE
     _on_dup_kv = RAISE
 
     def __init__(self, *args, **kw):
         """Like ``dict.__init__()``, but maintaining bidirectionality."""
-        self._fwd = self._dcls()  # dictionary of forward mappings
-        self._inv = self._dcls()  # dictionary of inverse mappings
+        self._fwd = {}  # dictionary of forward mappings
+        self._inv = {}  # dictionary of inverse mappings
+        self._init_inv()
+        if args or kw:
+            self._update(True, self._on_dup_key, self._on_dup_val, self._on_dup_kv, *args, **kw)
+
+    def _init_inv(self):
         inv = object.__new__(self.__class__)
         inv._fwd = self._inv
         inv._inv = self._fwd
         inv.inv = self
         self.inv = inv
-        if args or kw:
-            self._update(True, self._on_dup_key, self._on_dup_val, self._on_dup_kv, *args, **kw)
 
     def __repr__(self):
         return '%s(%r)' % (self.__class__.__name__, self._fwd)
@@ -97,19 +99,20 @@ class BidirectionalMapping(Mapping):
         return self._fwd == other
 
     def __ne__(self, other):
-        return not self.__eq__(other)
+        return not self == other
 
     def __inverted__(self):
         """Get an iterator over the items in :attr:`self.inv <inv>`."""
         return iteritems(self._inv)
 
-    def __getitem__(self, key):
-        return self._fwd[key]
-
-    def _del(self, key):
+    def _pop(self, key):
         val = self._fwd.pop(key)
         del self._inv[val]
         return val
+
+    def _clear(self):
+        self._fwd.clear()
+        self._inv.clear()
 
     def _put(self, key, val, on_dup_key, on_dup_val, on_dup_kv):
         result = self._dedup_item(key, val, on_dup_key, on_dup_val, on_dup_kv)
@@ -132,45 +135,43 @@ class BidirectionalMapping(Mapping):
 
         If duplication is found and the corresponding duplication behavior is
         *OVERWRITE*, or if no duplication is found, return the dedup result
-        *(isdupkey, isdupval, oldkey, oldval)*.
+        *(isdupkey, isdupval, invbyval, fwdbykey)*.
         """
         fwd = self._fwd
         inv = self._inv
-        oldval = fwd.get(key, _missing)
-        oldkey = inv.get(val, _missing)
-        isdupitem = oldval == val
-        assert isdupitem == (oldkey == key)
-        isdupkey = oldval is not _missing
-        isdupval = oldkey is not _missing
-        # Since hash-equivalence != identity, rather than pass `key` and `val` to
-        # the exceptions raised below, pass `inv[oldval]` and `fwd[oldkey]` so that
-        # existing keys/values are referred to exactly. e.g. hash(0) == hash(False)
-        # means that {0: 'foo'}[False] == 'foo'. Refer to the existing item as
-        # (0, 'foo'), not (False, 'foo').
+        fwdbykey = fwd.get(key, _missing)
+        invbyval = inv.get(val, _missing)
+        isdupkey = fwdbykey is not _missing
+        isdupval = invbyval is not _missing
         if isdupkey and isdupval:
-            if isdupitem:  # (key, val) duplicates an existing item.
-                return  # No-op. Never raise in this case.
+            if self._isdupitem(key, val, invbyval, fwdbykey):
+                # (key, val) duplicates an existing item -> no-op.
+                return
             # key and val each duplicate a different existing item.
             if on_dup_kv is RAISE:
-                raise KeyAndValueNotUniqueError(
-                    (key, val), (inv[oldval], oldval), (oldkey, fwd[oldkey]))
+                raise KeyAndValueNotUniqueError(key, val)
             elif on_dup_kv is IGNORE:
                 return
             # else on_dup_kv is OVERWRITE. Fall through to return on last line.
         elif isdupkey:
             if on_dup_key is RAISE:
-                raise KeyNotUniqueError((key, val), (inv[oldval], oldval))
+                raise KeyNotUniqueError(key)
             elif on_dup_key is IGNORE:
                 return
             # else on_dup_key is OVERWRITE. Fall through to return on last line.
         elif isdupval:
             if on_dup_val is RAISE:
-                raise ValueNotUniqueError((key, val), (oldkey, fwd[oldkey]))
+                raise ValueNotUniqueError(val)
             elif on_dup_val is IGNORE:
                 return
             # else on_dup_val is OVERWRITE. Fall through to return on last line.
         # else neither isdupkey nor isdupval.
-        return isdupkey, isdupval, oldkey, oldval
+        return isdupkey, isdupval, invbyval, fwdbykey
+
+    def _isdupitem(self, key, val, oldkey, oldval):
+        dup = oldkey == key
+        assert dup == (oldval == val)
+        return dup
 
     def _write_item(self, key, val, isdupkey, isdupval, oldkey, oldval):
         self._fwd[key] = val
@@ -179,6 +180,7 @@ class BidirectionalMapping(Mapping):
             del self._inv[oldval]
         if isdupval:
             del self._fwd[oldkey]
+        return key, val, isdupkey, isdupval, oldkey, oldval
 
     def _update(self, init, on_dup_key, on_dup_val, on_dup_kv, *args, **kw):
         if not args and not kw:
@@ -195,8 +197,8 @@ class BidirectionalMapping(Mapping):
     def _update_rbf(self, on_dup_key, on_dup_val, on_dup_kv, *args, **kw):
         """Update, rolling back on failure."""
         exc = None
-        changes = []
-        appendchange = changes.append
+        writes = []
+        appendwrite = writes.append
         dedup_item = self._dedup_item
         write_item = self._write_item
         for (key, val) in pairs(*args, **kw):
@@ -206,28 +208,41 @@ class BidirectionalMapping(Mapping):
                 exc = e
                 break
             if dedup_result:
-                write_item(key, val, *dedup_result)
-                appendchange((key, val) + dedup_result)
+                write_result = write_item(key, val, *dedup_result)
+                appendwrite(write_result)
         if exc:
-            fwd = self._fwd
-            inv = self._inv
-            for (key, val, isdupkey, isdupval, oldkey, oldval) in reversed(changes):
-                if isdupkey and isdupval:
-                    fwd[key] = oldval
-                    fwd[oldkey] = val
-                    inv[val] = oldkey
-                    inv[oldval] = key
-                elif isdupkey:
-                    fwd[key] = oldval
-                    inv[oldval] = key
-                    del inv[val]
-                elif isdupval:
-                    inv[val] = oldkey
-                    fwd[oldkey] = val
-                    del fwd[key]
-                else:
-                    del inv[fwd.pop(key)]
+            undo_write = self._undo_write
+            for write in reversed(writes):
+                undo_write(*write)
             raise exc
+        else:
+            self._on_update_rbf_success(writes)
+
+    def _on_update_rbf_success(self, writes):
+        """
+        Hook for subclassess that need to update state on successful _update_rbf().
+
+        In particular, used by OrderedBidirectionalMapping on dup_kv ovewrite
+        to clear any forward linked list nodes that were collapsed into an
+        inverse node.
+        """
+
+    def _undo_write(self, key, val, isdupkey, isdupval, oldkey, oldval):
+        fwd = self._fwd
+        inv = self._inv
+        if not isdupkey and not isdupval:
+            self._pop(key)
+            return
+        if isdupkey:
+            fwd[key] = oldval
+            inv[oldval] = key
+            if not isdupval:
+                del inv[val]
+        if isdupval:
+            inv[val] = oldkey
+            fwd[oldkey] = val
+            if not isdupkey:
+                del fwd[key]
 
     def copy(self):
         """Like :py:meth:`dict.copy`."""
@@ -244,24 +259,19 @@ class BidirectionalMapping(Mapping):
     __copy__ = copy
     __len__ = _proxied('__len__')
     __iter__ = _proxied('__iter__')
-    __contains__ = _proxied('__contains__')
-    get = _proxied('get')
-    keys = _proxied('keys')
-    items = _proxied('items')
-    values = _proxied('keys', ivarname='_inv')
+    __getitem__ = _proxied('__getitem__')
+    values = _proxied('keys', ivarname='inv')
     values.__doc__ = \
         "B.values() -> a set-like object providing a view on B's values.\n\n" \
         'Note that because values of a BidirectionalMapping are also keys\n' \
-        'of its inverse, this returns a *dict_keys* object rather than a\n' \
-        '*dict_values* object, conferring set-like benefits.'
+        'of its inverse, this returns a *KeysView* object rather than a\n' \
+        '*ValuesView* object, conferring set-like benefits.'
     if PY2:  # pragma: no cover
-        iterkeys = _proxied('iterkeys')
         viewkeys = _proxied('viewkeys')
-        iteritems = _proxied('iteritems')
         viewitems = _proxied('viewitems')
-        itervalues = _proxied('iterkeys', ivarname='_inv',
+        itervalues = _proxied('iterkeys', ivarname='inv',
                               doc=dict.itervalues.__doc__)
-        viewvalues = _proxied('viewkeys', ivarname='_inv',
+        viewvalues = _proxied('viewkeys', ivarname='inv',
                               doc=values.__doc__.replace('values()', 'viewvalues()'))
         values.__doc__ = 'Like ``dict.values()``.'
 
@@ -270,6 +280,7 @@ class BidictException(Exception):
     """Base class for bidict exceptions."""
 
 
+# TODO: rename DuplicationError, DuplicateKeyError, DuplicateValueError, DuplicateKeyAndValueError
 class UniquenessError(BidictException):
     """Base class for exceptions raised when uniqueness is violated."""
 
@@ -277,15 +288,9 @@ class UniquenessError(BidictException):
 class KeyNotUniqueError(UniquenessError):
     """Raised when a given key is not unique."""
 
-    def __str__(self):
-        return ('%r duplicates key in item %r' % self.args) if self.args else ''
-
 
 class ValueNotUniqueError(UniquenessError):
     """Raised when a given value is not unique."""
-
-    def __str__(self):
-        return ('%r duplicates value in item %r' % self.args) if self.args else ''
 
 
 class KeyAndValueNotUniqueError(KeyNotUniqueError, ValueNotUniqueError):
@@ -295,6 +300,3 @@ class KeyAndValueNotUniqueError(KeyNotUniqueError, ValueNotUniqueError):
     That is, its key duplicates that of another item,
     and its value duplicates that of a different other item.
     """
-
-    def __str__(self):
-        return ('%r duplicates key and value in items %r, %r' % self.args) if self.args else ''

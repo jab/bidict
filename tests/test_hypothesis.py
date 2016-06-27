@@ -4,10 +4,12 @@ Property-based tests using https://warehouse.python.org/project/hypothesis/
 
 from bidict import (
     OrderedBidirectionalMapping, IGNORE, OVERWRITE, RAISE,
-    bidict, loosebidict, looseorderedbidict, orderedbidict)
+    bidict, loosebidict, looseorderedbidict, orderedbidict,
+    frozenbidict, frozenorderedbidict)
 from bidict.compat import iteritems, viewitems
-from hypothesis import assume, given, settings
-from hypothesis.strategies import dictionaries, integers, lists, tuples
+from collections import OrderedDict
+from hypothesis import given, settings
+from hypothesis.strategies import integers, lists, tuples
 from os import getenv
 import pytest
 
@@ -17,18 +19,17 @@ settings.register_profile('default', settings(strict=True))
 settings.load_profile(getenv('HYPOTHESIS_PROFILE', 'default'))
 
 
-def inv(d):
-    return {v: k for (k, v) in iteritems(d)}
+def to_inv_odict(items):
+    return OrderedDict((v, k) for (k, v) in items)
 
 
-def prune_dup_vals(d):
-    pruned = inv(inv(d))
-    assume(len(pruned) >= len(d) // 2)
-    return pruned
+def prune_dup_vals(items):
+    return list(iteritems(to_inv_odict(iteritems(to_inv_odict(items)))))
 
 
 ondupbehaviors = (IGNORE, OVERWRITE, RAISE)
 mutable_bidict_types = (bidict, loosebidict, looseorderedbidict, orderedbidict)
+bidict_types = mutable_bidict_types + (frozenbidict, frozenorderedbidict)
 mutating_methods_by_arity = {
     0: ('clear', 'popitem',),
     1: ('__delitem__', 'pop', 'setdefault', 'move_to_end',),
@@ -43,48 +44,47 @@ immutable = integers()
 # immu_coll = lambda e: frozensets(e, **sz) | lists(e, **sz).map(tuple)
 # immutable = recursive(immu_atom, immu_coll)
 itemlists = lists(tuples(immutable, immutable))
-d = dictionaries(immutable, immutable).map(prune_dup_vals)
+inititems = itemlists.map(prune_dup_vals)
 
 
-@given(d)
-def test_equality(d):
-    i = inv(d)
-    b = bidict(d)
+@pytest.mark.parametrize('B', bidict_types)
+@given(init=inititems)
+def test_equality(B, init):
+    b = B(init)
+    d = OrderedDict(init)
     assert b == d
-    assert b.inv == i
     assert not b != d
+    i = to_inv_odict(iteritems(d))
+    assert b.inv == i
     assert not b.inv != i
 
 
-@given(d)
-def test_bidirectional_mappings(d):
-    b = bidict(d)
-    for k, v in iteritems(b):
-        assert k == b.inv[v]
-    for v, k in iteritems(b.inv):
-        assert v == b[k]
-
-
-@given(d)
-def test_len(d):
-    b = bidict(d)
-    assert len(b) == len(b.inv) == len(d)
+@pytest.mark.parametrize('B', bidict_types)
+@given(init=inititems)
+def test_bidirectional_mappings(B, init):
+    ordered = issubclass(B, OrderedBidirectionalMapping)
+    C = list if ordered else sorted
+    b = B(init)
+    keysf = C(k for (k, v) in iteritems(b))
+    keysi = C(b.inv[v] for (k, v) in iteritems(b))
+    assert keysf == keysi
+    valsf = C(b[k] for (v, k) in iteritems(b.inv))
+    valsi = C(v for (v, k) in iteritems(b.inv))
+    assert valsf == valsi
 
 
 @pytest.mark.parametrize('arity,methodname',
     [(a, m) for (a, ms) in iteritems(mutating_methods_by_arity) for m in ms])
 @pytest.mark.parametrize('B', mutable_bidict_types)
-@given(d=d, arg1=immutable, arg2=immutable, itemlist=itemlists)
-def test_consistency_after_mutation(arity, methodname, B, d, arg1, arg2, itemlist):
-    b = B(d)
-    assert dict(b) == inv(b.inv)
-    assert dict(b.inv) == inv(b)
+@given(init=inititems, arg1=immutable, arg2=immutable, items=itemlists)
+def test_consistency_after_mutation(arity, methodname, B, init, arg1, arg2, items):
     method = getattr(B, methodname, None)
     if not method:
         return
+    b = B(init)
     args = []
     if arity == -1:
-        args.append(itemlist)
+        args.append(items)
     else:
         if arity > 0:
             args.append(arg1)
@@ -94,10 +94,11 @@ def test_consistency_after_mutation(arity, methodname, B, d, arg1, arg2, itemlis
     try:
         method(b, *args)
     except:
+        # All methods should fail clean, reverting any changes made before failure.
         assert b == b0
         assert b.inv == b0.inv
-    assert dict(b) == inv(b.inv)
-    assert dict(b.inv) == inv(b)
+    assert b == to_inv_odict(iteritems(b.inv))
+    assert b.inv == to_inv_odict(iteritems(b))
     ordered = issubclass(B, OrderedBidirectionalMapping)
     if ordered and methodname != 'move_to_end':
         items0 = viewitems(b0)
@@ -121,9 +122,9 @@ def test_consistency_after_mutation(arity, methodname, B, d, arg1, arg2, itemlis
 @pytest.mark.parametrize('on_dup_key', ondupbehaviors)
 @pytest.mark.parametrize('on_dup_val', ondupbehaviors)
 @pytest.mark.parametrize('on_dup_kv', ondupbehaviors)
-@given(d=d, items=itemlists)
-def test_putall(B, on_dup_key, on_dup_val, on_dup_kv, d, items):
-    b0 = B(d)
+@given(init=inititems, items=itemlists)
+def test_putall(B, on_dup_key, on_dup_val, on_dup_kv, init, items):
+    b0 = B(init)
     expect = b0.copy()
     expectexc = None
     for (k, v) in items:

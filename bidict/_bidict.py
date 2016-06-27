@@ -9,7 +9,7 @@ class bidict(BidirectionalMapping, MutableMapping):
 
     def __delitem__(self, key):
         """Like :py:meth:`dict.__delitem__`, maintaining bidirectionality."""
-        self._del(key)
+        self._pop(key)
 
     def __setitem__(self, key, val):
         """
@@ -79,8 +79,7 @@ class bidict(BidirectionalMapping, MutableMapping):
 
     def clear(self):
         """Remove all items."""
-        self._fwd.clear()
-        self._inv.clear()
+        self._clear()
 
     def pop(self, key, *args):
         """Like :py:meth:`dict.pop`, maintaining bidirectionality."""
@@ -88,7 +87,7 @@ class bidict(BidirectionalMapping, MutableMapping):
         if l > 2:
             raise TypeError('pop expected at most 2 arguments, got %d' % l)
         try:
-            return self._del(key)
+            return self._pop(key)
         except KeyError:
             if args:
                 return args[0]  # default

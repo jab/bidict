@@ -13,5 +13,9 @@ class frozenbidict(BidirectionalMapping, Hashable):
         h = getattr(self, '_hash', _missing)
         if h is not _missing:
             return h
-        h = self._hash = hash(tuple(viewitems(self._fwd)))
+        itemsview = viewitems(self)
+        if hasattr(itemsview, '_hash'):  # e.g. collections.ItemsView._hash
+            h = self._hash = itemsview._hash()
+        else:
+            h = self._hash = hash(tuple(itemsview))
         return h
