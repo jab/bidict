@@ -52,8 +52,8 @@ For example::
     >>> b[2] = True
     Traceback (most recent call last):
        ...
-    ValueExistsException: Value 1 exists with key 1
+    ValueDuplicationError: 1
     >>> b.put(True, 'true')
     Traceback (most recent call last):
        ...
-    KeyExistsException: Key 1 exists with value 1
+    KeyDuplicationError: 1

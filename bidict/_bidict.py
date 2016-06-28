@@ -1,62 +1,72 @@
 """Implements :class:`bidict.bidict`, the mutable bidirectional map type."""
 
-from ._common import BidirectionalMapping
-from .util import pairs
+from ._common import BidirectionalMapping, OVERWRITE, RAISE, ON_DUP_VAL
 from collections import MutableMapping
 
 
 class bidict(BidirectionalMapping, MutableMapping):
     """Mutable bidirectional map type."""
 
-    def _del(self, key):
-        val = self._fwd[key]
-        del self._fwd[key]
-        del self._inv[val]
-        return val
-
     def __delitem__(self, key):
-        """Like :py:meth:`dict.__delitem__`, keeping bidirectionality intact."""
-        self._del(key)
+        """Like :py:meth:`dict.__delitem__`, maintaining bidirectionality."""
+        self._pop(key)
 
     def __setitem__(self, key, val):
         """
         Set the value for *key* to *val*.
 
+        If *key* is already associated with *val*, this is a no-op.
+
         If *key* is already associated with a different value,
-        the old value will be replaced with *val*.
-        Use :attr:`put` to raise an exception in this case instead.
+        the old value will be replaced with *val*,
+        as with :py:meth:`dict.__setitem__`.
 
         If *val* is already associated with a different key,
         an exception is raised
-        to protect against accidentally replacing the existing mapping.
+        to protect against accidental removal of the key
+        that's currently associated with *val*.
 
-        If *key* is already associated with *val*, this is a no-op.
+        Use :attr:`put` instead if you want to specify different behavior in
+        the case that the provided key or value duplicates an existing one.
+        Or use :attr:`forceput` to unconditionally associate *key* with *val*,
+        replacing any existing items as necessary to preserve uniqueness.
 
-        Use :attr:`forceput` to unconditionally associate *key* with *val*,
-        replacing any existing mappings as necessary to preserve uniqueness.
+        :raises bidict.ValueDuplicationError: if *val* duplicates that of an
+            existing item.
 
-        :raises bidict.ValueExistsException: if attempting to set a mapping
-            with a non-unique value.
+        :raises bidict.KeyAndValueDuplicationError: if *key* duplicates the key of an
+            existing item and *val* duplicates the value of a different
+            existing item.
         """
-        self._put(key, val, overwrite_key=False, overwrite_val=True)
+        self._put(key, val, self._on_dup_key, self._on_dup_val, self._on_dup_kv)
 
-    def put(self, key, val):
+    def put(self, key, val, on_dup_key=RAISE, on_dup_val=RAISE, on_dup_kv=ON_DUP_VAL):
         """
-        Associate *key* with *val* iff *key* and *val* are both unique.
+        Associate *key* with *val* with the specified duplication behaviors.
 
-        That is, insert the given mapping iff
+        For example, if all given duplication behaviors are
+        :attr:`DuplicationBehavior.RAISE <bidict.DuplicationBehavior.RAISE>`,
+        then *key* will be associated with *val* if and only if
         *key* is not already associated with an existing value and
-        *val* is not already associated with an existing key.
+        *val* is not already associated with an existing key,
+        otherwise an exception will be raised.
 
         If *key* is already associated with *val*, this is a no-op.
 
-        :raises bidict.KeyExistsException: if attempting to insert a mapping
-            with the same key as an existing mapping.
+        :raises bidict.KeyDuplicationError: if attempting to insert an item
+            whose key duplicates an existing item's, and *on_dup_key* is
+            :attr:`RAISE <bidict.DuplicationBehavior.RAISE>`.
 
-        :raises bidict.ValueExistsException: if attempting to insert a mapping
-            with the same value as an existing mapping.
+        :raises bidict.ValueDuplicationError: if attempting to insert an item
+            whose value duplicates an existing item's, and *on_dup_val* is
+            :attr:`RAISE <bidict.DuplicationBehavior.RAISE>`.
+
+        :raises bidict.KeyAndValueDuplicationError: if attempting to insert an
+            item whose key duplicates one existing item's, and whose value
+            duplicates another existing item's, and *on_dup_kv* is
+            :attr:`RAISE <bidict.DuplicationBehavior.RAISE>`.
         """
-        self._put(key, val, overwrite_key=False, overwrite_val=False)
+        self._put(key, val, on_dup_key, on_dup_val, on_dup_kv)
 
     def forceput(self, key, val):
         """
@@ -65,51 +75,59 @@ class bidict(BidirectionalMapping, MutableMapping):
         Replace any existing mappings containing key *key* or value *val*
         as necessary to preserve uniqueness.
         """
-        self._put(key, val, overwrite_key=True, overwrite_val=True)
+        self._put(key, val, OVERWRITE, OVERWRITE, OVERWRITE)
 
     def clear(self):
         """Remove all items."""
-        self._fwd.clear()
-        self._inv.clear()
+        self._clear()
 
     def pop(self, key, *args):
-        """Like :py:meth:`dict.pop`, keeping bidirectionality intact."""
-        ln = len(args) + 1
-        if ln > 2:
-            raise TypeError('pop expected at most 2 arguments, got %d' % ln)
+        """Like :py:meth:`dict.pop`, maintaining bidirectionality."""
+        l = len(args) + 1
+        if l > 2:
+            raise TypeError('pop expected at most 2 arguments, got %d' % l)
         try:
-            return self._del(key)
+            return self._pop(key)
         except KeyError:
             if args:
-                return args[0]
+                return args[0]  # default
             raise
 
     def popitem(self):
-        """Like :py:meth:`dict.popitem`, keeping bidirectionality intact."""
-        if not self:
+        """Like :py:meth:`dict.popitem`, maintaining bidirectionality."""
+        if not self._fwd:
             raise KeyError('popitem(): %s is empty' % self.__class__.__name__)
         key, val = self._fwd.popitem()
         del self._inv[val]
         return key, val
 
     def setdefault(self, key, default=None):
-        """Like :py:meth:`dict.setdefault`, keeping bidirectionality intact."""
+        """Like :py:meth:`dict.setdefault`, maintaining bidirectionality."""
         if key not in self:
             self[key] = default
         return self[key]
 
     def update(self, *args, **kw):
         """
-        Like :py:meth:`dict.update`, keeping bidirectionality intact.
+        Like :attr:`putall` with default duplication behaviors.
 
-        Similar to calling :attr:`__setitem__` for each mapping given.
+        In particular, for :class:`bidict.bidict`,
+        *on_dup_key=OVERWRITE*, *on_dup_val=RAISE*, and *on_dup_kv=RAISE*.
 
-        :raises bidict.ValueExistsException: if attempting to insert a mapping
-            with a non-unique value.
+        For :class:`bidict.loosebidict`,
+        *on_dup_key=OVERWRITE*, *on_dup_val=OVERWRITE*, and *on_dup_kv=OVERWRITE*.
         """
-        return self._update(*args, **kw)
+        self._update(False, self._on_dup_key, self._on_dup_val, self._on_dup_kv, *args, **kw)
 
     def forceupdate(self, *args, **kw):
-        """Call :attr:`forceput` for each mapping given."""
-        for k, v in pairs(*args, **kw):
-            self.forceput(k, v)
+        """Like a bulk :attr:`forceput`."""
+        self._update(False, OVERWRITE, OVERWRITE, OVERWRITE, *args, **kw)
+
+    def putall(self, items, on_dup_key=RAISE, on_dup_val=RAISE, on_dup_kv=ON_DUP_VAL):
+        """
+        Like a bulk :attr:`put`.
+
+        If one of the given items causes an exception to be raised,
+        none of the items is inserted.
+        """
+        self._update(False, on_dup_key, on_dup_val, on_dup_kv, items)

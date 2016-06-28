@@ -33,7 +33,7 @@ don't already exist::
     >>> bi.put(1, 'aught')
     Traceback (most recent call last):
         ...
-    KeyExistsException: Key 1 exists with value 'one'
+    KeyDuplicationError: 1
     >>> del bi[1]
     >>> bi.put(1, 'aught')
     >>> bi[1]
@@ -54,6 +54,8 @@ which can also be used to access or modify them::
     bidict({'one': 'aught'})
     >>> bi.inv.pop('aught')
     'one'
+    >>> bi == bi.inv == bidict()
+    True
     >>> bi.inv.update(one=1)
     >>> bi
     bidict({1: 'one'})
@@ -140,7 +142,7 @@ Initializing with different keys mapping to the same value fails::
     >>> bidict([(1, 1), (2, 1)])
     Traceback (most recent call last):
         ...
-    ValueExistsException: Value 1 exists with key 1
+    ValueDuplicationError: 1
 
 Adding a new key associated with an existing value fails::
 
@@ -148,11 +150,11 @@ Adding a new key associated with an existing value fails::
     >>> b[2] = 1
     Traceback (most recent call last):
         ...
-    ValueExistsException: Value 1 exists with key 1
+    ValueDuplicationError: 1
     >>> b.update({2: 1})
     Traceback (most recent call last):
         ...
-    ValueExistsException: Value 1 exists with key 1
+    ValueDuplicationError: 1
 
 ``forceput`` and ``forceupdate`` can be used instead::
 
@@ -180,6 +182,20 @@ leaving a bidict in an inconsistent state::
     >>> b['one'] = 2
     Traceback (most recent call last):
         ...
-    ValueExistsException: Value 2 exists with key 'two'
+    KeyAndValueDuplicationError: ('one', 2)
     >>> len(b) == len(b.inv)
     True
+
+``put`` and ``putall`` allow you to have
+per-call control over collision behavior
+(see doctests in ``../docs/unique-values.rst.inc``).
+
+Even with RAISE collision behavior,
+inserting existing items is a no-op (i.e. it doesn't raise)::
+
+    >>> from bidict import RAISE
+    >>> b.putall([('three', 3), ('one', 1)],
+    ...          on_dup_key=RAISE, on_dup_val=RAISE) is not 'an error'
+    True
+    >>> sorted(b.items(), key=lambda x: x[1])
+    [('one', 1), ('two', 2), ('three', 3)]

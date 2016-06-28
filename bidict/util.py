@@ -1,59 +1,55 @@
 """Utilities for working with one-to-one relations."""
 
-from .compat import PY2, iteritems
-from collections import Iterator
+from .compat import iteritems
+from collections import Mapping
+from itertools import chain
 
 
-def pairs(*map_or_it, **kw):
+def pairs(*args, **kw):
     """
-    Yield the pairs provided. Signature matches dict's.
+    Yield the (k, v) pairs provided, as they'd be processed if passed to *dict*.
 
-    Accepts zero or one positional argument which it first tries iterating over
-    as a mapping, and if that fails, falls back to iterating over as
-    a sequence, yielding items two at a time.
+    If a positional argument is provided,
+    its pairs are yielded before those of any keyword arguments.
+    The positional argument may be a mapping or sequence or pairs.
 
-    Mappings may also be passed as keyword arguments, which will be yielded
-    after any passed via positional argument.
+    >>> list(pairs({'a': 1}, b=2))
+    [('a', 1), ('b', 2)]
+    >>> list(pairs([('a', 1), ('b', 2)], b=3))
+    [('a', 1), ('b', 2), ('b', 3)]
+
+    :raises TypeError: if more than one positional arg is given.
     """
-    if map_or_it:
-        l = len(map_or_it)
-        if l != 1:
-            raise TypeError('Pass at most 1 positional argument (got %d)' % l)
-        map_or_it = map_or_it[0]
-        try:
-            it = iteritems(map_or_it)   # mapping?
-        except AttributeError:          #  no
-            for (k, v) in map_or_it:    #    -> treat as sequence
-                yield (k, v)
-        else:                           #  yes
-            for (k, v) in it:           #    -> treat as mapping
-                yield (k, v)
-    for (k, v) in iteritems(kw):
-        yield (k, v)
+    it = None
+    if args:
+        arg = _arg0(args)
+        if arg:
+            it = iteritems(arg) if isinstance(arg, Mapping) else iter(arg)
+    if kw:
+        it2 = iteritems(kw)
+        it = chain(it, it2) if it else it2
+    return it or iter(())
 
 
-class inverted(Iterator):
+def _arg0(args):
+    l = len(args)
+    if l != 1:
+        raise TypeError('Expected at most 1 positional argument, got %d' % l)
+    return args[0]
+
+
+def inverted(data):
     """
-    An iterator yielding the inverses of the provided mappings.
+    Yield the inverse items of the provided mapping or iterable.
 
-    Works with any object that can be iterated over as a mapping or in pairs
-    or that implements its own __inverted__ method.
+    Works with any object that can be iterated over as a mapping or in pairs,
+    or that implements its own *__inverted__* method.
     """
+    inv = getattr(data, '__inverted__', None)
+    return inv() if inv else _inverted(data)
 
-    def __init__(self, data):
-        """Create an :class:`inverted` instance."""
-        self._data = data
 
-    def __iter__(self):
-        """Create an instance of the actual generator."""
-        makeit = getattr(self._data, '__inverted__', self.__next__)
-        return makeit()
-
-    def __next__(self):
-        """Yield the inverse of each pair in the associated data."""
-        for (k, v) in pairs(self._data):
-            yield (v, k)
-
-    # compat
-    if PY2:
-        next = __next__
+def _inverted(data):
+    # This is faster than `return imap(tuple, imap(reversed, pairs(data)))`:
+    for (k, v) in pairs(data):
+        yield (v, k)

@@ -1,6 +1,8 @@
 Addendum
 ========
 
+.. include:: performance.rst.inc
+
 Terminology
 -----------
 
@@ -25,8 +27,8 @@ Terminology
   but technically values are also keys themselves.
 
   Concretely, this allows bidict to return a set-like (*dict_keys*) object
-  for :attr:`bidict.values <bidict.BidirectionalMapping.values>` (Python 3) /
-  :attr:`bidict.viewvalues <bidict.BidirectionalMapping.viewvalues>`
+  for :func:`bidict.values <bidict.BidirectionalMapping.values>` (Python 3) /
+  ``bidict.viewvalues()``
   (Python 2.7), rather than a non-set-like *dict_values* object.
 
 
@@ -38,7 +40,7 @@ where bidicts could be used for fun and profit
 (depending on your ideas of fun and profit):
 
 - The :mod:`logging` module
-  contains a private :attr:`_levelToName <logging._levelToName>` dict
+  contains a private ``_levelToName`` dict
   which maps integer levels like *10* to their string names like *DEBUG*.
   If I had a nickel for every time I wanted that exposed in a bidirectional map
   (and as a public attribute, no less), 
@@ -46,33 +48,60 @@ where bidicts could be used for fun and profit
 
 - The :mod:`dis` module
   maintains a mapping from opnames to opcodes
-  :attr:`dis.opmap`
+  ``dis.opmap``
   and a separate list of opnames indexed by opcode
-  :attr:`dis.opnames`.
+  ``dis.opnames``.
   These could be combined into a single bidict.
 
 - Python 3's
   :mod:`html.entities` module /
   Python 2's
-  :mod:`htmlentitydefs` module
+  ``htmlentitydefs`` module
   maintains separate
-  :attr:`html.entities.name2codepoint` and
-  :attr:`html.entities.codepoint2name` dicts.
+  ``html.entities.name2codepoint`` and
+  ``html.entities.codepoint2name`` dicts.
   These could be combined into a single bidict.
+
+
+Featured Projects Using bidict
+------------------------------
+
+Send a pull request to add yours here!
+
+- `BioSSPy <https://github.com/PIA-Group/BioSPPy>`_:
+  Biosignal Processing in Python
+
+- `marz <https://github.com/sgso/marz>`_:
+  Communicate with RIOT nativenet nodes on TAP interfaces through local ports
+
+- `charla <https://github.com/prologic/charla>`_:
+  an IRC Server and Daemon
+
+- `MIPS-interpreter <https://github.com/Nuullll/MIPS-interpreter>`_:
+  interprete MIPS instructions to machine code
+
+- `res-scheduler <https://github.com/AngryDevelopersLLC/res-scheduler>`_:
+  Resystem Scheduling Service
+
+- `packetmq <https://github.com/not-na/packetmq>`_:
+  packet-based message-framing network library built with Twisted
+
+- `gymnast <https://github.com/ajmarks/gymnast>`_: Pythonic PDF Parsing
+
+- `efnilex-vect <https://github.com/makrai/efnilex-vect>`_:
+  lexicon generation from vector space models
 
 
 Caveats
 -------
 
-.. include:: caveat-frozenbidict-hash.doctest.rst.inc
-
-.. include:: caveat-mutation.doctest.rst.inc
+.. include:: caveat-mutation.rst.inc
 
 .. include:: caveat-inv-reference-cycle.rst.inc
 
-.. include:: caveat-different-values-same-hash.doctest.rst.inc
+.. include:: caveat-different-values-same-hash.rst.inc
 
-.. include:: caveat-nan-as-key.doctest.rst.inc
+.. include:: caveat-nan-as-key.rst.inc
 
 Thanks
 ------

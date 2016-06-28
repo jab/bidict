@@ -1,7 +1,7 @@
 """Implements :class:`bidict.frozenbidict`."""
 
 from .compat import viewitems
-from ._common import BidirectionalMapping
+from ._common import BidirectionalMapping, _missing
 from collections import Hashable
 
 
@@ -10,8 +10,12 @@ class frozenbidict(BidirectionalMapping, Hashable):
 
     def __hash__(self):
         """Return the hash of this bidict."""
-        try:
-            return self._hash
-        except AttributeError:
-            self._hash = hash(frozenset(viewitems(self)))
-            return self._hash
+        h = getattr(self, '_hash', _missing)
+        if h is not _missing:
+            return h
+        itemsview = viewitems(self)
+        if hasattr(itemsview, '_hash'):  # e.g. collections.ItemsView._hash
+            h = self._hash = itemsview._hash()
+        else:
+            h = self._hash = hash(tuple(itemsview))
+        return h

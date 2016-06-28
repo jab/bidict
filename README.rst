@@ -3,24 +3,33 @@ bidict
  
 Efficient, Pythonic bidirectional map implementation and related functionality.
 
-.. image:: https://raw.githubusercontent.com/jab/bidict/master/docs/_static/logo.png
-    :target: https://bidict.readthedocs.org/
+.. image:: ./_static/logo-256.png
+    :target: https://bidict.readthedocs.io/
     :alt: bidict logo
+
+.. image:: ./_static/support-on-gumroad.png
+    :target: https://gumroad.com/l/bidict
+    :alt: Support bidict
 
 
 Status
 ------
 
-.. image:: https://img.shields.io/pypi/dm/bidict.svg
-    :target: https://pypi.python.org/pypi/bidict
-    :alt: Downloads per month
+.. Hide downloads badge pending https://github.com/badges/shields/issues/716
+.. .. image:: https://img.shields.io/pypi/dm/bidict.svg
+..     :target: https://pypi.python.org/pypi/bidict
+..     :alt: Downloads per month
 
 .. image:: https://img.shields.io/pypi/v/bidict.svg
     :target: https://pypi.python.org/pypi/bidict
     :alt: Latest release
 
+.. image:: https://img.shields.io/badge/versionEye-follow-brightgreen.svg
+    :target: https://www.versioneye.com/python/bidict
+    :alt: Follow on VersionEye
+
 .. image:: https://readthedocs.org/projects/bidict/badge/?version=latest
-    :target: https://bidict.readthedocs.org/
+    :target: https://bidict.readthedocs.io/
     :alt: Documentation
 
 .. image:: https://travis-ci.org/jab/bidict.svg?branch=master
@@ -28,16 +37,8 @@ Status
     :alt: Build status
 
 .. image:: https://coveralls.io/repos/jab/bidict/badge.svg?branch=master
-    :target: https://coveralls.io/r/jab/bidict
+    :target: https://coveralls.io/github/jab/bidict
     :alt: Test coverage
-
-.. image:: https://www.codacy.com/project/badge/1c5bfb83d2d54d57898d4ede1c9157ee
-    :target: https://www.codacy.com/app/jab/bidict
-    :alt: Code quality
-
-.. image:: https://requires.io/github/jab/bidict/requirements.svg?branch=master
-     :target: https://requires.io/github/jab/bidict/requirements/?branch=master
-     :alt: Requirements Status
 
 .. image:: https://img.shields.io/pypi/pyversions/bidict.svg
     :target: https://pypi.python.org/pypi/bidict
@@ -51,46 +52,61 @@ Status
     :target: https://raw.githubusercontent.com/jab/bidict/master/LICENSE
     :alt: License
 
-.. image:: https://img.shields.io/badge/code%20of%20conduct-open-brightgreen.svg
-    :target: http://todogroup.org/opencodeofconduct/#bidict/jab@math.brown.edu
-    :alt: Code of Conduct
-
-.. image:: https://badges.gitter.im/Join%20Chat.svg
+.. image:: https://badges.gitter.im/join%20chat.svg
     :target: https://gitter.im/jab/bidict
     :alt: Chat
+
+The bidict codebase is mature, well-tested, and well-reviewed.
+If you have a question or find an issue,
+please don't hesitate to
+`ask in the chat room <https://gitter.im/jab/bidict>`_,
+`file an issue <https://github.com/jab/bidict/issues/new>`_,
+or
+`submit a pull request <contributing>`_.
+
 
 Installation
 ------------
 
 ``pip install bidict``
 
+
 Usage
 -----
 
-See https://bidict.readthedocs.org.
+For usage documentation, please start at the :ref:`intro`
+and proceed from there.
 
-Participation
--------------
+`bidict.readthedocs.io <https://bidict.readthedocs.io>`_
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
-This project adheres to the
-`Open Code of Conduct <http://todogroup.org/opencodeofconduct/#bidict/jab@math.brown.edu>`_.
-By participating, you are expected to honor this code.
+*In case you're reading this on GitHub, PyPI, in your code editor,
+or in some other place that can't render/link the full docs properly,
+you can find the bidict documentation on Read the Docs at:*
 
-Please feel free to `create an issue <https://github.com/jab/bidict/issues/new>`_
-or `join the chat room <https://gitter.im/jab/bidict>`_
-if you have any questions, feedback, or just want to say hi or
-talk about your use case.
+    `<https://bidict.readthedocs.io>`_
 
-bidict is the result of hundreds of hours of voluntary, unpaid work.
-If bidict has helped you accomplish work you've been paid for,
-please `support bidict <https://gumroad.com/l/bidict>`_
-and/or ask your organization to do the same.
-Your support directly contributes to bidict's sustainability.
+*Note that multiple versions of the documentation are published there,
+and by default you will be taken to the version built from the master branch.
+You can choose different versions from the pop-up menu in the lower-right.*
 
-.. image:: https://raw.githubusercontent.com/jab/bidict/master/docs/_static/support-on-gumroad.png
-    :target: https://gumroad.com/l/bidict
-    :alt: Support bidict
+You can also build the docs yourself by running ``make html``
+from the `<docs>`_ directory
+(requires `Sphinx <https://pypi.python.org/pypi/Sphinx>`_).
 
-Check out
-`CONTRIBUTING.rst <https://github.com/jab/bidict/blob/master/CONTRIBUTING.rst>`_
-for more information about contributing.
+
+Contributing
+------------
+
+Contributions are gratefully received!
+For information about contributing,
+please see :ref:`contributing`
+(`<./CONTRIBUTING.rst>`_ | `<https://bidict.readthedocs.io/contributing.html>`_).
+
+
+Changelog
+---------
+
+For a history of notable changes to bidict,
+check out the :ref:`changelog`
+(`<./CHANGELOG.rst>`_ | `<https://bidict.readthedocs.io/changelog.html>`_).
