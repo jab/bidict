@@ -56,7 +56,7 @@ class OrderedBidirectionalMapping(BidirectionalMapping):
 
     def _clear(self):
         super(OrderedBidirectionalMapping, self)._clear()
-        self._end.clear()
+        del self._end[:]
         self._init_end()
 
     def __getitem__(self, key):
@@ -72,7 +72,7 @@ class OrderedBidirectionalMapping(BidirectionalMapping):
         assert nodeinv is nodefwd, 'nodeinv (%r) is not nodefwd (%r)' % (nodeinv, nodefwd)
         prv[_NXT] = nxt
         nxt[_PRV] = prv
-        nodefwd.clear()
+        del nodefwd[:]
         return val
 
     def _isdupitem(self, key, val, nodeinv, nodefwd):
@@ -170,7 +170,7 @@ class OrderedBidirectionalMapping(BidirectionalMapping):
     def _on_update_rbf_success(self, writes):
         for key, val, isdupkey, isdupval, nodeinv, nodefwd, oldkey, oldval in writes:
             if isdupkey and isdupval:
-                nodeinv.clear()
+                del nodeinv[:]
 
     def __eq__(self, other):
         if isinstance(other, (OrderedBidirectionalMapping, OrderedDict)):
