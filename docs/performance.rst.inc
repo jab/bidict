@@ -1,7 +1,7 @@
 .. _performance:
 
 Performance
-+++++++++++
+-----------
 
 bidict strives to be as performant as possible
 while being faithful to its purpose.

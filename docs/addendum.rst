@@ -1,6 +1,8 @@
 Addendum
 ========
 
+.. include:: performance.rst.inc
+
 Terminology
 -----------
 
@@ -92,8 +94,6 @@ Send a pull request to add yours here!
 
 Caveats
 -------
-
-.. include:: caveat-frozenbidict-hash.rst.inc
 
 .. include:: caveat-mutation.rst.inc
 

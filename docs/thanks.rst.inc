@@ -19,3 +19,5 @@
 - Thanks to Daniel Pope for various suggestions enhancing bidict's Python zen.
 
 - Thanks to David Turner for the generous code review.
+
+- Thanks to Michael Arntzenius for the valuable design discussion and feedback.

@@ -103,7 +103,7 @@ class BidirectionalMapping(Mapping):
 
     def __inverted__(self):
         """Get an iterator over the items in :attr:`self.inv <inv>`."""
-        return iteritems(self._inv)
+        return iteritems(self.inv)
 
     def _pop(self, key):
         val = self._fwd.pop(key)
@@ -149,19 +149,19 @@ class BidirectionalMapping(Mapping):
                 return
             # key and val each duplicate a different existing item.
             if on_dup_kv is RAISE:
-                raise KeyAndValueNotUniqueError(key, val)
+                raise KeyAndValueDuplicationError(key, val)
             elif on_dup_kv is IGNORE:
                 return
             # else on_dup_kv is OVERWRITE. Fall through to return on last line.
         elif isdupkey:
             if on_dup_key is RAISE:
-                raise KeyNotUniqueError(key)
+                raise KeyDuplicationError(key)
             elif on_dup_key is IGNORE:
                 return
             # else on_dup_key is OVERWRITE. Fall through to return on last line.
         elif isdupval:
             if on_dup_val is RAISE:
-                raise ValueNotUniqueError(val)
+                raise ValueDuplicationError(val)
             elif on_dup_val is IGNORE:
                 return
             # else on_dup_val is OVERWRITE. Fall through to return on last line.
@@ -204,7 +204,7 @@ class BidirectionalMapping(Mapping):
         for (key, val) in pairs(*args, **kw):
             try:
                 dedup_result = dedup_item(key, val, on_dup_key, on_dup_val, on_dup_kv)
-            except UniquenessError as e:
+            except DuplicationError as e:
                 exc = e
                 break
             if dedup_result:
@@ -280,20 +280,19 @@ class BidictException(Exception):
     """Base class for bidict exceptions."""
 
 
-# TODO: rename DuplicationError, DuplicateKeyError, DuplicateValueError, DuplicateKeyAndValueError
-class UniquenessError(BidictException):
+class DuplicationError(BidictException):
     """Base class for exceptions raised when uniqueness is violated."""
 
 
-class KeyNotUniqueError(UniquenessError):
+class KeyDuplicationError(DuplicationError):
     """Raised when a given key is not unique."""
 
 
-class ValueNotUniqueError(UniquenessError):
+class ValueDuplicationError(DuplicationError):
     """Raised when a given value is not unique."""
 
 
-class KeyAndValueNotUniqueError(KeyNotUniqueError, ValueNotUniqueError):
+class KeyAndValueDuplicationError(KeyDuplicationError, ValueDuplicationError):
     """
     Raised when a given item's key and value are not unique.
 

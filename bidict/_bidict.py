@@ -31,10 +31,10 @@ class bidict(BidirectionalMapping, MutableMapping):
         Or use :attr:`forceput` to unconditionally associate *key* with *val*,
         replacing any existing items as necessary to preserve uniqueness.
 
-        :raises bidict.ValueNotUniqueError: if *val* duplicates that of an
+        :raises bidict.ValueDuplicationError: if *val* duplicates that of an
             existing item.
 
-        :raises bidict.KeyAndValueNotUniqueError: if *key* duplicates the key of an
+        :raises bidict.KeyAndValueDuplicationError: if *key* duplicates the key of an
             existing item and *val* duplicates the value of a different
             existing item.
         """
@@ -53,16 +53,16 @@ class bidict(BidirectionalMapping, MutableMapping):
 
         If *key* is already associated with *val*, this is a no-op.
 
-        :raises bidict.KeyNotUniqueError: if attempting to insert an item
+        :raises bidict.KeyDuplicationError: if attempting to insert an item
             whose key duplicates an existing item's, and *on_dup_key* is
             :attr:`RAISE <bidict.DuplicationBehavior.RAISE>`.
 
-        :raises bidict.ValueNotUniqueError: if attempting to insert an item
+        :raises bidict.ValueDuplicationError: if attempting to insert an item
             whose value duplicates an existing item's, and *on_dup_val* is
             :attr:`RAISE <bidict.DuplicationBehavior.RAISE>`.
 
-        :raises bidict.KeyAndValueNotUniqueError: if attempting to insert an item
-            whose key duplicates one existing item's, and whose value
+        :raises bidict.KeyAndValueDuplicationError: if attempting to insert an
+            item whose key duplicates one existing item's, and whose value
             duplicates another existing item's, and *on_dup_kv* is
             :attr:`RAISE <bidict.DuplicationBehavior.RAISE>`.
         """

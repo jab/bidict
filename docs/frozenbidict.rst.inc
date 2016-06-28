@@ -17,12 +17,10 @@ attempting to mutate a frozenbidict after initializing it causes an error::
         ...
     TypeError...
 
-Besides extending BidirectionalMapping,
+Besides extending :class:`BidirectionalMapping <bidict.BidirectionalMapping>`,
 frozenbidict implements :class:`collections.abc.Hashable`.
 Thus it's suitable for insertion into sets or other maps::
 
     >>> f = frozenbidict()
     >>> set([f]) is not 'an error'
     True
-
-as expected of an immutable type.

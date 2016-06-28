@@ -10,10 +10,10 @@ See https://bidict.readthedocs.io for comprehensive documentation.
 
 """
 
-from ._common import (BidirectionalMapping,
-                      DuplicationBehavior, RAISE, OVERWRITE, IGNORE,
-                      BidictException, UniquenessError,
-                      KeyNotUniqueError, ValueNotUniqueError, KeyAndValueNotUniqueError)
+from ._common import (BidirectionalMapping, BidictException,
+                      DuplicationBehavior, IGNORE, OVERWRITE, RAISE,
+                      DuplicationError, KeyDuplicationError, ValueDuplicationError,
+                      KeyAndValueDuplicationError)
 from ._bidict import bidict
 from ._loose import loosebidict
 from ._frozen import frozenbidict
@@ -24,15 +24,15 @@ from .util import pairs, inverted
 
 __all__ = (
     'BidirectionalMapping',
-    'DuplicationBehavior',
-    'RAISE',
-    'OVERWRITE',
-    'IGNORE',
     'BidictException',
-    'UniquenessError',
-    'KeyNotUniqueError',
-    'ValueNotUniqueError',
-    'KeyAndValueNotUniqueError',
+    'DuplicationBehavior',
+    'IGNORE',
+    'OVERWRITE',
+    'RAISE',
+    'DuplicationError',
+    'KeyDuplicationError',
+    'ValueDuplicationError',
+    'KeyAndValueDuplicationError',
     'bidict',
     'loosebidict',
     'frozenbidict',

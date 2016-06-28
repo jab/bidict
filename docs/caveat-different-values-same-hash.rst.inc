@@ -52,8 +52,8 @@ For example::
     >>> b[2] = True
     Traceback (most recent call last):
        ...
-    ValueNotUniqueError: Value duplicated in item: (1, 1)
+    ValueDuplicationError: 1
     >>> b.put(True, 'true')
     Traceback (most recent call last):
        ...
-    KeyNotUniqueError: Key duplicated in item: (1, 1)
+    KeyDuplicationError: 1

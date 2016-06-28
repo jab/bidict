@@ -24,38 +24,11 @@ when a new version of bidict is released.
   - :attr:`bidict.DuplicationBehavior.OVERWRITE`
   - :attr:`bidict.DuplicationBehavior.IGNORE`
 
-  (Note: When you try to insert an item,
-  it's possible that its key duplicates the key of one existing item,
-  and its value duplicates the value of another existing item.
-  Likewise, when you try to insert multiple items by calling e.g. ``update()``,
-  it's possible that an item you provided duplicates
-  the key of another item you provided, and the value of yet another.
-  Because the given ``on_dup_key`` and ``on_dup_val`` behaviors may differ,
-  ``on_dup_kv`` allows you to indicate unambiguously
-  how you want to handle this case.)
+  ``on_dup_kv`` can also take :attr:`bidict.DuplicationBehavior.ON_DUP_VAL`.
 
   If not provided,
-  the default value that :func:`bidict.put() <bidict.bidict.put>`
-  assigns ``on_dup_key``, ``on_dup_val``, and ``on_dup_kv`` is
-  :attr:`RAISE <bidict.DuplicationBehavior.RAISE>`.
-
-  In contrast,
-  :func:`bidict.__setitem__() <bidict.bidict.__setitem__>`
-  behaves like a :func:`put() <bidict.bidict.put>` call
-  with ``on_dup_key=OVERWRITE``, ``on_dup_val=RAISE``, and ``on_dup_kv=RAISE``,
-  closely tracking the previous behavior.
-
-  And ``loosebidict.__setitem__()``
-  behaves like a :class:`put() <bidict.bidict.put>` call
-  with all duplication behaviors set to
-  :attr:`OVERWRITE <bidict.DuplicationBehavior.OVERWRITE>`,
-  tracking the previous behavior.
-
-  In both cases,
-  :func:`put() <bidict.bidict.put>`
-  still provides a raise-on-any-duplication (by default) alternative to
-  :func:`__setitem__() <bidict.bidict.__setitem__>`,
-  but now allows customizing this behavior via the new keyword arguments.
+  :func:`put() <bidict.bidict.put>` uses
+  :attr:`RAISE <bidict.DuplicationBehavior.RAISE>` behavior default.
 
 - New :func:`putall() <bidict.bidict.putall>` method
   provides a bulk :func:`put() <bidict.bidict.put>` API.
@@ -64,7 +37,7 @@ when a new version of bidict is released.
   consistency guarantees by checking for and handling duplication
   before inserting any of the given items.
   So if an :func:`update() <bidict.bidict.update>` call causes a
-  :class:`ValueNotUniqueError <bidict.ValueNotUniqueError>`,
+  :class:`ValueDuplicationError <bidict.ValueDuplicationError>`,
   you can now be sure that none of the given items were inserted.
 
   Previously, any of the given items that were processed
@@ -77,12 +50,14 @@ when a new version of bidict is released.
   the effects of bulk insert operations.
   This is known as "fail clean" behavior.
 
-- New exceptions, reflecting new cases where they're raised:
+  The new :func:`putall() <bidict.bidict.putall>` method also fails clean.
 
-  - :class:`KeyNotUniqueError <bidict.KeyNotUniqueError>`
-  - :class:`ValueNotUniqueError <bidict.ValueNotUniqueError>`
-  - :class:`KeyAndValueNotUniqueError <bidict.KeyAndValueNotUniqueError>`
-  - :class:`UniquenessError <bidict.UniquenessError>` (base class for the above)
+- New exceptions:
+
+  - :class:`KeyDuplicationError <bidict.KeyDuplicationError>`
+  - :class:`ValueDuplicationError <bidict.ValueDuplicationError>`
+  - :class:`KeyAndValueDuplicationError <bidict.KeyAndValueDuplicationError>`
+  - :class:`DuplicationError <bidict.DuplicationError>` (base class for the above)
 
 - Add
 
@@ -107,20 +82,28 @@ when a new version of bidict is released.
 - Implement :func:`bidict.BidirectionalMapping.__copy__`
   for use with the :mod:`copy` module.
 
+- When overwriting the key of an existing value in an
+  :class:`bidict.orderedbidict`, the position of the existing item is
+  now preserved rather than being moved to the end, which matches the
+  behavior of preserving order when overwriting the value of an existing key.
+
+- :func:`orderedbidict.move_to_end <bidict.orderedbidict.move_to_end>`
+  now works on Python < 3.2.
+
 - Fix issue preventing a client class from inheriting from
   :class:`loosebidict <bidict.loosebidict>`
   (see `#34 <https://github.com/jab/bidict/issues/34>`_).
 
 - Add benchmarking to tests.
 
-- Drop official support for CPython 3.3
-  (it will probably continue to work but is no longer being tested).
+- Drop official support for CPython 3.3.
+  (It may continue to work, but is no longer being tested.)
 
 Breaking API Changes
 ^^^^^^^^^^^^^^^^^^^^
 
-- Rename ``KeyExistsException`` :class:`KeyNotUniqueError <bidict.KeyNotUniqueError>`
-  and ``ValueExistsException`` :class:`ValueNotUniqueError <bidict.ValueNotUniqueError>`.
+- Rename ``KeyExistsException`` :class:`KeyDuplicationError <bidict.KeyDuplicationError>`
+  and ``ValueExistsException`` :class:`ValueDuplicationError <bidict.ValueDuplicationError>`.
 
 
 0.11.0 (2016-02-05)

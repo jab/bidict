@@ -51,10 +51,10 @@ is always a constant-time operation.
 
 .. include:: beware-on_dup_kv-overwrite.rst.inc
 
-.. include:: performance.rst.inc
-
 .. include:: interop.rst.inc
 
 
 Hopefully bidict feels right at home
 among the Python built-ins you already know.
+Proceed to :ref:`other-bidict-types`
+for documentation on the remaining bidict flavors.

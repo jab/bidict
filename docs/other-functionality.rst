@@ -5,10 +5,7 @@ Other Functionality
 --------------
 
 bidict provides the :class:`inverted() <bidict.inverted>` iterator
-to help you take the inverse of any kind of object that can be inverted.
-
-If you've ever worked with the :func:`reversed` built-in,
-:class:`inverted() <bidict.inverted>` should feel familiar.
+to help you get inverse pairs from various types of objects.
 
 Pass in a mapping to get the inverse mapping::
 
@@ -28,9 +25,11 @@ Pass in a mapping to get the inverse mapping::
 which objects that already know their own inverses (such as bidicts)
 can implement themselves::
 
-    >>> from bidict import bidict
+    >>> from bidict import bidict, orderedbidict
     >>> dict(inverted(bidict({1: 'one'})))
     {'one': 1}
+    >>> list(inverted(orderedbidict([(2, 4), (3, 9)])))
+    [(4, 2), (9, 3)]
 
 
 Extras
@@ -39,5 +38,5 @@ Extras
 :func:`bidict.pairs`
 as well as the :mod:`bidict.compat` module
 are used internally,
-but are also exported
+but are exported as well
 since they may also be of use externally.

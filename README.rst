@@ -86,15 +86,12 @@ you can find the bidict documentation on Read the Docs at:*
 
     `<https://bidict.readthedocs.io>`_
 
-*(Note that multiple versions of the documentation are published there,
-and by default it will take you to the latest released version.
-You can choose different versions from the pop-up menu
-in the lower-right as needed.)*
-
-You can also build the docs yourself
-by running ``make html``
+*Note that multiple versions of the documentation are published there,
+and by default you will be taken to the version built from the master branch.
+You can choose different versions from the pop-up menu in the lower-right.
+You can also build the docs yourself by running ``make html``
 from the `<docs>`_ directory
-(requires `Sphinx <https://pypi.python.org/pypi/Sphinx>`_).
+(requires `Sphinx <https://pypi.python.org/pypi/Sphinx>`_).*
 
 
 Contributing
@@ -103,7 +100,7 @@ Contributing
 Contributions are gratefully received!
 For information about contributing,
 please see :ref:`contributing`
-(*GitHub link:* `<CONTRIBUTING.rst>`_).
+(`<./CONTRIBUTING.rst>`_ | `<https://bidict.readthedocs.io/contributing.html>`_).
 
 
 Changelog
@@ -111,4 +108,4 @@ Changelog
 
 For a history of notable changes to bidict,
 check out the :ref:`changelog`
-(*GitHub link:* `<CHANGELOG.rst>`_).
+(`<./CHANGELOG.rst>`_ |  `<https://bidict.readthedocs.io/changelog.html>`_).
