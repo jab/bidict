@@ -54,6 +54,8 @@ class OrderedBidirectionalMapping(BidirectionalMapping):
         """Like :py:meth:`dict.copy`."""
         return self.__class__(self)
 
+    __copy__ = copy
+
     def _clear(self):
         super(OrderedBidirectionalMapping, self)._clear()
         del self._end[:]
