@@ -136,7 +136,8 @@ Code of Conduct
 
 All participation in this project should respect the
 :doc:`Code of Conduct <code-of-conduct>`
-(*GitHub link:* `<CODE_OF_CONDUCT.rst>`_).
+(`<./CODE_OF_CONDUCT.rst>`_ |
+`<https://bidict.readthedocs.io/code-of-conduct.html>`_).
 By participating, you are expected to honor this code.
 
 Thanks

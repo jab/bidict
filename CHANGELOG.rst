@@ -116,7 +116,8 @@ Breaking API Changes
   :class:`bidict.frozenorderedbidict`.
 
 - Add :doc:`Code of Conduct <code-of-conduct>`
-  (*GitHub link:* `<CODE_OF_CONDUCT.rst>`_).
+  (`<./CODE_OF_CONDUCT.rst>`_ |
+  `<https://bidict.readthedocs.io/code-of-conduct.html>`_).
 
 - Drop official support for pypy3.
   (It still may work but is no longer being tested.
