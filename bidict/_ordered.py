@@ -17,7 +17,7 @@ def _make_iter(reverse=False, name='__iter__', doctmpl='Like :meth:`collections.
     def _iter(self):
         fwd = self._fwd
         end = self._end
-        cur = end[_PRV] if reverse else end[_NXT]
+        cur = end[_PRV if reverse else _NXT]
         while cur is not end:
             d, prv, nxt = cur
             korv = next(iter(d))
@@ -182,9 +182,12 @@ class OrderedBidirectionalMapping(BidirectionalMapping):
                 if i != j:
                     return False
             return True
-        if isinstance(other, Mapping):
-            return Mapping.__eq__(self, other)
-        return False
+        if not isinstance(other, Mapping) or len(self) != len(other):
+            return False
+        for (k, v) in iteritems(other):
+            if self.get(k, _missing) != v:
+                return False
+        return True
 
     def __repr__(self):
         inner = ', '.join('(%r, %r)' % (k, v) for (k, v) in iteritems(self))
