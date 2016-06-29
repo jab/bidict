@@ -97,25 +97,41 @@ def test_consistency_after_mutation(arity, methodname, B, init, arg1, arg2, item
         # All methods should fail clean, reverting any changes made before failure.
         assert b == b0
         assert b.inv == b0.inv
-    assert b == to_inv_odict(iteritems(b.inv))
-    assert b.inv == to_inv_odict(iteritems(b))
-    ordered = issubclass(B, OrderedBidirectionalMapping)
-    if ordered and methodname != 'move_to_end':
-        items0 = viewitems(b0)
-        items1 = viewitems(b)
-        common = items0 & items1
-        if common:
-            items0 = list(items0)
-            items1 = list(items1)
-            for i in common:
-                idx0 = items0.index(i)
-                idx1 = items1.index(i)
-                beforei0 = [j for j in items0[:idx0] if j in common]
-                beforei1 = [j for j in items1[:idx1] if j in common]
-                assert beforei0 == beforei1
-                afteri0 = [j for j in items0[idx0 + 1:] if j in common]
-                afteri1 = [j for j in items1[idx1 + 1:] if j in common]
-                assert afteri0 == afteri1
+    else:
+        assert b == to_inv_odict(iteritems(b.inv))
+        assert b.inv == to_inv_odict(iteritems(b))
+
+        # If b is an orderedbidict and the method is not expected to change the
+        # ordering, test that the relative ordering of any items that survived
+        # the mutation is preserved, i.e. if (k1, v1) came before (k2, v2)
+        # before the mutation, it still does after.
+        #
+        # In the case of forceupdate(), order is preserved as much as possible,
+        # but in some cases it is not preserved completely, e.g.::
+        #
+        #     >>> o = orderedbidict([(0, 2), (2, 1)])
+        #     >>> o.forceupdate([(1, 2), (0, 0), (0, 2)])
+        #     >>> o
+        #     orderedbidict([(2, 1), (0, 2)])
+        #
+        # So this test is skipped for forceupdate().
+        ordered = issubclass(B, OrderedBidirectionalMapping)
+        if ordered and methodname not in ('move_to_end', 'forceupdate'):
+            items0 = viewitems(b0)
+            items1 = viewitems(b)
+            common = items0 & items1
+            if common:
+                items0 = list(items0)
+                items1 = list(items1)
+                for i in common:
+                    idx0 = items0.index(i)
+                    idx1 = items1.index(i)
+                    beforei0 = [j for j in items0[:idx0] if j in common]
+                    beforei1 = [j for j in items1[:idx1] if j in common]
+                    assert beforei0 == beforei1
+                    afteri0 = [j for j in items0[idx0 + 1:] if j in common]
+                    afteri1 = [j for j in items1[idx1 + 1:] if j in common]
+                    assert afteri0 == afteri1
 
 
 @pytest.mark.parametrize('B', mutable_bidict_types)
