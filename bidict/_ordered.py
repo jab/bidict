@@ -71,7 +71,7 @@ class OrderedBidirectionalMapping(BidirectionalMapping):
         d, prv, nxt = nodefwd
         val = d[key]
         nodeinv = self._inv.pop(val)
-        assert nodeinv is nodefwd, 'nodeinv (%r) is not nodefwd (%r)' % (nodeinv, nodefwd)
+        assert nodeinv is nodefwd
         prv[_NXT] = nxt
         nxt[_PRV] = prv
         del nodefwd[:]
@@ -95,8 +95,8 @@ class OrderedBidirectionalMapping(BidirectionalMapping):
             oldval = fwdd[key]
             invd, invprv, invnxt = nodeinv
             oldkey = invd[val]
-            assert oldkey != key, 'oldkey (%r) == key (%r)' % (oldkey, key)
-            assert oldval != val, 'oldval (%r) == val (%r)' % (oldval, val)
+            assert oldkey != key
+            assert oldval != val
             # We have to collapse nodefwd and nodeinv into a single node.
             # Drop nodeinv so that item with same key overwritten in place.
             invprv[_NXT] = invnxt
