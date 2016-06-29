@@ -10,15 +10,15 @@ matrix:
   include:
     - python: "2.7"
       env:
-        - PYENV_PYTHON_VER=2.7.11
+        - PYENV_PYTHON_VER=2.7.12
         - BIDICT_SPHINXBUILD_DISABLE=1
     - python: "3.4"
       env:
-        - PYENV_PYTHON_VER=3.4.4
+        - PYENV_PYTHON_VER=3.4.5
         - BIDICT_COVERAGE_DISABLE=1
     - python: "3.5"
       env:
-        - PYENV_PYTHON_VER=3.5.1
+        - PYENV_PYTHON_VER=3.5.2
         - BIDICT_SPHINXBUILD_DISABLE=1
     - python: "pypy"
       env:
