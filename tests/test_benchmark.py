@@ -1,6 +1,7 @@
 from bidict import bidict, orderedbidict, ValueDuplicationError
 import pytest
 
+bidict_types = (bidict, orderedbidict)
 
 elements = orderedbidict((
     ('H', 'hydrogen'), ('He', 'helium'),
@@ -35,40 +36,45 @@ update_nodup = orderedbidict((
     ('Cn', 'copernicium'),
 ))
 
-update_withdupval = bidict(update_nodup, key_with_dup_val='hydrogen')
+update_withdupval = orderedbidict(update_nodup, key_with_dup_val='hydrogen')
 
 
-def test_put_nodup(benchmark):
-    elements_ = bidict(elements)
-    benchmark(elements_.put, 'K', 'potassium')
+@pytest.mark.parametrize('B', bidict_types)
+def test_put_nodup(B, benchmark):
+    b = B(elements)
+    benchmark(b.put, 'K', 'potassium')
 
 
-def test_put_withdup(benchmark):
-    elements_ = bidict(elements)
+@pytest.mark.parametrize('B', bidict_types)
+def test_put_withdup(B, benchmark):
+    b = B(elements)
 
     def runner():
         with pytest.raises(ValueDuplicationError):
-            elements_.put('key_with_dup_val', 'hydrogen')
+            b.put('key_with_dup_val', 'hydrogen')
 
     benchmark(runner)
 
 
-def test_update_nodup(benchmark):
-    elements_ = bidict(elements)
-    benchmark(elements_.update, update_nodup)
+@pytest.mark.parametrize('B', bidict_types)
+def test_update_nodup(B, benchmark):
+    b = B(elements)
+    benchmark(b.update, update_nodup)
 
 
-def test_update_withdup(benchmark):
-    elements_ = bidict(elements)
+@pytest.mark.parametrize('B', bidict_types)
+def test_update_withdup(B, benchmark):
+    b = B(elements)
 
     def runner():
         with pytest.raises(ValueDuplicationError):
-            elements_.update(update_withdupval)
+            b.update(update_withdupval)
 
     benchmark(runner)
 
 
-def test_forceupdate_withdup(benchmark):
-    elements_ = bidict(elements)
-    benchmark(elements_.forceupdate, update_withdupval)
-    assert elements_.inv['hydrogen'] == 'key_with_dup_val'
+@pytest.mark.parametrize('B', bidict_types)
+def test_forceupdate_withdup(B, benchmark):
+    b = B(elements)
+    benchmark(b.forceupdate, update_withdupval)
+    assert b.inv['hydrogen'] == 'key_with_dup_val'
