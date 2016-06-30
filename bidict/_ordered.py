@@ -170,19 +170,11 @@ class OrderedBidirectionalMapping(BidirectionalMapping):
             assert inv[val] is nodeinv
 
     def __eq__(self, other):
-        if isinstance(other, (OrderedBidirectionalMapping, OrderedDict)):
-            if len(self) != len(other):
-                return False
-            for i, j in izip(iteritems(self), iteritems(other)):
-                if i != j:
-                    return False
-            return True
         if not isinstance(other, Mapping) or len(self) != len(other):
             return False
-        for (k, v) in iteritems(other):
-            if self.get(k, _missing) != v:
-                return False
-        return True
+        if isinstance(other, (OrderedBidirectionalMapping, OrderedDict)):
+            return all(i == j for (i, j) in izip(iteritems(self), iteritems(other)))
+        return all(self.get(k, _missing) == v for (k, v) in iteritems(other))
 
     def __repr__(self):
         inner = ', '.join('(%r, %r)' % (k, v) for (k, v) in iteritems(self))

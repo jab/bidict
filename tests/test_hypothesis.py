@@ -51,12 +51,18 @@ inititems = itemlists.map(prune_dup_vals)
 @given(init=inititems)
 def test_equality(B, init):
     b = B(init)
-    d = OrderedDict(init)
+    d = dict(init)
+    o = OrderedDict(init)
+    oi = to_inv_odict(iteritems(o))
+    di = OrderedDict(oi)
     assert b == d
+    assert b == o
     assert not b != d
-    i = to_inv_odict(iteritems(d))
-    assert b.inv == i
-    assert not b.inv != i
+    assert not b != o
+    assert b.inv == oi
+    assert b.inv == di
+    assert not b.inv != oi
+    assert not b.inv != di
 
 
 @pytest.mark.parametrize('B', bidict_types)
