@@ -215,17 +215,6 @@ class BidirectionalMapping(Mapping):
             for write in reversed(writes):
                 undo_write(*write)
             raise exc
-        else:
-            self._on_update_rbf_success(writes)
-
-    def _on_update_rbf_success(self, writes):
-        """
-        Hook for subclassess that need to update state on successful _update_rbf().
-
-        In particular, used by OrderedBidirectionalMapping on dup_kv ovewrite
-        to clear any forward linked list nodes that were collapsed into an
-        inverse node.
-        """
 
     def _undo_write(self, key, val, isdupkey, isdupval, oldkey, oldval):
         fwd = self._fwd

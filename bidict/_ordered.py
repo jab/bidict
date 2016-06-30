@@ -101,10 +101,10 @@ class OrderedBidirectionalMapping(BidirectionalMapping):
             # Drop nodeinv so that item with same key overwritten in place.
             invprv[_NXT] = invnxt
             invnxt[_PRV] = invprv
-            # Defer clearing nodeinv (to remove its references to its neighbors
-            # to avoid reference leaks) until after all writes succeed, since
-            # if the update fails, we'll need nodeinv to undo this write.
-            # (See _on_update_rbf_success() below.)
+            # Don't remove nodeinv's references to its neighbors since
+            # if the update fails, we'll need them to undo this write.
+            # Python's garbage collector should still be able to detect when
+            # nodeinv is garbage and reclaim the memory.
             # Update fwd and inv.
             assert fwd.pop(oldkey) is nodeinv
             assert inv.pop(oldval) is nodefwd
@@ -168,11 +168,6 @@ class OrderedBidirectionalMapping(BidirectionalMapping):
             assert fwd.pop(key) is nodeinv
             fwd[oldkey] = nodeinv
             assert inv[val] is nodeinv
-
-    def _on_update_rbf_success(self, writes):
-        for key, val, isdupkey, isdupval, nodeinv, nodefwd, oldkey, oldval in writes:
-            if isdupkey and isdupval:
-                del nodeinv[:]
 
     def __eq__(self, other):
         if isinstance(other, (OrderedBidirectionalMapping, OrderedDict)):
