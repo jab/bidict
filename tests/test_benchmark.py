@@ -1,4 +1,4 @@
-from bidict import bidict, orderedbidict, ValueDuplicationError, OVERWRITE
+from bidict import bidict, orderedbidict, ValueDuplicationError
 import pytest
 
 
@@ -68,8 +68,7 @@ def test_update_withdup(benchmark):
     benchmark(runner)
 
 
-def test_overwriting_putall_withdup(benchmark):
+def test_forceupdate_withdup(benchmark):
     elements_ = bidict(elements)
-    benchmark(elements_.putall, update_withdupval,
-              on_dup_key=OVERWRITE, on_dup_val=OVERWRITE, on_dup_kv=OVERWRITE)
+    benchmark(elements_.forceupdate, update_withdupval)
     assert elements_.inv['hydrogen'] == 'key_with_dup_val'
