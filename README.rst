@@ -28,8 +28,8 @@ Status
     :target: https://www.versioneye.com/python/bidict
     :alt: Follow on VersionEye
 
-.. image:: https://readthedocs.org/projects/bidict/badge/?version=latest
-    :target: https://bidict.readthedocs.io/
+.. image:: https://readthedocs.org/projects/bidict/badge/?version=master
+    :target: https://bidict.readthedocs.io/en/master
     :alt: Documentation
 
 .. image:: https://travis-ci.org/jab/bidict.svg?branch=master
