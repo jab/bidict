@@ -51,6 +51,8 @@ is always a constant-time operation.
 
 .. include:: beware-on_dup_kv-overwrite.rst.inc
 
+.. include:: order-matters.rst.inc
+
 .. include:: interop.rst.inc
 
 

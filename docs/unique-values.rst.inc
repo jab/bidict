@@ -180,30 +180,3 @@ The insertion of an entire duplicate item is construed as a no-op::
     >>> b.putall([(4, 16), (4, 16)])
     >>> sorted(b.items())
     [(2, 4), (3, 9), (4, 16)]
-
-Also note that bulk put operations
-(e.g. :func:`update() <bidict.bidict.update>`,
-:func:`forceupdate() <bidict.bidict.forceupdate>`,
-and :func:`putall() <bidict.bidict.putall>`)
-are like performing a sequence of single put operations
-for each of the provided items
-(with the advantage that the bulk operation fails clean, i.e. if it fails,
-it will be as if none of the single put operations were ever called).
-Therefore, the order of the items provided to the bulk setitem operation
-may affect the result::
-
-    >>> b = bidict({0: 0, 1: 2})
-    >>> b.forceupdate([(2, 0), (0, 1), (0, 0)])
-    >>> # 1. (2, 0) overwrites (0, 0)             -> bidict({2: 0, 1: 2})
-    >>> # 2. (0, 1) is added                      -> bidict({2: 0, 1: 2, 0: 1})
-    >>> # 3. (0, 0) overwrites (0, 1) and (2, 0)  -> bidict({0: 0, 1: 2})
-    >>> sorted(b.items())
-    [(0, 0), (1, 2)]
-    >>> b = bidict({0: 0, 1: 2})  # as before
-    >>> # Give same items to forceupdate() but in a different order:
-    >>> b.forceupdate([(0, 1), (0, 0), (2, 0)])
-    >>> # 1. (0, 1) overwrites (0, 0)             -> bidict({0: 1, 1: 2})
-    >>> # 2. (0, 0) overwrites (0, 1)             -> bidict({0: 0, 1: 2})
-    >>> # 3. (2, 0) overwrites (0, 0)             -> bidict({1: 2, 2: 0})
-    >>> sorted(b.items())  # different result
-    [(1, 2), (2, 0)]
