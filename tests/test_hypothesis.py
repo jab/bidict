@@ -8,7 +8,7 @@ from bidict import (
     frozenbidict, frozenorderedbidict)
 from bidict.compat import iteritems, viewitems
 from collections import OrderedDict
-from hypothesis import given, settings
+from hypothesis import assume, given, settings
 from hypothesis.strategies import integers, lists, tuples
 from os import getenv
 import pytest
@@ -24,7 +24,9 @@ def to_inv_odict(items):
 
 
 def prune_dup_vals(items):
-    return list(iteritems(to_inv_odict(iteritems(to_inv_odict(items)))))
+    pruned = list(iteritems(to_inv_odict(iteritems(to_inv_odict(items)))))
+    assume(len(pruned) >= len(items) // 2)
+    return pruned
 
 
 ondupbehaviors = (IGNORE, OVERWRITE, RAISE)
