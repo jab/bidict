@@ -52,7 +52,8 @@ are order-insensitive.
     True
 
 And also as with :class:`collections.OrderedDict`,
-updating an existing item preserves its position in the order::
+updating an existing item preserves its position in the order
+(whether changing its key or value)::
 
     >>> ob1['one'] = 3
     >>> ob1  # order preserved when setting existing key to new value
@@ -60,6 +61,22 @@ updating an existing item preserves its position in the order::
     >>> ob1.forceput('three', 3)
     >>> ob1  # order preserved when setting existing value to new key too
     orderedbidict([('three', 3), ('two', 2)])
+
+When setting an item whose key duplicates that of an existing item
+and whose value duplicates that of a different existing item,
+the existing item whose value is duplicated will be dropped
+and the existing item whose key is duplicated
+will have its value overwritten in place::
+
+    >>> o = orderedbidict([(1, 2), (3, 4), (5, 6), (7, 8)])
+    >>> o.forceput(3, 8)
+    >>> o
+    orderedbidict([(1, 2), (3, 8), (5, 6)])
+    >>> o = orderedbidict([(1, 2), (3, 4), (5, 6), (7, 8)])
+    >>> o.forceput(5, 2)
+    >>> o
+    orderedbidict([(3, 4), (5, 2), (7, 8)])
+
 
 :class:`orderedbidict <bidict.orderedbidict>` also comes in
 :class:`loose <bidict.looseorderedbidict>` and
