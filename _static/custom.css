@@ -1,0 +1,6 @@
+/* override
+ * https://github.com/bitprophet/alabaster/blob/7e8ee8/alabaster/static/alabaster.css_t#L609-L611
+ */
+div#changelog > div.section > ul > li > p:only-child {
+  margin-bottom: 17px;
+}

@@ -10,14 +10,21 @@ Release Notifications
 to automatically be notified via email
 when a new version of bidict is released.
 
-0.12.0-dev (not yet released)
------------------------------
+0.12.0 (2016-07-03)
+-------------------
+
+- New/renamed exceptions:
+
+  - :class:`KeyDuplicationError <bidict.KeyDuplicationError>`
+  - :class:`ValueDuplicationError <bidict.ValueDuplicationError>`
+  - :class:`KeyAndValueDuplicationError <bidict.KeyAndValueDuplicationError>`
+  - :class:`DuplicationError <bidict.DuplicationError>` (base class for the above)
 
 - :func:`put() <bidict.bidict.put>`
   now accepts ``on_dup_key``, ``on_dup_val``, and ``on_dup_kv`` keyword args
   which allow you to override the default behavior
-  when the key and/or value of a given item
-  duplicate those/that of any existing item(s).
+  when the key or value of a given item
+  duplicates that (those) of any existing item(s).
   These can take the following values:
 
   - :attr:`bidict.DuplicationBehavior.RAISE`
@@ -28,36 +35,40 @@ when a new version of bidict is released.
 
   If not provided,
   :func:`put() <bidict.bidict.put>` uses
-  :attr:`RAISE <bidict.DuplicationBehavior.RAISE>` behavior default.
+  :attr:`RAISE <bidict.DuplicationBehavior.RAISE>` behavior by default.
 
 - New :func:`putall() <bidict.bidict.putall>` method
-  provides a bulk :func:`put() <bidict.bidict.put>` API.
+  provides a bulk :func:`put() <bidict.bidict.put>` API,
+  allowing you to override the default duplication handling behavior
+  that :func:`update() <bidict.bidict.update>` uses.
 
-- :func:`bidict.update() <bidict.bidict.update>` now offers stronger
-  consistency guarantees by checking for and handling duplication
-  before inserting any of the given items.
-  So if an :func:`update() <bidict.bidict.update>` call causes a
-  :class:`ValueDuplicationError <bidict.ValueDuplicationError>`,
-  you can now be sure that none of the given items were inserted.
+- :func:`bidict.update() <bidict.bidict.update>` now fails clean,
+  so if an :func:`update() <bidict.bidict.update>` call raises a
+  :class:`DuplicationError <bidict.DuplicationError>`,
+  you can now be sure that none of the given items was inserted.
 
-  Previously, any of the given items that were processed
+  Previously, all of the given items that were processed
   before the one causing the failure would have been inserted,
-  and there was no good way to recover which were inserted
-  and which had yet to be inserted at the time of the error,
-  nor to undo the partial insertion after finding out
-  not all items could be inserted.
+  and no facility was provided to recover
+  which items were inserted and which weren't,
+  nor to revert any changes made by the failed
+  :func:`update() <bidict.bidict.update>` call.
   The new behavior makes it easier to reason about and control
-  the effects of bulk insert operations.
-  This is known as "fail clean" behavior.
+  the effects of failed :func:`update() <bidict.bidict.update>` calls.
 
   The new :func:`putall() <bidict.bidict.putall>` method also fails clean.
 
-- New exceptions:
+  Internally, this is implemented by storing a log of changes
+  made while an update is being processed, and rolling back the changes
+  when one of them is found to cause an error.
+  This required reimplementing :class:`orderedbidict <bidict.orderedbidict>`
+  on top of two dicts and a linked list, rather than two OrderedDicts,
+  since :class:`OrderedDict <collections.OrderedDict>` does not expose
+  its underlying linked list.
 
-  - :class:`KeyDuplicationError <bidict.KeyDuplicationError>`
-  - :class:`ValueDuplicationError <bidict.ValueDuplicationError>`
-  - :class:`KeyAndValueDuplicationError <bidict.KeyAndValueDuplicationError>`
-  - :class:`DuplicationError <bidict.DuplicationError>` (base class for the above)
+- :func:`orderedbidict.move_to_end() <bidict.orderedbidict.move_to_end>`
+  now works on Python < 3.2 as a result of the new
+  :class:`orderedbidict <bidict.orderedbidict>` implementation.
 
 - Add
 
@@ -73,22 +84,13 @@ when a new version of bidict is released.
   :func:`viewitems() <bidict.compat.viewitems>`
   compatibility helpers.
 
-- Implement several functions more efficiently
-  (including
+- More efficient implementations of
   :func:`pairs() <bidict.util.pairs>`,
   :func:`inverted() <bidict.util.inverted>`, and
-  :func:`bidict.copy() <bidict.BidirectionalMapping.copy>`).
+  :func:`bidict.copy() <bidict.BidirectionalMapping.copy>`.
 
-- Implement :func:`bidict.BidirectionalMapping.__copy__`
+- Implement :func:`bidict.__copy__() <bidict.BidirectionalMapping.__copy__>`
   for use with the :mod:`copy` module.
-
-- When overwriting the key of an existing value in an
-  :class:`bidict.orderedbidict`, the position of the existing item is
-  now preserved rather than being moved to the end, which matches the
-  behavior of preserving order when overwriting the value of an existing key.
-
-- :func:`orderedbidict.move_to_end <bidict.orderedbidict.move_to_end>`
-  now works on Python < 3.2.
 
 - Fix issue preventing a client class from inheriting from
   :class:`loosebidict <bidict.loosebidict>`
@@ -102,8 +104,36 @@ when a new version of bidict is released.
 Breaking API Changes
 ^^^^^^^^^^^^^^^^^^^^
 
-- Rename ``KeyExistsException`` :class:`KeyDuplicationError <bidict.KeyDuplicationError>`
-  and ``ValueExistsException`` :class:`ValueDuplicationError <bidict.ValueDuplicationError>`.
+- Rename ``KeyExistsException`` to :class:`KeyDuplicationError <bidict.KeyDuplicationError>`
+  and ``ValueExistsException`` to :class:`ValueDuplicationError <bidict.ValueDuplicationError>`.
+
+- When overwriting the key of an existing value in an :class:`orderedbidict <bidict.orderedbidict>`,
+  the position of the existing item is now preserved,
+  overwriting the key of the existing item in place,
+  rather than moving the item to the end.
+  This now matches the behavior of overwriting the value of an existing key,
+  which has always preserved the position of the existing item.
+  (If inserting an item whose key duplicates that of one existing item
+  and whose value duplicates that of another,
+  the existing item whose value is duplicated is still dropped,
+  and the existing item whose key is duplicated
+  still gets its value overwritten in place, as before.)
+
+  For example::
+
+      >>> from bidict import orderedbidict
+      >>> o = orderedbidict([(0, 1), (2, 3)])
+      >>> o.forceput(4, 1)
+
+  previously would have resulted in::
+
+      >>> o  # doctest: +SKIP
+      orderedbidict([(2, 3), (4, 1)])
+
+  but now results in::
+
+      >>> o
+      orderedbidict([(4, 1), (2, 3)])
 
 
 0.11.0 (2016-02-05)

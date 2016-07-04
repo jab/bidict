@@ -3,11 +3,11 @@ bidict
  
 Efficient, Pythonic bidirectional map implementation and related functionality.
 
-.. image:: ./_static/logo-256.png
+.. image:: https://raw.githubusercontent.com/jab/bidict/master/_static/logo-256.png
     :target: https://bidict.readthedocs.io/
     :alt: bidict logo
 
-.. image:: ./_static/support-on-gumroad.png
+.. image:: https://raw.githubusercontent.com/jab/bidict/master/_static/support-on-gumroad.png
     :target: https://gumroad.com/l/bidict
     :alt: Support bidict
 
@@ -29,7 +29,7 @@ Status
     :alt: Follow on VersionEye
 
 .. image:: https://readthedocs.org/projects/bidict/badge/?version=master
-    :target: https://bidict.readthedocs.io/en/master
+    :target: https://bidict.readthedocs.io/en/master/
     :alt: Documentation
 
 .. image:: https://travis-ci.org/jab/bidict.svg?branch=master
@@ -74,7 +74,7 @@ Installation
 Usage
 -----
 
-For usage documentation, please start at the :ref:`intro`
+For usage documentation, please start at the Introduction
 and proceed from there.
 
 `bidict.readthedocs.io <https://bidict.readthedocs.io>`_
@@ -91,7 +91,7 @@ and by default you will be taken to the version built from the master branch.
 You can choose different versions from the pop-up menu in the lower-right.*
 
 You can also build the docs yourself by running ``make html``
-from the `<docs>`_ directory
+from the ``docs`` directory
 (requires `Sphinx <https://pypi.python.org/pypi/Sphinx>`_).
 
 
@@ -100,13 +100,13 @@ Contributing
 
 Contributions are gratefully received!
 For information about contributing,
-please see :ref:`contributing`
-(`<./CONTRIBUTING.rst>`_ | `<https://bidict.readthedocs.io/contributing.html>`_).
+please see CONTRIBUTING.rst
+(`<https://bidict.readthedocs.io/contributing.html>`_).
 
 
 Changelog
 ---------
 
 For a history of notable changes to bidict,
-check out the :ref:`changelog`
-(`<./CHANGELOG.rst>`_ | `<https://bidict.readthedocs.io/changelog.html>`_).
+check out CHANGELOG.rst
+(`<https://bidict.readthedocs.io/changelog.html>`_).

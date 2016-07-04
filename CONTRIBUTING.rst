@@ -135,9 +135,9 @@ Code of Conduct
 ---------------
 
 All participation in this project should respect the
-:doc:`Code of Conduct <code-of-conduct>`
-(`<./CODE_OF_CONDUCT.rst>`_ |
-`<https://bidict.readthedocs.io/code-of-conduct.html>`_).
+:doc:`Code of Conduct <code-of-conduct>`.
+(If that link does not work, see ``CODE_OF_CONDUCT.rst`` or 
+`<https://bidict.readthedocs.io/code-of-conduct.html>`_.)
 By participating, you are expected to honor this code.
 
 Thanks
