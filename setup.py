@@ -18,7 +18,7 @@ except Exception as e:
          '(%r): %r' % (long_description, e))
 
 tests_require = [
-    'coverage==4.2b1',
+    'coverage==4.2',
     'flake8==2.5.4',
     'hypothesis==3.4.2',
     'hypothesis-pytest==0.19.0',
