@@ -4,3 +4,13 @@
 div#changelog > div.section > ul > li > p:only-child {
   margin-bottom: 17px;
 }
+
+/* override bad styles in
+ * https://media.readthedocs.org/css/badge_only.css
+ * added automatically by readthedocs
+ */
+@media screen and (max-width: 768px) {
+  img {
+    width: auto;
+  }
+}
