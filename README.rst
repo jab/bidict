@@ -24,7 +24,7 @@ Status
     :target: https://pypi.python.org/pypi/bidict
     :alt: Latest release
 
-.. image:: https://img.shields.io/badge/versionEye-follow-brightgreen.svg
+.. image:: https://img.shields.io/badge/VersionEye-follow-brightgreen.svg
     :target: https://www.versioneye.com/python/bidict
     :alt: Follow on VersionEye
 
