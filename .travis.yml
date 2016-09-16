@@ -22,7 +22,7 @@ matrix:
         - BIDICT_SPHINXBUILD_DISABLE=1
     - python: "pypy"
       env:
-        - PYENV_PYTHON_VER=pypy-5.1.1
+        - PYENV_PYTHON_VER=pypy-5.4.1
         - BIDICT_COVERAGE_DISABLE=1
         - BIDICT_SPHINXBUILD_DISABLE=1
 
