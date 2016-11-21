@@ -7,6 +7,7 @@ from itertools import product
 class dictsubclass(dict):
     pass
 
+
 d = dict(H='hydrogen', He='helium')
 c = Counter(d)
 o = OrderedDict(d)

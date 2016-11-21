@@ -52,6 +52,7 @@ class DuplicationBehavior(_marker):
 
     """
 
+
 DuplicationBehavior.RAISE = RAISE = DuplicationBehavior('RAISE')
 DuplicationBehavior.OVERWRITE = OVERWRITE = DuplicationBehavior('OVERWRITE')
 DuplicationBehavior.IGNORE = IGNORE = DuplicationBehavior('IGNORE')
