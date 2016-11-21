@@ -19,15 +19,15 @@ except Exception as e:
 
 tests_require = [
     'coverage==4.2',
-    'flake8==2.5.4',
+    'flake8==3.2.0',
     'hypothesis==3.6.0',
     'hypothesis-pytest==0.19.0',
     'py==1.4.31',
-    'pydocstyle==1.0.0',
+    'pydocstyle==1.1.1',
     'pytest==3.0.4',
     'pytest-benchmark==3.0.0',
-    'pytest-cov==2.2.1',
-    'Sphinx==1.4.4',
+    'pytest-cov==2.4.0',
+    'Sphinx==1.4.8',
 ]
 
 setup(
