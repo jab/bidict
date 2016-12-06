@@ -9,6 +9,7 @@
     addendum
     changelog
     api
-    contributing
+    contributors-guide
+    code-of-conduct
 
 .. include:: home.rst

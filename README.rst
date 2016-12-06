@@ -7,10 +7,6 @@ Efficient, Pythonic bidirectional map implementation and related functionality.
     :target: https://bidict.readthedocs.io/
     :alt: bidict logo
 
-.. image:: https://raw.githubusercontent.com/jab/bidict/master/_static/support-on-gumroad.png
-    :target: https://gumroad.com/l/bidict
-    :alt: Support bidict
-
 
 Status
 ------
@@ -61,8 +57,8 @@ If you have a question or find an issue,
 please don't hesitate to
 `ask in the chat room <https://gitter.im/jab/bidict>`_,
 `file an issue <https://github.com/jab/bidict/issues/new>`_,
-or
-`submit a pull request <contributing>`_.
+or submit a pull request
+(but first see the contributing_ section below).
 
 
 Installation
@@ -71,27 +67,25 @@ Installation
 ``pip install bidict``
 
 
-Usage
------
+Usage Documentation
+-------------------
 
-For usage documentation, please start at the Introduction
-and proceed from there.
+For usage documentation, please start at the :ref:`intro`
+and proceed from there. *Problems with that link? Note the following:*
 
-`bidict.readthedocs.io <https://bidict.readthedocs.io>`_
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-
-*In case you're reading this on GitHub, PyPI, in your code editor,
+If you're reading this on GitHub, PyPI, in your code editor,
 or in some other place that can't render/link the full docs properly,
-you can find the bidict documentation on Read the Docs at:*
+you can find the bidict documentation on Read the Docs at:
 
     `<https://bidict.readthedocs.io>`_
 
-*Note that multiple versions of the documentation are published there,
+*Note: multiple versions of the documentation are published on Read the Docs,
 and by default you will be taken to the version built from the master branch.
 You can choose different versions from the pop-up menu in the lower-right.*
 
-You can also build the docs yourself by running ``make html``
-from the ``docs`` directory
+If you have the `bidict source code <https://github.com/jab/bidict>`_  handy,
+you can also browse the docs insde the ``docs`` directory,
+and build them yourself by running ``make html`` from within that directory
 (requires `Sphinx <https://pypi.python.org/pypi/Sphinx>`_).
 
 
@@ -100,13 +94,19 @@ Contributing
 
 Contributions are gratefully received!
 For information about contributing,
-please see CONTRIBUTING.rst
-(`<https://bidict.readthedocs.io/contributing.html>`_).
+please see the :ref:`contributors-guide`.
+If that link does not work, see ``CONTRIBUTING.rst`` or
+`<https://bidict.readthedocs.io/contributors-guide.html>`_.
+
+.. image:: https://raw.githubusercontent.com/jab/bidict/master/_static/support-on-gumroad.png
+    :target: https://gumroad.com/l/bidict
+    :alt: Support bidict
 
 
 Changelog
 ---------
 
 For a history of notable changes to bidict,
-check out CHANGELOG.rst
-(`<https://bidict.readthedocs.io/changelog.html>`_).
+check out the :ref:`changelog`.
+If that link does not work, see ``CHANGELOG.rst`` or
+`<https://bidict.readthedocs.io/changelog.html>`_.

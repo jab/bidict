@@ -1,4 +1,4 @@
-.. _contributing:
+.. _contributors-guide:
 
 Contributors' Guide
 ===================
@@ -106,6 +106,10 @@ Donation and Other Ways to Contribute
 
 Besides filing issues and pull requests, there are other ways to contribute.
 
+.. image:: https://img.shields.io/badge/Paypal-Buy%20a%20Drink-blue.svg
+  :target: https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=jab%40math%2ebrown%2eedu&lc=US&item_name=Buy%20a%20drink%20for%20jab&button_subtype=services&currency_code=USD&bn=PP%2dBuyNowBF%3aPaypal%2dBuy%2520a%2520Drink%2dblue%2esvg%3aNonHosted
+  :alt: PayPal - Buy a drink
+
 - If you read the code and learned something new,
   let us know and it'll give us the warm fuzzies.
 
@@ -119,29 +123,25 @@ Besides filing issues and pull requests, there are other ways to contribute.
   <https://gumroad.com/l/bidict>`_
   and/or ask your organization to do the same.
 
-  .. image:: ./_static/support-on-gumroad.png
-      :target: https://gumroad.com/l/bidict
-      :alt: Support bidict
+.. image:: ./_static/support-on-gumroad.png
+  :target: https://gumroad.com/l/bidict
+  :alt: Support bidict
 
+.. Comment out bountysource; went down on 2016/12/6 for too long.
   You can also use `Bountysource <https://www.bountysource.com/teams/jab>`_
-  to sponsor a new feature/bugfix or make a general contribution,
-  or use this if it's more your cup of tea:
-
-  .. image:: https://img.shields.io/badge/Paypal-Buy%20a%20Drink-blue.svg
-      :target: https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=jab%40math%2ebrown%2eedu&lc=US&item_name=Buy%20a%20drink%20for%20jab&button_subtype=services&currency_code=USD&bn=PP%2dBuyNowBF%3aPaypal%2dBuy%2520a%2520Drink%2dblue%2esvg%3aNonHosted
-      :alt: PayPal - Buy a drink
+  to sponsor a new feature/bugfix or make a general contribution.
 
 Code of Conduct
 ---------------
 
 All participation in this project should respect the
-:doc:`Code of Conduct <code-of-conduct>`.
-(If that link does not work, see ``CODE_OF_CONDUCT.rst`` or 
-`<https://bidict.readthedocs.io/code-of-conduct.html>`_.)
+:doc:`code-of-conduct`.
+If that link does not work, see ``CODE_OF_CONDUCT.rst`` or
+`<https://bidict.readthedocs.io/code-of-conduct.html>`_.
 By participating, you are expected to honor this code.
 
 Thanks
 ------
 
 Contributions are gratefully received.
-Thank you for your consideration.
+Thank you for your friendly participation.

@@ -19,15 +19,15 @@ except Exception as e:
 
 tests_require = [
     'coverage==4.2',
-    'flake8==3.2.0',
+    'flake8==3.2.1',
     'hypothesis==3.6.0',
     'hypothesis-pytest==0.19.0',
     'py==1.4.31',
     'pydocstyle==1.1.1',
-    'pytest==3.0.4',
-    'pytest-benchmark==3.0.0',
+    'pytest==3.0.5',
+    'pytest-benchmark==3.1.0a1',
     'pytest-cov==2.4.0',
-    'Sphinx==1.4.8',
+    'Sphinx==1.5.0',
 ]
 
 setup(
@@ -61,6 +61,6 @@ setup(
     tests_require=tests_require,
     extras_require=dict(
         test=tests_require,
-        dev=tests_require + ['pre-commit==0.9.3', 'tox==2.5.0'],
+        dev=tests_require + ['pre-commit==0.9.4', 'tox==2.3.2'],
     ),
 )
