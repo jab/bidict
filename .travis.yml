@@ -4,59 +4,65 @@ env:
   global:
     - PYENV_ROOT="$HOME/.pyenv"
     - PYENV="$PYENV_ROOT/bin/pyenv"
-    - BENCHMARK_DIR="$HOME/.benchmarks"
+    #- BENCHMARK_DIR="$HOME/.benchmarks"
+    #- BENCHMARK_SKIP="--benchmark-skip"
 
 matrix:
   include:
-    - python: "2.7"
-      env:
-        - PYENV_PYTHON_VER=2.7.12
-        - BIDICT_SPHINXBUILD_DISABLE=1
-    - python: "3.4"
-      env:
-        - PYENV_PYTHON_VER=3.4.5
-        - BIDICT_COVERAGE_DISABLE=1
-    - python: "3.5"
-      env:
-        - PYENV_PYTHON_VER=3.5.2
-        - BIDICT_SPHINXBUILD_DISABLE=1
     - python: "pypy"
       env:
         - PYENV_PYTHON_VER=pypy-portable-5.6.0
-        - BIDICT_COVERAGE_DISABLE=1
-        - BIDICT_SPHINXBUILD_DISABLE=1
+    - python: "2.7"
+      env:
+        - PYENV_PYTHON_VER=2.7.13
+    - python: "3.4"
+      env:
+        # Don't bother testing on 3.4; run the docs build instead.
+        #- PYENV_PYTHON_VER=3.4.5
+        - BIDICT_BUILD_DOCS_INSTEAD=1
+    - python: "3.5"
+      env:
+        - PYENV_PYTHON_VER=3.5.2
+    - python: "3.6"
+      env:
+        # Travis has 3.6.0 installed already -> no need to use pyenv's
+        #- PYENV_PYTHON_VER=3.6.0
+        # Only generate coverage report on the job for latest Python 3
+        - BIDICT_COVERAGE_ENABLE=1
 
 install:
   # based on https://github.com/frol/flask-restplus-server-example/blob/018f48e5/.travis.yml
   - |
-      if [ -f "$PYENV" ]; then
-        pushd "$PYENV_ROOT" && git pull && popd
-      else
-        rm -rf "$PYENV_ROOT" && git clone --depth 1 https://github.com/yyuu/pyenv.git "$PYENV_ROOT"
+      if [[ -n "$PYENV_PYTHON_VER" ]]; then
+        if [[ -f "$PYENV" ]]; then
+          pushd "$PYENV_ROOT" && git pull && popd
+        else
+          rm -rf "$PYENV_ROOT" && git clone --depth 1 https://github.com/yyuu/pyenv.git "$PYENV_ROOT"
+        fi
+        "$PYENV" install --skip-existing "$PYENV_PYTHON_VER"
+        export PYTHON="$PYENV_ROOT/versions/$PYENV_PYTHON_VER/bin/python"
+        export VENV="$HOME/virtualenvs/$PYENV_PYTHON_VER"
+        virtualenv --python="$PYTHON" "$VENV"
+        source "$VENV/bin/activate"
       fi
-      "$PYENV" install --skip-existing "$PYENV_PYTHON_VER"
-      export PYTHON="$PYENV_ROOT/versions/$PYENV_PYTHON_VER/bin/python"
-      export VENV="$HOME/virtualenvs/$PYENV_PYTHON_VER"
-      virtualenv --python="$PYTHON" "$VENV"
-      source "$VENV/bin/activate"
   - travis_retry pip install -e .[test]
-  - test -n "$BIDICT_COVERAGE_DISABLE" && echo "Skipping coveralls install" || travis_retry pip install coveralls
+  - test -z "$BIDICT_COVERAGE_ENABLE" || travis_retry pip install coveralls
 
 script:
-  - ./test.sh
+  - if [[ -n "$BIDICT_BUILD_DOCS_INSTEAD" ]]; then ./build-docs.sh; else ./test.sh; fi
 
 cache:
   directories:
     - $HOME/.cache/pip
     - $HOME/.hypothesis
     - $PYENV_ROOT
-    - $BENCHMARK_DIR
+    #- $BENCHMARK_DIR
 
 before_cache:
   - rm -rf $HOME/.cache/pip/log
 
 after_success:
-  - test -n "$BIDICT_COVERAGE_DISABLE" && echo "Skipping coveralls" || coveralls
+  - test -z "$BIDICT_COVERAGE_ENABLE" || coveralls
 
 sudo: false
 

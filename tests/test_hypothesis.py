@@ -1,9 +1,9 @@
 """
-Property-based tests using https://warehouse.python.org/project/hypothesis/
+Property-based tests using https://hypothesis.readthedocs.io
 """
 
 from bidict import (
-    OrderedBidirectionalMapping, IGNORE, OVERWRITE, RAISE,
+    IGNORE, OVERWRITE, RAISE,
     bidict, loosebidict, looseorderedbidict, orderedbidict,
     frozenbidict, frozenorderedbidict)
 from bidict.compat import iteritems
@@ -64,7 +64,7 @@ def test_equality(B, init):
 @pytest.mark.parametrize('B', bidict_types)
 @given(init=inititems)
 def test_bidirectional_mappings(B, init):
-    ordered = issubclass(B, OrderedBidirectionalMapping)
+    ordered = hasattr(B, '__reversed__')
     C = list if ordered else sorted
     b = B(init)
     keysf = C(k for (k, v) in iteritems(b))

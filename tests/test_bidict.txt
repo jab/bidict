@@ -135,7 +135,7 @@ The rest of the ``MutableMapping`` interface is supported::
     [('three', 3), ('four', 4), ('five', 5), ('six', 6), ('seven', 7)]
     >>> bi.clear()
     >>> bi
-    bidict({})
+    bidict()
 
 Initializing with different keys mapping to the same value fails::
 

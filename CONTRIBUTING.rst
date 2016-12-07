@@ -58,9 +58,15 @@ Making Changes
   If you're adding a feature, include accompanying tests and documentation
   demonstrating its correctness and usage.
 
-- Run all the tests
-  with `tox <https://tox.readthedocs.io>`_
-  to make sure nothing else was accidentally broken.
+- Run the tests locally with `tox <https://tox.readthedocs.io>`_
+  to make sure they pass for all supported Python versions
+  (see ``envlist`` in ``tox.ini`` for the complete list).
+  If you do not have all the referenced Python versions available locally,
+  you can also push the changes on your branch to GitHub
+  to automatically trigger a new `Travis-CI <https://travis-ci.org>`_ build,
+  which should run the tests for all supported Python versions.
+  You should be able to see the results at ``travis-ci.org/<user>/bidict``,
+  where ``<user>`` is the GitHub username you used to fork bidict.
 
 - Create a concise but comprehensive commit message in the following style::
 
@@ -106,9 +112,17 @@ Donation and Other Ways to Contribute
 
 Besides filing issues and pull requests, there are other ways to contribute.
 
-.. image:: https://img.shields.io/badge/Paypal-Buy%20a%20Drink-blue.svg
-  :target: https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=jab%40math%2ebrown%2eedu&lc=US&item_name=Buy%20a%20drink%20for%20jab&button_subtype=services&currency_code=USD&bn=PP%2dBuyNowBF%3aPaypal%2dBuy%2520a%2520Drink%2dblue%2esvg%3aNonHosted
-  :alt: PayPal - Buy a drink
+.. image:: https://img.shields.io/badge/Gumroad-Support%20bidict-orange.svg
+  :target: https://gumroad.com/l/bidict
+  :alt: Gumroad - Support bidict
+
+.. image:: https://img.shields.io/badge/Bountysource-Support%20bidict-brightgreen.svg
+  :target: https://www.bountysource.com/teams/bidict
+  :alt: Bountysource - Support bidict
+
+.. image:: https://img.shields.io/badge/PayPal-Support%20bidict-blue.svg
+  :target: https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=jab%40math%2ebrown%2eedu&lc=US&item_name=Support%20bidict&button_subtype=services&currency_code=USD&bn=PP%2dBuyNowBF%3aPaypal%2dBuy%2520a%2520Drink%2dblue%2esvg%3aNonHosted
+  :alt: PayPal - Support bidict
 
 - If you read the code and learned something new,
   let us know and it'll give us the warm fuzzies.
@@ -126,10 +140,6 @@ Besides filing issues and pull requests, there are other ways to contribute.
 .. image:: ./_static/support-on-gumroad.png
   :target: https://gumroad.com/l/bidict
   :alt: Support bidict
-
-.. Comment out bountysource; went down on 2016/12/6 for too long.
-  You can also use `Bountysource <https://www.bountysource.com/teams/jab>`_
-  to sponsor a new feature/bugfix or make a general contribution.
 
 Code of Conduct
 ---------------

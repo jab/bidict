@@ -1,14 +1,14 @@
 """Implements :class:`bidict.bidict`, the mutable bidirectional map type."""
 
-from ._common import BidirectionalMapping, OVERWRITE, RAISE, ON_DUP_VAL
+from ._common import BidictBase, OVERWRITE, RAISE, ON_DUP_VAL
 from collections import MutableMapping
 
 
-class bidict(BidirectionalMapping, MutableMapping):
+class bidict(BidictBase):
     """Mutable bidirectional map type."""
 
     def __delitem__(self, key):
-        """Like :py:meth:`dict.__delitem__`, maintaining bidirectionality."""
+        """Like dict's :attr:`__delitem__`."""
         self._pop(key)
 
     def __setitem__(self, key, val):
@@ -19,7 +19,7 @@ class bidict(BidirectionalMapping, MutableMapping):
 
         If *key* is already associated with a different value,
         the old value will be replaced with *val*,
-        as with :py:meth:`dict.__setitem__`.
+        as with dict's :attr:`__setitem__`.
 
         If *val* is already associated with a different key,
         an exception is raised
@@ -82,7 +82,7 @@ class bidict(BidirectionalMapping, MutableMapping):
         self._clear()
 
     def pop(self, key, *args):
-        """Like :py:meth:`dict.pop`, maintaining bidirectionality."""
+        """Like :py:meth:`dict.pop`."""
         l = len(args) + 1
         if l > 2:
             raise TypeError('pop expected at most 2 arguments, got %d' % l)
@@ -93,16 +93,16 @@ class bidict(BidirectionalMapping, MutableMapping):
                 return args[0]  # default
             raise
 
-    def popitem(self):
-        """Like :py:meth:`dict.popitem`, maintaining bidirectionality."""
+    def popitem(self, *args, **kw):
+        """Like :py:meth:`dict.popitem`."""
         if not self._fwd:
             raise KeyError('popitem(): %s is empty' % self.__class__.__name__)
-        key, val = self._fwd.popitem()
+        key, val = self._fwd.popitem(*args, **kw)
         del self._inv[val]
         return key, val
 
     def setdefault(self, key, default=None):
-        """Like :py:meth:`dict.setdefault`, maintaining bidirectionality."""
+        """Like :py:meth:`dict.setdefault`."""
         if key not in self:
             self[key] = default
         return self[key]
@@ -131,3 +131,8 @@ class bidict(BidirectionalMapping, MutableMapping):
         none of the items is inserted.
         """
         self._update(False, on_dup_key, on_dup_val, on_dup_kv, items)
+
+
+# MutableMapping does not implement __subclasshook__.
+# Must register as a subclass explicitly.
+MutableMapping.register(bidict)

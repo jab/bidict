@@ -1,8 +1,32 @@
 Test script for bidict.frozenbidict::
 
-    >>> from bidict import frozenbidict
-    >>> f = frozenbidict(one=1)
-    >>> hash(f) is not 'an error'
+    >>> from bidict import frozenbidict, frozenorderedbidict
+    >>> f1 = frozenbidict(one=1)
+    >>> f2 = frozenorderedbidict([('one', 1), ('two', 2)])
+    >>> f3 = frozenorderedbidict([('two', 2), ('one', 1)])
+    >>> fs = (f1, f2, f3)
+    >>> all(hash(f) is not 'an error' for f in fs)
     True
-    >>> {f: 1}
-    {frozenbidict({'one': 1}): 1}
+
+Reuses cached value (shows up in coverage report)::
+
+    >>> all(hash(f) == f._hashval for f in fs)
+    True
+
+Insertable into sets and dicts::
+
+    >>> all(dict(f=f) for f in fs) and set(fs) is not 'an error'
+    True
+
+To reduce hash collisions with unequal frozenorderedbidicts with the same items,
+frozenorderedbidict.__hash__ tries to be order-sensitive::
+
+    >>> f1 != f2
+    True
+    >>> hash(f1) == hash(f2)  # very unlikely
+    False
+
+and also tries to avoid hash collisions with tuples with the same items::
+
+    >>> hash(f1) == hash(tuple(f1.items()))  # very unlikely
+    False

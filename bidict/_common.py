@@ -1,23 +1,51 @@
-"""
-Implements :class:`BidirectionalMapping`, the bidirectional map base class.
-
-Also provides related exception classes and duplication behaviors.
-"""
+"""Provides various common functionality."""
 
 from .compat import PY2, iteritems
 from .util import pairs
-from collections import Mapping
+from abc import abstractproperty
+from collections import ItemsView, Mapping
 
 
-def _proxied(methodname, ivarname='_fwd', doc=None):
-    """Make a func that calls methodname on the indicated instance variable."""
-    def proxy(self, *args):
-        ivar = getattr(self, ivarname)
-        meth = getattr(ivar, methodname)
-        return meth(*args)
-    proxy.__name__ = methodname
-    proxy.__doc__ = doc or 'Like ``dict.%s()``.' % methodname
-    return proxy
+class BidirectionalMapping(Mapping):
+    """Abstract base class for bidirectional mappings.
+    Extends :class:`collections.abc.Mapping`.
+
+    .. py:attribute:: _subclsattrs
+
+        The attributes that :attr:`__subclasshook__` checks for to determine
+        whether a class is a subclass of :class:`BidirectionalMapping`.
+
+    """
+
+    __slots__ = ()
+
+    @abstractproperty
+    def inv(self):
+        """The inverse bidict."""
+        raise NotImplementedError  # pragma: no cover
+
+    def __inverted__(self):
+        """Get an iterator over the items in :attr:`inv`."""
+        return iteritems(self.inv)
+
+    _subclsattrs = frozenset({
+        'inv', '__inverted__',
+        # see "Mapping" in the table at
+        # https://docs.python.org/3/library/collections.abc.html#collections-abstract-base-classes
+        '__getitem__', '__iter__', '__len__',  # abstract methods
+        '__contains__', 'keys', 'items', 'values', 'get', '__eq__', '__ne__',  # mixin methods
+    })
+
+    @classmethod
+    def __subclasshook__(cls, C):
+        """Check if C provides all the attributes in :attr:`_subclsattrs`.
+
+        Causes conforming classes to be virtual subclasses automatically.
+        """
+        if cls is BidirectionalMapping:
+            mro = C.__mro__
+            return all(any(B.__dict__.get(i) for B in mro) for i in cls._subclsattrs)
+        return NotImplemented
 
 
 class _marker(object):
@@ -25,7 +53,7 @@ class _marker(object):
         self.id = id
 
     def __repr__(self):
-        return '<%s>' % self.id
+        return '<%s>' % self.id  # pragma: no cover
 
 
 class DuplicationBehavior(_marker):
@@ -60,7 +88,18 @@ DuplicationBehavior.ON_DUP_VAL = ON_DUP_VAL = DuplicationBehavior('ON_DUP_VAL')
 _missing = _marker('MISSING')
 
 
-class BidirectionalMapping(Mapping):
+def _proxied(methodname, attrname='_fwd', doc=None):
+    """Make a func that calls the indicated method on the indicated attribute."""
+    def proxy(self, *args):
+        attr = getattr(self, attrname)
+        meth = getattr(attr, methodname)
+        return meth(*args)
+    proxy.__name__ = methodname
+    proxy.__doc__ = doc or "Like dict's ``%s``." % methodname
+    return proxy
+
+
+class BidictBase(BidirectionalMapping):
     """
     Base class for all provided bidirectional map types.
 
@@ -68,43 +107,91 @@ class BidirectionalMapping(Mapping):
     which implements all the shared logic.
     Users will typically only interact with subclasses of this class.
 
-    .. py:attribute:: inv
+    .. py:attribute:: _fwd
 
-        The inverse bidict.
+        The backing one-way dict for the forward items.
+
+    .. py:attribute:: _inv
+
+        The backing one-way dict for inverse items.
+
+    .. py:attribute:: _fwd_class
+
+        The Mapping type used for the backing _fwd dict.
+
+    .. py:attribute:: _inv_class
+
+        The Mapping type used for the backing _inv dict.
+
+    .. py:attribute:: _isinv
+
+        :class:`bool` representing whether this bidict is the inverse of some
+        other bidict which has already been created. If True, the meaning of
+        :attr:`_fwd_class` and :attr:`_inv_class` is swapped. This enables
+        the inverse of a bidict specifying a different :attr:`_fwd_class` and
+        :attr:`_inv_class` to be passed back into its constructor such that
+        the resulting copy has its :attr:`_fwd_class` and :attr:`_inv_class`
+        set correctly.
+
+    .. py:attribute:: _on_dup_key
+
+        :class:`DuplicationBehavior` in the event of a key duplication.
+
+    .. py:attribute:: _on_dup_val
+
+        :class:`DuplicationBehavior` in the event of a value duplication.
+
+    .. py:attribute:: _on_dup_kv
+
+        :class:`DuplicationBehavior` in the event of key and value duplication.
 
     """
 
     _on_dup_key = OVERWRITE
     _on_dup_val = RAISE
     _on_dup_kv = RAISE
+    _fwd_class = dict
+    _inv_class = dict
 
     def __init__(self, *args, **kw):
-        """Like ``dict.__init__()``, but maintaining bidirectionality."""
-        self._fwd = {}  # dictionary of forward mappings
-        self._inv = {}  # dictionary of inverse mappings
+        """Like dict's ``__init__``."""
+        self._isinv = getattr(args[0], '_isinv', False) if args else False
+        self._fwd = self._inv_class() if self._isinv else self._fwd_class()
+        self._inv = self._fwd_class() if self._isinv else self._inv_class()
         self._init_inv()
         if args or kw:
             self._update(True, self._on_dup_key, self._on_dup_val, self._on_dup_kv, *args, **kw)
 
     def _init_inv(self):
         inv = object.__new__(self.__class__)
+        inv._isinv = not self._isinv
+        inv._fwd_class = self._inv_class
+        inv._inv_class = self._fwd_class
         inv._fwd = self._inv
         inv._inv = self._fwd
-        inv.inv = self
-        self.inv = inv
+        inv.__inv = self
+        self.__inv = inv
+
+    @property
+    def inv(self):
+        """The inverse bidict."""
+        return self.__inv
 
     def __repr__(self):
-        return '%s(%r)' % (self.__class__.__name__, self._fwd)
+        s = self.__class__.__name__ + '('
+        if not self:
+            return s + ')'
+        # If we have a truthy __reversed__ attribute, use an ordered repr.
+        # (Python doesn't provide an Ordered or OrderedMapping ABC, else we'd
+        # use that. Must use getattr rather than hasattr since __reversed__
+        # may be set to None, which signifies non-ordered/-reversible.)
+        if getattr(self, '__reversed__', None):
+            return s + '[' + ', '.join(repr(i) for i in iteritems(self)) + '])'
+        return s + '{' + ', '.join('%r: %r' % i for i in iteritems(self)) + '})'
 
     def __eq__(self, other):
+        # This should be faster than using Mapping.__eq__'s implementation.
         return self._fwd == other
-
-    def __ne__(self, other):
-        return not self == other
-
-    def __inverted__(self):
-        """Get an iterator over the items in :attr:`self.inv <inv>`."""
-        return iteritems(self.inv)
 
     def _pop(self, key):
         val = self._fwd.pop(key)
@@ -236,21 +323,27 @@ class BidirectionalMapping(Mapping):
 
     def copy(self):
         """Like :py:meth:`dict.copy`."""
+        # This should be faster than ``return self.__class__(self)`` because
+        # it avoids the unnecessary duplicate checking.
         copy = object.__new__(self.__class__)
+        copy._isinv = self._isinv
         copy._fwd = self._fwd.copy()
         copy._inv = self._inv.copy()
         cinv = object.__new__(self.__class__)
+        cinv._isinv = not self._isinv
+        cinv._fwd_class = self._inv_class
+        cinv._inv_class = self._fwd_class
         cinv._fwd = copy._inv
         cinv._inv = copy._fwd
-        cinv.inv = copy
-        copy.inv = cinv
+        cinv.__inv = copy
+        copy.__inv = cinv
         return copy
 
     __copy__ = copy
     __len__ = _proxied('__len__')
     __iter__ = _proxied('__iter__')
     __getitem__ = _proxied('__getitem__')
-    values = _proxied('keys', ivarname='inv')
+    values = _proxied('keys', attrname='inv')
     values.__doc__ = \
         "B.values() -> a set-like object providing a view on B's values.\n\n" \
         'Note that because values of a BidirectionalMapping are also keys\n' \
@@ -258,12 +351,15 @@ class BidirectionalMapping(Mapping):
         '*ValuesView* object, conferring set-like benefits.'
     if PY2:  # pragma: no cover
         viewkeys = _proxied('viewkeys')
-        viewitems = _proxied('viewitems')
-        itervalues = _proxied('iterkeys', ivarname='inv',
-                              doc=dict.itervalues.__doc__)
-        viewvalues = _proxied('viewkeys', ivarname='inv',
+
+        viewvalues = _proxied('viewkeys', attrname='inv',
                               doc=values.__doc__.replace('values()', 'viewvalues()'))
-        values.__doc__ = 'Like ``dict.values()``.'
+        values.__doc__ = "Like dict's ``values``."
+
+        # Use ItemsView here rather than proxying to _fwd.viewitems() so that
+        # OrderedBidictBase (whose _fwd's values are nodes, not bare values)
+        # can use it.
+        viewitems = lambda self: ItemsView(self)
 
 
 class BidictException(Exception):

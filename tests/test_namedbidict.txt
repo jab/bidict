@@ -14,8 +14,8 @@ Test script for :func:`bidict.namedbidict`::
 
 Pickling works::
 
-    >>> import pickle
-    >>> pickle.dumps(noble_gases) is not 'a PicklingError'
+    >>> from pickle import dumps, loads
+    >>> loads(dumps(noble_gases)) == noble_gases
     True
 
 Invalid names are rejected::

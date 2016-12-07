@@ -1,11 +1,9 @@
 """Implements :class:`bidict.orderedbidict` and friends."""
 
 from ._bidict import bidict
-from ._common import BidirectionalMapping, _marker, _missing
-from ._frozen import frozenbidict
-from ._loose import loosebidict
-from .compat import PY2, iteritems, izip
-from collections import ItemsView, Mapping, OrderedDict
+from ._common import BidictBase, _marker, _missing
+from .compat import iteritems, izip
+from collections import Mapping
 
 
 _PRV = 1
@@ -13,7 +11,7 @@ _NXT = 2
 _END = _marker('END')
 
 
-def _make_iter(reverse=False, name='__iter__', doctmpl='Like :meth:`collections.OrderedDict.%s`.'):
+def _make_iter(reverse=False, name='__iter__', doc=None):
     def _iter(self):
         fwd = self._fwd
         end = self._end
@@ -25,19 +23,19 @@ def _make_iter(reverse=False, name='__iter__', doctmpl='Like :meth:`collections.
             yield korv if node is cur else d[korv]
             cur = prv if reverse else nxt
     _iter.__name__ = name
-    _iter.__doc__ = (doctmpl % name) if '%s' in doctmpl else ''
+    _iter.__doc__ = doc or "Like OrderedDict's ``%s``." % name
     return _iter
 
 
-class OrderedBidirectionalMapping(BidirectionalMapping):
-    """Base class for ordered bidirectional map types."""
+class OrderedBidictBase(BidictBase):
+    """Base class for :class:`orderedbidict` and :class:`frozenorderedbidict`."""
 
-    def __init__(self, *args, **kw):
-        """Base impl. You probably want :func:`orderedbidict.__init__` instead."""
+    def __init__(self, *args, **kw):  # noqa: D102
+        self._isinv = getattr(args[0], '_isinv', False) if args else False
         self._end = []  # circular doubly-linked list of [{key: val, val: key}, prv, nxt] nodes
         self._init_end()
-        self._fwd = {}  # key -> node
-        self._inv = {}  # val -> node
+        self._fwd = {}  # key -> node. _fwd_class ignored.
+        self._inv = {}  # val -> node. _inv_class ignored.
         self._init_inv()
         if args or kw:
             self._update(True, self._on_dup_key, self._on_dup_val, self._on_dup_kv, *args, **kw)
@@ -47,17 +45,18 @@ class OrderedBidirectionalMapping(BidirectionalMapping):
         end += [_END, end, end]  # sentinel node for doubly linked list
 
     def _init_inv(self):
-        super(OrderedBidirectionalMapping, self)._init_inv()
+        super(OrderedBidictBase, self)._init_inv()
         self.inv._end = self._end
 
+    # Must override BidictBase.copy since we have different internal structure.
     def copy(self):
-        """Like :py:meth:`dict.copy`."""
+        """Like :attr:`BidictBase.copy <bidict.BidictBase.copy>`."""
         return self.__class__(self)
 
     __copy__ = copy
 
     def _clear(self):
-        super(OrderedBidirectionalMapping, self)._clear()
+        super(OrderedBidictBase, self)._clear()
         del self._end[:]
         self._init_end()
 
@@ -169,28 +168,29 @@ class OrderedBidirectionalMapping(BidirectionalMapping):
             fwd[oldkey] = nodeinv
             assert inv[val] is nodeinv
 
+    __iter__ = _make_iter()
+    __reversed__ = _make_iter(reverse=True, name='__reversed__')
+
     def __eq__(self, other):
-        if not isinstance(other, Mapping) or len(self) != len(other):
+        if not isinstance(other, Mapping):
+            return NotImplemented
+        if len(self) != len(other):
             return False
-        if isinstance(other, (OrderedBidirectionalMapping, OrderedDict)):
+        if self._should_compare_order_sensitive(other):
             return all(i == j for (i, j) in izip(iteritems(self), iteritems(other)))
         return all(self.get(k, _missing) == v for (k, v) in iteritems(other))
 
-    def __repr__(self):
-        inner = ', '.join('(%r, %r)' % (k, v) for (k, v) in iteritems(self))
-        inner = '[%s]' % inner if inner else ''
-        return '%s(%s)' % (self.__class__.__name__, inner)
+    def _should_compare_order_sensitive(self, mapping):
+        """Whether we should compare order-sensitively to ``mapping``.
 
-    __iter__ = _make_iter()
-    __reversed__ = _make_iter(reverse=True, name='__reversed__')
-    if PY2:  # pragma: no cover
-        def viewitems(self):
-            """Like :meth:`collections.OrderedDict.viewitems`."""
-            return ItemsView(self)
+        Returns True iff ``isinstance(mapping, OrderedBidictBase)``.
+        Override this in a subclass to customize this behavior.
+        """
+        return isinstance(mapping, OrderedBidictBase)
 
 
-class orderedbidict(OrderedBidirectionalMapping, bidict):
-    """Mutable, ordered bidict type."""
+class orderedbidict(OrderedBidictBase, bidict):
+    """Mutable bidict type that maintains items in insertion order."""
 
     def popitem(self, last=True):
         """Like :meth:`collections.OrderedDict.popitem`."""
@@ -217,11 +217,3 @@ class orderedbidict(OrderedBidirectionalMapping, bidict):
             node[_PRV] = end
             node[_NXT] = fst
             end[_NXT] = fst[_PRV] = node
-
-
-class frozenorderedbidict(OrderedBidirectionalMapping, frozenbidict):
-    """Immutable, hashable :class:`bidict.OrderedBidirectionalMapping` type."""
-
-
-class looseorderedbidict(orderedbidict, loosebidict):
-    """Mutable, ordered bidict with *OVERWRITE* duplication behaviors by default."""
