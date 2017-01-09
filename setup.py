@@ -18,16 +18,18 @@ except Exception as e:
          '(%r): %r' % (long_description, e))
 
 tests_require = [
-    'coverage==4.2',
+    'coverage==4.3.1',
     'flake8==3.2.1',
-    'hypothesis==3.6.0',
+    'hypothesis==3.6.1',
     'hypothesis-pytest==0.19.0',
     'py==1.4.31',
     'pydocstyle==1.1.1',
     'pytest==3.0.5',
     'pytest-benchmark==3.1.0a1',
     'pytest-cov==2.4.0',
-    'Sphinx==1.5.0',
+    'Sphinx==1.5.1',
+    'sortedcollections==0.4.2',
+    'sortedcontainers==1.5.5',
 ]
 
 setup(
@@ -53,6 +55,7 @@ setup(
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: Implementation :: CPython',
         'Programming Language :: Python :: Implementation :: PyPy',
         'Topic :: Scientific/Engineering :: Mathematics',
@@ -61,6 +64,6 @@ setup(
     tests_require=tests_require,
     extras_require=dict(
         test=tests_require,
-        dev=tests_require + ['pre-commit==0.9.4', 'tox==2.3.2'],
+        dev=tests_require + ['pre-commit==0.10.1', 'tox==2.3.2'],
     ),
 )

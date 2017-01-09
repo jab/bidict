@@ -1,11 +1,15 @@
 # -*- coding: utf-8 -*-
 
 u"""
-Python 2/3 compatibility helpers.
+Compatibility helpers.
 
     .. py:attribute:: PY2
 
         True iff running on Python 2.
+
+    .. py:attribute:: PYPY
+
+        True iff running on PyPy.
 
     .. py:attribute:: viewkeys
 
@@ -35,19 +39,16 @@ Python 2/3 compatibility helpers.
 
         Alias for :func:`zip` on Python 3 / ``itertools.izip`` on Python 2.
 
-    .. py:attribute:: izip_longest
-
-        Alias for :func:`itertools.zip_longest` on Python 3 /
-        ``itertools.izip_longest`` on Python 2.
-
 """
 
 from operator import methodcaller
+from platform import python_implementation
 from sys import version_info
 
 _compose = lambda f, g: lambda x: f(g(x))
 
 PY2 = version_info[0] == 2
+PYPY = python_implementation() == 'PyPy'
 
 if PY2:  # pragma: no cover
     assert version_info[1] > 6, 'Python >= 2.7 required'
@@ -57,15 +58,12 @@ if PY2:  # pragma: no cover
     iterkeys = methodcaller('iterkeys')
     itervalues = methodcaller('itervalues')
     iteritems = methodcaller('iteritems')
-    from itertools import ifilter, imap, izip, izip_longest
-else:  # pragma: no cover
+    from itertools import izip
+else:
     viewkeys = methodcaller('keys')
     viewvalues = methodcaller('values')
     viewitems = methodcaller('items')
     iterkeys = _compose(iter, viewkeys)
     itervalues = _compose(iter, viewvalues)
     iteritems = _compose(iter, viewitems)
-    ifilter = filter
-    imap = map
     izip = zip
-    from itertools import zip_longest as izip_longest  # noqa

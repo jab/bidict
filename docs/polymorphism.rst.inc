@@ -24,9 +24,9 @@ by using duck typing rather than :func:`isinstance`::
 
     >>> # LBYL-style:
     >>> if hasattr(foo, '__setitem__'):  # doctest: +SKIP
-    ...     foo[0] = 1
+    ...     foo['bar'] = 'baz'
     >>> # EAFP-style:
     >>> try:  # doctest: +SKIP
-    ...     bar[0] = 1
+    ...     foo['bar'] = 'baz'
     ... except TypeError:
     ...     # plan B

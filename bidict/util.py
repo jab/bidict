@@ -7,7 +7,7 @@ from itertools import chain
 
 def pairs(*args, **kw):
     """
-    Yield the (k, v) pairs provided, as they'd be processed if passed to *dict*.
+    Yield the (k, v) pairs provided, as they'd be processed if passed to :class:`dict`.
 
     If a positional argument is provided,
     its pairs are yielded before those of any keyword arguments.

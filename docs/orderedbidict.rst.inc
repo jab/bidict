@@ -1,5 +1,5 @@
-``orderedbidict``
------------------
+:class:`orderedbidict <bidict.orderedbidict>`
+---------------------------------------------
 
 For those times when your one-to-one mapping must also support
 remembering the order in which items were inserted
@@ -31,36 +31,24 @@ The additional methods of :class:`collections.OrderedDict` are supported too::
     >>> element_by_symbol['H'] = 'hydrogen'
     >>> element_by_symbol
     orderedbidict([('He', 'helium'), ('Li', 'lithium'), ('H', 'hydrogen')])
-    >>> element_by_symbol.move_to_end('Li')  # works on Python < 3.2 too!
+    >>> element_by_symbol.move_to_end('Li')  # works on Python < 3.2 too
     >>> element_by_symbol
     orderedbidict([('He', 'helium'), ('H', 'hydrogen'), ('Li', 'lithium')])
     >>> element_by_symbol.move_to_end('H', last=False)
     >>> element_by_symbol
     orderedbidict([('H', 'hydrogen'), ('He', 'helium'), ('Li', 'lithium')])
 
-As with :class:`collections.OrderedDict`,
-equality tests between ordered bidicts are order-sensitive.
-Equality tests between ordered bidicts and order-insensitive
-:class:`collections.abc.Mapping` objects
-are order-insensitive.
+As with :class:`OrderedDict <collections.OrderedDict>`,
+updating an existing item preserves its position in the order,
+while deleting an item and re-adding it moves it to the end::
 
-    >>> ob1 = orderedbidict([('one', 1), ('two', 2)])
-    >>> ob2 = orderedbidict([('two', 2), ('one', 1)])
-    >>> ob1 == ob2
-    False
-    >>> ob1 == dict(ob2)
-    True
-
-And also as with :class:`collections.OrderedDict`,
-updating an existing item preserves its position in the order
-(whether changing its key or value)::
-
-    >>> ob1['one'] = 3
-    >>> ob1  # order preserved when setting existing key to new value
-    orderedbidict([('one', 3), ('two', 2)])
-    >>> ob1.forceput('three', 3)
-    >>> ob1  # order preserved when setting existing value to new key too
-    orderedbidict([('three', 3), ('two', 2)])
+    >>> element_by_symbol['He'] = 'HELIUM'
+    >>> element_by_symbol
+    orderedbidict([('H', 'hydrogen'), ('He', 'HELIUM'), ('Li', 'lithium')])
+    >>> del element_by_symbol['H']
+    >>> element_by_symbol['H'] = 'hydrogen'
+    >>> element_by_symbol
+    orderedbidict([('He', 'HELIUM'), ('Li', 'lithium'), ('H', 'hydrogen')])
 
 When setting an item whose key duplicates that of an existing item
 and whose value duplicates that of a different existing item,
@@ -77,6 +65,46 @@ will have its value overwritten in place::
     >>> o
     orderedbidict([(3, 4), (5, 2), (7, 8)])
 
+Equality tests between two ordered bidicts are *order-sensitive*.
+Equality tests between an ordered bidict and an instance of some *other*
+:class:`Mapping <collections.abc.Mapping>` type
+(*including even* :class:`OrderedDict <collections.OrderedDict>`)
+are *order-insensitive*.
+
+    >>> o1 = orderedbidict([('one', 1), ('two', 2)])
+    >>> o2 = orderedbidict([('two', 2), ('one', 1)])
+    >>> o1 == o2
+    False
+    >>> o1 == dict(o2)
+    True
+    >>> from collections import OrderedDict
+    >>> o1 == OrderedDict(o2)
+    True
+
+To customize this behavior, you can override
+:attr:`_should_compare_order_sensitive
+<bidict.OrderedBidictBase._should_compare_order_sensitive>`
+in a subclass::
+
+    >>> class MyOrderedBidict(orderedbidict):
+    ...    def _should_compare_order_sensitive(self, mapping):
+    ...        # Can return False to never do order-sensitive comparison. Or
+    ...        # can return isinstance(mapping, (orderedbidict, OrderedDict)).
+    ...        # To make order-sensitive only if mapping is reversible:
+    ...        return bool(getattr(mapping, '__reversed__', None))
+
+    >>> m = MyOrderedBidict(o1)
+    >>> m == OrderedDict(o2)  # OrderedDict is reversible -> order-sensitive
+    False
+    >>> m == dict(o2) if CPYTHON else m != dict(o2)  # doctest: +SKIP
+    True
+
+Note that with the custom ``_should_compare_order_sensitive`` implementation above,
+*comparing with a dict would be order-sensitive in PyPy but not in CPython*,
+because on PyPy dicts implement `__reversed__` (!),
+whereas on CPython they do not.
+Watch out for that if you ever want to do something like this,
+and expect consistency between CPython and PyPy.
 
 :class:`orderedbidict <bidict.orderedbidict>` also comes in
 :class:`loose <bidict.looseorderedbidict>` and

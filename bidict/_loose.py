@@ -2,6 +2,7 @@
 
 from ._common import OVERWRITE
 from ._bidict import bidict
+from ._ordered import orderedbidict
 
 
 class loosebidict(bidict):
@@ -9,3 +10,7 @@ class loosebidict(bidict):
 
     _on_dup_val = OVERWRITE
     _on_dup_kv = OVERWRITE
+
+
+class looseorderedbidict(orderedbidict, loosebidict):
+    """Mutable orderedbidict with *OVERWRITE* duplication behaviors by default."""

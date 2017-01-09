@@ -6,9 +6,97 @@ Changelog
 Release Notifications
 ---------------------
 
+.. image:: https://img.shields.io/badge/VersionEye-follow-brightgreen.svg
+    :target: https://www.versioneye.com/python/bidict
+    :alt: Follow on VersionEye
+
 `Follow bidict on VersionEye <https://www.versioneye.com/python/bidict>`_
 to automatically be notified via email
 when a new version of bidict is released.
+
+0.13.0 (not yet released)
+-------------------------
+
+- Support Python 3.6.
+
+  (Earlier versions of bidict should work fine on 3.6, but it is officially
+  supported starting in this version.)
+
+- :class:`BidirectionalMapping <bidict.BidirectionalMapping>`
+  has been refactored into an abstract base class,
+  following the way :class:`collections.abc.Mapping` works.
+  The concrete method implementations it used to provide have been moved
+  into a new :class:`BidictBase <bidict.BidictBase>` subclass.
+
+  :class:`BidirectionalMapping <bidict.BidirectionalMapping>`
+  now also implements
+  :attr:`__subclasshook__ <bidict.BidirectionalMapping.__subclasshook__>`,
+  so any class that provides a conforming set of attributes
+  (enumerated in :attr:`_subclsattrs <bidict.BidirectionalMapping._subclsattrs>`)
+  will be considered a
+  :class:`BidirectionalMapping <bidict.BidirectionalMapping>`
+  subclass automatically.
+
+- ``OrderedBidirectionalMapping`` has been renamed to
+  :class:`OrderedBidictBase <bidict.OrderedBidictBase>`,
+  to better reflect its function.
+  (It is not an ABC.)
+
+- A new
+  :class:`FrozenBidictBase <bidict.FrozenBidictBase>` class
+  has been factored out of
+  :class:`frozenbidict <bidict.frozenbidict>` and
+  :class:`frozenorderedbidict <bidict.frozenorderedbidict>`.
+  This implements common behavior such as caching the result of
+  :attr:`__hash__ <bidict.FrozenBidictBase.__hash__>`
+  after the first call.
+
+- The hash implementations of
+  :class:`frozenbidict <bidict.frozenbidict>` and
+  :class:`frozenorderedbidict <bidict.frozenorderedbidict>`.
+  have been reworked to improve performance and flexibility:
+
+  :attr:`frozenorderedbidict's hash implementation
+  <bidict.frozenorderedbidict._compute_hash>` is now order-sensitive.
+  Since ``frozenorderedbidict([(k1, v1), (k2, v2)])`` does not equal
+  ``frozenorderedbidict([(k2, v2), (k1, v1)])``,
+  their hashes shouldn't be equal either. Avoids hash collisions when inserting
+  such objects into the same set or mapping.
+
+  See
+  :attr:`frozenbidict._compute_hash <bidict.frozenbidict._compute_hash>` and
+  :attr:`frozenorderedbidict._compute_hash <bidict.frozenorderedbidict._compute_hash>`
+  for more documentation of the changes,
+  including the new
+  :attr:`frozenbidict._USE_ITEMSVIEW_HASH
+  <bidict.frozenbidict._USE_ITEMSVIEW_HASH>` and
+  :attr:`frozenorderedbidict._HASH_NITEMS_MAX
+  <bidict.frozenorderedbidict._HASH_NITEMS_MAX>`
+  attributes.
+  If you have an interesting use case that requires overriding these,
+  or suggestions for an alternative implementation,
+  please `share your feedback <https://gitter.im/jab/bidict>`_.
+
+- Add :attr:`_fwd_class <bidict.BidictBase._fwd_class>` and
+  :attr:`_inv_class <bidict.BidictBase._inv_class>` attributes
+  representing the backing :class:`Mapping <collections.abc.Mapping>` types
+  used internally to store the forward and inverse dictionaries, respectively.
+
+  This allows creating custom bidict types with extended functionality
+  simply by overriding these attributes in a subclass.
+
+  See the new :ref:`extending` documentation for examples.
+
+- Pass any parameters passed to :attr:`bidict.popitem <bidict.bidict.popitem>`
+  through to ``_fwd.popitem`` for greater extensibility.
+
+- More concise repr strings for empty bidicts.
+
+  e.g. ``bidict()`` rather than ``bidict({})`` and
+  ``orderedbidict()`` rather than ``orderedbidict([])``.
+
+- Add :attr:`bidict.compat.PYPY` and
+  remove unused ``bidict.compat.izip_longest``.
 
 0.12.0 (2016-07-03)
 -------------------
@@ -77,7 +165,7 @@ when a new version of bidict is released.
   - :func:`bidict.compat.iterkeys`
   - :func:`bidict.compat.itervalues`
   - :func:`bidict.compat.izip`
-  - :func:`bidict.compat.izip_longest`
+  - ``bidict.compat.izip_longest``
 
   to complement the existing
   :func:`iteritems() <bidict.compat.iteritems>` and
@@ -87,9 +175,9 @@ when a new version of bidict is released.
 - More efficient implementations of
   :func:`pairs() <bidict.util.pairs>`,
   :func:`inverted() <bidict.util.inverted>`, and
-  :func:`bidict.copy() <bidict.BidirectionalMapping.copy>`.
+  :func:`bidict.copy() <bidict.BidictBase.copy>`.
 
-- Implement :func:`bidict.__copy__() <bidict.BidirectionalMapping.__copy__>`
+- Implement :func:`bidict.__copy__() <bidict.BidictBase.__copy__>`
   for use with the :mod:`copy` module.
 
 - Fix issue preventing a client class from inheriting from
@@ -182,7 +270,7 @@ Breaking API Changes
 ^^^^^^^^^^^^^^^^^^^^
 
 - Remove ``bidict.__invert__``, and with it, support for the ``~b`` syntax.
-  Use :attr:`b.inv <bidict.BidirectionalMapping.inv>` instead.
+  Use :attr:`b.inv <bidict.BidictBase.inv>` instead.
   `#19 <https://github.com/jab/bidict/issues/19>`_
 
 - Remove support for the slice syntax.
@@ -190,7 +278,7 @@ Breaking API Changes
   `#19 <https://github.com/jab/bidict/issues/19>`_
 
 - Remove ``bidict.invert``.
-  Use :attr:`b.inv <bidict.BidirectionalMapping.inv>`
+  Use :attr:`b.inv <bidict.BidictBase.inv>`
   rather than inverting a bidict in place.
   `#20 <https://github.com/jab/bidict/issues/20>`_
 

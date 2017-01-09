@@ -1,8 +1,51 @@
 Test script for bidict.frozenbidict::
 
-    >>> from bidict import frozenbidict
-    >>> f = frozenbidict(one=1)
-    >>> hash(f) is not 'an error'
+    >>> from bidict import frozenbidict, frozenorderedbidict
+    >>> f1 = frozenbidict(one=1)
+    >>> f2 = frozenorderedbidict([('one', 1), ('two', 2)])
+    >>> f3 = frozenorderedbidict([('two', 2), ('one', 1)])
+    >>> fs = (f1, f2, f3)
+    >>> all(hash(f) is not 'an error' for f in fs)
     True
-    >>> {f: 1}
-    {frozenbidict({'one': 1}): 1}
+
+Cached hash value reused (for the sake of the coverage report)::
+
+    >>> all(hash(f) for f in fs)  # should not have to call _compute_hash() again
+    True
+
+Insertable into sets and dicts::
+
+    >>> dict.fromkeys(fs) and set(fs) is not 'an error'
+    True
+
+Can toggle _USE_ITEMSVIEW_HASH (affects space complexity but should produce the
+same result)::
+
+    >>> frozenbidict._USE_ITEMSVIEW_HASH = not frozenbidict._USE_ITEMSVIEW_HASH
+    >>> hash(f1.copy()) == f1._hashval  # matches value computed + cached on f1 before toggling
+    True
+
+Unlikely that different types of collections comprising the same items hash to
+the same value::
+
+    >>> hash(f1) == hash(frozenset(f1.items()))  # very unlikely
+    False
+    >>> from itertools import chain  # frozenorderedbidict._compute_hash flattens items
+    >>> hash(f2) == hash(tuple(chain.from_iterable(f2.items())))  # very unlikely
+    False
+
+To reduce hash collisions with unequal frozenorderedbidicts with the same items,
+frozenorderedbidict.__hash__ is order-sensitive::
+
+    >>> f1 != f2
+    True
+    >>> hash(f1) == hash(f2)  # very unlikely
+    False
+
+Can customize frozenorderedbidict._compute_hash to limit the number of items
+considered::
+
+    >>> frozenorderedbidict._HASH_NITEMS_MAX = 1
+    >>> hash(frozenorderedbidict([(1, 1), (2, 2)])) == \
+    ... hash(frozenorderedbidict([(1, 1), (3, 3)]))  # second items ignored
+    True

@@ -27,7 +27,7 @@ Terminology
   but technically values are also keys themselves.
 
   Concretely, this allows bidict to return a set-like (*dict_keys*) object
-  for :func:`bidict.values <bidict.BidirectionalMapping.values>` (Python 3) /
+  for :func:`bidict.values <bidict.BidictBase.values>` (Python 3) /
   ``bidict.viewvalues()``
   (Python 2.7), rather than a non-set-like *dict_values* object.
 
@@ -99,7 +99,7 @@ Caveats
 
 .. include:: caveat-inv-reference-cycle.rst.inc
 
-.. include:: caveat-different-values-same-hash.rst.inc
+.. include:: caveat-equivalence-vs-identity.rst.inc
 
 .. include:: caveat-nan-as-key.rst.inc
 

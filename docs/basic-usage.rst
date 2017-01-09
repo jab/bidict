@@ -29,7 +29,7 @@ is also supported::
     >>> element_by_symbol.pop('He')
     'helium'
     >>> element_by_symbol
-    bidict({})
+    bidict()
     >>> element_by_symbol.update(Hg='mercury')
     >>> element_by_symbol
     bidict({'Hg': 'mercury'})
