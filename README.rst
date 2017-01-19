@@ -71,7 +71,7 @@ Installation
 Usage Documentation
 -------------------
 
-For usage documentation, please start at the :ref:`intro`
+For usage documentation, please start at the :doc:`intro`
 and proceed from there. *Problems with that link? Note the following:*
 
 If you're reading this on GitHub, PyPI, in your code editor,
@@ -95,7 +95,7 @@ Contributing
 
 Contributions are gratefully received!
 For information about contributing,
-please see the :ref:`contributors-guide`.
+please see the :doc:`contributors-guide`.
 If that link does not work, see ``CONTRIBUTING.rst`` or
 `<https://bidict.readthedocs.io/contributors-guide.html>`_.
 
@@ -108,6 +108,6 @@ Changelog
 ---------
 
 For a history of notable changes to bidict,
-check out the :ref:`changelog`.
+check out the :doc:`changelog`.
 If that link does not work, see ``CHANGELOG.rst`` or
 `<https://bidict.readthedocs.io/changelog.html>`_.
