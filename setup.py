@@ -18,7 +18,7 @@ except Exception as e:
          '(%r): %r' % (long_description, e))
 
 tests_require = [
-    'coverage==4.3.1',
+    'coverage==4.3.4',
     'flake8==3.2.1',
     'hypothesis==3.6.1',
     'hypothesis-pytest==0.19.0',
@@ -48,7 +48,7 @@ setup(
     classifiers=[
         'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
-        'License :: OSI Approved :: ISC License',
+        'License :: OSI Approved :: ISC License (ISCL)',  # https://github.com/jab/bidict/pull/38#issuecomment-273007773
         'Natural Language :: English',
         'Operating System :: OS Independent',
         'Programming Language :: Python :: 2.7',

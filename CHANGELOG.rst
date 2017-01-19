@@ -14,8 +14,8 @@ Release Notifications
 to automatically be notified via email
 when a new version of bidict is released.
 
-0.13.0 (not yet released)
--------------------------
+0.13.0 (2017-01-19)
+-------------------
 
 - Support Python 3.6.
 
