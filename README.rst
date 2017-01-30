@@ -85,7 +85,7 @@ and by default you will be taken to the version built from the master branch.
 You can choose different versions from the pop-up menu in the lower-right.*
 
 If you have the `bidict source code <https://github.com/jab/bidict>`_  handy,
-you can also browse the docs insde the ``docs`` directory,
+you can also browse the docs inside the ``docs`` directory,
 and build them yourself by running ``make html`` from within that directory
 (requires `Sphinx <https://pypi.python.org/pypi/Sphinx>`_).
 
