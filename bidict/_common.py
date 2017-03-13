@@ -43,7 +43,11 @@ class BidirectionalMapping(Mapping):
         Causes conforming classes to be virtual subclasses automatically.
         """
         if cls is BidirectionalMapping:
-            mro = C.__mro__
+            try:
+                mro = C.__mro__
+            except AttributeError:
+                # Old-style classes in Python 2.7 do not have the __mro__ attribute!
+                return False
             return all(any(B.__dict__.get(i) for B in mro) for i in cls._subclsattrs)
         return NotImplemented
 
