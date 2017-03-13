@@ -15,6 +15,15 @@ class DumbBidirectionalMapping(dict):
         return DumbBidirectionalMapping(self.__inverted__())
 
 
+class OldstyleClass():
+    """
+    Old-style class (not derived from object).
+    This used to crash due to missing __mro__ attribute that is not present
+    in oldstyle classes.
+    """
+
+
 def test_subclasshook():
     assert issubclass(DumbBidirectionalMapping, BidirectionalMapping)
     assert not issubclass(dict, BidirectionalMapping)
+    assert not issubclass(OldstyleClass, BidirectionalMapping)
