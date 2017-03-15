@@ -5,8 +5,8 @@ Efficient, Pythonic bidirectional map implementation and related functionality.
 
 See https://bidict.readthedocs.io for comprehensive documentation.
 
-.. :copyright: (c) 2016 Joshua Bronson.
-.. :license: ISCL. See LICENSE for details.
+.. :copyright: (c) 2017 Joshua Bronson.
+.. :license: MPLv2. See LICENSE for details.
 
 """
 

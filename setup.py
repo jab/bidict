@@ -41,14 +41,14 @@ setup(
     long_description=long_description,
     keywords='dict, dictionary, mapping, bidirectional, bijection, bijective, injective, two-way, 2-way, double, inverse, reverse',
     url='https://github.com/jab/bidict',
-    license='ISC',
+    license='Mozilla PL',
     packages=['bidict'],
     package_data=dict(bidict=['VERSION']),
     zip_safe=True,
     classifiers=[
         'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
-        'License :: OSI Approved :: ISC License (ISCL)',  # https://github.com/jab/bidict/pull/38#issuecomment-273007773
+        'License :: OSI Approved :: Mozilla Public License 2.0 (MPL 2.0)',
         'Natural Language :: English',
         'Operating System :: OS Independent',
         'Programming Language :: Python :: 2.7',
