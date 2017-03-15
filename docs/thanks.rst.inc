@@ -21,3 +21,5 @@
 - Thanks to David Turner for the generous code review.
 
 - Thanks to Michael Arntzenius for the valuable design discussion and feedback.
+
+- Thanks to Jozef Knaperek for the bugfix.

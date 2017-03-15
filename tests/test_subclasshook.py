@@ -3,6 +3,7 @@ Test that if foreign code provides a class that conforms to
 BidirectionalMapping's interface, it is automatically a subclass.
 """
 from bidict import BidirectionalMapping
+from bidict.compat import PY2
 
 
 class DumbBidirectionalMapping(dict):
@@ -15,15 +16,13 @@ class DumbBidirectionalMapping(dict):
         return DumbBidirectionalMapping(self.__inverted__())
 
 
-class OldstyleClass():
-    """
-    Old-style class (not derived from object).
-    This used to crash due to missing __mro__ attribute that is not present
-    in oldstyle classes.
-    """
+if PY2:
+    class OldStyleClass:
+        """Old-style class (not derived from object)."""
 
 
 def test_subclasshook():
     assert issubclass(DumbBidirectionalMapping, BidirectionalMapping)
     assert not issubclass(dict, BidirectionalMapping)
-    assert not issubclass(OldstyleClass, BidirectionalMapping)
+    if PY2:  # Make sure this works with old-style classes as expected.
+        assert not issubclass(OldStyleClass, BidirectionalMapping)

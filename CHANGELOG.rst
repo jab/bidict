@@ -17,7 +17,14 @@ when a new version of bidict is released.
 0.13.1.dev0 (not yet released)
 ------------------------------
 
-- Nothing yet.
+- Fix regression introduced by the new
+  :attr:`__subclasshook__ <bidict.BidirectionalMapping.__subclasshook__>`
+  functionality in 0.13.0 so that
+  ``issubclass(OldStyleClass, BidirectionalMapping)`` once again
+  works with old-style classes,
+  returning ``False`` rather than raising :class:`AttributeError`
+  (`thanks, @knaperek <https://github.com/jab/bidict/pull/41>`_!).
+
 
 0.13.0 (2017-01-19)
 -------------------
