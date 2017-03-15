@@ -24,7 +24,7 @@ tests_require = [
     'hypothesis-pytest==0.19.0',
     'py==1.4.31',
     'pydocstyle==1.1.1',
-    'pytest==3.0.6',
+    'pytest==3.0.7',
     'pytest-benchmark==3.1.0a1',
     'pytest-cov==2.4.0',
     'Sphinx==1.5.3',
