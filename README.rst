@@ -54,6 +54,9 @@ Status
     :alt: Chat
 
 The bidict codebase is mature, well-tested, and well-reviewed.
+It is in use by several teams at Google, Bank of America Merill Lynch,
+and other developers all over the world.
+
 If you have a question or find an issue,
 please don't hesitate to
 `ask in the chat room <https://gitter.im/jab/bidict>`_,

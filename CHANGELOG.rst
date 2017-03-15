@@ -14,8 +14,9 @@ Release Notifications
 to automatically be notified via email
 when a new version of bidict is released.
 
-0.13.1.dev0 (not yet released)
-------------------------------
+
+0.13.1 (2017-03-15)
+-------------------
 
 - Fix regression introduced by the new
   :attr:`__subclasshook__ <bidict.BidirectionalMapping.__subclasshook__>`
