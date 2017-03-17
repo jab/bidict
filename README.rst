@@ -20,7 +20,7 @@ Status
     :target: https://pypi.python.org/pypi/bidict
     :alt: Latest release
 
-.. image:: https://img.shields.io/badge/VersionEye-follow-brightgreen.svg
+.. image:: https://img.shields.io/badge/VersionEye-follow-yellow.svg
     :target: https://www.versioneye.com/python/bidict
     :alt: Follow on VersionEye
 
@@ -57,12 +57,16 @@ The bidict codebase is mature, well-tested, and well-reviewed.
 It is in use by several teams at Google, Bank of America Merill Lynch,
 and other developers all over the world.
 
-If you have a question or find an issue,
-please don't hesitate to
-`ask in the chat room <https://gitter.im/jab/bidict>`_,
-`file an issue <https://github.com/jab/bidict/issues/new>`_,
-or submit a pull request
-(but first see the contributing_ section below).
+If you are thinking of using bidict in your work,
+or if you have any questions, comments, or suggested improvements,
+`please let me know <https://gitter.im/jab/bidict>`_!
+I'd love to know about and be able to support
+your use case as much as possible.
+
+Please also feel free to
+file an issue or submit a pull request.
+All contributions are gratefully received:)
+(See contributing_ below.)
 
 
 Installation
@@ -75,32 +79,36 @@ Usage Documentation
 -------------------
 
 For usage documentation, please start at the :doc:`intro`
-and proceed from there. *Problems with that link? Note the following:*
+and proceed from there.
 
-If you're reading this on GitHub, PyPI, in your code editor,
-or in some other place that can't render/link the full docs properly,
-you can find the bidict documentation on Read the Docs at:
-
-    `<https://bidict.readthedocs.io>`_
-
-*Note: multiple versions of the documentation are published on Read the Docs,
-and by default you will be taken to the version built from the master branch.
-You can choose different versions from the pop-up menu in the lower-right.*
-
-If you have the `bidict source code <https://github.com/jab/bidict>`_  handy,
-you can also browse the docs inside the ``docs`` directory,
-and build them yourself by running ``make html`` from within that directory
-(requires `Sphinx <https://pypi.python.org/pypi/Sphinx>`_).
+.. NOTE::
+   If you're reading this on GitHub, PyPI, in your code editor,
+   or in some other place that can't render/link the full docs properly,
+   you can find the bidict documentation on Read the Docs at:
+   
+       `<https://bidict.readthedocs.io>`_
+   
+   Also note: multiple versions of the documentation are published on Read the Docs,
+   and by default you will be taken to the version built from the master branch.
+   You can choose different versions from the pop-up menu in the lower-right.
+   
+   If you have the `bidict source code <https://github.com/jab/bidict>`_  handy,
+   you can also browse the docs inside the ``docs`` directory,
+   and build them yourself by running ``make html`` from within that directory
+   (requires `Sphinx <https://pypi.python.org/pypi/Sphinx>`_).
 
 
 Contributing
 ------------
 
-Contributions are gratefully received!
 For information about contributing,
-please see the :doc:`contributors-guide`.
-If that link does not work, see ``CONTRIBUTING.rst`` or
-`<https://bidict.readthedocs.io/contributors-guide.html>`_.
+please see the :doc:`contributors-guide`
+(`<CONTRIBUTING.rst>`_ |
+`<https://bidict.readthedocs.io/contributors-guide.html>`_)
+
+If bidict has helped you accomplish your work,
+especially work you've been paid for,
+please consider supporting bidict's maintenance and development.
 
 .. image:: https://raw.githubusercontent.com/jab/bidict/master/_static/support-on-gumroad.png
     :target: https://gumroad.com/l/bidict
@@ -111,6 +119,6 @@ Changelog
 ---------
 
 For a history of notable changes to bidict,
-check out the :doc:`changelog`.
-If that link does not work, see ``CHANGELOG.rst`` or
-`<https://bidict.readthedocs.io/changelog.html>`_.
+check out the :doc:`changelog`
+(`<CHANGELOG.rst>`_ |
+`<https://bidict.readthedocs.io/changelog.html>`_).

@@ -2,20 +2,20 @@ from io import open
 from setuptools import setup
 from warnings import warn
 
-try:
-    with open('bidict/VERSION', encoding='utf8') as f:
-        version = f.read().strip()
-except Exception as e:
-    version = '0.0.0'
-    warn('Could not open bidict/VERSION, using bogus version (%s): %r' %
-         (version, e))
-try:
-    with open('README.rst', encoding='utf8') as f:
-        long_description = f.read()
-except Exception as e:
-    long_description = 'See https://bidict.readthedocs.org'
-    warn('Could not open README.rst, using provisional long_description '
-         '(%r): %r' % (long_description, e))
+
+def from_file(filename, fallback):
+    try:
+        with open(filename, encoding='utf8') as f:
+            return f.read().strip()
+    except Exception as e:
+        warn('Error opening file %r, using fallback %r: %s' % (filename, fallback, e))
+        return fallback
+
+
+version = from_file('bidict/VERSION', '0.0.0')
+long_description = from_file('README.rst', 'See https://bidict.readthedocs.org').replace(
+    ':doc:', '')  # :doc: breaks long_description rendering on PyPI
+
 
 tests_require = [
     'coverage==4.3.4',
