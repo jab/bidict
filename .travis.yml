@@ -18,15 +18,14 @@ matrix:
     - python: "3.4"
       env:
         # Don't bother testing on 3.4; run the docs build instead.
-        #- PYENV_PYTHON_VER=3.4.5
+        #- PYENV_PYTHON_VER=3.4.6
         - BIDICT_BUILD_DOCS_INSTEAD=1
     - python: "3.5"
       env:
         - PYENV_PYTHON_VER=3.5.3
     - python: "3.6"
       env:
-        # Travis has 3.6.0 installed already -> no need to use pyenv's
-        #- PYENV_PYTHON_VER=3.6.0
+        - PYENV_PYTHON_VER=3.6.1
         # Only generate coverage report on the job for latest Python 3
         - BIDICT_COVERAGE_ENABLE=1
 
@@ -41,8 +40,10 @@ install:
         fi
         "$PYENV" install --skip-existing "$PYENV_PYTHON_VER"
         export PYTHON="$PYENV_ROOT/versions/$PYENV_PYTHON_VER/bin/python"
+        $PYTHON -m ensurepip --upgrade
+        $PYTHON -m pip install --upgrade virtualenv
         export VENV="$HOME/virtualenvs/$PYENV_PYTHON_VER"
-        virtualenv --python="$PYTHON" "$VENV"
+        $PYTHON -m virtualenv --python="$PYTHON" "$VENV"
         source "$VENV/bin/activate"
       fi
   - travis_retry pip install -e .[test]
