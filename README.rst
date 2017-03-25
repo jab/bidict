@@ -85,13 +85,13 @@ and proceed from there.
    If you're reading this on GitHub, PyPI, in your code editor,
    or in some other place that can't render/link the full docs properly,
    you can find the bidict documentation on Read the Docs at:
-   
+
        `<https://bidict.readthedocs.io>`_
-   
+
    Also note: multiple versions of the documentation are published on Read the Docs,
    and by default you will be taken to the version built from the master branch.
    You can choose different versions from the pop-up menu in the lower-right.
-   
+
    If you have the `bidict source code <https://github.com/jab/bidict>`_  handy,
    you can also browse the docs inside the ``docs`` directory,
    and build them yourself by running ``make html`` from within that directory
