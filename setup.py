@@ -25,7 +25,7 @@ tests_require = [
     'py==1.4.31',
     'pydocstyle==1.1.1',
     'pytest==3.0.7',
-    'pytest-benchmark==3.1.0a1',
+    'pytest-benchmark==3.1.0a2',
     'pytest-cov==2.4.0',
     'Sphinx==1.5.3',
     'sortedcollections==0.4.2',
@@ -64,6 +64,6 @@ setup(
     tests_require=tests_require,
     extras_require=dict(
         test=tests_require,
-        dev=tests_require + ['pre-commit==0.13.3', 'tox==2.6.0'],
+        dev=tests_require + ['pre-commit==0.13.6', 'tox==2.6.0'],
     ),
 )
