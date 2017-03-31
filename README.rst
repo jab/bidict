@@ -20,10 +20,6 @@ Status
     :target: https://pypi.python.org/pypi/bidict
     :alt: Latest release
 
-.. image:: https://img.shields.io/badge/VersionEye-follow-yellow.svg
-    :target: https://www.versioneye.com/python/bidict
-    :alt: Follow on VersionEye
-
 .. image:: https://readthedocs.org/projects/bidict/badge/?version=master
     :target: https://bidict.readthedocs.io/en/master/
     :alt: Documentation
@@ -67,6 +63,23 @@ Please also feel free to
 file an issue or submit a pull request.
 All contributions are gratefully received:)
 (See contributing_ below.)
+
+.. copy/paste rather than `include` so this renders on GitHub:
+.. .. include:: release-notifications.rst.inc
+
+Release Notifications
+^^^^^^^^^^^^^^^^^^^^^
+
+.. image:: https://img.shields.io/badge/VersionEye-follow-brightgreen.svg
+    :target: https://www.versioneye.com/python/bidict
+    :alt: Follow on VersionEye
+
+
+Tip: `Follow bidict on VersionEye <https://www.versioneye.com/python/bidict>`_
+to automatically be notified via email
+when a new version of bidict is released.
+
+.. end pasted release-notifications.rst.inc content
 
 
 Installation
