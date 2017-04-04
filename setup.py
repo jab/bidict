@@ -27,7 +27,7 @@ tests_require = [
     'pytest==3.0.7',
     'pytest-benchmark==3.1.0a2',
     'pytest-cov==2.4.0',
-    'Sphinx==1.5.3',
+    'Sphinx==1.5.5',
     'sortedcollections==0.4.2',
     'sortedcontainers==1.5.5',
 ]
