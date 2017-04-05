@@ -18,7 +18,7 @@ long_description = from_file('README.rst', 'See https://bidict.readthedocs.org')
 
 
 tests_require = [
-    'coverage==4.3.4',
+    'coverage==4.4.b1',
     'flake8==3.2.1',
     'hypothesis==3.7.0',
     'hypothesis-pytest==0.19.0',
