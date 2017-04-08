@@ -64,6 +64,6 @@ setup(
     tests_require=tests_require,
     extras_require=dict(
         test=tests_require,
-        dev=tests_require + ['pre-commit==0.13.6', 'tox==2.6.0'],
+        dev=tests_require + ['pre-commit==0.13.6', 'tox==2.7.0'],
     ),
 )
