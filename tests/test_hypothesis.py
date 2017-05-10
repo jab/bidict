@@ -23,7 +23,7 @@ def to_inv_odict(items):
     return OrderedDict((v, k) for (k, v) in items)
 
 
-def prune_dup_vals(items):
+def dedup(items):
     pruned = list(iteritems(to_inv_odict(iteritems(to_inv_odict(items)))))
     assume(len(pruned) >= len(items) // 2)
     return pruned
@@ -40,7 +40,7 @@ mutating_methods_by_arity = {
 }
 immutable = integers()
 itemlists = lists(tuples(immutable, immutable))
-inititems = itemlists.map(prune_dup_vals)
+inititems = itemlists.map(dedup)
 
 
 @pytest.mark.parametrize('B', bidict_types)
