@@ -9,7 +9,7 @@ Changelog
 0.13.2.dev0 (not yet released)
 ------------------------------
 
-- ...
+- Add official support for latest pypy3.
 
 
 0.13.1 (2017-03-15)
