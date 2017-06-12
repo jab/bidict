@@ -11,15 +11,13 @@ matrix:
   include:
     - python: "pypy"
       env:
-        - PYENV_PYTHON_VER=pypy-portable-5.6.0
+        - PYENV_PYTHON_VER=pypy2.7-portable-5.8.0
+    - python: "pypy3"
+      env:
+        - PYENV_PYTHON_VER=pypy3.5-portable-5.8.0
     - python: "2.7"
       env:
         - PYENV_PYTHON_VER=2.7.13
-    - python: "3.4"
-      env:
-        # Don't bother testing on 3.4; run the docs build instead.
-        #- PYENV_PYTHON_VER=3.4.6
-        - BIDICT_BUILD_DOCS_INSTEAD=1
     - python: "3.5"
       env:
         - PYENV_PYTHON_VER=3.5.3
@@ -28,6 +26,9 @@ matrix:
         - PYENV_PYTHON_VER=3.6.1
         # Only generate coverage report on the job for latest Python 3
         - BIDICT_COVERAGE_ENABLE=1
+    - python: "3.6"
+      env:
+        - BIDICT_BUILD_DOCS_INSTEAD=1
 
 install:
   # based on https://github.com/frol/flask-restplus-server-example/blob/018f48e5/.travis.yml
