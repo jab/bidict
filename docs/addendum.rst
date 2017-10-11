@@ -43,7 +43,7 @@ where bidicts could be used for fun and profit
   contains a private ``_levelToName`` dict
   which maps integer levels like *10* to their string names like *DEBUG*.
   If I had a nickel for every time I wanted that exposed in a bidirectional map
-  (and as a public attribute, no less), 
+  (and as a public attribute, no less),
   I bet I could afford some better turns of phrase.
 
 - The :mod:`dis` module

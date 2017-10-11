@@ -238,7 +238,7 @@ Breaking API Changes
 -------------------
 
 - Add
-  :class:`bidict.orderedbidict`, 
+  :class:`bidict.orderedbidict`,
   :class:`bidict.looseorderedbidict`,
   and
   :class:`bidict.frozenorderedbidict`.

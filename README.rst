@@ -1,6 +1,6 @@
 bidict
 ======
- 
+
 Efficient, Pythonic bidirectional map implementation and related functionality.
 
 .. image:: https://raw.githubusercontent.com/jab/bidict/master/_static/logo-256.png
@@ -49,20 +49,32 @@ Status
     :target: https://gitter.im/jab/bidict
     :alt: Chat
 
-The bidict codebase is mature, well-tested, and well-reviewed.
-It is in use by several teams at Google, Bank of America Merill Lynch,
-and other developers all over the world.
+Bidict is the standard bidirectional mapping library for Python.
+
+Bidict is...
+
+- in use by several teams at Google, Bank of America Merrill Lynch,
+  and many others,
+- has carefully designed APIs for
+  safety, ergonomics, performance, and intuitiveness,
+- is CPython-, PyPy-, Python 2-, and Python 3-compatible,
+- has 100% test coverage,
+  including property-based tests and benchmarks,
+- integrates with Python’s collections interfaces and abstract base classes,
+- is thoroughly and attentively documented,
+  and
+- the code is mature, concise, and well-reviewed.
 
 If you are thinking of using bidict in your work,
-or if you have any questions, comments, or suggested improvements,
-`please let me know <https://gitter.im/jab/bidict>`_!
-I'd love to know about and be able to support
-your use case as much as possible.
+or if you have any questions, comments, or suggestions,
+I'd love to know about your use case
+and provide as much support for it as possible.
 
-Please also feel free to
-file an issue or submit a pull request.
-All contributions are gratefully received:)
-(See contributing_ below.)
+Please feel free to leave a message in the
+`chatroom <https://gitter.im/jab/bidict>`_
+or `open an issue <https://github.com/jab/bidict/issues>`_
+after reviewing the :doc:`contributors-guide`. [#fn-contributing]_
+
 
 .. copy/paste rather than `include` so this renders on GitHub:
 .. .. include:: release-notifications.rst.inc
@@ -114,10 +126,9 @@ and proceed from there.
 Contributing
 ------------
 
-For information about contributing,
-please see the :doc:`contributors-guide`
-(`<CONTRIBUTING.rst>`_ |
-`<https://bidict.readthedocs.io/contributors-guide.html>`_)
+Bidict is currently a one-person operation
+maintained on a voluntary basis for the public good.
+Your help would be most welcome.
 
 If bidict has helped you accomplish your work,
 especially work you've been paid for,
@@ -127,11 +138,23 @@ please consider supporting bidict's maintenance and development.
     :target: https://gumroad.com/l/bidict
     :alt: Support bidict
 
+For information about contributing to the code,
+please see the :doc:`contributors-guide`. [#fn-contributing]_
+
 
 Changelog
 ---------
 
 For a history of notable changes to bidict,
-check out the :doc:`changelog`
-(`<CHANGELOG.rst>`_ |
-`<https://bidict.readthedocs.io/changelog.html>`_).
+check out the :doc:`changelog`. [#fn-changelog]_
+
+
+Alternate Links
+---------------
+
+In case you're viewing on GitHub, PyPI,
+or some other place that can't render/link the full docs properly:
+
+.. [#fn-contributing] `<CONTRIBUTING.rst>`_ | `<https://bidict.readthedocs.io/contributors-guide.html>`_
+
+.. [#fn-changelog] `<CHANGELOG.rst>`_ | `<https://bidict.readthedocs.io/changelog.html>`_

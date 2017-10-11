@@ -8,14 +8,13 @@ from bidict import (
     frozenbidict, frozenorderedbidict)
 from bidict.compat import iteritems
 from collections import OrderedDict
-from hypothesis import assume, given, settings
+from hypothesis import assume, given, settings, unlimited
 from hypothesis.strategies import integers, lists, tuples
 from os import getenv
 import pytest
 
 
-# https://groups.google.com/d/msg/hypothesis-users/8FVs--1yUl4/JEkJ02euEwAJ
-settings.register_profile('default', settings(strict=True))
+settings.register_profile('default', settings(max_examples=200, timeout=unlimited))
 settings.load_profile(getenv('HYPOTHESIS_PROFILE', 'default'))
 
 

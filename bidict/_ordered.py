@@ -30,7 +30,7 @@ def _make_iter(reverse=False, name='__iter__', doc=None):
 class OrderedBidictBase(BidictBase):
     """Base class for :class:`orderedbidict` and :class:`frozenorderedbidict`."""
 
-    def __init__(self, *args, **kw):  # noqa: D102
+    def __init__(self, *args, **kw):  # noqa: D107
         self._isinv = getattr(args[0], '_isinv', False) if args else False
         self._end = []  # circular doubly-linked list of [{key: val, val: key}, prv, nxt] nodes
         self._init_end()

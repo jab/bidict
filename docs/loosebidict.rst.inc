@@ -26,7 +26,7 @@ behaviors by default::
     >>> b
     loosebidict({'three': 1})
 
-As with 
+As with
 :class:`bidict.bidict <bidict.bidict>`,
 :func:`loosebidict.put() <bidict.bidict.put>`
 and

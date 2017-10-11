@@ -11,19 +11,19 @@ matrix:
   include:
     - python: "pypy"
       env:
-        - PYENV_PYTHON_VER=pypy2.7-portable-5.8.0
+        - PYENV_PYTHON_VER=pypy2.7-portable-5.9.0
     - python: "pypy3"
       env:
-        - PYENV_PYTHON_VER=pypy3.5-portable-5.8.0
+        - PYENV_PYTHON_VER=pypy3.5-portable-5.9.0
     - python: "2.7"
       env:
-        - PYENV_PYTHON_VER=2.7.13
+        - PYENV_PYTHON_VER=2.7.14
     - python: "3.5"
       env:
         - PYENV_PYTHON_VER=3.5.3
     - python: "3.6"
       env:
-        - PYENV_PYTHON_VER=3.6.1
+        - PYENV_PYTHON_VER=3.6.3
         # Only generate coverage report on the job for latest Python 3
         - BIDICT_COVERAGE_ENABLE=1
     - python: "3.6"
