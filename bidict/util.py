@@ -32,9 +32,9 @@ def pairs(*args, **kw):
 
 
 def _arg0(args):
-    l = len(args)
-    if l != 1:
-        raise TypeError('Expected at most 1 positional argument, got %d' % l)
+    args_len = len(args)
+    if args_len != 1:
+        raise TypeError('Expected at most 1 positional argument, got %d' % args_len)
     return args[0]
 
 

@@ -94,10 +94,10 @@ def test_consistency_after_mutation(arity, methodname, B, init, arg1, arg2, item
     b1 = b0.copy()
     try:
         method(b1, *args)
-    except:
+    except Exception as e:
         # All methods should fail clean.
-        assert b1 == b0
-        assert b1.inv == b0.inv
+        assert b1 == b0, '%r did not fail clean' % e
+        assert b1.inv == b0.inv, '%r did not fail clean' % e
         return
     # Method succeeded -> b1 should pass consistency checks.
     assert b1 == to_inv_odict(iteritems(b1.inv))

@@ -83,9 +83,9 @@ class bidict(BidictBase):
 
     def pop(self, key, *args):
         """Like :py:meth:`dict.pop`."""
-        l = len(args) + 1
-        if l > 2:
-            raise TypeError('pop expected at most 2 arguments, got %d' % l)
+        args_len = len(args) + 1
+        if args_len > 2:
+            raise TypeError('pop expected at most 2 arguments, got %d' % args_len)
         try:
             return self._pop(key)
         except KeyError:
