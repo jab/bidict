@@ -1,11 +1,10 @@
 Release Notifications
 ^^^^^^^^^^^^^^^^^^^^^
 
-.. image:: https://img.shields.io/badge/VersionEye-follow-brightgreen.svg
-    :target: https://www.versioneye.com/python/bidict
-    :alt: Follow on VersionEye
+.. image:: https://img.shields.io/badge/Sibbell-follow-brightgreen.svg
+    :target: https://sibbell.com/github/jab/bidict/releases/
+    :alt: Follow on Sibbell
 
 
-Tip: `Follow bidict on VersionEye <https://www.versioneye.com/python/bidict>`_
-to automatically be notified via email
-when a new version of bidict is released.
+Tip: `Follow bidict on Sibbell <https://sibbell.com/github/jab/bidict/releases/>`_
+to be notified via email when a new version of bidict is released.
