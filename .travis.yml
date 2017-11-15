@@ -1,4 +1,4 @@
-language: python
+language: generic
 
 env:
   global:
@@ -9,30 +9,45 @@ env:
 
 matrix:
   include:
-    - python: "pypy"
-      env:
-        - PYENV_PYTHON_VER=pypy2.7-portable-5.9.0
-    - python: "pypy3"
-      env:
-        - PYENV_PYTHON_VER=pypy3.5-portable-5.9.0
-    - python: "2.7"
-      env:
-        - PYENV_PYTHON_VER=2.7.14
-    - python: "3.5"
-      env:
-        - PYENV_PYTHON_VER=3.5.3
-    - python: "3.6"
-      env:
-        - PYENV_PYTHON_VER=3.6.3
-        # Only generate coverage report on the job for latest Python 3
-        - BIDICT_COVERAGE_ENABLE=1
-    - python: "3.6"
-      env:
-        - BIDICT_BUILD_DOCS_INSTEAD=1
+    # dedicated job to just build the docs
+    - language: python
+      python: "3.6"
+      env: ONLY_BUILD_DOCS=1
+
+    # jobs to test on all supported python versions on Linux
+    - os: linux
+      env: PYENV_PYTHON_VER=2.7.14
+    - os: linux
+      env: PYENV_PYTHON_VER=3.5.3
+    - os: linux
+      env: PYENV_PYTHON_VER=3.6.3 BIDICT_COVERAGE_ENABLE=1  # only generate coverage report for this one job
+    - os: linux
+      env: PYENV_PYTHON_VER=pypy2.7-5.9.0
+    - os: linux
+      env: PYENV_PYTHON_VER=pypy3.5-5.9.0
+
+    # test again on macOS
+    - os: osx
+      env: PYENV_PYTHON_VER=2.7.14
+    - os: osx
+      env: PYENV_PYTHON_VER=3.5.3
+    - os: osx
+      env: PYENV_PYTHON_VER=3.6.3
+    - os: osx
+      env: PYENV_PYTHON_VER=pypy2.7-5.9.0
+    #- os: osx
+    #- env: PYENV_PYTHON_VER=pypy3.5-5.9.0
+
+before_install:
+  - |
+      git --no-pager log -n2
+      echo "TRAVIS_PULL_REQUEST_SHA: $TRAVIS_PULL_REQUEST_SHA"
+      echo "TRAVIS_COMMIT: $TRAVIS_COMMIT"
 
 install:
   # based on https://github.com/frol/flask-restplus-server-example/blob/018f48e5/.travis.yml
   - |
+      set -ex
       if [[ -n "$PYENV_PYTHON_VER" ]]; then
         if [[ -f "$PYENV" ]]; then
           pushd "$PYENV_ROOT" && git pull && popd
@@ -51,7 +66,7 @@ install:
   - test -z "$BIDICT_COVERAGE_ENABLE" || travis_retry pip install coveralls
 
 script:
-  - if [[ -n "$BIDICT_BUILD_DOCS_INSTEAD" ]]; then ./build-docs.sh; else ./test.sh; fi
+  - test -n "$ONLY_BUILD_DOCS" && ./build-docs.sh || ./test.sh
 
 cache:
   directories:

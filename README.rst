@@ -20,7 +20,7 @@ Status
     :target: https://pypi.python.org/pypi/bidict
     :alt: Latest release
 
-.. image:: https://readthedocs.org/projects/bidict/badge/?version=master
+.. image:: https://img.shields.io/readthedocs/bidict/master.svg
     :target: https://bidict.readthedocs.io/en/master/
     :alt: Documentation
 
@@ -36,22 +36,21 @@ Status
 .. .. image:: https://img.shields.io/pypi/pyversions/bidict.svg
 ..     :target: https://pypi.python.org/pypi/bidict
 ..     :alt: Supported Python versions
-
-.. image:: https://img.shields.io/pypi/implementation/bidict.svg
-    :target: https://pypi.python.org/pypi/bidict
-    :alt: Supported Python implementations
+.. 
+.. .. image:: https://img.shields.io/pypi/implementation/bidict.svg
+..     :target: https://pypi.python.org/pypi/bidict
+..     :alt: Supported Python implementations
 
 .. image:: https://img.shields.io/pypi/l/bidict.svg
     :target: https://raw.githubusercontent.com/jab/bidict/master/LICENSE
     :alt: License
 
-.. image:: https://badges.gitter.im/join%20chat.svg
+.. image:: https://img.shields.io/gitter/room/jab/bidict.svg
     :target: https://gitter.im/jab/bidict
     :alt: Chat
 
-Bidict is the standard bidirectional mapping library for Python.
 
-Bidict is...
+Bidict is:
 
 - in use by several teams at Google, Bank of America Merrill Lynch,
   and many others,
@@ -60,6 +59,7 @@ Bidict is...
 - is CPython-, PyPy-, Python 2-, and Python 3-compatible,
 - has 100% test coverage,
   including property-based tests and benchmarks,
+  run continuously on all supported Python versions and OSes,
 - integrates with Python’s collections interfaces and abstract base classes,
 - is thoroughly and attentively documented,
   and
@@ -76,7 +76,14 @@ or `open an issue <https://github.com/jab/bidict/issues>`_
 after reviewing the :doc:`contributors-guide`. [#fn-contributing]_
 
 
-.. copy/paste rather than `include` so this renders on GitHub:
+Changelog
+---------
+
+For a history of notable changes to bidict,
+check out the :doc:`changelog`. [#fn-changelog]_
+
+
+.. copy/paste rather than `include` the following section so it renders on GitHub:
 .. .. include:: release-notifications.rst.inc
 
 Release Notifications
@@ -139,13 +146,6 @@ please consider supporting bidict's maintenance and development.
 
 For information about contributing to the code,
 please see the :doc:`contributors-guide`. [#fn-contributing]_
-
-
-Changelog
----------
-
-For a history of notable changes to bidict,
-check out the :doc:`changelog`. [#fn-changelog]_
 
 
 Alternate Links
