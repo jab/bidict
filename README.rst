@@ -26,7 +26,11 @@ Status
 
 .. image:: https://travis-ci.org/jab/bidict.svg?branch=master
     :target: https://travis-ci.org/jab/bidict
-    :alt: Build status
+    :alt: Travis-CI build status (Linux and macOS)
+
+.. image:: https://ci.appveyor.com/api/projects/status/gk133415udncwto3/branch/master?svg=true
+    :target: https://ci.appveyor.com/project/jab/bidict
+    :alt: AppVeyor build status (Windows)
 
 .. image:: https://coveralls.io/repos/jab/bidict/badge.svg?branch=master
     :target: https://coveralls.io/github/jab/bidict
@@ -36,7 +40,7 @@ Status
 .. .. image:: https://img.shields.io/pypi/pyversions/bidict.svg
 ..     :target: https://pypi.python.org/pypi/bidict
 ..     :alt: Supported Python versions
-.. 
+..
 .. .. image:: https://img.shields.io/pypi/implementation/bidict.svg
 ..     :target: https://pypi.python.org/pypi/bidict
 ..     :alt: Supported Python implementations
@@ -50,25 +54,30 @@ Status
     :alt: Chat
 
 
-Bidict is:
+Bidict:
+^^^^^^^
 
-- in use by several teams at Google, Bank of America Merrill Lynch,
+- is in use by several teams at Google, Bank of America Merrill Lynch,
   and many others,
 - has carefully designed APIs for
   safety, ergonomics, performance, and intuitiveness,
 - is CPython-, PyPy-, Python 2-, and Python 3-compatible,
-- has 100% test coverage,
+- has extensive `test coverage <https://coveralls.io/github/jab/bidict>`_,
   including property-based tests and benchmarks,
-  run continuously on all supported Python versions and OSes,
+  which are run continuously on all supported Python versions and OSes,
 - integrates with Python’s collections interfaces and abstract base classes,
 - is thoroughly and attentively documented,
   and
-- the code is mature, concise, and well-reviewed.
+- is made up of mature, concise, and well-reviewed code.
 
 If you are thinking of using bidict in your work,
 or if you have any questions, comments, or suggestions,
 I'd love to know about your use case
 and provide as much support for it as possible.
+
+If you are already using bidict and
+you or your organization would be considered a significant user,
+please `let me know <mailto:jab@math.brown.edu>`_ you're using it!
 
 Please feel free to leave a message in the
 `chatroom <https://gitter.im/jab/bidict>`_
@@ -83,11 +92,11 @@ For a history of notable changes to bidict,
 check out the :doc:`changelog`. [#fn-changelog]_
 
 
-.. copy/paste rather than `include` the following section so it renders on GitHub:
 .. .. include:: release-notifications.rst.inc
+.. duplicate rather than `include` release-notifications so it renders on GitHub:
 
 Release Notifications
-^^^^^^^^^^^^^^^^^^^^^
+---------------------
 
 .. image:: https://img.shields.io/badge/Sibbell-follow-brightgreen.svg
     :target: https://sibbell.com/github/jab/bidict/releases/
@@ -96,8 +105,6 @@ Release Notifications
 
 Tip: `Follow bidict on Sibbell <https://sibbell.com/github/jab/bidict/releases/>`_
 to be notified via email when a new version of bidict is released.
-
-.. end pasted release-notifications.rst.inc content
 
 
 Installation

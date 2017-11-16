@@ -1,32 +1,32 @@
-Test script for bidict.loosebidict::
+Test script for bidict.LooseBidict::
 
-    >>> from bidict import loosebidict
+    >>> from bidict import LooseBidict
 
 Initializing with different keys mapping to the same value succeeds::
 
-    >>> loosebidict([(1, 1), (2, 1)])
-    loosebidict({2: 1})
+    >>> LooseBidict([(1, 1), (2, 1)])
+    LooseBidict({2: 1})
 
 Adding a new key associated with an existing value succeeds::
 
-    >>> b = loosebidict({1: 1})
+    >>> b = LooseBidict({1: 1})
     >>> b[2] = 1
     >>> b
-    loosebidict({2: 1})
+    LooseBidict({2: 1})
     >>> b.update({3: 1})
     >>> b
-    loosebidict({3: 1})
+    LooseBidict({3: 1})
 
 Using ``update`` with an existing key successfully overwrites::
 
     >>> b.update({3: 2})
     >>> b
-    loosebidict({3: 2})
+    LooseBidict({3: 2})
 
 Subclassing works as expected::
 
-    >>> class myloosebidict(loosebidict): pass
-    >>> b = myloosebidict()
+    >>> class MyLooseBidict(LooseBidict): pass
+    >>> b = MyLooseBidict()
     >>> b[2] = 4
     >>> b
-    myloosebidict({2: 4})
+    MyLooseBidict({2: 4})

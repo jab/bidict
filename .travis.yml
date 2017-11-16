@@ -4,39 +4,54 @@ env:
   global:
     - PYENV_ROOT="$HOME/.pyenv"
     - PYENV="$PYENV_ROOT/bin/pyenv"
-    #- BENCHMARK_DIR="$HOME/.benchmarks"
-    #- BENCHMARK_SKIP="--benchmark-skip"
 
 matrix:
   include:
-    # dedicated job to just build the docs
-    - language: python
-      python: "3.6"
-      env: ONLY_BUILD_DOCS=1
+    # One-off jobs. Override "script" to do something other than run pytest.
+    # Use latest CPython 3 for these. Set a "TASK" var so the task is evident in the build matrix.
+    - script: ./build-docs.sh
+      env:
+        - TASK=build-docs
+        - PYENV_PYTHON_VER=3.6.3
+    - script: pylint bidict tests/*.py
+      env:
+        - TASK=pylint
+        - PYENV_PYTHON_VER=3.6.3
+    - script: flake8 bidict tests/*.py
+      env:
+        - TASK=flake8
+        - PYENV_PYTHON_VER=3.6.3
+    - script: pydocstyle bidict
+      env:
+        - TASK=pydocstyle
+        - PYENV_PYTHON_VER=3.6.3
 
-    # jobs to test on all supported python versions on Linux
-    - os: linux
-      env: PYENV_PYTHON_VER=2.7.14
-    - os: linux
-      env: PYENV_PYTHON_VER=3.5.3
-    - os: linux
-      env: PYENV_PYTHON_VER=3.6.3 BIDICT_COVERAGE_ENABLE=1  # only generate coverage report for this one job
-    - os: linux
-      env: PYENV_PYTHON_VER=pypy2.7-5.9.0
-    - os: linux
-      env: PYENV_PYTHON_VER=pypy3.5-5.9.0
-
-    # test again on macOS
+    # Test all supported Python versions on macOS...
     - os: osx
       env: PYENV_PYTHON_VER=2.7.14
+    - os: osx
+      env: PYENV_PYTHON_VER=3.4.7
     - os: osx
       env: PYENV_PYTHON_VER=3.5.3
     - os: osx
       env: PYENV_PYTHON_VER=3.6.3
     - os: osx
       env: PYENV_PYTHON_VER=pypy2.7-5.9.0
+    # not yet working on macOS? works on linux:
     #- os: osx
     #- env: PYENV_PYTHON_VER=pypy3.5-5.9.0
+
+    # ...and Linux.
+    - env: PYENV_PYTHON_VER=2.7.14
+    - env: PYENV_PYTHON_VER=3.4.7
+    - env: PYENV_PYTHON_VER=3.5.3
+    - env: PYENV_PYTHON_VER=pypy2.7-5.9.0
+    - env: PYENV_PYTHON_VER=pypy3.5-5.9.0
+    # Enable coverage just for the latest Python 3 version on Linux.
+    - env: PYENV_PYTHON_VER=3.6.3
+      script:
+        - py.test --cov=bidict --cov-config=.coveragerc
+        - travis_retry pip install coveralls && coveralls
 
 before_install:
   - |
@@ -47,7 +62,7 @@ before_install:
 install:
   # based on https://github.com/frol/flask-restplus-server-example/blob/018f48e5/.travis.yml
   - |
-      set -ex
+      set -e
       if [[ -n "$PYENV_PYTHON_VER" ]]; then
         if [[ -f "$PYENV" ]]; then
           pushd "$PYENV_ROOT" && git pull && popd
@@ -62,24 +77,19 @@ install:
         $PYTHON -m virtualenv --python="$PYTHON" "$VENV"
         source "$VENV/bin/activate"
       fi
-  - travis_retry pip install -e .[test]
-  - test -z "$BIDICT_COVERAGE_ENABLE" || travis_retry pip install coveralls
+      travis_retry pip install -e .[test]
 
 script:
-  - test -n "$ONLY_BUILD_DOCS" && ./build-docs.sh || ./test.sh
+  - py.test
+
+before_cache:
+  - rm -rf $HOME/.cache/pip/log
 
 cache:
   directories:
     - $HOME/.cache/pip
     - $HOME/.hypothesis
     - $PYENV_ROOT
-    #- $BENCHMARK_DIR
-
-before_cache:
-  - rm -rf $HOME/.cache/pip/log
-
-after_success:
-  - test -z "$BIDICT_COVERAGE_ENABLE" || coveralls
 
 sudo: false
 
@@ -87,6 +97,8 @@ notifications:
   webhooks:
     urls:
       - https://webhooks.gitter.im/e/bf64fb45a633c0935b9b
+  email:
+    recipients: jab@math.brown.edu
 
 deploy:
   provider: pypi

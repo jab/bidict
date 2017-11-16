@@ -41,6 +41,8 @@ Compatibility helpers.
 
 """
 
+# pylint: disable-all
+
 from operator import methodcaller
 from platform import python_implementation
 from sys import version_info

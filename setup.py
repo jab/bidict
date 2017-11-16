@@ -23,6 +23,7 @@ tests_require = [
     'hypothesis==3.34.1',
     'hypothesis-pytest==0.19.0',
     'py==1.4.34',
+    'pylint==1.7.4',
     'pydocstyle==2.1.1',
     'pytest==3.2.3',
     'pytest-benchmark==3.1.1',

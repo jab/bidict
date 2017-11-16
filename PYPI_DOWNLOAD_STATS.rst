@@ -15,7 +15,7 @@ Here is an example query for number of downloads in the last 30 days::
     FROM
       TABLE_DATE_RANGE(
         [the-psf:pypi.downloads],
-        DATE_ADD(CURRENT_TIMESTAMP(), -1, "month"),
+        DATE_ADD(CURRENT_TIMESTAMP(), -1, 'month'),
         CURRENT_TIMESTAMP()
       )
     WHERE

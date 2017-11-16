@@ -1,11 +1,12 @@
 """Implements the frozen (immutable, hashable) bidict types."""
 
-from ._common import BidictBase
-from ._ordered import OrderedBidictBase
-from .compat import PYPY, iteritems
 from abc import abstractmethod
 from collections import ItemsView
 from itertools import chain, islice
+
+from ._common import BidictBase
+from ._ordered import OrderedBidictBase
+from .compat import PYPY, iteritems
 
 
 class FrozenBidictBase(BidictBase):
@@ -17,10 +18,10 @@ class FrozenBidictBase(BidictBase):
         Abstract method to actually compute the hash.
 
         Default implementations are provided by
-        :class:`frozenbidict` and :class:`frozenorderedbidict`,
+        :class:`FrozenBidict` and :class:`FrozenOrderedBidict`,
         with tunable behavior via
-        :attr:`_USE_ITEMSVIEW_HASH <frozenbidict._USE_ITEMSVIEW_HASH>` and
-        :attr:`_HASH_NITEMS_MAX <frozenorderedbidict._HASH_NITEMS_MAX>`,
+        :attr:`_USE_ITEMSVIEW_HASH <FrozenBidict._USE_ITEMSVIEW_HASH>` and
+        :attr:`_HASH_NITEMS_MAX <FrozenOrderedBidict._HASH_NITEMS_MAX>`,
         respectively.
 
         If greater customization is needed,
@@ -55,13 +56,13 @@ class FrozenBidictBase(BidictBase):
         type of collection comprising the same items (e.g. frozenset or tuple).
         """
         if hasattr(self, '_hashval'):  # Cached on the first call.
-            return self._hashval
-        h = self._compute_hash()
-        self._hashval = hv = hash((self.__class__, h))
-        return hv
+            return self._hashval  # pylint: disable=E0203
+        # pylint: disable=W0201
+        self._hashval = hashval = hash((self.__class__, self._compute_hash()))
+        return hashval
 
 
-class frozenbidict(FrozenBidictBase):
+class FrozenBidict(FrozenBidictBase):
     """
     Regular frozen bidict type.
 
@@ -96,13 +97,13 @@ class frozenbidict(FrozenBidictBase):
         # ItemsView(self)._hash() is faster than combining
         # KeysView(self)._hash() with KeysView(self.inv)._hash().
         if self._USE_ITEMSVIEW_HASH:
-            return ItemsView(self)._hash()
+            return ItemsView(self)._hash()  # pylint: disable=W0212
 
         # frozenset(iteritems(self)) is faster than frozenset(ItemsView(self)).
         return hash(frozenset(iteritems(self)))
 
 
-class frozenorderedbidict(OrderedBidictBase, FrozenBidictBase):
+class FrozenOrderedBidict(OrderedBidictBase, FrozenBidictBase):
     """
     Ordered frozen bidict type.
 
@@ -140,7 +141,7 @@ class frozenorderedbidict(OrderedBidictBase, FrozenBidictBase):
         :attr:`_HASH_NITEMS_MAX` to limit the number of items that participate
         in influencing the hash value. This is safe because contained items
         have a guaranteed ordering, so not all items need to participate in the
-        hash to guarantee that two equal :class:`frozenorderedbidict`\ s have
+        hash to guarantee that two equal :class:`FrozenOrderedBidict`\ s have
         the same hash value, as long as both use the same :attr:`_HASH_NITEMS_MAX`.
         """
         items = islice(iteritems(self), self._HASH_NITEMS_MAX)

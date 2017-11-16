@@ -2,12 +2,13 @@
 
 """Implements :class:`bidict.namedbidict`."""
 
+import re
+
 from ._bidict import bidict
-from re import compile as compile_re
 
 
-_LEGALNAMEPAT = '^[a-zA-Z][a-zA-Z0-9_]*$'
-_LEGALNAMERE = compile_re(_LEGALNAMEPAT)
+_LEGALNAMEPAT = '^[A-z][A-z0-9_]*$'
+_LEGALNAMERE = re.compile(_LEGALNAMEPAT)
 
 
 def namedbidict(typename, keyname, valname, base_type=bidict):

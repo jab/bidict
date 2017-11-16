@@ -1,9 +1,13 @@
-from bidict import bidict, orderedbidict, ValueDuplicationError
+"""
+Benchmarks.
+"""
+
+from bidict import OrderedBidict, ValueDuplicationError, bidict
 import pytest
 
-bidict_types = (bidict, orderedbidict)
+BIDICT_TYPES = (bidict, OrderedBidict)
 
-elements = orderedbidict((
+ELEMENTS = OrderedBidict((
     ('H', 'hydrogen'), ('He', 'helium'),
     ('Li', 'lithium'), ('Be', 'beryllium'), ('B', 'boron'), ('C', 'carbon'),
     ('N', 'nitrogen'), ('O', 'oxygen'), ('F', 'fluorine'), ('Ne', 'neon'),
@@ -11,7 +15,7 @@ elements = orderedbidict((
     ('P', 'phosphorus'), ('S', 'sulfur'), ('Cl', 'chlorine'), ('Ar', 'argon'),
 ))
 
-update_nodup = orderedbidict((
+UPDATE_NODUP = OrderedBidict((
     ('K', 'potassium'), ('Ca', 'calcium'), ('Sc', 'Scandium'), ('Ti', 'titanium'),
     ('V', 'vanadium'), ('Cr', 'chromium'), ('Mn', 'manganese'), ('Fe', 'iron'), ('Co', 'cobalt'),
     ('Ni', 'nickel'), ('Cu', 'copper'), ('Zn', 'zinc'), ('Ga', 'gallium'), ('Ge', 'germanium'),
@@ -36,18 +40,20 @@ update_nodup = orderedbidict((
     ('Cn', 'copernicium'),
 ))
 
-update_withdupval = orderedbidict(update_nodup, key_with_dup_val='hydrogen')
+UPDATE_WITHDUPVAL = OrderedBidict(UPDATE_NODUP, key_with_dup_val='hydrogen')
 
 
-@pytest.mark.parametrize('B', bidict_types)
-def test_put_nodup(B, benchmark):
-    b = B(elements)
+# pylint: disable=C0103,C0111
+
+@pytest.mark.parametrize('B', BIDICT_TYPES)
+def test_put_nodup(B, benchmark):  # noqa: N803
+    b = B(ELEMENTS)
     benchmark(b.put, 'K', 'potassium')
 
 
-@pytest.mark.parametrize('B', bidict_types)
-def test_put_withdup(B, benchmark):
-    b = B(elements)
+@pytest.mark.parametrize('B', BIDICT_TYPES)
+def test_put_withdup(B, benchmark):  # noqa: N803
+    b = B(ELEMENTS)
 
     def runner():
         with pytest.raises(ValueDuplicationError):
@@ -56,25 +62,25 @@ def test_put_withdup(B, benchmark):
     benchmark(runner)
 
 
-@pytest.mark.parametrize('B', bidict_types)
-def test_update_nodup(B, benchmark):
-    b = B(elements)
-    benchmark(b.update, update_nodup)
+@pytest.mark.parametrize('B', BIDICT_TYPES)
+def test_update_nodup(B, benchmark):  # noqa: N803
+    b = B(ELEMENTS)
+    benchmark(b.update, UPDATE_NODUP)
 
 
-@pytest.mark.parametrize('B', bidict_types)
-def test_update_withdup(B, benchmark):
-    b = B(elements)
+@pytest.mark.parametrize('B', BIDICT_TYPES)
+def test_update_withdup(B, benchmark):  # noqa: N803
+    b = B(ELEMENTS)
 
     def runner():
         with pytest.raises(ValueDuplicationError):
-            b.update(update_withdupval)
+            b.update(UPDATE_WITHDUPVAL)
 
     benchmark(runner)
 
 
-@pytest.mark.parametrize('B', bidict_types)
-def test_forceupdate_withdup(B, benchmark):
-    b = B(elements)
-    benchmark(b.forceupdate, update_withdupval)
+@pytest.mark.parametrize('B', BIDICT_TYPES)
+def test_forceupdate_withdup(B, benchmark):  # noqa: N803
+    b = B(ELEMENTS)
+    benchmark(b.forceupdate, UPDATE_WITHDUPVAL)
     assert b.inv['hydrogen'] == 'key_with_dup_val'

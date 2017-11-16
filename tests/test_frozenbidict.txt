@@ -1,9 +1,9 @@
-Test script for bidict.frozenbidict::
+Test script for bidict.FrozenBidict::
 
-    >>> from bidict import frozenbidict, frozenorderedbidict
-    >>> f1 = frozenbidict(one=1)
-    >>> f2 = frozenorderedbidict([('one', 1), ('two', 2)])
-    >>> f3 = frozenorderedbidict([('two', 2), ('one', 1)])
+    >>> from bidict import FrozenBidict, FrozenOrderedBidict
+    >>> f1 = FrozenBidict(one=1)
+    >>> f2 = FrozenOrderedBidict([('one', 1), ('two', 2)])
+    >>> f3 = FrozenOrderedBidict([('two', 2), ('one', 1)])
     >>> fs = (f1, f2, f3)
     >>> all(hash(f) is not 'an error' for f in fs)
     True
@@ -21,7 +21,7 @@ Insertable into sets and dicts::
 Can toggle _USE_ITEMSVIEW_HASH (affects space complexity but should produce the
 same result)::
 
-    >>> frozenbidict._USE_ITEMSVIEW_HASH = not frozenbidict._USE_ITEMSVIEW_HASH
+    >>> FrozenBidict._USE_ITEMSVIEW_HASH = not FrozenBidict._USE_ITEMSVIEW_HASH
     >>> hash(f1.copy()) == f1._hashval  # matches value computed + cached on f1 before toggling
     True
 
@@ -30,22 +30,22 @@ the same value::
 
     >>> hash(f1) == hash(frozenset(f1.items()))  # very unlikely
     False
-    >>> from itertools import chain  # frozenorderedbidict._compute_hash flattens items
+    >>> from itertools import chain  # FrozenOrderedBidict._compute_hash flattens items
     >>> hash(f2) == hash(tuple(chain.from_iterable(f2.items())))  # very unlikely
     False
 
 To reduce hash collisions with unequal frozenorderedbidicts with the same items,
-frozenorderedbidict.__hash__ is order-sensitive::
+FrozenOrderedBidict.__hash__ is order-sensitive::
 
     >>> f1 != f2
     True
     >>> hash(f1) == hash(f2)  # very unlikely
     False
 
-Can customize frozenorderedbidict._compute_hash to limit the number of items
+Can customize FrozenOrderedBidict._compute_hash to limit the number of items
 considered::
 
-    >>> frozenorderedbidict._HASH_NITEMS_MAX = 1
-    >>> hash(frozenorderedbidict([(1, 1), (2, 2)])) == \
-    ... hash(frozenorderedbidict([(1, 1), (3, 3)]))  # second items ignored
+    >>> FrozenOrderedBidict._HASH_NITEMS_MAX = 1
+    >>> hash(FrozenOrderedBidict([(1, 1), (2, 2)])) == \
+    ... hash(FrozenOrderedBidict([(1, 1), (3, 3)]))  # second items ignored
     True

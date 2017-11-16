@@ -1,10 +1,11 @@
 """Implements :class:`bidict.bidict`, the mutable bidirectional map type."""
 
-from ._common import BidictBase, OVERWRITE, RAISE, ON_DUP_VAL
 from collections import MutableMapping
 
+from ._common import BidictBase, OVERWRITE, RAISE, ON_DUP_VAL
 
-class bidict(BidictBase):
+
+class bidict(BidictBase):  # noqa; pylint: disable=invalid-name
     """Mutable bidirectional map type."""
 
     def __delitem__(self, key):
@@ -114,7 +115,7 @@ class bidict(BidictBase):
         In particular, for :class:`bidict.bidict`,
         *on_dup_key=OVERWRITE*, *on_dup_val=RAISE*, and *on_dup_kv=RAISE*.
 
-        For :class:`bidict.loosebidict`,
+        For :class:`bidict.LooseBidict`,
         *on_dup_key=OVERWRITE*, *on_dup_val=OVERWRITE*, and *on_dup_kv=OVERWRITE*.
         """
         self._update(False, self._on_dup_key, self._on_dup_val, self._on_dup_kv, *args, **kw)

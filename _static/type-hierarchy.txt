@@ -1,6 +1,4 @@
-# To generate type-hierarchy.png from this file,
-# install graphviz, the Graph::Easy and Graph::Easy::As_svg Perl modules,
-# and then run: graph-easy type-hierarchy.txt --png
+# type-hierarchy.png image is generated from this file by ../build-docs.sh
 
 graph { flow: up; }
 node { font: Menlo; }
@@ -8,21 +6,21 @@ node { font: Menlo; }
 [ bidict.abc.BidirectionalMapping ] { fontsize: 0.7em; borderstyle: dashed; fill: #eeeeee; } -> [ collections.abc.Mapping ] { fontsize: 0.7em; borderstyle: dashed; fill: #eeeeee; }
 [ bidict.BidictBase ] { fontsize: 0.7em; fill: #cccccc; } -> [ bidict.abc.BidirectionalMapping ]
 [ bidict.bidict ] -> [ bidict.BidictBase ]
-[ bidict.loosebidict ] -> [ bidict.bidict ]
+[ bidict.LooseBidict ] -> [ bidict.bidict ]
 [ bidict.FrozenBidictBase ] { fontsize: 0.7em; fill: #cccccc; } -> [ bidict.BidictBase ]
-[ bidict.frozenbidict ] -> [ bidict.FrozenBidictBase ]
+[ bidict.FrozenBidict ] -> [ bidict.FrozenBidictBase ]
 [ bidict.OrderedBidictBase ] { fontsize: 0.7em; fill: #cccccc; } -> [ bidict.BidictBase ]
-[ bidict.orderedbidict ] -> [ bidict.OrderedBidictBase ]
-[ bidict.orderedbidict ] -> [ bidict.bidict ]
-[ bidict.frozenorderedbidict ] -> [ bidict.OrderedBidictBase ]
-[ bidict.frozenorderedbidict ] -> [ bidict.FrozenBidictBase ]
-[ bidict.looseorderedbidict ] -> [ bidict.orderedbidict ]
-[ bidict.looseorderedbidict ] -> [ bidict.loosebidict ]
+[ bidict.OrderedBidict ] -> [ bidict.OrderedBidictBase ]
+[ bidict.OrderedBidict ] -> [ bidict.bidict ]
+[ bidict.FrozenOrderedBidict ] -> [ bidict.OrderedBidictBase ]
+[ bidict.FrozenOrderedBidict ] -> [ bidict.FrozenBidictBase ]
+[ bidict.LooseOrderedBidict ] -> [ bidict.OrderedBidict ]
+[ bidict.LooseOrderedBidict ] -> [ bidict.LooseBidict ]
 
-#[ bidict.frozenbidict ] -> { style: dashed; } [ collections.abc.Hashable ] { borderstyle: dashed; }
-#[ bidict.frozenorderedbidict ] -> { style: dashed; } [ collections.abc.Hashable ]
+#[ bidict.FrozenBidict ] -> { style: dashed; } [ collections.abc.Hashable ] { borderstyle: dashed; }
+#[ bidict.FrozenOrderedBidict ] -> { style: dashed; } [ collections.abc.Hashable ]
 
 #[ bidict.bidict ] -> { style: dashed; } [ collections.abc.MutableMapping ] { borderstyle: dashed; }
-#[ bidict.orderedbidict ] -> { style: dashed; } [ collections.abc.MutableMapping ]
+#[ bidict.OrderedBidict ] -> { style: dashed; } [ collections.abc.MutableMapping ]
 
 #[ bidict.OrderedBidictBase ] -> { style: dashed; } [ collections.abc.Reversible ] { borderstyle: dashed; }

@@ -1,36 +1,22 @@
-"""Implements :class:`bidict.orderedbidict` and friends."""
+"""Implements :class:`bidict.OrderedBidict` and friends."""
+
+from collections import Mapping
 
 from ._bidict import bidict
-from ._common import BidictBase, _marker, _missing
+from ._common import BidictBase, _Marker, _MISS
 from .compat import iteritems, izip
-from collections import Mapping
 
 
 _PRV = 1
 _NXT = 2
-_END = _marker('END')
-
-
-def _make_iter(reverse=False, name='__iter__', doc=None):
-    def _iter(self):
-        fwd = self._fwd
-        end = self._end
-        cur = end[_PRV if reverse else _NXT]
-        while cur is not end:
-            d, prv, nxt = cur
-            korv = next(iter(d))
-            node = fwd.get(korv)
-            yield korv if node is cur else d[korv]
-            cur = prv if reverse else nxt
-    _iter.__name__ = name
-    _iter.__doc__ = doc or "Like OrderedDict's ``%s``." % name
-    return _iter
+_END = _Marker('END')
 
 
 class OrderedBidictBase(BidictBase):
-    """Base class for :class:`orderedbidict` and :class:`frozenorderedbidict`."""
+    """Base class for :class:`OrderedBidict` and :class:`FrozenOrderedBidict`."""
 
     def __init__(self, *args, **kw):  # noqa: D107
+        # pylint: disable=W0231
         self._isinv = getattr(args[0], '_isinv', False) if args else False
         self._end = []  # circular doubly-linked list of [{key: val, val: key}, prv, nxt] nodes
         self._init_end()
@@ -46,6 +32,7 @@ class OrderedBidictBase(BidictBase):
 
     def _init_inv(self):
         super(OrderedBidictBase, self)._init_inv()
+        # pylint: disable=W0212
         self.inv._end = self._end
 
     # Must override BidictBase.copy since we have different internal structure.
@@ -62,13 +49,13 @@ class OrderedBidictBase(BidictBase):
 
     def __getitem__(self, key):
         node = self._fwd[key]
-        d = node[0]
-        return d[key]
+        data = node[0]
+        return data[key]
 
     def _pop(self, key):
         nodefwd = self._fwd.pop(key)
-        d, prv, nxt = nodefwd
-        val = d[key]
+        data, prv, nxt = nodefwd
+        val = data[key]
         nodeinv = self._inv.pop(val)
         assert nodeinv is nodefwd
         prv[_NXT] = nxt
@@ -76,10 +63,12 @@ class OrderedBidictBase(BidictBase):
         del nodefwd[:]
         return val
 
-    def _isdupitem(self, key, val, nodeinv, nodefwd):
+    @staticmethod
+    def _isdupitem(key, val, nodeinv, nodefwd):  # pylint: disable=W0221
         """Return whether (key, val) duplicates an existing item."""
         return nodeinv is nodefwd
 
+    # pylint: disable=W0221
     def _write_item(self, key, val, isdupkey, isdupval, nodeinv, nodefwd):
         fwd = self._fwd
         inv = self._inv
@@ -88,9 +77,9 @@ class OrderedBidictBase(BidictBase):
             lst = end[_PRV]
             node = [{key: val, val: key}, lst, end]
             end[_PRV] = lst[_NXT] = fwd[key] = inv[val] = node
-            oldkey = oldval = _missing
+            oldkey = oldval = _MISS
         elif isdupkey and isdupval:
-            fwdd, fwdprv, fwdnxt = nodefwd
+            fwdd, _, _ = nodefwd
             oldval = fwdd[key]
             invd, invprv, invnxt = nodeinv
             oldkey = invd[val]
@@ -105,40 +94,43 @@ class OrderedBidictBase(BidictBase):
             # Python's garbage collector should still be able to detect when
             # nodeinv is garbage and reclaim the memory.
             # Update fwd and inv.
-            assert fwd.pop(oldkey) is nodeinv
-            assert inv.pop(oldval) is nodefwd
+            tmp = fwd.pop(oldkey)
+            assert tmp is nodeinv
+            tmp = inv.pop(oldval)
+            assert tmp is nodefwd
             fwd[key] = inv[val] = nodefwd
             # Update nodefwd with new item.
             fwdd.clear()
             fwdd[key] = val
             fwdd[val] = key
         elif isdupkey:
-            d = nodefwd[0]
-            oldval = d[key]
-            oldkey = _missing
+            data = nodefwd[0]
+            oldval = data[key]
+            oldkey = _MISS
             oldnodeinv = inv.pop(oldval)
             assert oldnodeinv is nodefwd
             inv[val] = nodefwd
         elif isdupval:
-            d = nodeinv[0]
-            oldkey = d[val]
-            oldval = _missing
+            data = nodeinv[0]
+            oldkey = data[val]
+            oldval = _MISS
             oldnodefwd = fwd.pop(oldkey)
             assert oldnodefwd is nodeinv
             fwd[key] = nodeinv
         if isdupkey ^ isdupval:
-            d.clear()
-            d[key] = val
-            d[val] = key
+            data.clear()
+            data[key] = val
+            data[val] = key
         return key, val, isdupkey, isdupval, nodeinv, nodefwd, oldkey, oldval
 
+    # pylint: disable=W0221
     def _undo_write(self, key, val, isdupkey, isdupval, nodeinv, nodefwd, oldkey, oldval):
         fwd = self._fwd
         inv = self._inv
         if not isdupkey and not isdupval:
             del self[key]
         elif isdupkey and isdupval:
-            fwdd, fwdprv, fwdnxt = nodefwd
+            fwdd, _, _ = nodefwd
             invd, invprv, invnxt = nodeinv
             # Restore original items.
             fwdd.clear()
@@ -152,24 +144,40 @@ class OrderedBidictBase(BidictBase):
             fwd[oldkey] = inv[val] = nodeinv
             inv[oldval] = fwd[key] = nodefwd
         elif isdupkey:
-            d = nodefwd[0]
-            d.clear()
-            d[key] = oldval
-            d[oldval] = key
+            data = nodefwd[0]
+            data.clear()
+            data[key] = oldval
+            data[oldval] = key
             assert inv.pop(val) is nodefwd
             inv[oldval] = nodefwd
             assert fwd[key] is nodefwd
         elif isdupval:
-            d = nodeinv[0]
-            d.clear()
-            d[oldkey] = val
-            d[val] = oldkey
+            data = nodeinv[0]
+            data.clear()
+            data[oldkey] = val
+            data[val] = oldkey
             assert fwd.pop(key) is nodeinv
             fwd[oldkey] = nodeinv
             assert inv[val] is nodeinv
 
-    __iter__ = _make_iter()
-    __reversed__ = _make_iter(reverse=True, name='__reversed__')
+    def __iter__(self, reverse=False):
+        """Like ``OrderedDict.__iter__``."""
+        fwd = self._fwd
+        end = self._end
+        cur = end[_PRV if reverse else _NXT]
+        while cur is not end:
+            data, prv, nxt = cur
+            korv = next(iter(data))
+            node = fwd.get(korv)
+            key = korv if node is cur else data[korv]
+            yield key
+            cur = prv if reverse else nxt
+
+    def __reversed__(self):
+        """Like ``OrderedDict.__reversed__``."""
+        # python2 lacks `yield from` syntax
+        for key in self.__iter__(reverse=True):
+            yield key
 
     def __eq__(self, other):
         if not isinstance(other, Mapping):
@@ -178,9 +186,10 @@ class OrderedBidictBase(BidictBase):
             return False
         if self._should_compare_order_sensitive(other):
             return all(i == j for (i, j) in izip(iteritems(self), iteritems(other)))
-        return all(self.get(k, _missing) == v for (k, v) in iteritems(other))
+        return all(self.get(k, _MISS) == v for (k, v) in iteritems(other))
 
-    def _should_compare_order_sensitive(self, mapping):
+    @staticmethod
+    def _should_compare_order_sensitive(mapping):
         """Whether we should compare order-sensitively to ``mapping``.
 
         Returns True iff ``isinstance(mapping, OrderedBidictBase)``.
@@ -189,10 +198,10 @@ class OrderedBidictBase(BidictBase):
         return isinstance(mapping, OrderedBidictBase)
 
 
-class orderedbidict(OrderedBidictBase, bidict):
+class OrderedBidict(OrderedBidictBase, bidict):
     """Mutable bidict type that maintains items in insertion order."""
 
-    def popitem(self, last=True):
+    def popitem(self, last=True):  # pylint: disable=W0221
         """Like :meth:`collections.OrderedDict.popitem`."""
         if not self:
             raise KeyError(self.__class__.__name__ + ' is empty')
@@ -203,7 +212,7 @@ class orderedbidict(OrderedBidictBase, bidict):
     def move_to_end(self, key, last=True):
         """Like :meth:`collections.OrderedDict.move_to_end`."""
         node = self._fwd[key]
-        d, prv, nxt = node
+        _, prv, nxt = node
         prv[_NXT] = nxt
         nxt[_PRV] = prv
         end = self._end

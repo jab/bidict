@@ -98,9 +98,9 @@ the :mod:`bidict` package provides other bidict variants,
 as well as additional tools
 for working with one-to-one relations:
 
-- :class:`bidict.frozenbidict`
-- :class:`bidict.loosebidict`
-- :class:`bidict.orderedbidict`
+- :class:`bidict.FrozenBidict`
+- :class:`bidict.LooseBidict`
+- :class:`bidict.OrderedBidict`
 - :class:`bidict.namedbidict`
 - :class:`bidict.inverted`
 - :class:`bidict.pairs`

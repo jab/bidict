@@ -25,10 +25,10 @@ Pass in a mapping to get the inverse mapping::
 which objects that already know their own inverses (such as bidicts)
 can implement themselves::
 
-    >>> from bidict import bidict, orderedbidict
+    >>> from bidict import bidict, OrderedBidict
     >>> dict(inverted(bidict({1: 'one'})))
     {'one': 1}
-    >>> list(inverted(orderedbidict([(2, 4), (3, 9)])))
+    >>> list(inverted(OrderedBidict([(2, 4), (3, 9)])))
     [(4, 2), (9, 3)]
 
 

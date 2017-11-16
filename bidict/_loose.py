@@ -1,16 +1,16 @@
-"""Implements :class:`bidict.loosebidict`."""
+"""Implements :class:`bidict.LooseBidict`."""
 
 from ._common import OVERWRITE
 from ._bidict import bidict
-from ._ordered import orderedbidict
+from ._ordered import OrderedBidict
 
 
-class loosebidict(bidict):
+class LooseBidict(bidict):
     """Mutable bidict with *OVERWRITE* duplication behaviors by default."""
 
     _on_dup_val = OVERWRITE
     _on_dup_kv = OVERWRITE
 
 
-class looseorderedbidict(orderedbidict, loosebidict):
-    """Mutable orderedbidict with *OVERWRITE* duplication behaviors by default."""
+class LooseOrderedBidict(OrderedBidict, LooseBidict):
+    """Mutable ordered bidict with *OVERWRITE* duplication behaviors by default."""
