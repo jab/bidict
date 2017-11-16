@@ -15,8 +15,9 @@ _END = _Marker('END')
 class OrderedBidictBase(BidictBase):
     """Base class for :class:`OrderedBidict` and :class:`FrozenOrderedBidict`."""
 
-    def __init__(self, *args, **kw):  # noqa: D107
-        # pylint: disable=W0231
+    def __init__(self, *args, **kw):
+        """Like :meth:`collections.OrderedDict.__init__`."""
+        # pylint: disable=super-init-not-called
         self._isinv = getattr(args[0], '_isinv', False) if args else False
         self._end = []  # circular doubly-linked list of [{key: val, val: key}, prv, nxt] nodes
         self._init_end()
@@ -32,7 +33,7 @@ class OrderedBidictBase(BidictBase):
 
     def _init_inv(self):
         super(OrderedBidictBase, self)._init_inv()
-        # pylint: disable=W0212
+        # pylint: disable=protected-access
         self.inv._end = self._end
 
     # Must override BidictBase.copy since we have different internal structure.
@@ -64,11 +65,11 @@ class OrderedBidictBase(BidictBase):
         return val
 
     @staticmethod
-    def _isdupitem(key, val, nodeinv, nodefwd):  # pylint: disable=W0221
+    def _isdupitem(key, val, nodeinv, nodefwd):  # pylint: disable=arguments-differ
         """Return whether (key, val) duplicates an existing item."""
         return nodeinv is nodefwd
 
-    # pylint: disable=W0221
+    # pylint: disable=arguments-differ
     def _write_item(self, key, val, isdupkey, isdupval, nodeinv, nodefwd):
         fwd = self._fwd
         inv = self._inv
@@ -123,7 +124,7 @@ class OrderedBidictBase(BidictBase):
             data[val] = key
         return key, val, isdupkey, isdupval, nodeinv, nodefwd, oldkey, oldval
 
-    # pylint: disable=W0221
+    # pylint: disable=arguments-differ
     def _undo_write(self, key, val, isdupkey, isdupval, nodeinv, nodefwd, oldkey, oldval):
         fwd = self._fwd
         inv = self._inv
@@ -161,7 +162,7 @@ class OrderedBidictBase(BidictBase):
             assert inv[val] is nodeinv
 
     def __iter__(self, reverse=False):
-        """Like ``OrderedDict.__iter__``."""
+        """Like :meth:`collections.OrderedDict.__iter__`."""
         fwd = self._fwd
         end = self._end
         cur = end[_PRV if reverse else _NXT]
@@ -174,7 +175,7 @@ class OrderedBidictBase(BidictBase):
             cur = prv if reverse else nxt
 
     def __reversed__(self):
-        """Like ``OrderedDict.__reversed__``."""
+        """Like :meth:`collections.OrderedDict.__reversed__`."""
         # python2 lacks `yield from` syntax
         for key in self.__iter__(reverse=True):
             yield key
@@ -201,7 +202,7 @@ class OrderedBidictBase(BidictBase):
 class OrderedBidict(OrderedBidictBase, bidict):
     """Mutable bidict type that maintains items in insertion order."""
 
-    def popitem(self, last=True):  # pylint: disable=W0221
+    def popitem(self, last=True):  # pylint: disable=arguments-differ
         """Like :meth:`collections.OrderedDict.popitem`."""
         if not self:
             raise KeyError(self.__class__.__name__ + ' is empty')

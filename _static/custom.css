@@ -1,16 +1,12 @@
-/* override
- * https://github.com/bitprophet/alabaster/blob/7e8ee8/alabaster/static/alabaster.css_t#L609-L611
- */
-div#changelog > div.section > ul > li > p:only-child {
-  margin-bottom: 17px;
+h1, h2, h3, h4, h5 {
+  font-weight: bold !important;
 }
 
-/* override bad styles in
- * https://media.readthedocs.org/css/badge_only.css
- * added automatically by readthedocs
- */
-@media screen and (max-width: 768px) {
-  img {
-    width: auto;
-  }
+div#changelog li {
+  margin-bottom: 8px;
+}
+
+/* Can remove this when https://github.com/bitprophet/alabaster/pull/125 lands */
+a.image-reference:hover {
+  border-bottom: 0 !important;
 }

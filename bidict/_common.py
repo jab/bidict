@@ -37,7 +37,9 @@ class BidirectionalMapping(Mapping):
     })
 
     @classmethod
-    def __subclasshook__(cls, C):  # noqa: N803
+    def __subclasshook__(cls, C):  # noqa: N803 ("argument name should be lowercase")
+        # Standard to use "C" for this arg in __subclasshook__, e.g.:
+        # https://github.com/python/cpython/blob/d505a2/Lib/_collections_abc.py#L93
         """Check if C provides all the attributes in :attr:`_subclsattrs`.
 
         Causes conforming classes to be virtual subclasses automatically.
@@ -163,7 +165,7 @@ class BidictBase(BidirectionalMapping):
 
     def _init_inv(self):
         inv = object.__new__(self.__class__)
-        # pylint: disable=W0212
+        # pylint: disable=protected-access
         inv._isinv = not self._isinv
         inv._fwd_class = self._inv_class
         inv._inv_class = self._fwd_class
@@ -286,7 +288,6 @@ class BidictBase(BidirectionalMapping):
 
     def _update_rbf(self, on_dup_key, on_dup_val, on_dup_kv, *args, **kw):
         """Update, rolling back on failure."""
-        # pylint: disable=R0914
         writes = []
         appendwrite = writes.append
         dedup_item = self._dedup_item
@@ -325,7 +326,7 @@ class BidictBase(BidirectionalMapping):
         # This should be faster than ``return self.__class__(self)`` because
         # it avoids the unnecessary duplicate checking.
         copy = object.__new__(self.__class__)
-        # pylint: disable=W0212,W0201
+        # pylint: disable=protected-access,attribute-defined-outside-init
         copy._isinv = self._isinv
         copy._fwd = self._fwd.copy()
         copy._inv = self._inv.copy()

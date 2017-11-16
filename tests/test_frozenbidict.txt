@@ -22,7 +22,7 @@ Can toggle _USE_ITEMSVIEW_HASH (affects space complexity but should produce the
 same result)::
 
     >>> FrozenBidict._USE_ITEMSVIEW_HASH = not FrozenBidict._USE_ITEMSVIEW_HASH
-    >>> hash(f1.copy()) == f1._hashval  # matches value computed + cached on f1 before toggling
+    >>> hash(f1.copy()) == f1._hash  # matches value computed + cached on f1 before toggling
     True
 
 Unlikely that different types of collections comprising the same items hash to

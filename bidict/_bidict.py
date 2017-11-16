@@ -5,7 +5,7 @@ from collections import MutableMapping
 from ._common import BidictBase, OVERWRITE, RAISE, ON_DUP_VAL
 
 
-class bidict(BidictBase):  # noqa; pylint: disable=invalid-name
+class bidict(BidictBase):  # noqa: N801; pylint: disable=invalid-name
     """Mutable bidirectional map type."""
 
     def __delitem__(self, key):

@@ -21,4 +21,4 @@ if [[ -n "${MODIFIED_GRAPH_SRC}" ]]; then
 fi
 
 cd docs
-make clean html linkcheck
+make clean html $@

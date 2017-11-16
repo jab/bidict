@@ -9,18 +9,24 @@ Changelog
 0.14.0.dev0 (not yet released)
 ------------------------------
 
-- Add official support for latest PyPy3.
-- Improvements to CI, including testing on macOS and Windows.
-- Code changes for better compliance with pylint, etc.
+- Internal code improvements
+- Improvements to CI, including:
+
+  - Test on macOS and Windows
+  - Test with PyPy3
+  - Test with CPython 3.7-dev
+  - Add pylint
 
 Breaking API Changes
-^^^^^^^^^^^^^^^^^^^^
+++++++++++++++++++++
 
-- Rename ``frozenbidict`` to :class:`FrozenBidict <bidict.FrozenBidict>`
-- Rename ``loosebidict`` to :class:`LooseBidict <bidict.LooseBidict>`
-- Rename ``orderedbidict`` to :class:`OrderedBidict <bidict.OrderedBidict>`
-- Rename ``frozenorderedbidict`` to :class:`FrozenOrderedBidict <bidict.FrozenOrderedBidict>`
-- Rename ``looseorderedbidict`` to :class:`LooseOrderedBidict <bidict.LooseOrderedBidict>`
+The following classes were renamed for better style guide compliance:
+
+- ``frozenbidict`` → :class:`FrozenBidict <bidict.FrozenBidict>`
+- ``loosebidict`` → :class:`LooseBidict <bidict.LooseBidict>`
+- ``orderedbidict`` → :class:`OrderedBidict <bidict.OrderedBidict>`
+- ``frozenorderedbidict`` → :class:`FrozenOrderedBidict <bidict.FrozenOrderedBidict>`
+- ``looseorderedbidict`` → :class:`LooseOrderedBidict <bidict.LooseOrderedBidict>`
 
 
 0.13.1 (2017-03-15)
@@ -211,7 +217,7 @@ Breaking API Changes
   (It may continue to work, but is no longer being tested.)
 
 Breaking API Changes
-^^^^^^^^^^^^^^^^^^^^
+++++++++++++++++++++
 
 - Rename ``KeyExistsException`` to :class:`KeyDuplicationError <bidict.KeyDuplicationError>`
   and ``ValueExistsException`` to :class:`ValueDuplicationError <bidict.ValueDuplicationError>`.
@@ -288,7 +294,7 @@ Breaking API Changes
   which could leave a bidict in an inconsistent state.
 
 Breaking API Changes
-^^^^^^^^^^^^^^^^^^^^
+++++++++++++++++++++
 
 - Remove ``bidict.__invert__``, and with it, support for the ``~b`` syntax.
   Use :attr:`b.inv <bidict.BidictBase.inv>` instead.
@@ -346,7 +352,7 @@ Breaking API Changes
 - Other code, tests, and docs improvements.
 
 Breaking API Changes
-^^^^^^^^^^^^^^^^^^^^
+++++++++++++++++++++
 
 - Move ``bidict.iteritems`` and ``bidict.viewitems``
   to new :mod:`bidict.compat` module.

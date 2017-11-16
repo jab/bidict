@@ -9,7 +9,8 @@ from ._ordered import OrderedBidictBase
 from .compat import PYPY, iteritems
 
 
-class FrozenBidictBase(BidictBase):
+# https://discuss.lgtm.com/t/inconsistent-equality-and-hashing-false-positive/713
+class FrozenBidictBase(BidictBase):  # lgtm [py/equals-hash-mismatch]
     """Base class for frozen bidict types."""
 
     @abstractmethod
@@ -33,7 +34,7 @@ class FrozenBidictBase(BidictBase):
         """
         return NotImplemented  # pragma: no cover
 
-    def __hash__(self):
+    def __hash__(self):  # lgtm [py/equals-hash-mismatch]
         """
         Return the hash of this frozen bidict from its contained items.
 
@@ -55,14 +56,14 @@ class FrozenBidictBase(BidictBase):
         final derived hash, to differentiate it from the hash of a different
         type of collection comprising the same items (e.g. frozenset or tuple).
         """
-        if hasattr(self, '_hashval'):  # Cached on the first call.
-            return self._hashval  # pylint: disable=E0203
-        # pylint: disable=W0201
-        self._hashval = hashval = hash((self.__class__, self._compute_hash()))
-        return hashval
+        if hasattr(self, '_hash'):  # Cached on the first call.
+            return self._hash  # pylint: disable=access-member-before-definition
+        # pylint: disable=attribute-defined-outside-init
+        self._hash = hash_ = hash((self.__class__, self._compute_hash()))
+        return hash_
 
 
-class FrozenBidict(FrozenBidictBase):
+class FrozenBidict(FrozenBidictBase):  # lgtm [py/equals-hash-mismatch]
     """
     Regular frozen bidict type.
 
@@ -71,15 +72,12 @@ class FrozenBidict(FrozenBidictBase):
         Defaults to ``True`` on PyPy and ``False`` otherwise.
         Override this to change the default behavior of :attr:`_compute_hash`.
         See :attr:`_compute_hash` for more information.
-
     """
 
     _USE_ITEMSVIEW_HASH = PYPY
 
-    # Python sets __hash__ to None implicitly if not defined explicitly.
-    def __hash__(self):  # Make its own method with its own docstring.
-        """Delegate to :attr:`FrozenBidictBase.__hash__`."""
-        return FrozenBidictBase.__hash__(self)
+    # __hash__ is not inherited. Python sets it to None if not set explicitly.
+    __hash__ = FrozenBidictBase.__hash__  # lgtm [py/equals-hash-mismatch]
 
     def _compute_hash(self):
         """
@@ -97,13 +95,13 @@ class FrozenBidict(FrozenBidictBase):
         # ItemsView(self)._hash() is faster than combining
         # KeysView(self)._hash() with KeysView(self.inv)._hash().
         if self._USE_ITEMSVIEW_HASH:
-            return ItemsView(self)._hash()  # pylint: disable=W0212
+            return ItemsView(self)._hash()  # pylint: disable=protected-access
 
         # frozenset(iteritems(self)) is faster than frozenset(ItemsView(self)).
         return hash(frozenset(iteritems(self)))
 
 
-class FrozenOrderedBidict(OrderedBidictBase, FrozenBidictBase):
+class FrozenOrderedBidict(OrderedBidictBase, FrozenBidictBase):  # lgtm [py/equals-hash-mismatch]
     """
     Ordered frozen bidict type.
 
@@ -113,15 +111,12 @@ class FrozenOrderedBidict(OrderedBidictBase, FrozenBidictBase):
         value. Defaults to ``None``, signifying that all items participate.
         Override to limit the time and space complexity of :attr:`_compute_hash`.
         See :attr:`_compute_hash` for more information.
-
     """
 
     _HASH_NITEMS_MAX = None
 
-    # Python sets __hash__ to None implicitly if not defined explicitly.
-    def __hash__(self):  # Make its own method with its own docstring.
-        """Delegate to :attr:`FrozenBidictBase.__hash__`."""
-        return FrozenBidictBase.__hash__(self)
+    # __hash__ is not inherited. Python sets it to None if not set explicitly.
+    __hash__ = FrozenBidictBase.__hash__  # lgtm [py/equals-hash-mismatch]
 
     def _compute_hash(self):
         r"""

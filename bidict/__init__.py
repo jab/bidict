@@ -49,7 +49,7 @@ __all__ = (
 try:
     from pkg_resources import resource_string
     __version__ = resource_string(__name__, 'VERSION').decode('ascii').strip()
-# pylint: disable=W0703
+# pylint: disable=broad-except
 except Exception as exc:  # pragma: no cover
     from warnings import warn
     warn('Failed to read/set version: %r' % exc)

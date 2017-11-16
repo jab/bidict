@@ -22,15 +22,20 @@ tests_require = [
     'flake8==3.5.0',
     'hypothesis==3.34.1',
     'hypothesis-pytest==0.19.0',
-    'py==1.4.34',
+    'py==1.5.2',
     'pylint==1.7.4',
     'pydocstyle==2.1.1',
-    'pytest==3.2.3',
+    'pytest==3.2.5',
     'pytest-benchmark==3.1.1',
     'pytest-cov==2.5.1',
-    'Sphinx==1.6.4',
-    'sortedcollections==0.4.2',
-    'sortedcontainers==1.5.5',
+    'Sphinx==1.6.5',
+    'sortedcollections==0.5.3',
+    'sortedcontainers==1.5.7',
+]
+
+dev_require = tests_require + [
+    'pre-commit==1.4.1',
+    'tox==2.9.1',
 ]
 
 setup(
@@ -57,6 +62,7 @@ setup(
         'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: Implementation :: CPython',
         'Programming Language :: Python :: Implementation :: PyPy',
         'Topic :: Scientific/Engineering :: Mathematics',
@@ -65,6 +71,6 @@ setup(
     tests_require=tests_require,
     extras_require=dict(
         test=tests_require,
-        dev=tests_require + ['pre-commit==1.3.0', 'tox==2.9.1'],
+        dev=dev_require,
     ),
 )

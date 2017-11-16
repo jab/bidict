@@ -3,7 +3,7 @@ bidict
 
 Efficient, Pythonic bidirectional map implementation and related functionality.
 
-.. image:: https://raw.githubusercontent.com/jab/bidict/master/_static/logo-256.png
+.. image:: ./_static/logo.png
     :target: https://bidict.readthedocs.io/
     :alt: bidict logo
 
@@ -16,7 +16,7 @@ Status
 ..     :target: https://pypi.python.org/pypi/bidict
 ..     :alt: Downloads per month
 
-.. image:: https://img.shields.io/pypi/v/bidict.svg
+.. image:: https://img.shields.io/pypi/v/bidict.svg?colorB=65C838
     :target: https://pypi.python.org/pypi/bidict
     :alt: Latest release
 
@@ -45,13 +45,17 @@ Status
 ..     :target: https://pypi.python.org/pypi/bidict
 ..     :alt: Supported Python implementations
 
+.. image:: https://img.shields.io/badge/chat-on--gitter-5AB999.svg?logo=gitter-white
+    :target: https://gitter.im/jab/bidict
+    :alt: Chat
+
+.. image:: https://img.shields.io/badge/Say%20Thanks-😊-1EAEDB.svg
+    :target: https://saythanks.io/to/jab
+    :alt: Say thanks
+
 .. image:: https://img.shields.io/pypi/l/bidict.svg
     :target: https://raw.githubusercontent.com/jab/bidict/master/LICENSE
     :alt: License
-
-.. image:: https://img.shields.io/gitter/room/jab/bidict.svg
-    :target: https://gitter.im/jab/bidict
-    :alt: Chat
 
 
 Bidict:
@@ -75,9 +79,9 @@ or if you have any questions, comments, or suggestions,
 I'd love to know about your use case
 and provide as much support for it as possible.
 
-If you are already using bidict and
-you or your organization would be considered a significant user,
-please `let me know <mailto:jab@math.brown.edu>`_ you're using it!
+If you are already using bidict and especially if
+you/your organization is a significant user,
+please `let me know <https://saythanks.io/to/jab>`_ you're using it!
 
 Please feel free to leave a message in the
 `chatroom <https://gitter.im/jab/bidict>`_
