@@ -1,8 +1,9 @@
 """Utilities for working with one-to-one relations."""
 
-from .compat import iteritems
 from collections import Mapping
 from itertools import chain
+
+from .compat import iteritems
 
 
 def pairs(*args, **kw):
@@ -20,21 +21,21 @@ def pairs(*args, **kw):
 
     :raises TypeError: if more than one positional arg is given.
     """
-    it = None
+    argsiter = None
     if args:
         arg = _arg0(args)
         if arg:
-            it = iteritems(arg) if isinstance(arg, Mapping) else iter(arg)
+            argsiter = iteritems(arg) if isinstance(arg, Mapping) else iter(arg)
     if kw:
-        it2 = iteritems(kw)
-        it = chain(it, it2) if it else it2
-    return it or iter(())
+        kwiter = iteritems(kw)
+        argsiter = chain(argsiter, kwiter) if argsiter else kwiter
+    return argsiter or iter(())
 
 
 def _arg0(args):
-    l = len(args)
-    if l != 1:
-        raise TypeError('Expected at most 1 positional argument, got %d' % l)
+    args_len = len(args)
+    if args_len != 1:
+        raise TypeError('Expected at most 1 positional argument, got %d' % args_len)
     return args[0]
 
 
@@ -51,5 +52,5 @@ def inverted(data):
 
 def _inverted(data):
     # This is faster than `return imap(tuple, imap(reversed, pairs(data)))`:
-    for (k, v) in pairs(data):
-        yield (v, k)
+    for (key, val) in pairs(data):
+        yield (val, key)

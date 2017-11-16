@@ -6,10 +6,27 @@ Changelog
 .. include:: release-notifications.rst.inc
 
 
-0.13.2.dev0 (not yet released)
+0.14.0.dev0 (not yet released)
 ------------------------------
 
-- Add official support for latest pypy3.
+- Internal code improvements
+- Improvements to CI, including:
+
+  - Test on macOS and Windows
+  - Test with PyPy3
+  - Test with CPython 3.7-dev
+  - Add pylint
+
+Breaking API Changes
+++++++++++++++++++++
+
+The following classes were renamed for better style guide compliance:
+
+- ``frozenbidict`` → :class:`FrozenBidict <bidict.FrozenBidict>`
+- ``loosebidict`` → :class:`LooseBidict <bidict.LooseBidict>`
+- ``orderedbidict`` → :class:`OrderedBidict <bidict.OrderedBidict>`
+- ``frozenorderedbidict`` → :class:`FrozenOrderedBidict <bidict.FrozenOrderedBidict>`
+- ``looseorderedbidict`` → :class:`LooseOrderedBidict <bidict.LooseOrderedBidict>`
 
 
 0.13.1 (2017-03-15)
@@ -55,33 +72,33 @@ Changelog
 - A new
   :class:`FrozenBidictBase <bidict.FrozenBidictBase>` class
   has been factored out of
-  :class:`frozenbidict <bidict.frozenbidict>` and
-  :class:`frozenorderedbidict <bidict.frozenorderedbidict>`.
+  :class:`frozenbidict <bidict.FrozenBidict>` and
+  :class:`frozenorderedbidict <bidict.FrozenOrderedBidict>`.
   This implements common behavior such as caching the result of
   :attr:`__hash__ <bidict.FrozenBidictBase.__hash__>`
   after the first call.
 
 - The hash implementations of
-  :class:`frozenbidict <bidict.frozenbidict>` and
-  :class:`frozenorderedbidict <bidict.frozenorderedbidict>`.
+  :class:`frozenbidict <bidict.FrozenBidict>` and
+  :class:`frozenorderedbidict <bidict.FrozenOrderedBidict>`.
   have been reworked to improve performance and flexibility:
 
   :attr:`frozenorderedbidict's hash implementation
-  <bidict.frozenorderedbidict._compute_hash>` is now order-sensitive.
+  <bidict.FrozenOrderedBidict._compute_hash>` is now order-sensitive.
   Since ``frozenorderedbidict([(k1, v1), (k2, v2)])`` does not equal
   ``frozenorderedbidict([(k2, v2), (k1, v1)])``,
   their hashes shouldn't be equal either. Avoids hash collisions when inserting
   such objects into the same set or mapping.
 
   See
-  :attr:`frozenbidict._compute_hash <bidict.frozenbidict._compute_hash>` and
-  :attr:`frozenorderedbidict._compute_hash <bidict.frozenorderedbidict._compute_hash>`
+  :attr:`frozenbidict._compute_hash <bidict.FrozenBidict._compute_hash>` and
+  :attr:`frozenorderedbidict._compute_hash <bidict.FrozenOrderedBidict._compute_hash>`
   for more documentation of the changes,
   including the new
   :attr:`frozenbidict._USE_ITEMSVIEW_HASH
-  <bidict.frozenbidict._USE_ITEMSVIEW_HASH>` and
+  <bidict.FrozenBidict._USE_ITEMSVIEW_HASH>` and
   :attr:`frozenorderedbidict._HASH_NITEMS_MAX
-  <bidict.frozenorderedbidict._HASH_NITEMS_MAX>`
+  <bidict.FrozenOrderedBidict._HASH_NITEMS_MAX>`
   attributes.
   If you have an interesting use case that requires overriding these,
   or suggestions for an alternative implementation,
@@ -159,14 +176,14 @@ Changelog
   Internally, this is implemented by storing a log of changes
   made while an update is being processed, and rolling back the changes
   when one of them is found to cause an error.
-  This required reimplementing :class:`orderedbidict <bidict.orderedbidict>`
+  This required reimplementing :class:`orderedbidict <bidict.OrderedBidict>`
   on top of two dicts and a linked list, rather than two OrderedDicts,
   since :class:`OrderedDict <collections.OrderedDict>` does not expose
   its underlying linked list.
 
-- :func:`orderedbidict.move_to_end() <bidict.orderedbidict.move_to_end>`
+- :func:`orderedbidict.move_to_end() <bidict.OrderedBidict.move_to_end>`
   now works on Python < 3.2 as a result of the new
-  :class:`orderedbidict <bidict.orderedbidict>` implementation.
+  :class:`orderedbidict <bidict.OrderedBidict>` implementation.
 
 - Add
 
@@ -191,7 +208,7 @@ Changelog
   for use with the :mod:`copy` module.
 
 - Fix issue preventing a client class from inheriting from
-  :class:`loosebidict <bidict.loosebidict>`
+  :class:`loosebidict <bidict.LooseBidict>`
   (see `#34 <https://github.com/jab/bidict/issues/34>`_).
 
 - Add benchmarking to tests.
@@ -200,12 +217,12 @@ Changelog
   (It may continue to work, but is no longer being tested.)
 
 Breaking API Changes
-^^^^^^^^^^^^^^^^^^^^
+++++++++++++++++++++
 
 - Rename ``KeyExistsException`` to :class:`KeyDuplicationError <bidict.KeyDuplicationError>`
   and ``ValueExistsException`` to :class:`ValueDuplicationError <bidict.ValueDuplicationError>`.
 
-- When overwriting the key of an existing value in an :class:`orderedbidict <bidict.orderedbidict>`,
+- When overwriting the key of an existing value in an :class:`orderedbidict <bidict.OrderedBidict>`,
   the position of the existing item is now preserved,
   overwriting the key of the existing item in place,
   rather than moving the item to the end.
@@ -219,9 +236,9 @@ Breaking API Changes
 
   For example::
 
-      >>> from bidict import orderedbidict
-      >>> o = orderedbidict([(0, 1), (2, 3)])
-      >>> o.forceput(4, 1)
+      >>> from bidict import orderedbidict  # doctest: +SKIP
+      >>> o = orderedbidict([(0, 1), (2, 3)])  # doctest: +SKIP
+      >>> o.forceput(4, 1)  # doctest: +SKIP
 
   previously would have resulted in::
 
@@ -230,7 +247,7 @@ Breaking API Changes
 
   but now results in::
 
-      >>> o
+      >>> o  # doctest: +SKIP
       orderedbidict([(4, 1), (2, 3)])
 
 
@@ -238,10 +255,10 @@ Breaking API Changes
 -------------------
 
 - Add
-  :class:`bidict.orderedbidict`,
-  :class:`bidict.looseorderedbidict`,
+  :class:`orderedbidict <bidict.OrderedBidict>`,
+  :class:`looseorderedbidict <bidict.LooseOrderedBidict>`,
   and
-  :class:`bidict.frozenorderedbidict`.
+  :class:`frozenorderedbidict <bidict.FrozenOrderedBidict>`.
 
 - Add :doc:`Code of Conduct <code-of-conduct>`
   (`<./CODE_OF_CONDUCT.rst>`_ |
@@ -277,7 +294,7 @@ Breaking API Changes
   which could leave a bidict in an inconsistent state.
 
 Breaking API Changes
-^^^^^^^^^^^^^^^^^^^^
+++++++++++++++++++++
 
 - Remove ``bidict.__invert__``, and with it, support for the ``~b`` syntax.
   Use :attr:`b.inv <bidict.BidictBase.inv>` instead.
@@ -296,7 +313,7 @@ Breaking API Changes
   when attempting to insert a mapping with a non-unique key.
   `#21 <https://github.com/jab/bidict/issues/21>`_
 
-- Rename ``collapsingbidict`` to :class:`loosebidict <bidict.loosebidict>`
+- Rename ``collapsingbidict`` to :class:`loosebidict <bidict.LooseBidict>`
   now that it suppresses
   ``ValueExistsException``
   rather than the less general ``CollapseException``.
@@ -335,7 +352,7 @@ Breaking API Changes
 - Other code, tests, and docs improvements.
 
 Breaking API Changes
-^^^^^^^^^^^^^^^^^^^^
+++++++++++++++++++++
 
 - Move ``bidict.iteritems`` and ``bidict.viewitems``
   to new :mod:`bidict.compat` module.

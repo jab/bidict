@@ -9,7 +9,7 @@ its refcount will not drop to zero
 because its inverse still has a reference to it.
 Reference cycles are also created
 in the doubly-linked list that backs an
-:class:`orderedbidict <bidict.orderedbidict>` instance.
+:class:`OrderedBidict <bidict.OrderedBidict>` instance.
 
 As long as your Python implementation's
 garbage collector has not been disabled,

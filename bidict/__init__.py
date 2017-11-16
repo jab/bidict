@@ -15,10 +15,10 @@ from ._common import (BidirectionalMapping, BidictBase, BidictException,
                       DuplicationError, KeyDuplicationError, ValueDuplicationError,
                       KeyAndValueDuplicationError)
 from ._bidict import bidict
-from ._frozen import FrozenBidictBase, frozenbidict, frozenorderedbidict
-from ._loose import loosebidict, looseorderedbidict
+from ._frozen import FrozenBidictBase, FrozenBidict, FrozenOrderedBidict
+from ._loose import LooseBidict, LooseOrderedBidict
 from ._named import namedbidict
-from ._ordered import OrderedBidictBase, orderedbidict
+from ._ordered import OrderedBidictBase, OrderedBidict
 from .util import pairs, inverted
 
 __all__ = (
@@ -34,14 +34,14 @@ __all__ = (
     'ValueDuplicationError',
     'KeyAndValueDuplicationError',
     'bidict',
-    'loosebidict',
-    'looseorderedbidict',
+    'LooseBidict',
+    'LooseOrderedBidict',
     'FrozenBidictBase',
-    'frozenbidict',
-    'frozenorderedbidict',
+    'FrozenBidict',
+    'FrozenOrderedBidict',
     'namedbidict',
     'OrderedBidictBase',
-    'orderedbidict',
+    'OrderedBidict',
     'pairs',
     'inverted',
 )
@@ -49,6 +49,7 @@ __all__ = (
 try:
     from pkg_resources import resource_string
     __version__ = resource_string(__name__, 'VERSION').decode('ascii').strip()
-except Exception as e:  # pragma: no cover
+# pylint: disable=broad-except
+except Exception as exc:  # pragma: no cover
     from warnings import warn
-    warn('Failed to read/set version: %r' % e)
+    warn('Failed to read/set version: %r' % exc)

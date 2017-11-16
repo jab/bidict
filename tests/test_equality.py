@@ -1,29 +1,36 @@
-import pytest
+"""
+Equality tests.
+"""
+
 from collections import Counter, OrderedDict, Mapping, defaultdict
-from bidict import bidict, frozenbidict, frozenorderedbidict, namedbidict, orderedbidict
 from itertools import combinations, product
 
+import pytest
+from bidict import FrozenBidict, FrozenOrderedBidict, OrderedBidict, bidict, namedbidict
 
-class dictsubcls(dict):
+
+# pylint: disable=C0111
+class DictSubcls(dict):
     pass
 
 
-class orderedbidictsubcls(orderedbidict):
+class OrderedBidictSubcls(OrderedBidict):
     pass
 
 
+# pylint: disable=C0103
 items = [('a', 1), ('b', 2)]  # use int values so makes sense with Counter
 itemsreversed = list(reversed(items))
 
 bidict_items = bidict(items)
-frozenbidict_items = frozenbidict(items)
+frozenbidict_items = FrozenBidict(items)
 namedbidict_items = namedbidict('named', 'keys', 'vals')(items)
-orderedbidict_items = orderedbidict(items)
-orderedbidict_itemsreversed = orderedbidict(itemsreversed)
-orderedbidictsubcls_items = orderedbidictsubcls(items)
-orderedbidictsubcls_itemsreversed = orderedbidictsubcls(itemsreversed)
-frozenorderedbidict_items = frozenorderedbidict(items)
-frozenorderedbidict_itemsreversed = frozenorderedbidict(itemsreversed)
+orderedbidict_items = OrderedBidict(items)
+orderedbidict_itemsreversed = OrderedBidict(itemsreversed)
+orderedbidictsubcls_items = OrderedBidictSubcls(items)
+orderedbidictsubcls_itemsreversed = OrderedBidictSubcls(itemsreversed)
+frozenorderedbidict_items = FrozenOrderedBidict(items)
+frozenorderedbidict_itemsreversed = FrozenOrderedBidict(itemsreversed)
 bidicts = (
     bidict_items,
     frozenbidict_items,
@@ -39,7 +46,7 @@ bidicts = (
 dict_itemsreversed = dict(itemsreversed)
 counter_itemsreversed = Counter(dict_itemsreversed)
 defaultdict_itemsreversed = defaultdict(lambda x: None, itemsreversed)
-dictsubcls_itemsreversed = dictsubcls(itemsreversed)
+dictsubcls_itemsreversed = DictSubcls(itemsreversed)
 ordereddict_items = OrderedDict(items)
 ordereddict_itemsreversed = OrderedDict(itemsreversed)
 empty_dict = {}

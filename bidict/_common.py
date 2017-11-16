@@ -1,9 +1,10 @@
 """Provides various common functionality."""
 
-from .compat import PY2, iteritems
-from .util import pairs
 from abc import abstractproperty
 from collections import ItemsView, Mapping
+
+from .compat import PY2, iteritems
+from .util import pairs
 
 
 class BidirectionalMapping(Mapping):
@@ -14,7 +15,6 @@ class BidirectionalMapping(Mapping):
 
         The attributes that :attr:`__subclasshook__` checks for to determine
         whether a class is a subclass of :class:`BidirectionalMapping`.
-
     """
 
     __slots__ = ()
@@ -37,7 +37,9 @@ class BidirectionalMapping(Mapping):
     })
 
     @classmethod
-    def __subclasshook__(cls, C):
+    def __subclasshook__(cls, C):  # noqa: N803 ("argument name should be lowercase")
+        # Standard to use "C" for this arg in __subclasshook__, e.g.:
+        # https://github.com/python/cpython/blob/d505a2/Lib/_collections_abc.py#L93
         """Check if C provides all the attributes in :attr:`_subclsattrs`.
 
         Causes conforming classes to be virtual subclasses automatically.
@@ -48,15 +50,15 @@ class BidirectionalMapping(Mapping):
         return NotImplemented
 
 
-class _marker(object):
-    def __init__(self, id):
-        self.id = id
+class _Marker(object):
+    def __init__(self, name):
+        self.name = name
 
     def __repr__(self):
-        return '<%s>' % self.id  # pragma: no cover
+        return '<%s>' % self.name  # pragma: no cover
 
 
-class DuplicationBehavior(_marker):
+class DuplicationBehavior(_Marker):
     """
     Provide RAISE, OVERWRITE, IGNORE, and ON_DUP_VAL duplication behaviors.
 
@@ -77,7 +79,6 @@ class DuplicationBehavior(_marker):
 
         Used with *on_dup_kv* to specify that it should match whatever the
         duplication behavior of *on_dup_val* is.
-
     """
 
 
@@ -85,12 +86,13 @@ DuplicationBehavior.RAISE = RAISE = DuplicationBehavior('RAISE')
 DuplicationBehavior.OVERWRITE = OVERWRITE = DuplicationBehavior('OVERWRITE')
 DuplicationBehavior.IGNORE = IGNORE = DuplicationBehavior('IGNORE')
 DuplicationBehavior.ON_DUP_VAL = ON_DUP_VAL = DuplicationBehavior('ON_DUP_VAL')
-_missing = _marker('MISSING')
+_MISS = _Marker('MISSING')
 
 
 def _proxied(methodname, attrname='_fwd', doc=None):
     """Make a func that calls the indicated method on the indicated attribute."""
     def proxy(self, *args):
+        """(__doc__ set dynamically below)"""
         attr = getattr(self, attrname)
         meth = getattr(attr, methodname)
         return meth(*args)
@@ -144,7 +146,6 @@ class BidictBase(BidirectionalMapping):
     .. py:attribute:: _on_dup_kv
 
         :class:`DuplicationBehavior` in the event of key and value duplication.
-
     """
 
     _on_dup_key = OVERWRITE
@@ -164,30 +165,32 @@ class BidictBase(BidirectionalMapping):
 
     def _init_inv(self):
         inv = object.__new__(self.__class__)
+        # pylint: disable=protected-access
         inv._isinv = not self._isinv
         inv._fwd_class = self._inv_class
         inv._inv_class = self._fwd_class
         inv._fwd = self._inv
         inv._inv = self._fwd
-        inv.__inv = self
-        self.__inv = inv
+        inv._inverse = self
+        self._inverse = inv
 
     @property
     def inv(self):
         """The inverse bidict."""
-        return self.__inv
+        return self._inverse
 
     def __repr__(self):
-        s = self.__class__.__name__ + '('
+        tmpl = self.__class__.__name__ + '('
         if not self:
-            return s + ')'
+            return tmpl + ')'
+        tmpl += '%r)'
         # If we have a truthy __reversed__ attribute, use an ordered repr.
         # (Python doesn't provide an Ordered or OrderedMapping ABC, else we'd
-        # use that. Must use getattr rather than hasattr since __reversed__
+        # check that. Must use getattr rather than hasattr since __reversed__
         # may be set to None, which signifies non-ordered/-reversible.)
-        if getattr(self, '__reversed__', None):
-            return s + '[' + ', '.join(repr(i) for i in iteritems(self)) + '])'
-        return s + '{' + ', '.join('%r: %r' % i for i in iteritems(self)) + '})'
+        ordered = bool(getattr(self, '__reversed__', False))
+        delegate = list if ordered else dict
+        return tmpl % delegate(iteritems(self))
 
     def __eq__(self, other):
         # This should be faster than using Mapping.__eq__'s implementation.
@@ -227,10 +230,10 @@ class BidictBase(BidirectionalMapping):
         """
         fwd = self._fwd
         inv = self._inv
-        fwdbykey = fwd.get(key, _missing)
-        invbyval = inv.get(val, _missing)
-        isdupkey = fwdbykey is not _missing
-        isdupval = invbyval is not _missing
+        fwdbykey = fwd.get(key, _MISS)
+        invbyval = inv.get(val, _MISS)
+        isdupkey = fwdbykey is not _MISS
+        isdupval = invbyval is not _MISS
         if isdupkey and isdupval:
             if self._isdupitem(key, val, invbyval, fwdbykey):
                 # (key, val) duplicates an existing item -> no-op.
@@ -256,7 +259,8 @@ class BidictBase(BidirectionalMapping):
         # else neither isdupkey nor isdupval.
         return isdupkey, isdupval, invbyval, fwdbykey
 
-    def _isdupitem(self, key, val, oldkey, oldval):
+    @staticmethod
+    def _isdupitem(key, val, oldkey, oldval):
         dup = oldkey == key
         assert dup == (oldval == val)
         return dup
@@ -284,7 +288,6 @@ class BidictBase(BidirectionalMapping):
 
     def _update_rbf(self, on_dup_key, on_dup_val, on_dup_kv, *args, **kw):
         """Update, rolling back on failure."""
-        exc = None
         writes = []
         appendwrite = writes.append
         dedup_item = self._dedup_item
@@ -292,17 +295,14 @@ class BidictBase(BidirectionalMapping):
         for (key, val) in pairs(*args, **kw):
             try:
                 dedup_result = dedup_item(key, val, on_dup_key, on_dup_val, on_dup_kv)
-            except DuplicationError as e:
-                exc = e
-                break
+            except DuplicationError:
+                undo_write = self._undo_write
+                for write in reversed(writes):
+                    undo_write(*write)
+                raise
             if dedup_result:
                 write_result = write_item(key, val, *dedup_result)
                 appendwrite(write_result)
-        if exc:
-            undo_write = self._undo_write
-            for write in reversed(writes):
-                undo_write(*write)
-            raise exc
 
     def _undo_write(self, key, val, isdupkey, isdupval, oldkey, oldval):
         fwd = self._fwd
@@ -326,6 +326,7 @@ class BidictBase(BidirectionalMapping):
         # This should be faster than ``return self.__class__(self)`` because
         # it avoids the unnecessary duplicate checking.
         copy = object.__new__(self.__class__)
+        # pylint: disable=protected-access,attribute-defined-outside-init
         copy._isinv = self._isinv
         copy._fwd = self._fwd.copy()
         copy._inv = self._inv.copy()
@@ -335,8 +336,8 @@ class BidictBase(BidirectionalMapping):
         cinv._inv_class = self._fwd_class
         cinv._fwd = copy._inv
         cinv._inv = copy._fwd
-        cinv.__inv = copy
-        copy.__inv = cinv
+        cinv._inverse = copy
+        copy._inverse = cinv
         return copy
 
     __copy__ = copy
@@ -359,7 +360,7 @@ class BidictBase(BidirectionalMapping):
         # Use ItemsView here rather than proxying to _fwd.viewitems() so that
         # OrderedBidictBase (whose _fwd's values are nodes, not bare values)
         # can use it.
-        viewitems = lambda self: ItemsView(self)
+        viewitems = ItemsView
 
 
 class BidictException(Exception):

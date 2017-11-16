@@ -7,12 +7,14 @@ from bidict.compat import PY2
 
 
 class DumbBidirectionalMapping(dict):
+    """Dummy type implementing the BidirectionalMapping interface."""
     def __inverted__(self):
         for (key, val) in self.items():
             yield (val, key)
 
     @property
     def inv(self):
+        """Like :attr:`bidict.bidict.inv`."""
         return DumbBidirectionalMapping(self.__inverted__())
 
 
@@ -22,6 +24,7 @@ if PY2:
 
 
 def test_subclasshook():
+    """Ensure issubclass works as expected."""
     assert issubclass(DumbBidirectionalMapping, BidirectionalMapping)
     assert not issubclass(dict, BidirectionalMapping)
     if PY2:  # Make sure this works with old-style classes as expected.

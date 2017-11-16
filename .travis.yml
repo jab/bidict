@@ -1,38 +1,71 @@
-language: python
+language: generic
 
 env:
   global:
     - PYENV_ROOT="$HOME/.pyenv"
     - PYENV="$PYENV_ROOT/bin/pyenv"
-    #- BENCHMARK_DIR="$HOME/.benchmarks"
-    #- BENCHMARK_SKIP="--benchmark-skip"
 
 matrix:
   include:
-    - python: "pypy"
+    # One-off jobs. Override "script" to do something other than run pytest.
+    # Use latest CPython 3 for these. Set a "TASK" var so the task is evident in the build matrix.
+    - script: ./build-docs.sh linkcheck
       env:
-        - PYENV_PYTHON_VER=pypy2.7-portable-5.9.0
-    - python: "pypy3"
-      env:
-        - PYENV_PYTHON_VER=pypy3.5-portable-5.9.0
-    - python: "2.7"
-      env:
-        - PYENV_PYTHON_VER=2.7.14
-    - python: "3.5"
-      env:
-        - PYENV_PYTHON_VER=3.5.3
-    - python: "3.6"
-      env:
+        - TASK=build-docs
         - PYENV_PYTHON_VER=3.6.3
-        # Only generate coverage report on the job for latest Python 3
-        - BIDICT_COVERAGE_ENABLE=1
-    - python: "3.6"
+    - script: pylint bidict tests/*.py
       env:
-        - BIDICT_BUILD_DOCS_INSTEAD=1
+        - TASK=pylint
+        - PYENV_PYTHON_VER=3.6.3
+    - script: flake8 bidict tests/*.py
+      env:
+        - TASK=flake8
+        - PYENV_PYTHON_VER=3.6.3
+    - script: pydocstyle bidict
+      env:
+        - TASK=pydocstyle
+        - PYENV_PYTHON_VER=3.6.3
+
+    # Test all supported Python versions on macOS...
+    - os: osx
+      env: PYENV_PYTHON_VER=2.7.14
+    - os: osx
+      env: PYENV_PYTHON_VER=3.4.7
+    - os: osx
+      env: PYENV_PYTHON_VER=3.5.3
+    - os: osx
+      env: PYENV_PYTHON_VER=3.6.3
+    - os: osx
+      env: PYENV_PYTHON_VER=3.7-dev
+    - os: osx
+      env: PYENV_PYTHON_VER=pypy2.7-5.9.0
+    # not yet working on macOS? works on linux:
+    #- os: osx
+    #- env: PYENV_PYTHON_VER=pypy3.5-5.9.0
+
+    # ...and Linux.
+    - env: PYENV_PYTHON_VER=2.7.14
+    - env: PYENV_PYTHON_VER=3.4.7
+    - env: PYENV_PYTHON_VER=3.5.3
+    # Enable coverage just for the latest stable Python 3 version on Linux.
+    - env: PYENV_PYTHON_VER=3.6.3
+      script:
+        - py.test --cov=bidict --cov-config=.coveragerc
+        - travis_retry pip install coveralls && coveralls
+    - env: PYENV_PYTHON_VER=3.7-dev
+    - env: PYENV_PYTHON_VER=pypy2.7-5.9.0
+    - env: PYENV_PYTHON_VER=pypy3.5-5.9.0
+
+before_install:
+  - |
+      git --no-pager log -n2
+      echo "TRAVIS_PULL_REQUEST_SHA: $TRAVIS_PULL_REQUEST_SHA"
+      echo "TRAVIS_COMMIT: $TRAVIS_COMMIT"
 
 install:
   # based on https://github.com/frol/flask-restplus-server-example/blob/018f48e5/.travis.yml
   - |
+      set -e
       if [[ -n "$PYENV_PYTHON_VER" ]]; then
         if [[ -f "$PYENV" ]]; then
           pushd "$PYENV_ROOT" && git pull && popd
@@ -47,24 +80,19 @@ install:
         $PYTHON -m virtualenv --python="$PYTHON" "$VENV"
         source "$VENV/bin/activate"
       fi
-  - travis_retry pip install -e .[test]
-  - test -z "$BIDICT_COVERAGE_ENABLE" || travis_retry pip install coveralls
+      travis_retry pip install -e .[test]
 
 script:
-  - if [[ -n "$BIDICT_BUILD_DOCS_INSTEAD" ]]; then ./build-docs.sh; else ./test.sh; fi
+  - py.test
+
+before_cache:
+  - rm -rf $HOME/.cache/pip/log
 
 cache:
   directories:
     - $HOME/.cache/pip
     - $HOME/.hypothesis
     - $PYENV_ROOT
-    #- $BENCHMARK_DIR
-
-before_cache:
-  - rm -rf $HOME/.cache/pip/log
-
-after_success:
-  - test -z "$BIDICT_COVERAGE_ENABLE" || coveralls
 
 sudo: false
 
@@ -72,12 +100,20 @@ notifications:
   webhooks:
     urls:
       - https://webhooks.gitter.im/e/bf64fb45a633c0935b9b
+  email:
+    recipients: jab@math.brown.edu
 
 deploy:
-  provider: pypi
-  user: jab
-  password:
-    secure: B9LLgXkTbtjeC/IbH4wh9PEBzvKEAuYo3EBNW5f1xuLqVqtsysIyxJa5ar/FQ4qwUCBwZPFAXFurN3lLzRhb2Tc04YQ0GYVv6f8lkzwrjoWau4iB9Qt/nnvdRa7KryEJvtenHCAnwoEUaADCjkZjwo6fIA0hEOLB6/AYfhfgXYA=
-  on:
-    tags: true
-    branch: master
+  - provider: pypi
+    user: jab
+    password:
+      secure: B9LLgXkTbtjeC/IbH4wh9PEBzvKEAuYo3EBNW5f1xuLqVqtsysIyxJa5ar/FQ4qwUCBwZPFAXFurN3lLzRhb2Tc04YQ0GYVv6f8lkzwrjoWau4iB9Qt/nnvdRa7KryEJvtenHCAnwoEUaADCjkZjwo6fIA0hEOLB6/AYfhfgXYA=
+    on:
+      tags: true
+
+  # https://docs.travis-ci.com/user/deployment/releases/
+  - provider: releases
+    api_key:
+      secure: 02GCTV4ja1dWQqzIznOdvVdJfEcIIougCv2OsQapDr6KjtgzpcBvDC4Z57eDsZX2JwharKdz3CmYJaRLCIDkVCYiyBxovO6v8o4Kww21v/4KMkpBmoGQmn9WiR1NYiK+dxlQb59+9t/DTYT39Wq6ZD+3sCETRdRZgraMNZWr8sA=
+    on:
+      tags: true

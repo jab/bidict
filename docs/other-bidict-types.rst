@@ -5,7 +5,7 @@ Other ``bidict`` Types
 
 Now that we've covered
 :ref:`basic usage of bidict.bidict <basic-usage>` and
-:ref:`bidict.loosebidict <loosebidict>`,
+:ref:`bidict.LooseBidict <LooseBidict>`,
 let's look at the remaining bidict types
 and the hierarchy they belong to.
 
@@ -35,11 +35,11 @@ Users will typically only interact with subclasses of this class.
 
 Inheriting from :class:`BidictBase <bidict.BidictBase>`
 are the already-discussed
-:class:`bidict.bidict` and :class:`bidict.loosebidict`,
+:class:`bidict.bidict` and :class:`bidict.LooseBidict`,
 which implement :class:`collections.abc.MutableMapping`.
 
 Also inheriting from :class:`BidictBase <bidict.BidictBase>`
-is :class:`bidict.frozenbidict`,
+is :class:`bidict.FrozenBidict`,
 the first immutable bidict you'll meet.
 
 .. include:: frozenbidict.rst.inc

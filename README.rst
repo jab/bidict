@@ -3,7 +3,7 @@ bidict
 
 Efficient, Pythonic bidirectional map implementation and related functionality.
 
-.. image:: https://raw.githubusercontent.com/jab/bidict/master/_static/logo-256.png
+.. image:: ./_static/logo.png
     :target: https://bidict.readthedocs.io/
     :alt: bidict logo
 
@@ -16,17 +16,21 @@ Status
 ..     :target: https://pypi.python.org/pypi/bidict
 ..     :alt: Downloads per month
 
-.. image:: https://img.shields.io/pypi/v/bidict.svg
+.. image:: https://img.shields.io/pypi/v/bidict.svg?colorB=65C838
     :target: https://pypi.python.org/pypi/bidict
     :alt: Latest release
 
-.. image:: https://readthedocs.org/projects/bidict/badge/?version=master
+.. image:: https://img.shields.io/readthedocs/bidict/master.svg
     :target: https://bidict.readthedocs.io/en/master/
     :alt: Documentation
 
 .. image:: https://travis-ci.org/jab/bidict.svg?branch=master
     :target: https://travis-ci.org/jab/bidict
-    :alt: Build status
+    :alt: Travis-CI build status (Linux and macOS)
+
+.. image:: https://ci.appveyor.com/api/projects/status/gk133415udncwto3/branch/master?svg=true
+    :target: https://ci.appveyor.com/project/jab/bidict
+    :alt: AppVeyor build status (Windows)
 
 .. image:: https://coveralls.io/repos/jab/bidict/badge.svg?branch=master
     :target: https://coveralls.io/github/jab/bidict
@@ -36,39 +40,48 @@ Status
 .. .. image:: https://img.shields.io/pypi/pyversions/bidict.svg
 ..     :target: https://pypi.python.org/pypi/bidict
 ..     :alt: Supported Python versions
+..
+.. .. image:: https://img.shields.io/pypi/implementation/bidict.svg
+..     :target: https://pypi.python.org/pypi/bidict
+..     :alt: Supported Python implementations
 
-.. image:: https://img.shields.io/pypi/implementation/bidict.svg
-    :target: https://pypi.python.org/pypi/bidict
-    :alt: Supported Python implementations
+.. image:: https://img.shields.io/badge/chat-on--gitter-5AB999.svg?logo=gitter-white
+    :target: https://gitter.im/jab/bidict
+    :alt: Chat
+
+.. image:: https://img.shields.io/badge/Say%20Thanks-😊-1EAEDB.svg
+    :target: https://saythanks.io/to/jab
+    :alt: Say thanks
 
 .. image:: https://img.shields.io/pypi/l/bidict.svg
     :target: https://raw.githubusercontent.com/jab/bidict/master/LICENSE
     :alt: License
 
-.. image:: https://badges.gitter.im/join%20chat.svg
-    :target: https://gitter.im/jab/bidict
-    :alt: Chat
 
-Bidict is the standard bidirectional mapping library for Python.
+Bidict:
+^^^^^^^
 
-Bidict is...
-
-- in use by several teams at Google, Bank of America Merrill Lynch,
+- is in use by several teams at Google, Bank of America Merrill Lynch,
   and many others,
 - has carefully designed APIs for
   safety, ergonomics, performance, and intuitiveness,
 - is CPython-, PyPy-, Python 2-, and Python 3-compatible,
-- has 100% test coverage,
+- has extensive `test coverage <https://coveralls.io/github/jab/bidict>`_,
   including property-based tests and benchmarks,
+  which are run continuously on all supported Python versions and OSes,
 - integrates with Python’s collections interfaces and abstract base classes,
 - is thoroughly and attentively documented,
   and
-- the code is mature, concise, and well-reviewed.
+- is made up of mature, concise, and well-reviewed code.
 
 If you are thinking of using bidict in your work,
 or if you have any questions, comments, or suggestions,
 I'd love to know about your use case
 and provide as much support for it as possible.
+
+If you are already using bidict and especially if
+you/your organization is a significant user,
+please `let me know <https://saythanks.io/to/jab>`_ you're using it!
 
 Please feel free to leave a message in the
 `chatroom <https://gitter.im/jab/bidict>`_
@@ -76,22 +89,26 @@ or `open an issue <https://github.com/jab/bidict/issues>`_
 after reviewing the :doc:`contributors-guide`. [#fn-contributing]_
 
 
-.. copy/paste rather than `include` so this renders on GitHub:
+Changelog
+---------
+
+For a history of notable changes to bidict,
+check out the :doc:`changelog`. [#fn-changelog]_
+
+
 .. .. include:: release-notifications.rst.inc
+.. duplicate rather than `include` release-notifications so it renders on GitHub:
 
 Release Notifications
-^^^^^^^^^^^^^^^^^^^^^
+---------------------
 
-.. image:: https://img.shields.io/badge/VersionEye-follow-brightgreen.svg
-    :target: https://www.versioneye.com/python/bidict
-    :alt: Follow on VersionEye
+.. image:: https://img.shields.io/badge/Sibbell-follow-brightgreen.svg
+    :target: https://sibbell.com/github/jab/bidict/releases/
+    :alt: Follow on Sibbell
 
 
-Tip: `Follow bidict on VersionEye <https://www.versioneye.com/python/bidict>`_
-to automatically be notified via email
-when a new version of bidict is released.
-
-.. end pasted release-notifications.rst.inc content
+Tip: `Follow bidict on Sibbell <https://sibbell.com/github/jab/bidict/releases/>`_
+to be notified via email when a new version of bidict is released.
 
 
 Installation
@@ -140,13 +157,6 @@ please consider supporting bidict's maintenance and development.
 
 For information about contributing to the code,
 please see the :doc:`contributors-guide`. [#fn-contributing]_
-
-
-Changelog
----------
-
-For a history of notable changes to bidict,
-check out the :doc:`changelog`. [#fn-changelog]_
 
 
 Alternate Links

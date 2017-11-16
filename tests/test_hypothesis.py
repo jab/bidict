@@ -2,22 +2,24 @@
 Property-based tests using https://hypothesis.readthedocs.io
 """
 
-from bidict import (
-    IGNORE, OVERWRITE, RAISE,
-    bidict, loosebidict, looseorderedbidict, orderedbidict,
-    frozenbidict, frozenorderedbidict)
-from bidict.compat import iteritems
 from collections import OrderedDict
+from os import getenv
+
+import pytest
 from hypothesis import assume, given, settings, unlimited
 from hypothesis.strategies import integers, lists, tuples
-from os import getenv
-import pytest
+from bidict import (
+    IGNORE, OVERWRITE, RAISE,
+    bidict, LooseBidict, LooseOrderedBidict, OrderedBidict,
+    FrozenBidict, FrozenOrderedBidict)
+from bidict.compat import iteritems
 
 
 settings.register_profile('default', settings(max_examples=200, timeout=unlimited))
 settings.load_profile(getenv('HYPOTHESIS_PROFILE', 'default'))
 
 
+# pylint: disable=C0111
 def to_inv_odict(items):
     return OrderedDict((v, k) for (k, v) in items)
 
@@ -28,9 +30,10 @@ def dedup(items):
     return pruned
 
 
+# pylint: disable=C0103
 ondupbehaviors = (IGNORE, OVERWRITE, RAISE)
-mutable_bidict_types = (bidict, loosebidict, looseorderedbidict, orderedbidict)
-bidict_types = mutable_bidict_types + (frozenbidict, frozenorderedbidict)
+mutable_bidict_types = (bidict, LooseBidict, LooseOrderedBidict, OrderedBidict)
+bidict_types = mutable_bidict_types + (FrozenBidict, FrozenOrderedBidict)
 mutating_methods_by_arity = {
     0: ('clear', 'popitem'),
     1: ('__delitem__', 'pop', 'setdefault', 'move_to_end'),
@@ -44,7 +47,7 @@ inititems = itemlists.map(dedup)
 
 @pytest.mark.parametrize('B', bidict_types)
 @given(init=inititems)
-def test_equality(B, init):
+def test_equality(B, init):  # noqa
     b = B(init)
     d = dict(init)
     o = OrderedDict(init)
@@ -62,9 +65,9 @@ def test_equality(B, init):
 
 @pytest.mark.parametrize('B', bidict_types)
 @given(init=inititems)
-def test_bidirectional_mappings(B, init):
+def test_bidirectional_mappings(B, init):  # noqa
     ordered = hasattr(B, '__reversed__')
-    C = list if ordered else sorted
+    C = list if ordered else sorted  # noqa
     b = B(init)
     keysf = C(k for (k, v) in iteritems(b))
     keysi = C(b.inv[v] for (k, v) in iteritems(b))
@@ -74,9 +77,10 @@ def test_bidirectional_mappings(B, init):
     assert valsf == valsi
 
 
-@pytest.mark.parametrize('arity, methodname',
+@pytest.mark.parametrize(
+    'arity, methodname',
     [(a, m) for (a, ms) in iteritems(mutating_methods_by_arity) for m in ms])
-@pytest.mark.parametrize('B', mutable_bidict_types)
+@pytest.mark.parametrize('B', mutable_bidict_types)  # noqa
 @given(init=inititems, arg1=immutable, arg2=immutable, items=itemlists)
 def test_consistency_after_mutation(arity, methodname, B, init, arg1, arg2, items):
     method = getattr(B, methodname, None)
@@ -94,10 +98,10 @@ def test_consistency_after_mutation(arity, methodname, B, init, arg1, arg2, item
     b1 = b0.copy()
     try:
         method(b1, *args)
-    except:
+    except Exception as exc:  # pylint: disable=W0703
         # All methods should fail clean.
-        assert b1 == b0
-        assert b1.inv == b0.inv
+        assert b1 == b0, '%r did not fail clean' % exc
+        assert b1.inv == b0.inv, '%r did not fail clean' % exc
         return
     # Method succeeded -> b1 should pass consistency checks.
     assert b1 == to_inv_odict(iteritems(b1.inv))
@@ -109,23 +113,23 @@ def test_consistency_after_mutation(arity, methodname, B, init, arg1, arg2, item
 @pytest.mark.parametrize('on_dup_val', ondupbehaviors)
 @pytest.mark.parametrize('on_dup_kv', ondupbehaviors)
 @given(init=inititems, items=itemlists)
-def test_putall(B, on_dup_key, on_dup_val, on_dup_kv, init, items):
+def test_putall(B, on_dup_key, on_dup_val, on_dup_kv, init, items):  # noqa
     b0 = B(init)
     expect = b0.copy()
     expectexc = None
     for (k, v) in items:
         try:
             expect.put(k, v, on_dup_key=on_dup_key, on_dup_val=on_dup_val, on_dup_kv=on_dup_kv)
-        except Exception as e:
-            expectexc = e
+        except Exception as exc:  # pylint: disable=W0703
+            expectexc = exc
             expect = b0  # bulk updates fail clean
             break
     check = b0.copy()
     checkexc = None
     try:
         check.putall(items, on_dup_key=on_dup_key, on_dup_val=on_dup_val, on_dup_kv=on_dup_kv)
-    except Exception as e:
-        checkexc = e
-    assert type(checkexc) == type(expectexc)
+    except Exception as exc:  # pylint: disable=W0703
+        checkexc = exc
+    assert type(checkexc) == type(expectexc)  # pylint: disable=C0123
     assert check == expect
     assert check.inv == expect.inv

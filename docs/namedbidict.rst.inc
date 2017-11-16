@@ -22,10 +22,10 @@ with custom attribute-based access to forward and inverse mappings::
 The *base_type* keyword arg,
 whose default value is :class:`bidict.bidict`,
 allows overriding the bidict type used as the base class,
-allowing the creation of e.g. namedfrozenbidicts::
+allowing the creation of e.g. named frozen bidicts::
 
-    >>> from bidict import frozenbidict
-    >>> ElMap = namedbidict('ElMap', 'sym', 'el', base_type=frozenbidict)
+    >>> from bidict import FrozenBidict
+    >>> ElMap = namedbidict('ElMap', 'sym', 'el', base_type=FrozenBidict)
     >>> noble = ElMap(He='helium')
     >>> hash(noble) is not 'an error'
     True
