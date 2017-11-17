@@ -151,7 +151,8 @@ class OrderedBidictBase(BidictBase):
             data.clear()
             data[key] = oldval
             data[oldval] = key
-            assert inv.pop(val) is nodefwd
+            tmp = inv.pop(val)
+            assert tmp is nodefwd
             inv[oldval] = nodefwd
             assert fwd[key] is nodefwd
         elif isdupval:
@@ -159,7 +160,8 @@ class OrderedBidictBase(BidictBase):
             data.clear()
             data[oldkey] = val
             data[val] = oldkey
-            assert fwd.pop(key) is nodeinv
+            tmp = fwd.pop(key)
+            assert tmp is nodeinv
             fwd[oldkey] = nodeinv
             assert inv[val] is nodeinv
 

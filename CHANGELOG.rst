@@ -81,11 +81,11 @@ Breaking API Changes
   unordered mappings containing the same items), the number of items
   that influence the hash value should not be limitable.
 
-- The following were renamed for better compliance with proper code style:
+- The following were renamed for better code style:
 
   - ``FrozenBidictBase._compute_hash`` → :attr:`FrozenBidict.compute_hash
     <bidict.FrozenBidict.compute_hash>`
-  - ``FrozenBidict._USE_ITEMSVIEW_HASH`` → :attr:`FrozenBidict.USE_ITEMSVIEW_HASH
+  - ``frozenbidict._USE_ITEMSVIEW_HASH`` → :attr:`FrozenBidict.USE_ITEMSVIEW_HASH
     <bidict.FrozenBidict.USE_ITEMSVIEW_HASH>`
   - ``frozenbidict`` → :class:`FrozenBidict <bidict.FrozenBidict>`
   - ``loosebidict`` → :class:`LooseBidict <bidict.LooseBidict>`
