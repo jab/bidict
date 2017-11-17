@@ -18,23 +18,26 @@ long_description = from_file('README.rst', 'See https://bidict.readthedocs.org')
 
 
 tests_require = [
-    'coverage==4.4.2',
-    'flake8==3.5.0',
     'hypothesis==3.34.1',
     'hypothesis-pytest==0.19.0',
     'py==1.5.2',
-    'pylint==1.7.4',
-    'pydocstyle==2.1.1',
     'pytest==3.2.5',
     'pytest-benchmark==3.1.1',
-    'pytest-cov==2.5.1',
-    'Sphinx==1.6.5',
     'sortedcollections==0.5.3',
     'sortedcontainers==1.5.7',
 ]
 
-dev_require = tests_require + [
+coverage_requires = [
+    'coverage==4.4.2',
+    'pytest-cov==2.5.1',
+]
+
+dev_requires = tests_require + coverage_requires + [
+    'Sphinx==1.6.5',
+    'flake8==3.5.0',
     'pre-commit==1.4.1',
+    'pydocstyle==2.1.1',
+    'pylint==1.7.4',
     'tox==2.9.1',
 ]
 
@@ -71,6 +74,7 @@ setup(
     tests_require=tests_require,
     extras_require=dict(
         test=tests_require,
-        dev=dev_require,
+        coverage=coverage_requires,
+        dev=dev_requires,
     ),
 )

@@ -4,57 +4,87 @@ env:
   global:
     - PYENV_ROOT="$HOME/.pyenv"
     - PYENV="$PYENV_ROOT/bin/pyenv"
+    # Default Python version. Used for jobs that don't specify one.
+    - PYVER=3.6.3
 
 matrix:
   include:
-    # One-off jobs. Override "script" to do something other than run pytest.
-    # Use latest CPython 3 for these. Set a "TASK" var so the task is evident in the build matrix.
-    - script: ./build-docs.sh linkcheck
-      env:
-        - TASK=build-docs
-        - PYENV_PYTHON_VER=3.6.3
-    - script: pylint bidict tests/*.py
-      env:
-        - TASK=pylint
-        - PYENV_PYTHON_VER=3.6.3
-    - script: flake8 bidict tests/*.py
-      env:
-        - TASK=flake8
-        - PYENV_PYTHON_VER=3.6.3
-    - script: pydocstyle bidict
-      env:
-        - TASK=pydocstyle
-        - PYENV_PYTHON_VER=3.6.3
+    # Each job performs a single task, and sets a "TASK" var so it's evident in the build matrix.
 
-    # Test all supported Python versions on macOS...
-    - os: osx
-      env: PYENV_PYTHON_VER=2.7.14
-    - os: osx
-      env: PYENV_PYTHON_VER=3.4.7
-    - os: osx
-      env: PYENV_PYTHON_VER=3.5.3
-    - os: osx
-      env: PYENV_PYTHON_VER=3.6.3
-    - os: osx
-      env: PYENV_PYTHON_VER=3.7-dev
-    - os: osx
-      env: PYENV_PYTHON_VER=pypy2.7-5.9.0
-    # not yet working on macOS? works on linux:
-    #- os: osx
-    #- env: PYENV_PYTHON_VER=pypy3.5-5.9.0
+    # One-off jobs. Override "script" to do something other than run the default (pytest).
+    - env: TASK=build-docs
+      before_script: travis_retry pip install -U Sphinx
+      script: ./build-docs.sh linkcheck
+    - env: TASK=pylint
+      before_script: travis_retry pip install -U pylint
+      script: pylint bidict tests/*.py
+    - env: TASK=flake8
+      before_script: travis_retry pip install -U flake8
+      script: flake8 bidict tests/*.py
+    - env: TASK=pydocstyle
+      before_script: travis_retry pip install -U pydocstyle
+      script: pydocstyle bidict
 
-    # ...and Linux.
-    - env: PYENV_PYTHON_VER=2.7.14
-    - env: PYENV_PYTHON_VER=3.4.7
-    - env: PYENV_PYTHON_VER=3.5.3
-    # Enable coverage just for the latest stable Python 3 version on Linux.
-    - env: PYENV_PYTHON_VER=3.6.3
+    # Test with all supported Python versions on Linux.
+    # Only run these tests for master since they're so slow on Travis.
+    - env: TASK=pytest PYVER=2.7.14
+      if: branch = master
+    - env: TASK=pytest PYVER=3.4.7
+      if: branch = master
+    - env: TASK=pytest PYVER=3.5.3
+      if: branch = master
+    # Enable coverage for the latest stable Python 3 release on Linux.
+    - env: TASK=pytest PYVER=3.6.3 COVERAGE=1
+      if: branch = master
+      before_script: travis_retry pip install -e .[coverage]
       script:
-        - py.test --cov=bidict --cov-config=.coveragerc
-        - travis_retry pip install coveralls && coveralls
-    - env: PYENV_PYTHON_VER=3.7-dev
-    - env: PYENV_PYTHON_VER=pypy2.7-5.9.0
-    - env: PYENV_PYTHON_VER=pypy3.5-5.9.0
+        - |
+            set -e
+            py.test --cov=bidict --cov-config=.coveragerc
+            travis_retry pip install coveralls
+            coveralls
+    - env: TASK=pytest PYVER=3.7-dev
+      if: branch = master
+    - env: TASK=pytest PYVER=pypy2.7-5.9.0
+      if: branch = master
+    - env: TASK=pytest PYVER=pypy3.5-5.9.0
+      if: branch = master
+
+    # Test with all supported Python versions on macOS.
+    - env: TASK=pytest PYVER=2.7.14
+      if: branch = master
+      os: osx
+      osx_image: xcode9.1
+    - env: TASK=pytest PYVER=3.4.7
+      if: branch = master
+      os: osx
+      osx_image: xcode9.1
+    - env: TASK=pytest PYVER=3.5.3
+      if: branch = master
+      os: osx
+      osx_image: xcode9.1
+    - env: TASK=pytest PYVER=3.6.3
+      if: branch = master
+      os: osx
+      osx_image: xcode9.1
+    - env: TASK=pytest PYVER=3.7-dev
+      if: branch = master
+      os: osx
+      osx_image: xcode9.1
+    - env: TASK=pytest PYVER=pypy2.7-5.9.0
+      if: branch = master
+      os: osx
+      osx_image: xcode9.1
+    - env: TASK=pytest PYVER=pypy3.5-5.9.0
+      if: branch = master
+      os: osx
+      osx_image: xcode9.1
+      # PyPy3 not available for osx64 via pyenv. Install from homebrew instead:
+      before_install: brew update  # Do not remove: https://github.com/Homebrew/brew/issues/3299
+      install:
+        - brew install pypy3
+        - pip_pypy3 install -e .[test]
+      script: pypy3 -m pytest
 
 before_install:
   - |
@@ -63,20 +93,19 @@ before_install:
       echo "TRAVIS_COMMIT: $TRAVIS_COMMIT"
 
 install:
-  # based on https://github.com/frol/flask-restplus-server-example/blob/018f48e5/.travis.yml
   - |
       set -e
-      if [[ -n "$PYENV_PYTHON_VER" ]]; then
+      if [[ -n "$PYVER" ]]; then
         if [[ -f "$PYENV" ]]; then
           pushd "$PYENV_ROOT" && git pull && popd
         else
           rm -rf "$PYENV_ROOT" && git clone --depth 1 https://github.com/yyuu/pyenv.git "$PYENV_ROOT"
         fi
-        "$PYENV" install --skip-existing "$PYENV_PYTHON_VER"
-        export PYTHON="$PYENV_ROOT/versions/$PYENV_PYTHON_VER/bin/python"
+        "$PYENV" install --skip-existing "$PYVER"
+        export PYTHON="$PYENV_ROOT/versions/$PYVER/bin/python"
         $PYTHON -m ensurepip --upgrade
         $PYTHON -m pip install --upgrade virtualenv
-        export VENV="$HOME/virtualenvs/$PYENV_PYTHON_VER"
+        export VENV="$HOME/virtualenvs/$PYVER"
         $PYTHON -m virtualenv --python="$PYTHON" "$VENV"
         source "$VENV/bin/activate"
       fi
