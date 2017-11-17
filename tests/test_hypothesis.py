@@ -6,7 +6,7 @@ from collections import OrderedDict
 from os import getenv
 
 import pytest
-from hypothesis import assume, given, settings, unlimited
+from hypothesis import assume, given, settings
 from hypothesis.strategies import integers, lists, tuples
 from bidict import (
     IGNORE, OVERWRITE, RAISE,
@@ -15,7 +15,7 @@ from bidict import (
 from bidict.compat import iteritems
 
 
-settings.register_profile('default', settings(max_examples=200, timeout=unlimited))
+settings.register_profile('default', settings(max_examples=200, deadline=300))
 settings.load_profile(getenv('HYPOTHESIS_PROFILE', 'default'))
 
 
@@ -66,7 +66,7 @@ def test_equality(B, init):  # noqa
 @pytest.mark.parametrize('B', bidict_types)
 @given(init=inititems)
 def test_bidirectional_mappings(B, init):  # noqa
-    ordered = hasattr(B, '__reversed__')
+    ordered = bool(getattr(B, '__reversed__', None))
     C = list if ordered else sorted  # noqa
     b = B(init)
     keysf = C(k for (k, v) in iteritems(b))

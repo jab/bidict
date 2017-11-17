@@ -15,6 +15,8 @@ _END = _Marker('END')
 class OrderedBidictBase(BidictBase):
     """Base class for :class:`OrderedBidict` and :class:`FrozenOrderedBidict`."""
 
+    ordered = True
+
     def __init__(self, *args, **kw):
         """Like :meth:`collections.OrderedDict.__init__`."""
         # pylint: disable=super-init-not-called
@@ -181,22 +183,31 @@ class OrderedBidictBase(BidictBase):
             yield key
 
     def __eq__(self, other):
+        """Like :meth:`collections.OrderedDict.__eq__`."""
         if not isinstance(other, Mapping):
             return NotImplemented
         if len(self) != len(other):
             return False
-        if self._should_compare_order_sensitive(other):
+        if self.should_compare_order_sensitive_to(other):
             return all(i == j for (i, j) in izip(iteritems(self), iteritems(other)))
         return all(self.get(k, _MISS) == v for (k, v) in iteritems(other))
 
     @staticmethod
-    def _should_compare_order_sensitive(mapping):
-        """Whether we should compare order-sensitively to ``mapping``.
+    def should_compare_order_sensitive_to(mapping):  # pylint: disable=invalid-name
+        r"""Whether we should compare order-sensitively to ``mapping``.
 
-        Returns True iff ``isinstance(mapping, OrderedBidictBase)``.
-        Override this in a subclass to customize this behavior.
+        If ``mapping`` has an ``ordered`` attribute, return its value.
+
+        Otherwise, returns True iff ``mapping`` has a ``__reversed__`` method
+        *and* ``mapping.__class__`` is not :py:class:`dict`.
+        (Unlike in CPython, in PyPY, :py:class:`dict`\s have a
+        ``__reversed__`` method but should nonetheless compare
+        order-insensitively.)
+
+        Override this method if different behavior is desired.
         """
-        return isinstance(mapping, OrderedBidictBase)
+        return getattr(mapping, 'ordered', False) or \
+            bool(getattr(mapping, '__reversed__', False)) and mapping.__class__ is not dict
 
 
 class OrderedBidict(OrderedBidictBase, bidict):

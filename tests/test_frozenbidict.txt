@@ -18,34 +18,11 @@ Insertable into sets and dicts::
     >>> dict.fromkeys(fs) and set(fs) is not 'an error'
     True
 
-Can toggle _USE_ITEMSVIEW_HASH (affects space complexity but should produce the
+Can toggle USE_ITEMSVIEW_HASH (affects space complexity but should produce the
 same result)::
 
-    >>> FrozenBidict._USE_ITEMSVIEW_HASH = not FrozenBidict._USE_ITEMSVIEW_HASH
-    >>> hash(f1.copy()) == f1._hash  # matches value computed + cached on f1 before toggling
-    True
-
-Unlikely that different types of collections comprising the same items hash to
-the same value::
-
-    >>> hash(f1) == hash(frozenset(f1.items()))  # very unlikely
-    False
-    >>> from itertools import chain  # FrozenOrderedBidict._compute_hash flattens items
-    >>> hash(f2) == hash(tuple(chain.from_iterable(f2.items())))  # very unlikely
-    False
-
-To reduce hash collisions with unequal frozenorderedbidicts with the same items,
-FrozenOrderedBidict.__hash__ is order-sensitive::
-
-    >>> f1 != f2
-    True
-    >>> hash(f1) == hash(f2)  # very unlikely
-    False
-
-Can customize FrozenOrderedBidict._compute_hash to limit the number of items
-considered::
-
-    >>> FrozenOrderedBidict._HASH_NITEMS_MAX = 1
-    >>> hash(FrozenOrderedBidict([(1, 1), (2, 2)])) == \
-    ... hash(FrozenOrderedBidict([(1, 1), (3, 3)]))  # second items ignored
+    >>> f0 = FrozenBidict(zip(range(100), range(100)))
+    >>> h0 = hash(f0)
+    >>> FrozenBidict.USE_ITEMSVIEW_HASH = not FrozenBidict.USE_ITEMSVIEW_HASH
+    >>> h0 == hash(f0.copy())
     True

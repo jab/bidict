@@ -15,7 +15,7 @@ from ._common import (BidirectionalMapping, BidictBase, BidictException,
                       DuplicationError, KeyDuplicationError, ValueDuplicationError,
                       KeyAndValueDuplicationError)
 from ._bidict import bidict
-from ._frozen import FrozenBidictBase, FrozenBidict, FrozenOrderedBidict
+from ._frozen import FrozenBidict, FrozenOrderedBidict
 from ._loose import LooseBidict, LooseOrderedBidict
 from ._named import namedbidict
 from ._ordered import OrderedBidictBase, OrderedBidict
@@ -36,7 +36,6 @@ __all__ = (
     'bidict',
     'LooseBidict',
     'LooseOrderedBidict',
-    'FrozenBidictBase',
     'FrozenBidict',
     'FrozenOrderedBidict',
     'namedbidict',

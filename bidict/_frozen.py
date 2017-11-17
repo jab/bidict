@@ -1,147 +1,76 @@
 """Implements the frozen (immutable, hashable) bidict types."""
 
-from abc import abstractmethod
 from collections import ItemsView
-from itertools import chain, islice
 
 from ._common import BidictBase
 from ._ordered import OrderedBidictBase
 from .compat import PYPY, iteritems
 
 
-# https://discuss.lgtm.com/t/inconsistent-equality-and-hashing-false-positive/713
-class FrozenBidictBase(BidictBase):  # lgtm [py/equals-hash-mismatch]
-    """Base class for frozen bidict types."""
-
-    @abstractmethod
-    def _compute_hash(self):
-        """
-        Abstract method to actually compute the hash.
-
-        Default implementations are provided by
-        :class:`FrozenBidict` and :class:`FrozenOrderedBidict`,
-        with tunable behavior via
-        :attr:`_USE_ITEMSVIEW_HASH <FrozenBidict._USE_ITEMSVIEW_HASH>` and
-        :attr:`_HASH_NITEMS_MAX <FrozenOrderedBidict._HASH_NITEMS_MAX>`,
-        respectively.
-
-        If greater customization is needed,
-        you can override this method in a subclass,
-        but make sure you define :attr:`__hash__` in your subclass explicitly
-        (e.g. "``__hash__ = FrozenBidictBase.__hash__``"), as Python does not
-        resolve :attr:`__hash__` to a base class implementation through
-        inheritance; it will implicitly be set to ``None`` if you don't.
-        """
-        return NotImplemented  # pragma: no cover
-
-    def __hash__(self):  # lgtm [py/equals-hash-mismatch]
-        """
-        Return the hash of this frozen bidict from its contained items.
-
-        Delegates to :attr:`_compute_hash` on the first call,
-        then caches the result to make future calls *O(1)*.
-
-        As a result, in the event that two distinct frozen bidict instances hash
-        into the same bucket in a set or mapping, the time spent in ``__hash__``
-        will generally be dominated by the time spent ``__eq__`` (which must be
-        called to check if a hash collision between two unequal instances has
-        actually occurred). If they are unequal, the ``__eq__`` call may short
-        circuit in sublinear time, but in the worst case it will be *O(n)*. If
-        they are equal, the call will always be *O(n)*. So, if inserting frozen
-        bidicts into a set or mapping, the more items in the bidicts, the more
-        the benefits of ``__hash__`` distributing unequal instances into
-        different buckets.
-
-        The result of :attr:`_compute_hash` is combined with the class in a
-        final derived hash, to differentiate it from the hash of a different
-        type of collection comprising the same items (e.g. frozenset or tuple).
-        """
-        if hasattr(self, '_hash'):  # Cached on the first call.
-            return self._hash  # pylint: disable=access-member-before-definition
-        # pylint: disable=attribute-defined-outside-init
-        self._hash = hash_ = hash((self.__class__, self._compute_hash()))
-        return hash_
-
-
-class FrozenBidict(FrozenBidictBase):  # lgtm [py/equals-hash-mismatch]
+class FrozenBidict(BidictBase):
     """
     Regular frozen bidict type.
 
-    .. py:attribute:: _USE_ITEMSVIEW_HASH
+    Provides a default implementation of :meth:`compute_hash`
+    with tunable behavior via :attr:`USE_ITEMSVIEW_HASH`.
 
-        Defaults to ``True`` on PyPy and ``False`` otherwise.
-        Override this to change the default behavior of :attr:`_compute_hash`.
-        See :attr:`_compute_hash` for more information.
+    If greater customization is needed,
+    override :meth:`compute_hash` in a subclass.
+
+    .. py:attribute:: USE_ITEMSVIEW_HASH
+
+        Defaults to True on PyPy and False otherwise.
+        Override this to change the default behavior of :attr:`compute_hash`.
+        See :attr:`compute_hash` for more information.
     """
 
-    _USE_ITEMSVIEW_HASH = PYPY
+    USE_ITEMSVIEW_HASH = PYPY
 
-    # __hash__ is not inherited. Python sets it to None if not set explicitly.
-    __hash__ = FrozenBidictBase.__hash__  # lgtm [py/equals-hash-mismatch]
-
-    def _compute_hash(self):
+    def compute_hash(self):
         """
-        If :attr:`_USE_ITEMSVIEW_HASH` is ``True``,
+        If :attr:`USE_ITEMSVIEW_HASH` is True,
         use the pure Python implementation of Python's frozenset hashing
         algorithm from ``collections.Set._hash`` to compute the hash
         incrementally in constant space.
 
-        Otherwise, create an ephemeral frozenset out of the contained items
-        and pass it to :func:`hash`. On CPython, this results in the faster
+        Otherwise, create an ephemeral :py:class:`frozenset` from the contained
+        items and pass it to :func:`hash`. On CPython, this results in the faster
         ``frozenset_hash`` routine (implemented in ``setobject.c``) being used.
         CPython does not expose a way to use the fast C implementation of the
         algorithm without creating a frozenset.
         """
-        # ItemsView(self)._hash() is faster than combining
-        # KeysView(self)._hash() with KeysView(self.inv)._hash().
-        if self._USE_ITEMSVIEW_HASH:
+        if self.USE_ITEMSVIEW_HASH:
             return ItemsView(self)._hash()  # pylint: disable=protected-access
+        itemsiter = iteritems(self)
+        return hash(frozenset(itemsiter))
 
-        # frozenset(iteritems(self)) is faster than frozenset(ItemsView(self)).
-        return hash(frozenset(iteritems(self)))
-
-
-class FrozenOrderedBidict(OrderedBidictBase, FrozenBidictBase):  # lgtm [py/equals-hash-mismatch]
-    """
-    Ordered frozen bidict type.
-
-    .. py:attribute:: _HASH_NITEMS_MAX
-
-        The maximum number of items that participate in influencing the hash
-        value. Defaults to ``None``, signifying that all items participate.
-        Override to limit the time and space complexity of :attr:`_compute_hash`.
-        See :attr:`_compute_hash` for more information.
-    """
-
-    _HASH_NITEMS_MAX = None
-
-    # __hash__ is not inherited. Python sets it to None if not set explicitly.
-    __hash__ = FrozenBidictBase.__hash__  # lgtm [py/equals-hash-mismatch]
-
-    def _compute_hash(self):
-        r"""
-        Because items are ordered,
-        this uses Python's tuple hashing algorithm
-        to compute a hash of the contained items.
-
-        Python does not expose a way to use its tuple hashing algorithm on an
-        arbitrary iterable, so to use the algorithm, an ephemeral tuple from
-        the contained items must be created and passed to :func:`hash`.
-        i.e. The space complexity of this method is not constant. However,
-        on CPython, this results in the ``tuplehash`` routine implemented in
-        ``tupleobject.c`` being used, so this is faster than computing the hash
-        incrementally in pure Python, which could be done in constant space.
-
-        Time and space complexity can be bounded by overriding
-        :attr:`_HASH_NITEMS_MAX` to limit the number of items that participate
-        in influencing the hash value. This is safe because contained items
-        have a guaranteed ordering, so not all items need to participate in the
-        hash to guarantee that two equal :class:`FrozenOrderedBidict`\ s have
-        the same hash value, as long as both use the same :attr:`_HASH_NITEMS_MAX`.
+    def __hash__(self):
         """
-        items = islice(iteritems(self), self._HASH_NITEMS_MAX)
-        # Flatten [(k1, v1), (k2, v2), ...] to [k1, v1, k2, v2, ...] for a bit
-        # of a speedup (avoids unnecessary recursive calls to tuplehash).
-        # Ok because unflattened1 == unflattened2 <==> flattened1 == flattened2
-        items = chain.from_iterable(items)
-        return hash(tuple(items))
+        Return the hash of this frozen bidict from its contained items.
+
+        Delegates to :attr:`compute_hash` on the first call,
+        then caches the result to make future calls *O(1)*.
+        """
+        if hasattr(self, '_hash'):  # Cached on the first call.
+            return self._hash  # pylint: disable=access-member-before-definition
+        self._hash = self.compute_hash()  # pylint: disable=attribute-defined-outside-init
+        return self._hash
+
+
+class FrozenOrderedBidict(OrderedBidictBase, FrozenBidict):
+    r"""Ordered frozen bidict type.
+
+    Inherits :class:`FrozenBidict`\'s
+    :attr:`compute_hash <FrozenBidict.compute_hash>`
+    implementation.
+
+    This causes two :class:`FrozenOrderedBidict`\s with the same items
+    in different order to get the same hash value even though they are unequal,
+    leading to more hash collisions when inserting them into a set or mapping.
+    However, this is necessary because a :class:`FrozenOrderedBidict` and a
+    :class:`FrozenBidict` with the same items should compare equal, and so
+    they must also hash to the same value.
+    """
+
+    # __hash__ must be set explicitly, will not be inherited from base class.
+    __hash__ = FrozenBidict.__hash__

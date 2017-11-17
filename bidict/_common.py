@@ -109,6 +109,14 @@ class BidictBase(BidirectionalMapping):
     which implements all the shared logic.
     Users will typically only interact with subclasses of this class.
 
+    .. py:attribute:: ordered
+
+        Whether this bidict's items should be considered ordered
+        for the purpose of equality comparison with another ordered mapping.
+
+        Always returns False, since in this base class we presume no ordering.
+        Subclasses with ordered items override this as needed.
+
     .. py:attribute:: _fwd
 
         The backing one-way dict for the forward items.
@@ -147,6 +155,8 @@ class BidictBase(BidirectionalMapping):
 
         :class:`DuplicationBehavior` in the event of key and value duplication.
     """
+
+    ordered = False
 
     _on_dup_key = OVERWRITE
     _on_dup_val = RAISE
@@ -193,6 +203,7 @@ class BidictBase(BidirectionalMapping):
         return tmpl % delegate(iteritems(self))
 
     def __eq__(self, other):
+        """Like :py:meth:`dict.__eq__`."""
         # This should be faster than using Mapping.__eq__'s implementation.
         return self._fwd == other
 

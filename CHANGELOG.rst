@@ -9,26 +9,37 @@ Changelog
 0.14.0.dev0 (not yet released)
 ------------------------------
 
-- Fix a rare bug that could happen when using Python's `-O` flag
+- Add the :attr:`bidict.BidictBase.ordered` class attribute.
+
+- Add the :attr:`OrderedBidictBase.should_compare_order_sensitive_to
+  <bidict.OrderedBidictBase.should_compare_order_sensitive_to>`
+  public static method, replacing the previous
+  ``OrderedBidictBase._should_compare_order_sensitive()``.
+
+  :attr:`OrderedBidictBase.should_compare_order_sensitive_to
+  <bidict.OrderedBidictBase.should_compare_order_sensitive_to>`
+  returns its argument's ``ordered`` attribute if present.
+  Otherwise it returns True iff the argument has a ``__reversed__`` method
+  and is not a :py:class:`dict`.
+  (On PyPy, :py:class:`dict`\s have a ``__reversed__`` method,
+  but should nonetheless be compared order-insensitively.)
+
+  The previous ``OrderedBidictBase._should_compare_order_sensitive()``
+  method only returned True for other
+  :class:`OrderedBidictBase <bidict.OrderedBidictBase>` subclasses.
+
+- Revert the optimizations in v0.13.0 to make
+  :class:`FrozenOrderedBidict <bidict.FrozenOrderedBidict>`
+  instances that have the same items in different order
+  have different hash values,
+  as this can result in a violation of Python's object model:
+  With those changes, a :class:`FrozenOrderedBidict <bidict.FrozenOrderedBidict>`
+  and a :class:`FrozenBidict <bidict.FrozenBidict>` with the same items
+  would hash to different values despite comparing equal, which is a violation.
+
+- Fix a rare bug that could happen when using Python's ``-O`` flag
   that could leave an ordered bidict in an inconsistent state
   if dealing with duplicated keys or values.
-
-  For example::
-
-      >>> from bidict import LooseOrderedBidict
-      >>> b = LooseOrderedBidict([(0, 1), (2, 3), (0, 3)])
-      >>> len(b)
-      1
-      >>> 2 in b
-      False
-
-  Since the `(0, 3)` passed into the initializer
-  clobbers the `(0, 1)` and the `(2, 3)` passed in before it,
-  `(0, 3)` should be the only item in `b`.
-  Without `-O` this worked correctly, but with `-O` it did not.
-
-  (This was caused by the reliance on side effects in `assert` statements,
-  which are not run when `-O` is passed.)
 
 - Improvements to tests and CI, including:
 
@@ -41,13 +52,46 @@ Changelog
 Breaking API Changes
 ++++++++++++++++++++
 
-The following classes were renamed for better style guide compliance:
+- ``FrozenBidictBase`` has been removed.
+  Use :class:`FrozenBidict <bidict.FrozenBidict>` instead.
 
-- ``frozenbidict`` → :class:`FrozenBidict <bidict.FrozenBidict>`
-- ``loosebidict`` → :class:`LooseBidict <bidict.LooseBidict>`
-- ``orderedbidict`` → :class:`OrderedBidict <bidict.OrderedBidict>`
-- ``frozenorderedbidict`` → :class:`FrozenOrderedBidict <bidict.FrozenOrderedBidict>`
-- ``looseorderedbidict`` → :class:`LooseOrderedBidict <bidict.LooseOrderedBidict>`
+- :meth:`OrderedBidictBase.__eq__ <bidict.OrderedBidictBase.__eq__>`
+  comparison is now order-sensitive when the other mapping is inferred to be
+  a mapping with a guaranteed order. Previously it would only compare
+  order-sensitively with other
+  :class:`OrderedBidictBase <bidict.OrderedBidictBase>` instances.
+
+  For example, the last line in the following example no longer returns True::
+
+      >>> from bidict import OrderedBidict
+      >>> from collections import OrderedDict
+      >>> o1 = OrderedBidict([('one', 1), ('two', 2)])
+      >>> o2 = OrderedDict([('two', 2), ('one', 1)])
+      >>> o1 == o2
+      False
+
+- ``OrderedBidictBase._should_compare_order_sensitive`` was removed
+  in preference to :attr:`BidictBase.ordered <bidict.BidictBase.ordered>` and
+  :attr:`OrderedBidictBase.should_compare_order_sensitive_to
+  <bidict.OrderedBidictBase.should_compare_order_sensitive_to>`.
+
+- ``frozenorderedbidict._HASH_NITEMS_MAX`` was removed.
+  Since its hash value must be computed from all contained items
+  (so that hash results are consistent with equality comparisons with
+  unordered mappings containing the same items), the number of items
+  that influence the hash value should not be limitable.
+
+- The following were renamed for better compliance with proper code style:
+
+  - ``FrozenBidictBase._compute_hash`` → :attr:`FrozenBidict.compute_hash
+    <bidict.FrozenBidict.compute_hash>`
+  - ``FrozenBidict._USE_ITEMSVIEW_HASH`` → :attr:`FrozenBidict.USE_ITEMSVIEW_HASH
+    <bidict.FrozenBidict.USE_ITEMSVIEW_HASH>`
+  - ``frozenbidict`` → :class:`FrozenBidict <bidict.FrozenBidict>`
+  - ``loosebidict`` → :class:`LooseBidict <bidict.LooseBidict>`
+  - ``orderedbidict`` → :class:`OrderedBidict <bidict.OrderedBidict>`
+  - ``frozenorderedbidict`` → :class:`FrozenOrderedBidict <bidict.FrozenOrderedBidict>`
+  - ``looseorderedbidict`` → :class:`LooseOrderedBidict <bidict.LooseOrderedBidict>`
 
 
 0.13.1 (2017-03-15)
@@ -90,14 +134,11 @@ The following classes were renamed for better style guide compliance:
   to better reflect its function.
   (It is not an ABC.)
 
-- A new
-  :class:`FrozenBidictBase <bidict.FrozenBidictBase>` class
-  has been factored out of
+- A new ``FrozenBidictBase`` class has been factored out of
   :class:`frozenbidict <bidict.FrozenBidict>` and
   :class:`frozenorderedbidict <bidict.FrozenOrderedBidict>`.
   This implements common behavior such as caching the result of
-  :attr:`__hash__ <bidict.FrozenBidictBase.__hash__>`
-  after the first call.
+  ``__hash__`` after the first call.
 
 - The hash implementations of
   :class:`frozenbidict <bidict.FrozenBidict>` and
@@ -105,21 +146,20 @@ The following classes were renamed for better style guide compliance:
   have been reworked to improve performance and flexibility:
 
   :attr:`frozenorderedbidict's hash implementation
-  <bidict.FrozenOrderedBidict._compute_hash>` is now order-sensitive.
+  <bidict.FrozenOrderedBidict.compute_hash>` is now order-sensitive.
   Since ``frozenorderedbidict([(k1, v1), (k2, v2)])`` does not equal
   ``frozenorderedbidict([(k2, v2), (k1, v1)])``,
   their hashes shouldn't be equal either. Avoids hash collisions when inserting
   such objects into the same set or mapping.
 
   See
-  :attr:`frozenbidict._compute_hash <bidict.FrozenBidict._compute_hash>` and
-  :attr:`frozenorderedbidict._compute_hash <bidict.FrozenOrderedBidict._compute_hash>`
+  :attr:`frozenbidict.compute_hash <bidict.FrozenBidict.compute_hash>` and
+  :attr:`frozenorderedbidict.compute_hash <bidict.FrozenOrderedBidict.compute_hash>`
   for more documentation of the changes,
   including the new
   :attr:`frozenbidict._USE_ITEMSVIEW_HASH
-  <bidict.FrozenBidict._USE_ITEMSVIEW_HASH>` and
-  :attr:`frozenorderedbidict._HASH_NITEMS_MAX
-  <bidict.FrozenOrderedBidict._HASH_NITEMS_MAX>`
+  <bidict.FrozenBidict.USE_ITEMSVIEW_HASH>` and
+  ``frozenorderedbidict._HASH_NITEMS_MAX``
   attributes.
   If you have an interesting use case that requires overriding these,
   or suggestions for an alternative implementation,

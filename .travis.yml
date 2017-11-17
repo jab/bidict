@@ -96,7 +96,7 @@ before_install:
 
 install:
   - |
-      set -e
+      set -ex
       if [[ -n "$PYVER" ]]; then
         if [[ -f "$PYENV" ]]; then
           pushd "$PYENV_ROOT" && git pull && popd
