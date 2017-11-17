@@ -1,0 +1,10 @@
+Test for consistency in ordered bidicts after handling duplicate keys/values
+(when passing python's -O flag, this would previously fail
+due to reliance on side effects in assert statements)::
+
+    >>> from bidict import LooseOrderedBidict
+    >>> b = LooseOrderedBidict([(0, 1), (2, 3), (0, 3)])
+    >>> len(b) == 1
+    True
+    >>> 2 in b
+    False

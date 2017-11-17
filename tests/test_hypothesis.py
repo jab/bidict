@@ -99,11 +99,14 @@ def test_consistency_after_mutation(arity, methodname, B, init, arg1, arg2, item
     try:
         method(b1, *args)
     except Exception as exc:  # pylint: disable=W0703
-        # All methods should fail clean.
-        assert b1 == b0, '%r did not fail clean' % exc
-        assert b1.inv == b0.inv, '%r did not fail clean' % exc
-        return
-    # Method succeeded -> b1 should pass consistency checks.
+        # method should fail clean, i.e. b1 should be in the same state it was before the call.
+        assert b1 == b0, '%r did not fail clean: %r' % (method, exc)
+        assert b1.inv == b0.inv, '%r did not fail clean: %r' % (method, exc)
+    # Whether method failed or succeeded, b1 should pass consistency checks.
+    assert len(b1) == sum(1 for _ in iteritems(b1))
+    assert len(b1) == sum(1 for _ in iteritems(b1.inv))
+    assert b1 == dict(iteritems(b1))
+    assert b1.inv == dict(iteritems(b1.inv))
     assert b1 == to_inv_odict(iteritems(b1.inv))
     assert b1.inv == to_inv_odict(iteritems(b1))
 

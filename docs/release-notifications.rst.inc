@@ -1,5 +1,5 @@
 Release Notifications
-^^^^^^^^^^^^^^^^^^^^^
+---------------------
 
 .. image:: https://img.shields.io/badge/Sibbell-follow-brightgreen.svg
     :target: https://sibbell.com/github/jab/bidict/releases/

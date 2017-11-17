@@ -16,7 +16,7 @@ Status
 ..     :target: https://pypi.python.org/pypi/bidict
 ..     :alt: Downloads per month
 
-.. image:: https://img.shields.io/pypi/v/bidict.svg?colorB=65C838
+.. image:: https://img.shields.io/pypi/v/bidict.svg
     :target: https://pypi.python.org/pypi/bidict
     :alt: Latest release
 

@@ -9,13 +9,34 @@ Changelog
 0.14.0.dev0 (not yet released)
 ------------------------------
 
-- Internal code improvements
-- Improvements to CI, including:
+- Fix a rare bug that could happen when using Python's `-O` flag
+  that could leave an ordered bidict in an inconsistent state
+  if dealing with duplicated keys or values.
+
+  For example::
+
+      >>> from bidict import LooseOrderedBidict
+      >>> b = LooseOrderedBidict([(0, 1), (2, 3), (0, 3)])
+      >>> len(b)
+      1
+      >>> 2 in b
+      False
+
+  Since the `(0, 3)` passed into the initializer
+  clobbers the `(0, 1)` and the `(2, 3)` passed in before it,
+  `(0, 3)` should be the only item in `b`.
+  Without `-O` this worked correctly, but with `-O` it did not.
+
+  (This was caused by the reliance on side effects in `assert` statements,
+  which are not run when `-O` is passed.)
+
+- Improvements to tests and CI, including:
 
   - Test on macOS and Windows
   - Test with PyPy3
   - Test with CPython 3.7-dev
-  - Add pylint
+  - Test with optimization flags
+  - Require pylint to pass
 
 Breaking API Changes
 ++++++++++++++++++++
