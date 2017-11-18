@@ -9,10 +9,11 @@
 
 from collections import ItemsView
 
-from ._common import (
-    BidirectionalMapping,
-    DuplicationError, KeyDuplicationError, ValueDuplicationError, KeyAndValueDuplicationError,
-    _MISS, RAISE, OVERWRITE, IGNORE, ON_DUP_VAL)
+from ._abc import BidirectionalMapping
+from ._dup_behaviors import RAISE, OVERWRITE, IGNORE, ON_DUP_VAL
+from ._exceptions import (
+    DuplicationError, KeyDuplicationError, ValueDuplicationError, KeyAndValueDuplicationError)
+from ._miss import _MISS
 from .compat import PY2, iteritems
 from .util import pairs
 

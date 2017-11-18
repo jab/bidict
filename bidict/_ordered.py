@@ -9,9 +9,10 @@
 
 from collections import Mapping
 
-from ._common import _Marker, _MISS
-from ._base import frozenbidict
 from ._bidict import bidict
+from ._frozen import frozenbidict
+from ._marker import _Marker
+from ._miss import _MISS
 from .compat import Reversible, iteritems, izip
 
 

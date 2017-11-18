@@ -9,8 +9,8 @@
 
 from collections import MutableMapping
 
-from ._common import OVERWRITE, RAISE, ON_DUP_VAL
-from ._base import frozenbidict
+from ._dup_behaviors import OVERWRITE, RAISE, ON_DUP_VAL
+from ._frozen import frozenbidict
 
 
 class bidict(frozenbidict):  # noqa: N801; pylint: disable=invalid-name

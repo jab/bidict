@@ -15,12 +15,13 @@ See https://bidict.readthedocs.io for comprehensive documentation.
 
 """
 
-from ._common import (BidirectionalMapping, BidictException,
-                      DuplicationBehavior, IGNORE, OVERWRITE, RAISE,
-                      DuplicationError, KeyDuplicationError, ValueDuplicationError,
-                      KeyAndValueDuplicationError)
-from ._base import frozenbidict
+from ._abc import BidirectionalMapping
 from ._bidict import bidict
+from ._dup_behaviors import DuplicationBehavior, IGNORE, OVERWRITE, RAISE
+from ._exceptions import (
+    BidictException, DuplicationError,
+    KeyDuplicationError, ValueDuplicationError, KeyAndValueDuplicationError)
+from ._frozen import frozenbidict
 from ._named import namedbidict
 from ._ordered import FrozenOrderedBidict, OrderedBidict
 from .util import pairs, inverted
