@@ -14,7 +14,7 @@ matrix:
     # One-off jobs. Override "script" to do something other than run the default (pytest).
     - env: TASK=build-docs
       before_script: travis_retry pip install -U Sphinx
-      script: ./build-docs.sh linkcheck
+      script: travis_retry ./build-docs.sh linkcheck
     - env: TASK=pylint
       before_script: travis_retry pip install -U pylint
       script: pylint bidict tests/*.py
