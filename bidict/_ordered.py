@@ -127,7 +127,7 @@ class OrderedBidictBase(BidictBase):
         return key, val, isdupkey, isdupval, nodeinv, nodefwd, oldkey, oldval
 
     # pylint: disable=arguments-differ
-    def _undo_write(self, key, val, isdupkey, isdupval, nodeinv, nodefwd, oldkey, oldval):
+    def _undo_write(self, key, val, isdupkey, isdupval, nodeinv, nodefwd, oldkey, oldval):  # lgtm
         fwd = self._fwd
         inv = self._inv
         if not isdupkey and not isdupval:
@@ -172,7 +172,7 @@ class OrderedBidictBase(BidictBase):
         cur = end[_PRV if reverse else _NXT]
         while cur is not end:
             data, prv, nxt = cur
-            korv = next(iter(data))
+            korv = next(iter(data))  # lgtm [py/unguarded-next-in-generator]
             node = fwd.get(korv)
             key = korv if node is cur else data[korv]
             yield key

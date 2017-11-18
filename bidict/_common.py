@@ -45,7 +45,7 @@ class BidirectionalMapping(Mapping):
         Causes conforming classes to be virtual subclasses automatically.
         """
         mro = getattr(C, '__mro__', None)
-        if mro and cls is BidirectionalMapping:
+        if mro and cls is BidirectionalMapping:  # lgtm [py/comparison-using-is]
             return all(any(B.__dict__.get(i) for B in mro) for i in cls._subclsattrs)
         return NotImplemented
 
@@ -169,7 +169,7 @@ class BidictBase(BidirectionalMapping):
         self._isinv = getattr(args[0], '_isinv', False) if args else False
         self._fwd = self._inv_class() if self._isinv else self._fwd_class()
         self._inv = self._fwd_class() if self._isinv else self._inv_class()
-        self._init_inv()
+        self._init_inv()  # lgtm [py/init-calls-subclass]
         if args or kw:
             self._update(True, self._on_dup_key, self._on_dup_val, self._on_dup_kv, *args, **kw)
 

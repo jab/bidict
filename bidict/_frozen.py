@@ -7,7 +7,7 @@ from ._ordered import OrderedBidictBase
 from .compat import PYPY, iteritems
 
 
-class FrozenBidict(BidictBase):
+class FrozenBidict(BidictBase):  # lgtm [py/missing-equals]
     """
     Regular frozen bidict type.
 
@@ -57,7 +57,7 @@ class FrozenBidict(BidictBase):
         return self._hash
 
 
-class FrozenOrderedBidict(OrderedBidictBase, FrozenBidict):
+class FrozenOrderedBidict(OrderedBidictBase, FrozenBidict):  # lgtm [py/missing-equals]
     r"""Ordered frozen bidict type.
 
     Inherits :class:`FrozenBidict`\'s
