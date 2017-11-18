@@ -98,10 +98,11 @@ the :mod:`bidict` package provides other bidict variants,
 as well as additional tools
 for working with one-to-one relations:
 
-- :class:`bidict.FrozenBidict`
-- :class:`bidict.LooseBidict`
-- :class:`bidict.OrderedBidict`
+- :class:`bidict.BidirectionalMapping`
 - :class:`bidict.namedbidict`
+- :class:`bidict.frozenbidict`
+- :class:`bidict.OrderedBidict`
+- :class:`bidict.FrozenOrderedBidict`
 - :class:`bidict.inverted`
 - :class:`bidict.pairs`
 

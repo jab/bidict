@@ -11,10 +11,9 @@ BidirectionalMapping's interface, it is automatically a subclass.
 """
 
 from bidict import BidirectionalMapping
-from bidict.compat import PY2
 
 
-class DumbBidirectionalMapping(dict):
+class MyBidirectionalMapping(dict):
     """Dummy type implementing the BidirectionalMapping interface."""
     def __inverted__(self):
         for (key, val) in self.items():
@@ -23,17 +22,16 @@ class DumbBidirectionalMapping(dict):
     @property
     def inv(self):
         """Like :attr:`bidict.bidict.inv`."""
-        return DumbBidirectionalMapping(self.__inverted__())
+        return MyBidirectionalMapping(self.__inverted__())
 
 
-if PY2:
-    class OldStyleClass:
-        """Old-style class (not derived from object)."""
+class OldStyleClass:
+    """In Python 2 this is an old-style class (not derived from object)."""
 
 
-def test_subclasshook():
-    """Ensure issubclass works as expected."""
-    assert issubclass(DumbBidirectionalMapping, BidirectionalMapping)
+def test_bidi_mapping_subclasshook():
+    """Ensure issubclass(foo, BidirectionalMapping) works as expected."""
+    assert issubclass(MyBidirectionalMapping, BidirectionalMapping)
     assert not issubclass(dict, BidirectionalMapping)
-    if PY2:  # Make sure this works with old-style classes as expected.
-        assert not issubclass(OldStyleClass, BidirectionalMapping)
+    # Make sure this works with old-style classes as expected.
+    assert not issubclass(OldStyleClass, BidirectionalMapping)

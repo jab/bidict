@@ -17,8 +17,8 @@ from hypothesis import assume, given, settings
 from hypothesis.strategies import integers, lists, tuples
 from bidict import (
     IGNORE, OVERWRITE, RAISE,
-    bidict, LooseBidict, LooseOrderedBidict, OrderedBidict,
-    FrozenBidict, FrozenOrderedBidict)
+    bidict, OrderedBidict,
+    frozenbidict, FrozenOrderedBidict)
 from bidict.compat import iteritems
 
 
@@ -39,8 +39,9 @@ def dedup(items):
 
 # pylint: disable=C0103
 ondupbehaviors = (IGNORE, OVERWRITE, RAISE)
-mutable_bidict_types = (bidict, LooseBidict, LooseOrderedBidict, OrderedBidict)
-bidict_types = mutable_bidict_types + (FrozenBidict, FrozenOrderedBidict)
+mutable_bidict_types = (bidict, OrderedBidict)
+immutable_bidict_types = (frozenbidict, FrozenOrderedBidict)
+bidict_types = mutable_bidict_types + immutable_bidict_types
 mutating_methods_by_arity = {
     0: ('clear', 'popitem'),
     1: ('__delitem__', 'pop', 'setdefault', 'move_to_end'),

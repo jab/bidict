@@ -1,3 +1,5 @@
+.. See also "__credits__" in ../bidict/__init__.py
+
 - Thanks to Gregory Ewing for the name.
 
 - Thanks to Terry Reedy for suggesting the slice syntax

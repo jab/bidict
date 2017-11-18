@@ -5,13 +5,14 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-"""Implements :class:`bidict.OrderedBidict` and friends."""
+"""Implements :class:`bidict.OrderedBidict` and :class:`bidict.FrozenOrderedBidict`."""
 
 from collections import Mapping
 
+from ._common import _Marker, _MISS
+from ._base import frozenbidict
 from ._bidict import bidict
-from ._common import BidictBase, _Marker, _MISS
-from .compat import iteritems, izip
+from .compat import Reversible, iteritems, izip
 
 
 _PRV = 1
@@ -19,10 +20,17 @@ _NXT = 2
 _END = _Marker('END')
 
 
-class OrderedBidictBase(BidictBase):
-    """Base class for :class:`OrderedBidict` and :class:`FrozenOrderedBidict`."""
+class FrozenOrderedBidict(frozenbidict):
+    """
+    Frozen ordered bidict. Base class for :class:`OrderedBidict`.
 
-    ordered = True
+    .. py:attribute:: ORDERED_CLS
+
+        If the *other* argument in :meth:`__eq__` is an instance of this class,
+        order-sensitive comparison will be performed.
+    """
+
+    ORDERED_CLS = Reversible
 
     def __init__(self, *args, **kw):
         """Like :meth:`collections.OrderedDict.__init__`."""
@@ -41,19 +49,19 @@ class OrderedBidictBase(BidictBase):
         end += [_END, end, end]  # sentinel node for doubly linked list
 
     def _init_inv(self):
-        super(OrderedBidictBase, self)._init_inv()
+        super(FrozenOrderedBidict, self)._init_inv()
         # pylint: disable=protected-access
         self.inv._end = self._end
 
-    # Must override BidictBase.copy since we have different internal structure.
+    # Must override frozenbidict.copy since we have different internal structure.
     def copy(self):
-        """Like :attr:`BidictBase.copy <bidict.BidictBase.copy>`."""
+        """Like :attr:`frozenbidict.copy <bidict.frozenbidict.copy>`."""
         return self.__class__(self)
 
     __copy__ = copy
 
     def _clear(self):
-        super(OrderedBidictBase, self)._clear()
+        super(FrozenOrderedBidict, self)._clear()
         del self._end[:]
         self._init_end()
 
@@ -138,7 +146,7 @@ class OrderedBidictBase(BidictBase):
         fwd = self._fwd
         inv = self._inv
         if not isdupkey and not isdupval:
-            del self[key]
+            self._pop(key)
         elif isdupkey and isdupval:
             fwdd, _, _ = nodefwd
             invd, invprv, invnxt = nodeinv
@@ -197,30 +205,21 @@ class OrderedBidictBase(BidictBase):
             return NotImplemented
         if len(self) != len(other):
             return False
-        if self.should_compare_order_sensitive_to(other):
+        if isinstance(other, self.ORDERED_CLS):
             return all(i == j for (i, j) in izip(iteritems(self), iteritems(other)))
         return all(self.get(k, _MISS) == v for (k, v) in iteritems(other))
 
-    @staticmethod
-    def should_compare_order_sensitive_to(mapping):  # pylint: disable=invalid-name
-        r"""Whether we should compare order-sensitively to ``mapping``.
-
-        If ``mapping`` has an ``ordered`` attribute, return its value.
-
-        Otherwise, returns True iff ``mapping`` has a ``__reversed__`` method
-        *and* ``mapping.__class__`` is not :py:class:`dict`.
-        (Unlike in CPython, in PyPY, :py:class:`dict`\s have a
-        ``__reversed__`` method but should nonetheless compare
-        order-insensitively.)
-
-        Override this method if different behavior is desired.
-        """
-        return getattr(mapping, 'ordered', False) or \
-            bool(getattr(mapping, '__reversed__', False)) and mapping.__class__ is not dict
+    # frozenbidict.__hash__ is also correct for ordered bidicts:
+    # The value is derived from all contained items and insensitive to their order.
+    # If an ordered bidict "O" is equal to a mapping, its unordered counterpart "U" is too.
+    # Since U1 == U2 => hash(U1) == hash(U2), then if O == U1, hash(O) must equal hash(U1).
+    __hash__ = frozenbidict.__hash__  # Must set explicitly, __hash__ is never inherited.
 
 
-class OrderedBidict(OrderedBidictBase, bidict):
+class OrderedBidict(FrozenOrderedBidict, bidict):
     """Mutable bidict type that maintains items in insertion order."""
+
+    __hash__ = None  # since this class is mutable. explicit > implicit.
 
     def popitem(self, last=True):  # pylint: disable=arguments-differ
         """Like :meth:`collections.OrderedDict.popitem`."""

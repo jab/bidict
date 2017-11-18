@@ -1,7 +1,5 @@
-.. _unique-values:
-
-Uniqueness of Values
-++++++++++++++++++++
+Values Must Be Unique
++++++++++++++++++++++
 
 As we know,
 in a bidirectional map,
@@ -148,13 +146,20 @@ and
 provided by :func:`forceput() <bidict.bidict.forceput>`
 and :func:`forceupdate() <bidict.bidict.forceupdate>`.)
 
-*on_dup_kv*
-~~~~~~~~~~~
+.. _key-and-value-duplication:
+
+Key and Value Duplication
+~~~~~~~~~~~~~~~~~~~~~~~~~
 
 Note that it's possible for a given item to duplicate
 the key of one existing item,
-and the value of another existing item.
-This is where *on_dup_kv* comes in::
+and the value of another existing item, as in::
+
+    >>> b.putall([(4, 16), (5, 25), (4, 25)])  # doctest: +SKIP
+
+Because the *on_dup_key* and *on_dup_val* behaviors that are in effect may differ,
+*on_dup_kv* allows you to indicate how you want to handle this case
+without ambiguity::
 
     >>> b.putall([(4, 16), (5, 25), (4, 25)],
     ...          on_dup_key=IGNORE, on_dup_val=IGNORE, on_dup_kv=RAISE)
@@ -162,9 +167,6 @@ This is where *on_dup_kv* comes in::
         ...
     KeyAndValueDuplicationError: (4, 25)
 
-Because the given *on_dup_key* and *on_dup_val* behaviors may differ,
-*on_dup_kv* allows you to indicate how you want to handle this case
-without ambiguity.
 If not specified, *on_dup_kv* defaults to
 :class:`ON_DUP_VAL <bidict.DuplicationBehavior.ON_DUP_VAL>`,
 meaning *on_dup_kv* will match whatever *on_dup_val* behavior is in effect.
@@ -174,9 +176,11 @@ the duplicate item will just be ignored,
 no matter what the duplication behaviors are set to.
 The insertion of an entire duplicate item is construed as a no-op::
 
-    >>> b.put(2, 4)
     >>> sorted(b.items())
     [(2, 4), (3, 9)]
-    >>> b.putall([(4, 16), (4, 16)])
+    >>> b.put(2, 4)  # no-op, not a DuplicationError
+    >>> b.putall([(4, 16), (4, 16)])  # ditto
     >>> sorted(b.items())
     [(2, 4), (3, 9), (4, 16)]
+
+See the :ref:`overwritingbidict` for another way to customize this behavior.

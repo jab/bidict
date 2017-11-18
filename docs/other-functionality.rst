@@ -1,3 +1,5 @@
+.. _other-functionality:
+
 Other Functionality
 ===================
 

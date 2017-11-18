@@ -4,22 +4,8 @@ graph { flow: up; }
 node { font: Menlo; }
 
 [ bidict.BidirectionalMapping ] { fontsize: 0.7em; borderstyle: dashed; fill: #eeeeee; } -> [ collections.abc.Mapping ] { fontsize: 0.7em; borderstyle: dashed; fill: #eeeeee; }
-[ bidict.BidictBase ] { fontsize: 0.7em; fill: #cccccc; } -> [ bidict.BidirectionalMapping ]
-[ bidict.bidict ] -> [ bidict.BidictBase ]
-[ bidict.LooseBidict ] -> [ bidict.bidict ]
-[ bidict.FrozenBidict ] -> [ bidict.BidictBase ]
-[ bidict.OrderedBidictBase ] { fontsize: 0.7em; fill: #cccccc; } -> [ bidict.BidictBase ]
-[ bidict.OrderedBidict ] -> [ bidict.OrderedBidictBase ]
+[ bidict.frozenbidict ] -> [ bidict.BidirectionalMapping ]
+[ bidict.bidict ] -> [ bidict.frozenbidict ]
+[ bidict.FrozenOrderedBidict ] -> [ bidict.frozenbidict ]
 [ bidict.OrderedBidict ] -> [ bidict.bidict ]
-[ bidict.FrozenOrderedBidict ] -> [ bidict.OrderedBidictBase ]
-[ bidict.FrozenOrderedBidict ] -> [ bidict.FrozenBidict ]
-[ bidict.LooseOrderedBidict ] -> [ bidict.OrderedBidict ]
-[ bidict.LooseOrderedBidict ] -> [ bidict.LooseBidict ]
-
-#[ bidict.FrozenBidict ] -> { style: dashed; } [ collections.abc.Hashable ] { borderstyle: dashed; }
-#[ bidict.FrozenOrderedBidict ] -> { style: dashed; } [ collections.abc.Hashable ]
-
-#[ bidict.bidict ] -> { style: dashed; } [ collections.abc.MutableMapping ] { borderstyle: dashed; }
-#[ bidict.OrderedBidict ] -> { style: dashed; } [ collections.abc.MutableMapping ]
-
-#[ bidict.OrderedBidictBase ] -> { style: dashed; } [ collections.abc.Reversible ] { borderstyle: dashed; }
+[ bidict.OrderedBidict ] -> [ bidict.FrozenOrderedBidict ]

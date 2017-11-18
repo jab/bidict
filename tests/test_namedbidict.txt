@@ -53,8 +53,8 @@ Comparison works as expected::
 
 Test ``base_type`` keyword arg::
 
-    >>> from bidict import FrozenBidict
-    >>> ElMap = namedbidict('ElMap', 'sym', 'el', base_type=FrozenBidict)
+    >>> from bidict import frozenbidict
+    >>> ElMap = namedbidict('ElMap', 'sym', 'el', base_type=frozenbidict)
     >>> noble = ElMap(He='helium')
     >>> hash(noble) is not 'an exception'
     True

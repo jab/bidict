@@ -15,21 +15,19 @@ See https://bidict.readthedocs.io for comprehensive documentation.
 
 """
 
-from ._common import (BidirectionalMapping, BidictBase, BidictException,
+from ._common import (BidirectionalMapping, BidictException,
                       DuplicationBehavior, IGNORE, OVERWRITE, RAISE,
                       DuplicationError, KeyDuplicationError, ValueDuplicationError,
                       KeyAndValueDuplicationError)
+from ._base import frozenbidict
 from ._bidict import bidict
-from ._frozen import FrozenBidict, FrozenOrderedBidict
-from ._loose import LooseBidict, LooseOrderedBidict
 from ._named import namedbidict
-from ._ordered import OrderedBidictBase, OrderedBidict
+from ._ordered import FrozenOrderedBidict, OrderedBidict
 from .util import pairs, inverted
 
 
 __all__ = (
     'BidirectionalMapping',
-    'BidictBase',
     'BidictException',
     'DuplicationBehavior',
     'IGNORE',
@@ -39,13 +37,10 @@ __all__ = (
     'KeyDuplicationError',
     'ValueDuplicationError',
     'KeyAndValueDuplicationError',
+    'frozenbidict',
     'bidict',
-    'LooseBidict',
-    'LooseOrderedBidict',
-    'FrozenBidict',
-    'FrozenOrderedBidict',
     'namedbidict',
-    'OrderedBidictBase',
+    'FrozenOrderedBidict',
     'OrderedBidict',
     'pairs',
     'inverted',
@@ -65,7 +60,7 @@ def _get_version():
 
 __author__ = 'Joshua Bronson'
 __copyright__ = 'Copyright 2017 Joshua Bronson'
-__credits__ = [
+__credits__ = [  # see ../docs/thanks.rst.inc
     'Joshua Bronson', 'Michael Arntzenius', 'Francis Carr', 'Gregory Ewing',
     'Raymond Hettinger', 'Jozef Knaperek', 'Daniel Pope', 'Terry Reedy',
     'David Turner', 'Tom Viner']
