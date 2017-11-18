@@ -2,6 +2,7 @@ language: generic
 
 env:
   global:
+    - VENV_ROOT="$HOME/venv"
     - PYENV_ROOT="$HOME/.pyenv"
     - PYENV="$PYENV_ROOT/bin/pyenv"
     # Default Python version. Used for jobs that don't specify one.
@@ -41,9 +42,8 @@ matrix:
       before_script: travis_retry pip install -e .[coverage]
       script:
         - |
-            set -e
-            py.test --cov=bidict --cov-config=.coveragerc
-            travis_retry pip install coveralls
+            py.test --cov=bidict --cov-config=.coveragerc || exit 1
+            travis_retry pip install coveralls || exit 1
             coveralls
     - env: TASK=pytest PYVER=3.7-dev
       if: branch = master
@@ -89,14 +89,13 @@ matrix:
       script: pypy3 -m pytest
 
 before_install:
+  # Install pyenv and use it to install the Python version in $PYVER.
   - |
-      git --no-pager log -n2
       echo "TRAVIS_PULL_REQUEST_SHA: $TRAVIS_PULL_REQUEST_SHA"
       echo "TRAVIS_COMMIT: $TRAVIS_COMMIT"
-
-install:
-  - |
-      set -ex
+      git --no-pager log -n2
+      echo
+      echo "Ensuring up-to-date pyenv..."
       if [[ -f "$PYENV" ]]; then
         cd "$PYENV_ROOT"
         git pull
@@ -105,14 +104,25 @@ install:
         rm -rf "$PYENV_ROOT"
         git clone --depth 1 https://github.com/yyuu/pyenv.git "$PYENV_ROOT"
       fi
+      echo
+      echo "Insalling Python version $PYVER..."
       "$PYENV" install --skip-existing "$PYVER"
       export PYTHON="$PYENV_ROOT/versions/$PYVER/bin/python"
+      echo "$PYTHON --version"
+      $PYTHON --version
+      echo
+      echo "Ensuring up-to-date pip and virtualenv..."
       $PYTHON -m ensurepip --upgrade
       $PYTHON -m pip install --upgrade virtualenv
-      export VENV="$HOME/virtualenvs/$PYVER"
-      $PYTHON -m virtualenv --python="$PYTHON" "$VENV"
-      source "$VENV/bin/activate"
-      travis_retry pip install -e .[test]
+      echo
+      echo "Creating and activating virtualenv at $VENV_ROOT..."
+      $PYTHON -m virtualenv --python="$PYTHON" "$VENV_ROOT"
+      source "$VENV_ROOT/bin/activate"
+      echo "VIRTUAL_ENV=$VIRTUAL_ENV"
+
+install:
+  - travis_retry pip install -e .[test]
+  - py.test --version
 
 script:
   - py.test
