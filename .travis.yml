@@ -97,20 +97,21 @@ before_install:
 install:
   - |
       set -ex
-      if [[ -n "$PYVER" ]]; then
-        if [[ -f "$PYENV" ]]; then
-          pushd "$PYENV_ROOT" && git pull && popd
-        else
-          rm -rf "$PYENV_ROOT" && git clone --depth 1 https://github.com/yyuu/pyenv.git "$PYENV_ROOT"
-        fi
-        "$PYENV" install --skip-existing "$PYVER"
-        export PYTHON="$PYENV_ROOT/versions/$PYVER/bin/python"
-        $PYTHON -m ensurepip --upgrade
-        $PYTHON -m pip install --upgrade virtualenv
-        export VENV="$HOME/virtualenvs/$PYVER"
-        $PYTHON -m virtualenv --python="$PYTHON" "$VENV"
-        source "$VENV/bin/activate"
+      if [[ -f "$PYENV" ]]; then
+        cd "$PYENV_ROOT"
+        git pull
+        cd -
+      else
+        rm -rf "$PYENV_ROOT"
+        git clone --depth 1 https://github.com/yyuu/pyenv.git "$PYENV_ROOT"
       fi
+      "$PYENV" install --skip-existing "$PYVER"
+      export PYTHON="$PYENV_ROOT/versions/$PYVER/bin/python"
+      $PYTHON -m ensurepip --upgrade
+      $PYTHON -m pip install --upgrade virtualenv
+      export VENV="$HOME/virtualenvs/$PYVER"
+      $PYTHON -m virtualenv --python="$PYTHON" "$VENV"
+      source "$VENV/bin/activate"
       travis_retry pip install -e .[test]
 
 script:
