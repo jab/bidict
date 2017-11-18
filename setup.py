@@ -31,7 +31,7 @@ LONG_DESC = from_file('README.rst', 'See https://bidict.readthedocs.io').replace
 
 
 TESTS_REQ = [
-    'hypothesis==3.34.1',
+    'hypothesis==3.38.0',
     'hypothesis-pytest==0.19.0',
     'py==1.5.2',
     'pytest==3.2.5',
