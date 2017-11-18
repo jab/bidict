@@ -3,17 +3,16 @@
 graph { flow: up; }
 node { font: Menlo; }
 
-[ bidict.abc.BidirectionalMapping ] { fontsize: 0.7em; borderstyle: dashed; fill: #eeeeee; } -> [ collections.abc.Mapping ] { fontsize: 0.7em; borderstyle: dashed; fill: #eeeeee; }
-[ bidict.BidictBase ] { fontsize: 0.7em; fill: #cccccc; } -> [ bidict.abc.BidirectionalMapping ]
+[ bidict.BidirectionalMapping ] { fontsize: 0.7em; borderstyle: dashed; fill: #eeeeee; } -> [ collections.abc.Mapping ] { fontsize: 0.7em; borderstyle: dashed; fill: #eeeeee; }
+[ bidict.BidictBase ] { fontsize: 0.7em; fill: #cccccc; } -> [ bidict.BidirectionalMapping ]
 [ bidict.bidict ] -> [ bidict.BidictBase ]
 [ bidict.LooseBidict ] -> [ bidict.bidict ]
-[ bidict.FrozenBidictBase ] { fontsize: 0.7em; fill: #cccccc; } -> [ bidict.BidictBase ]
-[ bidict.FrozenBidict ] -> [ bidict.FrozenBidictBase ]
+[ bidict.FrozenBidict ] -> [ bidict.BidictBase ]
 [ bidict.OrderedBidictBase ] { fontsize: 0.7em; fill: #cccccc; } -> [ bidict.BidictBase ]
 [ bidict.OrderedBidict ] -> [ bidict.OrderedBidictBase ]
 [ bidict.OrderedBidict ] -> [ bidict.bidict ]
 [ bidict.FrozenOrderedBidict ] -> [ bidict.OrderedBidictBase ]
-[ bidict.FrozenOrderedBidict ] -> [ bidict.FrozenBidictBase ]
+[ bidict.FrozenOrderedBidict ] -> [ bidict.FrozenBidict ]
 [ bidict.LooseOrderedBidict ] -> [ bidict.OrderedBidict ]
 [ bidict.LooseOrderedBidict ] -> [ bidict.LooseBidict ]
 

@@ -1,0 +1,23 @@
+Test for consistency in ordered bidicts after handling duplicate keys/values
+(when passing python's -O flag, this would previously fail
+due to reliance on side effects in assert statements)::
+
+    >>> from bidict import OrderedBidict, DuplicationError, RAISE, OVERWRITE
+    >>> b = OrderedBidict([(0, 1)])
+    >>> try:
+    ...     b.update([(0, 2), (3, 4), (5, 4)])
+    ... except DuplicationError:
+    ...     pass
+    >>> len(b.inv)
+    1
+    >>> try:
+    ...     b.putall([(2, 1), (2, 3)], on_dup_key=RAISE, on_dup_val=OVERWRITE)
+    ... except DuplicationError:
+    ...     pass
+    >>> len(b)
+    1
+    >>> b.forceupdate([(0, 1), (2, 3), (0, 3)])
+    >>> len(b)
+    1
+    >>> 2 in b
+    False

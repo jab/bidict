@@ -16,7 +16,7 @@ Status
 ..     :target: https://pypi.python.org/pypi/bidict
 ..     :alt: Downloads per month
 
-.. image:: https://img.shields.io/pypi/v/bidict.svg?colorB=65C838
+.. image:: https://img.shields.io/pypi/v/bidict.svg
     :target: https://pypi.python.org/pypi/bidict
     :alt: Latest release
 
@@ -108,7 +108,7 @@ Release Notifications
 
 
 Tip: `Follow bidict on Sibbell <https://sibbell.com/github/jab/bidict/releases/>`_
-to be notified via email when a new version of bidict is released.
+to be notified when a new version of bidict is released.
 
 
 Installation

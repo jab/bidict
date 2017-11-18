@@ -1,5 +1,5 @@
 Release Notifications
-^^^^^^^^^^^^^^^^^^^^^
+---------------------
 
 .. image:: https://img.shields.io/badge/Sibbell-follow-brightgreen.svg
     :target: https://sibbell.com/github/jab/bidict/releases/
@@ -7,4 +7,4 @@ Release Notifications
 
 
 Tip: `Follow bidict on Sibbell <https://sibbell.com/github/jab/bidict/releases/>`_
-to be notified via email when a new version of bidict is released.
+to be notified when a new version of bidict is released.

@@ -65,46 +65,33 @@ will have its value overwritten in place::
     >>> o
     OrderedBidict([(3, 4), (5, 2), (7, 8)])
 
-Equality tests between two ordered bidicts are *order-sensitive*.
-Equality tests between an ordered bidict and an instance of some *other*
-:class:`Mapping <collections.abc.Mapping>` type
-(*including even* :class:`OrderedDict <collections.OrderedDict>`)
-are *order-insensitive*.
+Equality tests between an ordered bidict and other
+:class:`Mapping <collections.abc.Mapping>` instances
+behave as you might expect:
+An effort is made to detect when the other mapping has a guaranteed ordering,
+and the comparison is made order-sensitively or -insensitively accordingly.
 
+    >>> from collections import OrderedDict
     >>> o1 = OrderedBidict([('one', 1), ('two', 2)])
     >>> o2 = OrderedBidict([('two', 2), ('one', 1)])
     >>> o1 == o2
     False
+    >>> o1 == OrderedDict(o2)
+    False
     >>> o1 == dict(o2)
     True
-    >>> from collections import OrderedDict
-    >>> o1 == OrderedDict(o2)
-    True
 
-To customize this behavior, you can override
-:attr:`_should_compare_order_sensitive
-<bidict.OrderedBidictBase._should_compare_order_sensitive>`
-in a subclass::
-
-    >>> class MyOrderedBidict(OrderedBidict):
-    ...    def _should_compare_order_sensitive(self, mapping):
-    ...        # Can return False to never do order-sensitive comparison. Or
-    ...        # can return isinstance(mapping, (OrderedBidict, OrderedDict)).
-    ...        # To make order-sensitive only if mapping is reversible:
-    ...        return bool(getattr(mapping, '__reversed__', None))
-
-    >>> m = MyOrderedBidict(o1)
-    >>> m == OrderedDict(o2)  # OrderedDict is reversible -> order-sensitive
-    False
-    >>> m == dict(o2) if CPYTHON else m != dict(o2)  # doctest: +SKIP
-    True
-
-Note that with the custom ``_should_compare_order_sensitive`` implementation above,
-*comparing with a dict would be order-sensitive in PyPy but not in CPython*,
-because on PyPy dicts implement `__reversed__` (!),
-whereas on CPython they do not.
-Watch out for that if you ever want to do something like this,
-and expect consistency between CPython and PyPy.
+Since Python has no "OrderedMapping" ABC,
+this detection can only infer order-sensitivity based on other signals:
+The comparison will be order-sensitive iff the compared-to mapping has a
+``__reversed__`` method
+(and its class is not :py:class:`dict`,
+since on PyPY dicts have a ``__reversed__`` method
+but should nonetheless be compared order-insensitively).
+If this detection is insufficient for your needs, you can override
+:attr:`should_compare_order_sensitive_to
+<bidict.OrderedBidictBase.should_compare_order_sensitive_to>`
+to implement whatever behavior you require.
 
 :class:`OrderedBidict <bidict.OrderedBidict>` also comes in
 :class:`loose <bidict.LooseOrderedBidict>` and

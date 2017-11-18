@@ -45,7 +45,7 @@ class BidirectionalMapping(Mapping):
         Causes conforming classes to be virtual subclasses automatically.
         """
         mro = getattr(C, '__mro__', None)
-        if mro and cls is BidirectionalMapping:
+        if mro and cls is BidirectionalMapping:  # lgtm [py/comparison-using-is]
             return all(any(B.__dict__.get(i) for B in mro) for i in cls._subclsattrs)
         return NotImplemented
 
@@ -109,6 +109,14 @@ class BidictBase(BidirectionalMapping):
     which implements all the shared logic.
     Users will typically only interact with subclasses of this class.
 
+    .. py:attribute:: ordered
+
+        Whether this bidict's items should be considered ordered
+        for the purpose of equality comparison with another ordered mapping.
+
+        Always returns False, since in this base class we presume no ordering.
+        Subclasses with ordered items override this as needed.
+
     .. py:attribute:: _fwd
 
         The backing one-way dict for the forward items.
@@ -148,6 +156,8 @@ class BidictBase(BidirectionalMapping):
         :class:`DuplicationBehavior` in the event of key and value duplication.
     """
 
+    ordered = False
+
     _on_dup_key = OVERWRITE
     _on_dup_val = RAISE
     _on_dup_kv = RAISE
@@ -159,7 +169,7 @@ class BidictBase(BidirectionalMapping):
         self._isinv = getattr(args[0], '_isinv', False) if args else False
         self._fwd = self._inv_class() if self._isinv else self._fwd_class()
         self._inv = self._fwd_class() if self._isinv else self._inv_class()
-        self._init_inv()
+        self._init_inv()  # lgtm [py/init-calls-subclass]
         if args or kw:
             self._update(True, self._on_dup_key, self._on_dup_val, self._on_dup_kv, *args, **kw)
 
@@ -193,6 +203,7 @@ class BidictBase(BidirectionalMapping):
         return tmpl % delegate(iteritems(self))
 
     def __eq__(self, other):
+        """Like :py:meth:`dict.__eq__`."""
         # This should be faster than using Mapping.__eq__'s implementation.
         return self._fwd == other
 
