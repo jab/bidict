@@ -17,12 +17,3 @@ Insertable into sets and dicts::
 
     >>> dict.fromkeys(fs) and set(fs) is not 'an error'
     True
-
-Can toggle USE_ITEMSVIEW_HASH (affects space complexity but should produce the
-same result)::
-
-    >>> f0 = FrozenBidict(zip(range(100), range(100)))
-    >>> h0 = hash(f0)
-    >>> FrozenBidict.USE_ITEMSVIEW_HASH = not FrozenBidict.USE_ITEMSVIEW_HASH
-    >>> h0 == hash(f0.copy())
-    True

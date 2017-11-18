@@ -81,12 +81,23 @@ Breaking API Changes
   unordered mappings containing the same items), the number of items
   that influence the hash value should not be limitable.
 
+- ``frozenbidict._USE_ITEMSVIEW_HASH`` was removed, and
+  `FrozenBidict.compute_hash <bidict.FrozenBidict.compute_hash>`
+  now uses ``ItemsView._hash()`` to compute the hash always,
+  not just when running on PyPy.
+
+  Override `FrozenBidict.compute_hash <bidict.FrozenBidict.compute_hash>`
+  to return ``hash(frozenset(iteritems(self)))``
+  if you prefer the old default behavior on CPython,
+  which takes linear rather than constant space,
+  but which uses the ``frozenset_hash`` routine
+  (implemented in ``setobject.c``)
+  rather than the pure Python ``ItemsView._hash()`` routine.
+
 - The following were renamed for better code style:
 
   - ``FrozenBidictBase._compute_hash`` → :attr:`FrozenBidict.compute_hash
     <bidict.FrozenBidict.compute_hash>`
-  - ``frozenbidict._USE_ITEMSVIEW_HASH`` → :attr:`FrozenBidict.USE_ITEMSVIEW_HASH
-    <bidict.FrozenBidict.USE_ITEMSVIEW_HASH>`
   - ``frozenbidict`` → :class:`FrozenBidict <bidict.FrozenBidict>`
   - ``loosebidict`` → :class:`LooseBidict <bidict.LooseBidict>`
   - ``orderedbidict`` → :class:`OrderedBidict <bidict.OrderedBidict>`
@@ -157,8 +168,7 @@ Breaking API Changes
   :attr:`frozenorderedbidict.compute_hash <bidict.FrozenOrderedBidict.compute_hash>`
   for more documentation of the changes,
   including the new
-  :attr:`frozenbidict._USE_ITEMSVIEW_HASH
-  <bidict.FrozenBidict.USE_ITEMSVIEW_HASH>` and
+  ``frozenbidict._USE_ITEMSVIEW_HASH`` and
   ``frozenorderedbidict._HASH_NITEMS_MAX``
   attributes.
   If you have an interesting use case that requires overriding these,

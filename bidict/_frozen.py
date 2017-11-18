@@ -4,7 +4,6 @@ from collections import ItemsView
 
 from ._common import BidictBase
 from ._ordered import OrderedBidictBase
-from .compat import PYPY, iteritems
 
 
 class FrozenBidict(BidictBase):  # lgtm [py/missing-equals]
@@ -12,37 +11,23 @@ class FrozenBidict(BidictBase):  # lgtm [py/missing-equals]
     Regular frozen bidict type.
 
     Provides a default implementation of :meth:`compute_hash`
-    with tunable behavior via :attr:`USE_ITEMSVIEW_HASH`.
+    that uses ``ItemsView._hash()`` to compute the hash in constant space.
+    Override :meth:`compute_hash` if you require a different implementation.
 
-    If greater customization is needed,
-    override :meth:`compute_hash` in a subclass.
-
-    .. py:attribute:: USE_ITEMSVIEW_HASH
-
-        Defaults to True on PyPy and False otherwise.
-        Override this to change the default behavior of :attr:`compute_hash`.
-        See :attr:`compute_hash` for more information.
+    (For example, you could create an ephemeral :py:class:`frozenset`
+    from the contained items and pass that to :func:`hash`.
+    This would take linear space, but on CPython, it results in the faster
+    ``frozenset_hash`` routine defined in ``setobject.c`` being used.)
     """
-
-    USE_ITEMSVIEW_HASH = PYPY
 
     def compute_hash(self):
         """
-        If :attr:`USE_ITEMSVIEW_HASH` is True,
-        use the pure Python implementation of Python's frozenset hashing
+        Use the pure Python implementation of Python's frozenset hashing
         algorithm from ``collections.Set._hash`` to compute the hash
         incrementally in constant space.
 
-        Otherwise, create an ephemeral :py:class:`frozenset` from the contained
-        items and pass it to :func:`hash`. On CPython, this results in the faster
-        ``frozenset_hash`` routine (implemented in ``setobject.c``) being used.
-        CPython does not expose a way to use the fast C implementation of the
-        algorithm without creating a frozenset.
         """
-        if self.USE_ITEMSVIEW_HASH:
-            return ItemsView(self)._hash()  # pylint: disable=protected-access
-        itemsiter = iteritems(self)
-        return hash(frozenset(itemsiter))
+        return ItemsView(self)._hash()  # pylint: disable=protected-access
 
     def __hash__(self):
         """
