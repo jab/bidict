@@ -23,3 +23,8 @@
 - Thanks to Michael Arntzenius for the valuable design discussion and feedback.
 
 - Thanks to Jozef Knaperek for the bugfix.
+
+- Thanks to @muhammadfaisal40 for the
+  `CC BY 3.0 <https://creativecommons.org/licenses/by/3.0/us/>`_
+  `icon <https://thenounproject.com/term/book/1330481/>`_
+  that bidict's logo was derived from.

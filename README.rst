@@ -36,6 +36,10 @@ Status
     :target: https://coveralls.io/github/jab/bidict
     :alt: Test coverage
 
+.. image:: https://api.codacy.com/project/badge/Grade/6628756a73254cd895656348236833b8
+    :target: https://www.codacy.com/app/jab/bidict
+    :alt: Codacy grade
+
 .. Hide to reduce clutter
 .. .. image:: https://img.shields.io/pypi/pyversions/bidict.svg
 ..     :target: https://pypi.python.org/pypi/bidict
@@ -44,14 +48,10 @@ Status
 .. .. image:: https://img.shields.io/pypi/implementation/bidict.svg
 ..     :target: https://pypi.python.org/pypi/bidict
 ..     :alt: Supported Python implementations
-
-.. image:: https://img.shields.io/badge/chat-on--gitter-5AB999.svg?logo=gitter-white
-    :target: https://gitter.im/jab/bidict
-    :alt: Chat
-
-.. image:: https://img.shields.io/badge/Say%20Thanks-😊-1EAEDB.svg
-    :target: https://saythanks.io/to/jab
-    :alt: Say thanks
+..
+.. .. image:: https://img.shields.io/badge/lgtm-👍-blue.svg
+..     :target: https://lgtm.com/projects/g/jab/bidict/
+..     :alt: LGTM
 
 .. image:: https://img.shields.io/pypi/l/bidict.svg
     :target: https://raw.githubusercontent.com/jab/bidict/master/LICENSE
@@ -74,19 +74,30 @@ Bidict:
   and
 - is made up of mature, concise, and well-reviewed code.
 
+Community and Support
+---------------------
+
+.. image:: https://img.shields.io/badge/chat-on%20gitter-5AB999.svg?logo=gitter-white
+    :target: https://gitter.im/jab/bidict
+    :alt: Chat
+
 If you are thinking of using bidict in your work,
 or if you have any questions, comments, or suggestions,
 I'd love to know about your use case
 and provide as much support for it as possible.
 
-If you are already using bidict and especially if
-you/your organization is a significant user,
-please `let me know <https://saythanks.io/to/jab>`_ you're using it!
-
 Please feel free to leave a message in the
 `chatroom <https://gitter.im/jab/bidict>`_
 or `open an issue <https://github.com/jab/bidict/issues>`_
 after reviewing the :doc:`contributors-guide`. [#fn-contributing]_
+
+
+Notice of Usage
+---------------
+
+If you are already using bidict, and especially if
+you/your organization is a significant user,
+please `let me know <mailto:jab@math.brown.edu>`_ you're using it!
 
 
 Changelog
@@ -102,7 +113,7 @@ check out the :doc:`changelog`. [#fn-changelog]_
 Release Notifications
 ---------------------
 
-.. image:: https://img.shields.io/badge/Sibbell-follow-brightgreen.svg
+.. image:: https://img.shields.io/badge/Sibbell-follow-40263B.svg
     :target: https://sibbell.com/github/jab/bidict/releases/
     :alt: Follow on Sibbell
 

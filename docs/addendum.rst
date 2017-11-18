@@ -63,35 +63,6 @@ where bidicts could be used for fun and profit
   These could be combined into a single bidict.
 
 
-Featured Projects Using bidict
-------------------------------
-
-Send a pull request to add yours here!
-
-- `BioSSPy <https://github.com/PIA-Group/BioSPPy>`_:
-  Biosignal Processing in Python
-
-- `marz <https://github.com/sgso/marz>`_:
-  Communicate with RIOT nativenet nodes on TAP interfaces through local ports
-
-- `charla <https://github.com/prologic/charla>`_:
-  an IRC Server and Daemon
-
-- `MIPS-interpreter <https://github.com/Nuullll/MIPS-interpreter>`_:
-  interprete MIPS instructions to machine code
-
-- `res-scheduler <https://github.com/AngryDevelopersLLC/res-scheduler>`_:
-  Resystem Scheduling Service
-
-- `packetmq <https://github.com/not-na/packetmq>`_:
-  packet-based message-framing network library built with Twisted
-
-- `gymnast <https://github.com/ajmarks/gymnast>`_: Pythonic PDF Parsing
-
-- `efnilex-vect <https://github.com/makrai/efnilex-vect>`_:
-  lexicon generation from vector space models
-
-
 Caveats
 -------
 

@@ -1,7 +1,7 @@
 Release Notifications
 ---------------------
 
-.. image:: https://img.shields.io/badge/Sibbell-follow-brightgreen.svg
+.. image:: https://img.shields.io/badge/Sibbell-follow-40263B.svg
     :target: https://sibbell.com/github/jab/bidict/releases/
     :alt: Follow on Sibbell
 
