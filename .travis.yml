@@ -18,7 +18,7 @@ matrix:
       script: travis_retry ./build-docs.sh linkcheck
     - env: TASK=pylint
       before_script: travis_retry pip install -U pylint
-      script: pylint bidict tests/*.py
+      script: pylint bidict tests setup.py
     - env: TASK=flake8
       before_script: travis_retry pip install -U flake8
       script: flake8 bidict tests/*.py

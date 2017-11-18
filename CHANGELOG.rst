@@ -6,8 +6,12 @@ Changelog
 .. include:: release-notifications.rst.inc
 
 
-0.14.0.dev0 (not yet released)
-------------------------------
+0.14.0 (not yet released)
+-------------------------
+
+- Fix a rare bug that could happen when using Python's ``-O`` flag
+  that could leave an ordered bidict in an inconsistent state
+  if dealing with duplicated keys or values.
 
 - Add the :attr:`bidict.BidictBase.ordered` class attribute.
 
@@ -28,7 +32,7 @@ Changelog
   method only returned True for other
   :class:`OrderedBidictBase <bidict.OrderedBidictBase>` subclasses.
 
-- Revert the optimizations in v0.13.0 to make
+- Revert the optimizations in 0.13.0 to make
   :class:`FrozenOrderedBidict <bidict.FrozenOrderedBidict>`
   instances that have the same items in different order
   have different hash values,
@@ -37,10 +41,6 @@ Changelog
   and a :class:`FrozenBidict <bidict.FrozenBidict>` with the same items
   would hash to different values despite comparing equal, which is a violation.
 
-- Fix a rare bug that could happen when using Python's ``-O`` flag
-  that could leave an ordered bidict in an inconsistent state
-  if dealing with duplicated keys or values.
-
 - Improvements to tests and CI, including:
 
   - Test on macOS and Windows
@@ -48,6 +48,8 @@ Changelog
   - Test with CPython 3.7-dev
   - Test with optimization flags
   - Require pylint to pass
+
+- New logo!
 
 Breaking API Changes
 ++++++++++++++++++++
@@ -70,10 +72,10 @@ Breaking API Changes
       >>> o1 == o2
       False
 
-- ``OrderedBidictBase._should_compare_order_sensitive`` was removed
-  in preference to :attr:`BidictBase.ordered <bidict.BidictBase.ordered>` and
+- ``OrderedBidictBase._should_compare_order_sensitive`` was removed. Use
   :attr:`OrderedBidictBase.should_compare_order_sensitive_to
-  <bidict.OrderedBidictBase.should_compare_order_sensitive_to>`.
+  <bidict.OrderedBidictBase.should_compare_order_sensitive_to>`
+  and/or :attr:`BidictBase.ordered <bidict.BidictBase.ordered>` instead.
 
 - ``frozenorderedbidict._HASH_NITEMS_MAX`` was removed.
   Since its hash value must be computed from all contained items

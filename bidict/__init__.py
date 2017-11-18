@@ -1,4 +1,9 @@
 # -*- coding: utf-8 -*-
+# Copyright 2017 Joshua Bronson. All Rights Reserved.
+#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 """
 Efficient, Pythonic bidirectional map implementation and related functionality.
@@ -20,6 +25,7 @@ from ._loose import LooseBidict, LooseOrderedBidict
 from ._named import namedbidict
 from ._ordered import OrderedBidictBase, OrderedBidict
 from .util import pairs, inverted
+
 
 __all__ = (
     'BidirectionalMapping',
@@ -45,10 +51,26 @@ __all__ = (
     'inverted',
 )
 
-try:
+
+def _get_version():
+    """Get the pkg_resources.resource_string from 'VERSION' file."""
     from pkg_resources import resource_string
-    __version__ = resource_string(__name__, 'VERSION').decode('ascii').strip()
-# pylint: disable=broad-except
-except Exception as exc:  # pragma: no cover
-    from warnings import warn
-    warn('Failed to read/set version: %r' % exc)
+    try:
+        return resource_string(__name__, 'VERSION').decode('ascii').strip()
+    except Exception as exc:  # pragma: no cover; pylint: disable=broad-except
+        from warnings import warn
+        warn('Failed to read/set version: %r' % exc)
+        return '0.0.0'
+
+
+__author__ = 'Joshua Bronson'
+__copyright__ = 'Copyright 2017 Joshua Bronson'
+__credits__ = [
+    'Joshua Bronson', 'Michael Arntzenius', 'Francis Carr', 'Gregory Ewing',
+    'Raymond Hettinger', 'Jozef Knaperek', 'Daniel Pope', 'Terry Reedy',
+    'David Turner', 'Tom Viner']
+__license__ = 'MPL 2.0'
+__maintainer__ = 'Joshua Bronson'
+__email__ = 'jab@math.brown.edu'
+__status__ = 'Beta'
+__version__ = _get_version()

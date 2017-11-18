@@ -103,8 +103,8 @@ please `let me know <mailto:jab@math.brown.edu>`_ you're using it!
 Changelog
 ---------
 
-For a history of notable changes to bidict,
-check out the :doc:`changelog`. [#fn-changelog]_
+See the :doc:`changelog` [#fn-changelog]_
+for a history of notable changes to bidict.
 
 
 .. .. include:: release-notifications.rst.inc
@@ -131,24 +131,8 @@ Installation
 Usage Documentation
 -------------------
 
-For usage documentation, please start at the :doc:`intro`
-and proceed from there.
-
-.. NOTE::
-   If you're reading this on GitHub, PyPI, in your code editor,
-   or in some other place that can't render/link the full docs properly,
-   you can find the bidict documentation on Read the Docs at:
-
-       `<https://bidict.readthedocs.io>`_
-
-   Also note: multiple versions of the documentation are published on Read the Docs,
-   and by default you will be taken to the version built from the master branch.
-   You can choose different versions from the pop-up menu in the lower-right.
-
-   If you have the `bidict source code <https://github.com/jab/bidict>`_  handy,
-   you can also browse the docs inside the ``docs`` directory,
-   and build them yourself by running ``make html`` from within that directory
-   (requires `Sphinx <https://pypi.python.org/pypi/Sphinx>`_).
+Please head to the :doc:`intro` [#fn-intro]_
+for usage documentation.
 
 
 Contributing
@@ -173,9 +157,12 @@ please see the :doc:`contributors-guide`. [#fn-contributing]_
 Alternate Links
 ---------------
 
-In case you're viewing on GitHub, PyPI,
-or some other place that can't render/link the full docs properly:
+If you're viewing this on GitHub, PyPI, or some other place
+that can't render/link the full docs properly,
+these alternate links may work better than the ones above:
 
 .. [#fn-contributing] `<CONTRIBUTING.rst>`_ | `<https://bidict.readthedocs.io/contributors-guide.html>`_
 
 .. [#fn-changelog] `<CHANGELOG.rst>`_ | `<https://bidict.readthedocs.io/changelog.html>`_
+
+.. [#fn-intro] `<docs/intro.rst>`_ | `<https://bidict.readthedocs.io/intro.html>`_

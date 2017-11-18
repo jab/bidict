@@ -145,9 +145,8 @@ Code of Conduct
 ---------------
 
 All participation in this project should respect the
-:doc:`code-of-conduct`.
-If that link does not work, see ``CODE_OF_CONDUCT.rst`` or
-`<https://bidict.readthedocs.io/code-of-conduct.html>`_.
+:doc:`code-of-conduct`. [#fn-coc]_
+
 By participating, you are expected to honor this code.
 
 Thanks
@@ -155,3 +154,5 @@ Thanks
 
 Contributions are gratefully received.
 Thank you for your friendly participation.
+
+.. [#fn-coc] `<CODE_OF_CONDUCT.rst>`_ | `<https://bidict.readthedocs.io/code-of-conduct.html>`_
