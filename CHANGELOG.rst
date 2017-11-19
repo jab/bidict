@@ -29,6 +29,10 @@ Changelog
   compare equal, they must also hash to the same value.
 
 - Reduce the memory usage of ordered bidicts.
+  (Store node data as a (*k*, *v*) pair rather than a {*k*: *v*, *v*: *k*} dict.)
+
+- Make copying of ordered bidicts faster.
+  (Skip unnecessary duplication checking.)
 
 - Add :class:`bidict.compat.Reversible`.
   This is an alias of :class:`collections.abc.Reversible` on Python ≥ 3.6

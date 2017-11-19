@@ -86,8 +86,26 @@ class FrozenOrderedBidict(frozenbidict):
 
     # Can't reuse frozenbidict.copy since we have different internal structure.
     def copy(self):
-        """Like :attr:`frozenbidict.copy <bidict.frozenbidict.copy>`."""
-        return self.__class__(self)
+        """Like :meth:`collections.OrderedDict.copy`."""
+        # This should be faster than ``return self.__class__(self)`` because
+        # it avoids unnecessary duplication checking.
+        copy = object.__new__(self.__class__)
+        copy.isinv = self.isinv
+        copy._init_sntl()  # pylint: disable=protected-access
+        sntl = copy.sntl
+        fwdm = {}
+        invm = {}
+        cur = sntl
+        nxt = sntl[_NXT]
+        for (key, val) in iteritems(self):
+            nxt = [(key, val), cur, sntl]
+            cur[_NXT] = fwdm[key] = invm[val] = nxt
+            cur = nxt
+        sntl[_PRV] = nxt
+        copy.fwdm = fwdm  # pylint: disable=attribute-defined-outside-init
+        copy.invm = invm  # pylint: disable=attribute-defined-outside-init
+        copy._init_inv()  # pylint: disable=protected-access
+        return copy
 
     __copy__ = copy
 

@@ -306,18 +306,10 @@ class frozenbidict(BidirectionalMapping):  # noqa: N801
         # This should be faster than ``return self.__class__(self)`` because
         # it avoids unnecessary duplication checking.
         copy = object.__new__(self.__class__)
-        # pylint: disable=attribute-defined-outside-init
         copy.isinv = self.isinv
-        copy.fwdm = self.fwdm.copy()
-        copy.invm = self.invm.copy()
-        cinv = object.__new__(self.__class__)
-        cinv.isinv = not self.isinv
-        cinv.fwd_cls = self.inv_cls
-        cinv.inv_cls = self.fwd_cls
-        cinv.fwdm = copy.invm
-        cinv.invm = copy.fwdm
-        cinv.inv = copy
-        copy.inv = cinv
+        copy.fwdm = self.fwdm.copy()  # pylint: disable=attribute-defined-outside-init
+        copy.invm = self.invm.copy()  # pylint: disable=attribute-defined-outside-init
+        copy._init_inv()  # pylint: disable=protected-access
         return copy
 
     __copy__ = copy
