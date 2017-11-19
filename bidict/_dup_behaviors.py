@@ -26,7 +26,7 @@ class DuplicationBehavior(_Marker):
         Keep the existing item and ignore the new item when a duplication is
         encountered.
 
-    .. py:attribute:: ON_DUP_VAL
+    .. py:attribute:: MATCH_ON_DUP_VAL
 
         Used with *on_dup_kv* to specify that it should match whatever the
         duplication behavior of *on_dup_val* is.
@@ -36,4 +36,4 @@ class DuplicationBehavior(_Marker):
 DuplicationBehavior.RAISE = RAISE = DuplicationBehavior('RAISE')
 DuplicationBehavior.OVERWRITE = OVERWRITE = DuplicationBehavior('OVERWRITE')
 DuplicationBehavior.IGNORE = IGNORE = DuplicationBehavior('IGNORE')
-DuplicationBehavior.ON_DUP_VAL = ON_DUP_VAL = DuplicationBehavior('ON_DUP_VAL')
+DuplicationBehavior.MATCH_ON_DUP_VAL = MATCH_ON_DUP_VAL = DuplicationBehavior('MATCH_ON_DUP_VAL')

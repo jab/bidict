@@ -10,7 +10,7 @@
 from collections import ItemsView
 
 from ._abc import BidirectionalMapping
-from ._dup_behaviors import RAISE, OVERWRITE, IGNORE, ON_DUP_VAL
+from ._dup_behaviors import RAISE, OVERWRITE, IGNORE, MATCH_ON_DUP_VAL
 from ._exceptions import (
     DuplicationError, KeyDuplicationError, ValueDuplicationError, KeyAndValueDuplicationError)
 from ._miss import _MISS
@@ -18,7 +18,7 @@ from .compat import PY2, iteritems
 from .util import pairs
 
 
-def _proxied(methodname, attrname='_fwd', doc=None):
+def _proxied(methodname, attrname='fwdm', doc=None):
     """Make a func that calls the indicated method on the indicated attribute."""
     def proxy(self, *args):
         """(__doc__ set dynamically below)"""
@@ -30,81 +30,96 @@ def _proxied(methodname, attrname='_fwd', doc=None):
     return proxy
 
 
-class frozenbidict(BidirectionalMapping):  # noqa: N801; pylint: disable=invalid-name,R0902
+# pylint: disable=invalid-name,too-many-instance-attributes
+class frozenbidict(BidirectionalMapping):  # noqa: N801
     """
     Immutable, hashable bidict type.
 
     Also serves as a base class for the other bidict types.
 
-    .. py:attribute:: _fwd
+    .. py:attribute:: fwd_cls
 
-        The backing one-way dict for the forward items.
+        The :class:`Mapping <collections.abc.Mapping>` type
+        used for the backing :attr:`fwdm` mapping,
+        set to :class:`dict`.
+        Subclasses override as needed.
 
-    .. py:attribute:: _inv
+    .. py:attribute:: inv_cls
 
-        The backing one-way dict for inverse items.
+        The :class:`Mapping <collections.abc.Mapping>` type
+        used for the backing :attr:`invm` mapping,
+        set to :class:`dict`.
+        Subclasses override as needed.
 
-    .. py:attribute:: _fwd_class
+    .. py:attribute:: on_dup_key
 
-        The Mapping type used for the backing _fwd dict.
+        Default :class:`DuplicationBehavior` used in the event of a key duplication.
 
-    .. py:attribute:: _inv_class
+    .. py:attribute:: on_dup_val
 
-        The Mapping type used for the backing _inv dict.
+        Default :class:`DuplicationBehavior` used in the event of a value duplication.
 
-    .. py:attribute:: _isinv
+    .. py:attribute:: on_dup_kv
+
+        Default :class:`DuplicationBehavior` used in the event of key and value duplication.
+
+    .. py:attribute:: fwdm
+
+        Managed by bidict (you shouldn't need to touch this)
+        but made public since we're consenting adults.
+
+        The backing :class:`Mapping <collections.abc.Mapping>`
+        storing the forward mapping data (key → value).
+
+    .. py:attribute:: invm
+
+        Managed by bidict (you shouldn't need to touch this)
+        but made public since we're consenting adults.
+
+        The backing :class:`Mapping <collections.abc.Mapping>`
+        storing the inverse mapping data (value → key).
+
+    .. py:attribute:: isinv
+
+        Managed by bidict (you shouldn't need to touch this)
+        but made public since we're consenting adults.
 
         :class:`bool` representing whether this bidict is the inverse of some
         other bidict which has already been created. If True, the meaning of
-        :attr:`_fwd_class` and :attr:`_inv_class` is swapped. This enables
-        the inverse of a bidict specifying a different :attr:`_fwd_class` and
-        :attr:`_inv_class` to be passed back into its constructor such that
-        the resulting copy has its :attr:`_fwd_class` and :attr:`_inv_class`
+        :attr:`fwd_cls` and :attr:`inv_cls` is swapped. This enables
+        the inverse of a bidict specifying a different :attr:`fwd_cls` and
+        :attr:`inv_cls` to be passed back into its constructor such that
+        the resulting copy has its :attr:`fwd_cls` and :attr:`inv_cls`
         set correctly.
-
-    .. py:attribute:: _on_dup_key
-
-        :class:`DuplicationBehavior` in the event of a key duplication.
-
-    .. py:attribute:: _on_dup_val
-
-        :class:`DuplicationBehavior` in the event of a value duplication.
-
-    .. py:attribute:: _on_dup_kv
-
-        :class:`DuplicationBehavior` in the event of key and value duplication.
     """
 
-    _on_dup_key = OVERWRITE
-    _on_dup_val = RAISE
-    _on_dup_kv = ON_DUP_VAL
-    _fwd_class = dict
-    _inv_class = dict
+    on_dup_key = OVERWRITE
+    on_dup_val = RAISE
+    on_dup_kv = MATCH_ON_DUP_VAL
+    fwd_cls = dict
+    inv_cls = dict
 
     def __init__(self, *args, **kw):
         """Like dict's ``__init__``."""
-        self._isinv = getattr(args[0], '_isinv', False) if args else False
-        self._fwd = self._inv_class() if self._isinv else self._fwd_class()
-        self._inv = self._fwd_class() if self._isinv else self._inv_class()
+        self.isinv = getattr(args[0], 'isinv', False) if args else False
+        self._init_fwdm_invm()
         self._init_inv()  # lgtm [py/init-calls-subclass]
         if args or kw:
-            self._update(True, self._on_dup_key, self._on_dup_val, self._on_dup_kv, *args, **kw)
+            self._update(True, self.on_dup_key, self.on_dup_val, self.on_dup_kv, *args, **kw)
+
+    def _init_fwdm_invm(self):
+        self.fwdm = self.inv_cls() if self.isinv else self.fwd_cls()
+        self.invm = self.fwd_cls() if self.isinv else self.inv_cls()
 
     def _init_inv(self):
         inv = object.__new__(self.__class__)
-        # pylint: disable=protected-access
-        inv._isinv = not self._isinv
-        inv._fwd_class = self._inv_class
-        inv._inv_class = self._fwd_class
-        inv._fwd = self._inv
-        inv._inv = self._fwd
-        inv._inverse = self
-        self._inverse = inv
-
-    @property
-    def inv(self):
-        """The inverse bidict."""
-        return self._inverse
+        inv.isinv = not self.isinv
+        inv.fwd_cls = self.inv_cls
+        inv.inv_cls = self.fwd_cls
+        inv.fwdm = self.invm
+        inv.invm = self.fwdm
+        inv.inv = self
+        self.inv = inv
 
     def __repr__(self):
         tmpl = self.__class__.__name__ + '('
@@ -122,7 +137,7 @@ class frozenbidict(BidirectionalMapping):  # noqa: N801; pylint: disable=invalid
     def __eq__(self, other):
         """Like :py:meth:`dict.__eq__`."""
         # This should be faster than using Mapping.__eq__'s implementation.
-        return self._fwd == other
+        return self.fwdm == other
 
     def __hash__(self):
         """
@@ -145,13 +160,13 @@ class frozenbidict(BidirectionalMapping):  # noqa: N801; pylint: disable=invalid
         return ItemsView(self)._hash()  # pylint: disable=protected-access
 
     def _pop(self, key):
-        val = self._fwd.pop(key)
-        del self._inv[val]
+        val = self.fwdm.pop(key)
+        del self.invm[val]
         return val
 
     def _clear(self):
-        self._fwd.clear()
-        self._inv.clear()
+        self.fwdm.clear()
+        self.invm.clear()
 
     def _put(self, key, val, on_dup_key, on_dup_val, on_dup_kv):
         result = self._dedup_item(key, val, on_dup_key, on_dup_val, on_dup_kv)
@@ -176,12 +191,12 @@ class frozenbidict(BidirectionalMapping):  # noqa: N801; pylint: disable=invalid
         *OVERWRITE*, or if no duplication is found, return the dedup result
         *(isdupkey, isdupval, invbyval, fwdbykey)*.
         """
-        if on_dup_kv is ON_DUP_VAL:
+        if on_dup_kv is MATCH_ON_DUP_VAL:
             on_dup_kv = on_dup_val
-        fwd = self._fwd
-        inv = self._inv
-        fwdbykey = fwd.get(key, _MISS)
-        invbyval = inv.get(val, _MISS)
+        fwdm = self.fwdm
+        invm = self.invm
+        fwdbykey = fwdm.get(key, _MISS)
+        invbyval = invm.get(val, _MISS)
         isdupkey = fwdbykey is not _MISS
         isdupval = invbyval is not _MISS
         if isdupkey and isdupval:
@@ -216,27 +231,27 @@ class frozenbidict(BidirectionalMapping):  # noqa: N801; pylint: disable=invalid
         return dup
 
     def _write_item(self, key, val, isdupkey, isdupval, oldkey, oldval):
-        self._fwd[key] = val
-        self._inv[val] = key
+        self.fwdm[key] = val
+        self.invm[val] = key
         if isdupkey:
-            del self._inv[oldval]
+            del self.invm[oldval]
         if isdupval:
-            del self._fwd[oldkey]
+            del self.fwdm[oldkey]
         return key, val, isdupkey, isdupval, oldkey, oldval
 
     def _update(self, init, on_dup_key, on_dup_val, on_dup_kv, *args, **kw):
         if not args and not kw:
             return
-        if on_dup_kv is ON_DUP_VAL:
+        if on_dup_kv is MATCH_ON_DUP_VAL:
             on_dup_kv = on_dup_val
         rollbackonfail = not init or RAISE in (on_dup_key, on_dup_val, on_dup_kv)
         if rollbackonfail:
-            return self._update_rbf(on_dup_key, on_dup_val, on_dup_kv, *args, **kw)
+            return self._update_with_rollback(on_dup_key, on_dup_val, on_dup_kv, *args, **kw)
         _put = self._put
         for (key, val) in pairs(*args, **kw):
             _put(key, val, on_dup_key, on_dup_val, on_dup_kv)
 
-    def _update_rbf(self, on_dup_key, on_dup_val, on_dup_kv, *args, **kw):
+    def _update_with_rollback(self, on_dup_key, on_dup_val, on_dup_kv, *args, **kw):
         """Update, rolling back on failure."""
         writes = []
         appendwrite = writes.append
@@ -255,39 +270,39 @@ class frozenbidict(BidirectionalMapping):  # noqa: N801; pylint: disable=invalid
                 appendwrite(write_result)
 
     def _undo_write(self, key, val, isdupkey, isdupval, oldkey, oldval):
-        fwd = self._fwd
-        inv = self._inv
+        fwdm = self.fwdm
+        invm = self.invm
         if not isdupkey and not isdupval:
             self._pop(key)
             return
         if isdupkey:
-            fwd[key] = oldval
-            inv[oldval] = key
+            fwdm[key] = oldval
+            invm[oldval] = key
             if not isdupval:
-                del inv[val]
+                del invm[val]
         if isdupval:
-            inv[val] = oldkey
-            fwd[oldkey] = val
+            invm[val] = oldkey
+            fwdm[oldkey] = val
             if not isdupkey:
-                del fwd[key]
+                del fwdm[key]
 
     def copy(self):
         """Like :py:meth:`dict.copy`."""
         # This should be faster than ``return self.__class__(self)`` because
-        # it avoids the unnecessary duplicate checking.
+        # it avoids unnecessary duplication checking.
         copy = object.__new__(self.__class__)
-        # pylint: disable=protected-access,attribute-defined-outside-init
-        copy._isinv = self._isinv
-        copy._fwd = self._fwd.copy()
-        copy._inv = self._inv.copy()
+        # pylint: disable=attribute-defined-outside-init
+        copy.isinv = self.isinv
+        copy.fwdm = self.fwdm.copy()
+        copy.invm = self.invm.copy()
         cinv = object.__new__(self.__class__)
-        cinv._isinv = not self._isinv
-        cinv._fwd_class = self._inv_class
-        cinv._inv_class = self._fwd_class
-        cinv._fwd = copy._inv
-        cinv._inv = copy._fwd
-        cinv._inverse = copy
-        copy._inverse = cinv
+        cinv.isinv = not self.isinv
+        cinv.fwd_cls = self.inv_cls
+        cinv.inv_cls = self.fwd_cls
+        cinv.fwdm = copy.invm
+        cinv.invm = copy.fwdm
+        cinv.inv = copy
+        copy.inv = cinv
         return copy
 
     __copy__ = copy
@@ -299,7 +314,7 @@ class frozenbidict(BidirectionalMapping):  # noqa: N801; pylint: disable=invalid
         "B.values() -> a set-like object providing a view on B's values.\n\n" \
         'Note that because values of a BidirectionalMapping are also keys\n' \
         'of its inverse, this returns a *KeysView* object rather than a\n' \
-        '*ValuesView* object, conferring set-like benefits.'
+        '*ValuesView* object, conferring set-alike benefits.'
     if PY2:
         viewkeys = _proxied('viewkeys')
 
@@ -307,7 +322,7 @@ class frozenbidict(BidirectionalMapping):  # noqa: N801; pylint: disable=invalid
                               doc=values.__doc__.replace('values()', 'viewvalues()'))
         values.__doc__ = "Like dict's ``values``."
 
-        # Use ItemsView here rather than proxying to _fwd.viewitems() so that
-        # OrderedBidictBase (whose _fwd's values are nodes, not bare values)
+        # Use ItemsView here rather than proxying to fwdm.viewitems() so that
+        # OrderedBidictBase (whose fwdm's values are nodes, not bare values)
         # can use it.
         viewitems = ItemsView

@@ -6,15 +6,18 @@
 
 """Provides bidict ABCs."""
 
-from abc import abstractproperty
 from collections import Mapping
 
 from .compat import iteritems
 
 
-class BidirectionalMapping(Mapping):
+class BidirectionalMapping(Mapping):  # pylint: disable=abstract-method
     """Abstract base class for bidirectional mappings.
     Extends :class:`collections.abc.Mapping`.
+
+    .. py:attribute:: inv
+
+        The inverse mapping.
 
     .. py:attribute:: _subclsattrs
 
@@ -24,9 +27,7 @@ class BidirectionalMapping(Mapping):
 
     __slots__ = ()
 
-    @abstractproperty
-    def inv(self):
-        """The inverse bidict."""
+    inv = NotImplemented
 
     def __inverted__(self):
         """Get an iterator over the items in :attr:`inv`."""

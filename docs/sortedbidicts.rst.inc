@@ -10,9 +10,9 @@ but the excellent
 `sortedcollections <http://www.grantjenks.com/docs/sortedcollections/>`_
 libraries do.
 Armed with these along with bidict's
-:attr:`_fwd_class <bidict.BidictBase._fwd_class>`
+:attr:`fwd_cls <bidict.BidictBase.fwd_cls>`
 and
-:attr:`_inv_class <bidict.BidictBase._inv_class>`
+:attr:`inv_cls <bidict.BidictBase.inv_cls>`
 attributes,
 creating a sorted bidict type is dead simple::
 
@@ -23,9 +23,9 @@ creating a sorted bidict type is dead simple::
     >>> # its inverse iterate over their items in different orders):
 
     >>> class SortedBidict1(bidict.bidict):
-    ...     _fwd_class = sortedcontainers.SortedDict
-    ...     _inv_class = sortedcontainers.SortedDict
-    ...     __reversed__ = lambda self: reversed(self._fwd)
+    ...     fwd_cls = sortedcontainers.SortedDict
+    ...     inv_cls = sortedcontainers.SortedDict
+    ...     __reversed__ = lambda self: reversed(self.fwdm)
 
     >>> b = SortedBidict1({'Tokyo': 'Japan', 'Cairo': 'Egypt'})
     >>> b
@@ -49,9 +49,9 @@ creating a sorted bidict type is dead simple::
     >>> import sortedcollections
 
     >>> class SortedBidict2(bidict.bidict):
-    ...     _fwd_class = sortedcontainers.SortedDict
-    ...     _inv_class = sortedcollections.ValueSortedDict
-    ...     __reversed__ = lambda self: reversed(self._fwd)
+    ...     fwd_cls = sortedcontainers.SortedDict
+    ...     inv_cls = sortedcollections.ValueSortedDict
+    ...     __reversed__ = lambda self: reversed(self.fwdm)
 
     >>> element_by_atomic_number = SortedBidict2({
     ...     3: 'lithium', 1: 'hydrogen', 2: 'helium'})
@@ -84,7 +84,7 @@ creating a sorted bidict type is dead simple::
     ...         return object.__getattribute__(self, name)
     ...     except AttributeError as e:
     ...         try:
-    ...             return getattr(self._fwd, name)
+    ...             return getattr(self.fwdm, name)
     ...         except AttributeError:
     ...             raise e
 

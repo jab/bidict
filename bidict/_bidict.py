@@ -9,7 +9,7 @@
 
 from collections import MutableMapping
 
-from ._dup_behaviors import OVERWRITE, RAISE, ON_DUP_VAL
+from ._dup_behaviors import OVERWRITE, RAISE, MATCH_ON_DUP_VAL
 from ._frozen import frozenbidict
 
 
@@ -49,9 +49,9 @@ class bidict(frozenbidict):  # noqa: N801; pylint: disable=invalid-name
             existing item and *val* duplicates the value of a different
             existing item.
         """
-        self._put(key, val, self._on_dup_key, self._on_dup_val, self._on_dup_kv)
+        self._put(key, val, self.on_dup_key, self.on_dup_val, self.on_dup_kv)
 
-    def put(self, key, val, on_dup_key=RAISE, on_dup_val=RAISE, on_dup_kv=ON_DUP_VAL):
+    def put(self, key, val, on_dup_key=RAISE, on_dup_val=RAISE, on_dup_kv=MATCH_ON_DUP_VAL):
         """
         Associate *key* with *val* with the specified duplication behaviors.
 
@@ -106,10 +106,10 @@ class bidict(frozenbidict):  # noqa: N801; pylint: disable=invalid-name
 
     def popitem(self, *args, **kw):
         """Like :py:meth:`dict.popitem`."""
-        if not self._fwd:
+        if not self.fwdm:
             raise KeyError('popitem(): %s is empty' % self.__class__.__name__)
-        key, val = self._fwd.popitem(*args, **kw)
-        del self._inv[val]
+        key, val = self.fwdm.popitem(*args, **kw)
+        del self.invm[val]
         return key, val
 
     def setdefault(self, key, default=None):
@@ -120,13 +120,13 @@ class bidict(frozenbidict):  # noqa: N801; pylint: disable=invalid-name
 
     def update(self, *args, **kw):
         """Like :attr:`putall` with default duplication behaviors."""
-        self._update(False, self._on_dup_key, self._on_dup_val, self._on_dup_kv, *args, **kw)
+        self._update(False, self.on_dup_key, self.on_dup_val, self.on_dup_kv, *args, **kw)
 
     def forceupdate(self, *args, **kw):
         """Like a bulk :attr:`forceput`."""
         self._update(False, OVERWRITE, OVERWRITE, OVERWRITE, *args, **kw)
 
-    def putall(self, items, on_dup_key=RAISE, on_dup_val=RAISE, on_dup_kv=ON_DUP_VAL):
+    def putall(self, items, on_dup_key=RAISE, on_dup_val=RAISE, on_dup_kv=MATCH_ON_DUP_VAL):
         """
         Like a bulk :attr:`put`.
 

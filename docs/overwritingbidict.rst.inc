@@ -16,7 +16,7 @@ you can use the following recipe::
     >>> from bidict import bidict, OVERWRITE
 
     >>> class OverwritingBidict(bidict):
-    ...     _on_dup_val = OVERWRITE
+    ...     on_dup_val = OVERWRITE
 
     >>> b = OverwritingBidict({'one': 1})
     >>> b['two'] = 1  # succeeds, no ValueDuplicationError
