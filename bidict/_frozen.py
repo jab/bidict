@@ -69,7 +69,7 @@ class frozenbidict(BidirectionalMapping):  # noqa: N801
         but made public since we're consenting adults.
 
         The backing :class:`Mapping <collections.abc.Mapping>`
-        storing the forward mapping data (key → value).
+        storing the forward mapping data (*key* → *value*).
 
     .. py:attribute:: invm
 
@@ -77,7 +77,7 @@ class frozenbidict(BidirectionalMapping):  # noqa: N801
         but made public since we're consenting adults.
 
         The backing :class:`Mapping <collections.abc.Mapping>`
-        storing the inverse mapping data (value → key).
+        storing the inverse mapping data (*value* → *key*).
 
     .. py:attribute:: isinv
 
