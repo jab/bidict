@@ -64,7 +64,7 @@ Bidict:
 - is in use by several teams at Google, Bank of America Merrill Lynch,
   and many others,
 - has carefully designed APIs for
-  safety, ergonomics, performance, and intuitiveness,
+  safety, simplicity, flexibility, and ergonomics,
 - is CPython-, PyPy-, Python 2-, and Python 3-compatible,
 - has extensive `test coverage <https://coveralls.io/github/jab/bidict>`_,
   including property-based tests and benchmarks,
@@ -154,12 +154,19 @@ For information about contributing to the code,
 please see the :doc:`contributors-guide`. [#fn-contributing]_
 
 
-Alternate Links
----------------
+Finding Documentation
+---------------------
+
+If you're viewing this on `<https://bidict.readthedocs.io>`_,
+note that multiple versions of the documentation are available,
+and you can choose a different version using the popup menu at the bottom-right.
+Please make sure you're viewing the version of the documentation
+that corresponds to the version of bidict you'd like to use.
 
 If you're viewing this on GitHub, PyPI, or some other place
-that can't render/link the full docs properly,
-these alternate links may work better than the ones above:
+that can't render and link this documentation properly
+and are seeing broken links,
+try these alternate links instead:
 
 .. [#fn-contributing] `<CONTRIBUTING.rst>`_ | `<https://bidict.readthedocs.io/contributors-guide.html>`_
 

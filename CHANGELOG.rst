@@ -10,15 +10,14 @@ Changelog
 -------------------------
 
 - Fix a bug where :class:`bidict <bidict.bidict>`\'s
-  default *on_dup_kv* behavior was not
-  :class:`ON_DUP_VAL <bidict.DuplicationBehavior.ON_DUP_VAL>`,
+  default *on_dup_kv* policy was not
+  to match whatever *on_dup_val* policy was in effect,
   as :ref:`documented <key-and-value-duplication>`,
-  but was incorrectly set to
-  :class:`RAISE <bidict.DuplicationBehavior.RAISE>` instead.
+  but rather was set to :class:`RAISE <bidict.DuplicationPolicy.RAISE>`.
 
-- Fix a bug that could happen when using Python's ``-O`` flag
+- Fix a bug that could happen when using Python's optimization (``-O``) flags
   that could leave an ordered bidict in an inconsistent state
-  when dealing with duplicated keys or values.
+  when dealing with duplicated, overwritten keys or values.
 
 - Fix a bug caused by the optimizations in 0.13.0 that made
   :class:`FrozenOrderedBidict <bidict.FrozenOrderedBidict>`
@@ -28,6 +27,8 @@ Changelog
   Since a :class:`FrozenOrderedBidict <bidict.FrozenOrderedBidict>`
   and a :class:`frozenbidict <bidict.frozenbidict>` with the same items
   compare equal, they must also hash to the same value.
+
+- Reduce the memory usage of ordered bidicts.
 
 - Add :class:`bidict.compat.Reversible`.
   This is an alias of :class:`collections.abc.Reversible` on Python ≥ 3.6
@@ -47,21 +48,24 @@ Breaking API Changes
 
 This release includes multiple API simplifications and improvements.
 
-- Rename:
+- Renamed:
 
     - ``orderedbidict`` → :class:`OrderedBidict <bidict.OrderedBidict>`
     - ``frozenorderedbidict`` → :class:`FrozenOrderedBidict <bidict.FrozenOrderedBidict>`
 
-  so these now match the case of :class:`collections.OrderedDict`.
+  so that these now match the case of :class:`collections.OrderedDict`.
 
   The names of the
   :class:`bidict <bidict.bidict>`,
   :class:`namedbidict <bidict.namedbidict>`, and
   :class:`frozenbidict <bidict.frozenbidict>` classes
-  have been retained as all-lowercase,
-  so they continue to match the case of
+  have been retained as all-lowercase
+  so that they continue to match the case of
   :class:`dict`, :func:`namedtuple <collections.namedtuple>`, and
   :class:`frozenset`, respectively.
+
+- ``bidict.DuplicationPolicy.ON_DUP_VAL`` has been removed.
+  Use ``None`` instead.
 
 - Merge :class:`frozenbidict <bidict.frozenbidict>` and ``BidictBase``
   together and remove ``BidictBase``.
@@ -101,7 +105,7 @@ This release includes multiple API simplifications and improvements.
   :class:`Reversible <collections.abc.Reversible>` mapping,
   :class:`collections.OrderedDict` being a notable example.
 
-- Renamed: ``FrozenBidictBase._compute_hash`` →
+- Renamed ``FrozenBidictBase._compute_hash`` →
   :attr:`frozenbidict.compute_hash <bidict.frozenbidict.compute_hash>`
 
 - ``frozenorderedbidict._HASH_NITEMS_MAX`` has been removed.
@@ -127,8 +131,19 @@ This release includes multiple API simplifications and improvements.
   Simple recipes to implement them yourself are now given in
   :ref:`overwritingbidict`.
 
-- Renamed: ``FrozenBidictBase._compute_hash`` →
+- Renamed ``FrozenBidictBase._compute_hash`` →
   :attr:`frozenbidict.compute_hash <bidict.frozenbidict.compute_hash>`
+
+- Renamed ``DuplicationBehavior`` →
+  :class:`DuplicationPolicy <bidict.DuplicationPolicy>`.
+
+- Renamed:
+
+    - ``bidict.BidictBase._fwd_class`` → :attr:`bidict.frozenbidict.fwd_cls`
+    - ``bidict.BidictBase._inv_class`` → :attr:`bidict.frozenbidict.inv_cls`
+    - ``bidict.BidictBase._on_dup_key`` → :attr:`bidict.frozenbidict.on_dup_key`
+    - ``bidict.BidictBase._on_dup_val`` → :attr:`bidict.frozenbidict.on_dup_val`
+    - ``bidict.BidictBase._on_dup_kv`` → :attr:`bidict.frozenbidict.on_dup_kv`
 
 
 0.13.1 (2017-03-15)
@@ -140,7 +155,7 @@ This release includes multiple API simplifications and improvements.
   ``issubclass(OldStyleClass, BidirectionalMapping)`` once again
   works with old-style classes,
   returning ``False`` rather than raising :class:`AttributeError`
-  (`thanks, @knaperek <https://github.com/jab/bidict/pull/41>`_!).
+  (`thanks, @knaperek <https://github.com/jab/bidict/pull/41>`_).
 
 
 0.13.0 (2017-01-19)
@@ -232,24 +247,24 @@ This release includes multiple API simplifications and improvements.
 
 - :func:`put() <bidict.bidict.put>`
   now accepts ``on_dup_key``, ``on_dup_val``, and ``on_dup_kv`` keyword args
-  which allow you to override the default behavior
+  which allow you to override the default policy
   when the key or value of a given item
-  duplicates that (those) of any existing item(s).
+  duplicates any existing item's.
   These can take the following values:
 
-  - :attr:`bidict.DuplicationBehavior.RAISE`
-  - :attr:`bidict.DuplicationBehavior.OVERWRITE`
-  - :attr:`bidict.DuplicationBehavior.IGNORE`
+  - :attr:`bidict.DuplicationPolicy.RAISE`
+  - :attr:`bidict.DuplicationPolicy.OVERWRITE`
+  - :attr:`bidict.DuplicationPolicy.IGNORE`
 
-  ``on_dup_kv`` can also take :attr:`bidict.DuplicationBehavior.ON_DUP_VAL`.
+  ``on_dup_kv`` can also take ``ON_DUP_VAL``.
 
   If not provided,
-  :func:`put() <bidict.bidict.put>` uses
-  :attr:`RAISE <bidict.DuplicationBehavior.RAISE>` behavior by default.
+  :func:`put() <bidict.bidict.put>` uses the
+  :attr:`RAISE <bidict.DuplicationPolicy.RAISE>` policy by default.
 
 - New :func:`putall() <bidict.bidict.putall>` method
   provides a bulk :func:`put() <bidict.bidict.put>` API,
-  allowing you to override the default duplication handling behavior
+  allowing you to override the default duplication handling policy
   that :func:`update() <bidict.bidict.update>` uses.
 
 - :func:`bidict.update() <bidict.bidict.update>` now fails clean,
@@ -431,8 +446,7 @@ Breaking API Changes
 0.9.0rc0 (2015-05-30)
 ---------------------
 
-- Add a Changelog!
-  Also a
+- Add this changelog,
   `Contributors' Guide <https://github.com/jab/bidict/blob/master/CONTRIBUTING.rst>`_,
   `Gitter chat room <https://gitter.im/jab/bidict>`_,
   and other community-oriented improvements.

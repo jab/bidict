@@ -13,8 +13,10 @@ from io import open  # pylint: disable=redefined-builtin
 
 from setuptools import setup
 
-metadata = {'__file__': __file__}
-exec(open('bidict/metadata.py').read(), metadata)
+# Fetch bidict's package metadata from bidict/metadata.py.
+# Must use exec(open(...)) because we haven't been installed yet.
+METADATA = {'__BIDICT_SETUPPY__FILE__': __file__}
+exec(open('bidict/metadata.py').read().encode('utf8'), METADATA)  # pylint: disable=exec-used
 
 TESTS_REQ = [
     'hypothesis==3.38.0',
@@ -40,19 +42,19 @@ DEV_REQ = TESTS_REQ + COVERAGE_REQ + [
 
 setup(
     name='bidict',
-    version=metadata['__version__'],
-    author=metadata['__author__'],
-    author_email=metadata['__email__'],
+    version=METADATA['__version__'],
+    author=METADATA['__author__'],
+    author_email=METADATA['__email__'],
     description='Efficient, Pythonic bidirectional map implementation and related functionality',
-    long_description=metadata['__long_description__'],
+    long_description=METADATA['__long_description__'],
     keywords='dict, dictionary, mapping, datastructure, '
              'bimap, bijection, bijective, injective, inverse, reverse, '
              'bidirectional, two-way, 2-way',
     url='https://github.com/jab/bidict',
-    license=metadata['__license__'],
+    license=METADATA['__license__'],
     packages=['bidict'],
     package_data=dict(bidict=['VERSION']),
-    zip_safe=False,  # we actually are zip safe, but prefer not
+    zip_safe=False,  # Don't zip. (We're zip-safe but prefer not to.)
     classifiers=[
         'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',

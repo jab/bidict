@@ -22,7 +22,7 @@ _END = _Marker('END')
 
 
 class FrozenOrderedBidict(frozenbidict):
-    """
+    u"""
     Frozen ordered bidict. Base class for :class:`OrderedBidict`.
 
     .. py:attribute:: ordered_cls

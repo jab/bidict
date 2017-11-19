@@ -10,8 +10,8 @@
 from collections import ItemsView
 
 from ._abc import BidirectionalMapping
-from ._dup_behaviors import RAISE, OVERWRITE, IGNORE, MATCH_ON_DUP_VAL
-from ._exceptions import (
+from ._dup import RAISE, OVERWRITE, IGNORE
+from ._exc import (
     DuplicationError, KeyDuplicationError, ValueDuplicationError, KeyAndValueDuplicationError)
 from ._miss import _MISS
 from .compat import PY2, iteritems
@@ -32,7 +32,7 @@ def _proxied(methodname, attrname='fwdm', doc=None):
 
 # pylint: disable=invalid-name,too-many-instance-attributes
 class frozenbidict(BidirectionalMapping):  # noqa: N801
-    """
+    u"""
     Immutable, hashable bidict type.
 
     Also serves as a base class for the other bidict types.
@@ -41,27 +41,42 @@ class frozenbidict(BidirectionalMapping):  # noqa: N801
 
         The :class:`Mapping <collections.abc.Mapping>` type
         used for the backing :attr:`fwdm` mapping,
-        set to :class:`dict`.
-        Subclasses override as needed.
+        Defaults to :class:`dict`.
+        Override this if you need different behavior.
 
     .. py:attribute:: inv_cls
 
         The :class:`Mapping <collections.abc.Mapping>` type
-        used for the backing :attr:`invm` mapping,
-        set to :class:`dict`.
-        Subclasses override as needed.
+        used for the backing :attr:`invm` mapping.
+        Defaults to :class:`dict`.
+        Override this if you need different behavior.
 
     .. py:attribute:: on_dup_key
 
-        Default :class:`DuplicationBehavior` used in the event of a key duplication.
+        The default :class:`DuplicationPolicy` used in the event that an item
+        duplicates only the key of another item,
+        when a policy has not been specified explicitly
+        (e.g. the policy used by :meth:`__setitem__` and :meth:`update`).
+        Defaults to :class:`OVERWRITE <DuplicationPolicy.OVERWRITE>`
+        to match :class:`dict`'s behavior.
 
     .. py:attribute:: on_dup_val
 
-        Default :class:`DuplicationBehavior` used in the event of a value duplication.
+        The default :class:`DuplicationPolicy` used in the event that an item
+        duplicates only the value of another item,
+        when a policy has not been specified explicitly
+        (e.g. the policy used by :meth:`__setitem__` and :meth:`update`).
+        Defaults to :class:`RAISE <DuplicationPolicy.RAISE>`
+        to prevent unintended overwrite of another item.
 
     .. py:attribute:: on_dup_kv
 
-        Default :class:`DuplicationBehavior` used in the event of key and value duplication.
+        The default :class:`DuplicationPolicy` used in the event that an item
+        duplicates the key of another item and the value of yet another item,
+        when a policy has not been specified explicitly
+        (e.g. the policy used by :meth:`__setitem__` and :meth:`update`).
+        Defaults to ``None``, which causes the *on_dup_kv* policy to match
+        whatever *on_dup_val* policy is in effect.
 
     .. py:attribute:: fwdm
 
@@ -95,7 +110,7 @@ class frozenbidict(BidirectionalMapping):  # noqa: N801
 
     on_dup_key = OVERWRITE
     on_dup_val = RAISE
-    on_dup_kv = MATCH_ON_DUP_VAL
+    on_dup_kv = None
     fwd_cls = dict
     inv_cls = dict
 
@@ -177,21 +192,21 @@ class frozenbidict(BidirectionalMapping):  # noqa: N801
         """
         Check *key* and *val* for any duplication in self.
 
-        Handle any duplication as per the given duplication behaviors.
+        Handle any duplication as per the given duplication policies.
 
         (key, val) already present is construed as a no-op, not a duplication.
 
-        If duplication is found and the corresponding duplication behavior is
+        If duplication is found and the corresponding duplication policy is
         *RAISE*, raise the appropriate error.
 
-        If duplication is found and the corresponding duplication behavior is
+        If duplication is found and the corresponding duplication policy is
         *IGNORE*, return *None*.
 
-        If duplication is found and the corresponding duplication behavior is
+        If duplication is found and the corresponding duplication policy is
         *OVERWRITE*, or if no duplication is found, return the dedup result
         *(isdupkey, isdupval, invbyval, fwdbykey)*.
         """
-        if on_dup_kv is MATCH_ON_DUP_VAL:
+        if on_dup_kv is None:
             on_dup_kv = on_dup_val
         fwdm = self.fwdm
         invm = self.invm
@@ -242,7 +257,7 @@ class frozenbidict(BidirectionalMapping):  # noqa: N801
     def _update(self, init, on_dup_key, on_dup_val, on_dup_kv, *args, **kw):
         if not args and not kw:
             return
-        if on_dup_kv is MATCH_ON_DUP_VAL:
+        if on_dup_kv is None:
             on_dup_kv = on_dup_val
         rollbackonfail = not init or RAISE in (on_dup_key, on_dup_val, on_dup_kv)
         if rollbackonfail:

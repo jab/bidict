@@ -92,7 +92,7 @@ but it's good enough to cover :class:`OrderedDict <collections.OrderedDict>`\s
 and any other :class:`Mapping <collections.abc.Mapping>` implementation
 that implements :class:`Reversible <collections.abc.Reversible>`.
 If this logic is insufficient for your needs, you can override
-:attr:`ORDERED_CLS <bidict.FrozenOrderedBidict.ORDERED_CLS>`
+:attr:`ordered_cls <bidict.FrozenOrderedBidict.ordered_cls>`
 to implement whatever behavior you require.
 
 :class:`OrderedBidict <bidict.OrderedBidict>` also comes in a frozen flavor.

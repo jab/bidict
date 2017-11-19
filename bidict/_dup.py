@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 # Copyright 2017 Joshua Bronson. All Rights Reserved.
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
@@ -9,9 +10,9 @@
 from ._marker import _Marker
 
 
-class DuplicationBehavior(_Marker):
+class DuplicationPolicy(_Marker):
     """
-    Provide RAISE, OVERWRITE, IGNORE, and ON_DUP_VAL duplication behaviors.
+    Provide RAISE, OVERWRITE, and IGNORE duplication policies.
 
     .. py:attribute:: RAISE
 
@@ -25,15 +26,9 @@ class DuplicationBehavior(_Marker):
 
         Keep the existing item and ignore the new item when a duplication is
         encountered.
-
-    .. py:attribute:: MATCH_ON_DUP_VAL
-
-        Used with *on_dup_kv* to specify that it should match whatever the
-        duplication behavior of *on_dup_val* is.
     """
 
 
-DuplicationBehavior.RAISE = RAISE = DuplicationBehavior('RAISE')
-DuplicationBehavior.OVERWRITE = OVERWRITE = DuplicationBehavior('OVERWRITE')
-DuplicationBehavior.IGNORE = IGNORE = DuplicationBehavior('IGNORE')
-DuplicationBehavior.MATCH_ON_DUP_VAL = MATCH_ON_DUP_VAL = DuplicationBehavior('MATCH_ON_DUP_VAL')
+DuplicationPolicy.RAISE = RAISE = DuplicationPolicy('RAISE')
+DuplicationPolicy.OVERWRITE = OVERWRITE = DuplicationPolicy('OVERWRITE')
+DuplicationPolicy.IGNORE = IGNORE = DuplicationPolicy('IGNORE')

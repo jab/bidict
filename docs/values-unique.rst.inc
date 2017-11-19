@@ -111,9 +111,9 @@ These methods allow you to specify different strategies for handling
 key and value duplication via
 the *on_dup_key*, *on_dup_val*, and *on_dup_kv* arguments.
 Three possible options are
-:class:`RAISE <bidict.DuplicationBehavior.RAISE>`,
-:class:`OVERWRITE <bidict.DuplicationBehavior.OVERWRITE>`, and
-:class:`IGNORE <bidict.DuplicationBehavior.IGNORE>`::
+:class:`RAISE <bidict.DuplicationPolicy.RAISE>`,
+:class:`OVERWRITE <bidict.DuplicationPolicy.OVERWRITE>`, and
+:class:`IGNORE <bidict.DuplicationPolicy.IGNORE>`::
 
     >>> from bidict import RAISE, OVERWRITE, IGNORE
     >>> b = bidict({2: 4})
@@ -137,7 +137,7 @@ the *on_dup_key* and *on_dup_val* keyword arguments of
 and
 :func:`putall() <bidict.bidict.putall>`
 default to
-:class:`RAISE <bidict.DuplicationBehavior.RAISE>`,
+:class:`RAISE <bidict.DuplicationPolicy.RAISE>`,
 providing stricter-by-default alternatives to
 :func:`__setitem__() <bidict.bidict.__setitem__>`
 and
@@ -157,7 +157,7 @@ and the value of another existing item, as in::
 
     >>> b.putall([(4, 16), (5, 25), (4, 25)])  # doctest: +SKIP
 
-Because the *on_dup_key* and *on_dup_val* behaviors that are in effect may differ,
+Because the *on_dup_key* and *on_dup_val* policies that are in effect may differ,
 *on_dup_kv* allows you to indicate how you want to handle this case
 without ambiguity::
 
@@ -167,13 +167,12 @@ without ambiguity::
         ...
     KeyAndValueDuplicationError: (4, 25)
 
-If not specified, *on_dup_kv* defaults to
-:class:`ON_DUP_VAL <bidict.DuplicationBehavior.ON_DUP_VAL>`,
-meaning *on_dup_kv* will match whatever *on_dup_val* behavior is in effect.
+If not specified, *on_dup_kv* defaults to ``None``,
+which causes *on_dup_kv* to match whatever *on_dup_val* policy is in effect.
 
 Note that if an entire *(k, v)* item is duplicated exactly,
 the duplicate item will just be ignored,
-no matter what the duplication behaviors are set to.
+no matter what the duplication policies are set to.
 The insertion of an entire duplicate item is construed as a no-op::
 
     >>> sorted(b.items())

@@ -4,11 +4,11 @@
 ############################
 
 If you'd like
-:class:`overwriting behavior <bidict.DuplicationBehavior.OVERWRITE>`
-to be the default for
+:class:`OVERWRITE <bidict.DuplicationPolicy.OVERWRITE>`
+to be the default duplication policy for
 :func:`__setitem__() <bidict.bidict.__setitem__>` and
 :func:`update() <bidict.bidict.update>`,
-rather than having to use
+rather than always having to use
 :func:`forceput() <bidict.bidict.forceput>` and
 :func:`forceupdate() <bidict.bidict.forceupdate>`,
 you can use the following recipe::
@@ -31,7 +31,7 @@ As with
 :class:`bidict.bidict <bidict.bidict>`,
 ``OverwritingBidict.put()`` and
 ``OverwritingBidict.putall()``
-will still provide per-call overrides for duplication behaviors,
+will still provide per-call overrides for duplication policies,
 and will both still default to raising for all duplication types
 unless you override those methods too.
 
@@ -43,7 +43,7 @@ simply adapt this recipe to have the class inherit from
 Beware of ``OVERWRITE``
 :::::::::::::::::::::::
 
-With default :class:`OVERWRITE <bidict.DuplicationBehavior.OVERWRITE>` behavior
+With a default :class:`OVERWRITE <bidict.DuplicationPolicy.OVERWRITE>` policy
 as in the ``OverwritingBidict`` recipe above,
 beware of the following potentially surprising behavior::
 

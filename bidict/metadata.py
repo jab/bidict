@@ -5,9 +5,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-"""
-Define bidict package metadata.
-"""
+"""Define bidict package metadata."""
 
 
 def _get_file_content(filename, fallback='', encoding='utf8'):
@@ -16,18 +14,22 @@ def _get_file_content(filename, fallback='', encoding='utf8'):
     try:
         from pkg_resources import resource_string
         return resource_string('bidict', filename).decode(encoding)
-    except:
+    except:  # noqa: E722; pylint: disable=bare-except
         pass
+    # See ../setup.py
+    bidict_setuppy = globals().get('__BIDICT_SETUPPY__FILE__')
+    if not bidict_setuppy:
+        return fallback
     from os.path import join, dirname, realpath
     from io import open  # pylint: disable=redefined-builtin
-    thisdir = dirname(realpath(__file__))
+    thisdir = dirname(realpath(bidict_setuppy))
     fpath = realpath(join(thisdir, filename))
     if not fpath.startswith(thisdir):
         return fallback
     try:
         with open(fpath, encoding=encoding) as fstream:
             return fstream.read()
-    except:
+    except:  # noqa: E722; pylint: disable=bare-except
         return fallback
 
 

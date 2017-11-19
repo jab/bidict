@@ -17,8 +17,8 @@ See https://bidict.readthedocs.io for comprehensive documentation.
 
 from ._abc import BidirectionalMapping
 from ._bidict import bidict
-from ._dup_behaviors import DuplicationBehavior, IGNORE, OVERWRITE, RAISE
-from ._exceptions import (
+from ._dup import DuplicationPolicy, IGNORE, OVERWRITE, RAISE
+from ._exc import (
     BidictException, DuplicationError,
     KeyDuplicationError, ValueDuplicationError, KeyAndValueDuplicationError)
 from ._frozen import frozenbidict
@@ -42,7 +42,7 @@ __all__ = (
     '__version__',
     'BidirectionalMapping',
     'BidictException',
-    'DuplicationBehavior',
+    'DuplicationPolicy',
     'IGNORE',
     'OVERWRITE',
     'RAISE',
