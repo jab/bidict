@@ -119,12 +119,12 @@ def test_consistency_after_mutation(arity, methodname, B, init, arg1, arg2, item
     assert b1.inv == to_inv_odict(iteritems(b1))
 
 
-@pytest.mark.parametrize('B', mutable_bidict_types)
 @pytest.mark.parametrize('on_dup_key', ondupbehaviors)
 @pytest.mark.parametrize('on_dup_val', ondupbehaviors)
 @pytest.mark.parametrize('on_dup_kv', ondupbehaviors)
+@pytest.mark.parametrize('B', mutable_bidict_types)
 @given(init=inititems, items=itemlists)
-def test_putall(B, on_dup_key, on_dup_val, on_dup_kv, init, items):  # noqa
+def test_putall(on_dup_key, on_dup_val, on_dup_kv, B, init, items):  # noqa
     b0 = B(init)
     expect = b0.copy()
     expectexc = None
