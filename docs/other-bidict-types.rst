@@ -8,6 +8,8 @@ Now that we've covered
 let's look at the remaining bidict types
 and the hierarchy they belong to.
 
+.. _bidict-type-hierarchy:
+
 ``bidict`` Type Hierarchy
 -------------------------
 

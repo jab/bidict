@@ -10,25 +10,11 @@ setup.py
 """
 
 from io import open  # pylint: disable=redefined-builtin
-from warnings import warn
 
 from setuptools import setup
 
-
-def from_file(filename, fallback):
-    """Return the contents of a file, or fallback if it couldn't be opened."""
-    try:
-        with open(filename, encoding='utf8') as fstream:
-            return fstream.read().strip()
-    except Exception as exc:  # pylint: disable=broad-except
-        warn('Error opening file %r, using fallback %r: %s' % (filename, fallback, exc))
-        return fallback
-
-
-VERSION = from_file('bidict/VERSION', '0.0.0')
-LONG_DESC = from_file('README.rst', 'See https://bidict.readthedocs.io').replace(
-    '(doc:)', '')  # :doc: breaks long_description rendering on PyPI
-
+metadata = {'__file__': __file__}
+exec(open('bidict/metadata.py').read(), metadata)
 
 TESTS_REQ = [
     'hypothesis==3.38.0',
@@ -39,12 +25,10 @@ TESTS_REQ = [
     'sortedcollections==0.5.3',
     'sortedcontainers==1.5.7',
 ]
-
 COVERAGE_REQ = [
     'coverage==4.4.2',
     'pytest-cov==2.5.1',
 ]
-
 DEV_REQ = TESTS_REQ + COVERAGE_REQ + [
     'Sphinx==1.6.5',
     'flake8==3.5.0',
@@ -56,19 +40,19 @@ DEV_REQ = TESTS_REQ + COVERAGE_REQ + [
 
 setup(
     name='bidict',
-    version=VERSION,
-    author='Joshua Bronson',
-    author_email='jab@math.brown.edu',
+    version=metadata['__version__'],
+    author=metadata['__author__'],
+    author_email=metadata['__email__'],
     description='Efficient, Pythonic bidirectional map implementation and related functionality',
-    long_description=LONG_DESC,
+    long_description=metadata['__long_description__'],
     keywords='dict, dictionary, mapping, datastructure, '
              'bimap, bijection, bijective, injective, inverse, reverse, '
              'bidirectional, two-way, 2-way',
     url='https://github.com/jab/bidict',
-    license='Mozilla PL',
+    license=metadata['__license__'],
     packages=['bidict'],
     package_data=dict(bidict=['VERSION']),
-    zip_safe=True,
+    zip_safe=False,  # we actually are zip safe, but prefer not
     classifiers=[
         'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',

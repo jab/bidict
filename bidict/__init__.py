@@ -24,10 +24,22 @@ from ._exceptions import (
 from ._frozen import frozenbidict
 from ._named import namedbidict
 from ._ordered import FrozenOrderedBidict, OrderedBidict
+from .metadata import (
+    __author__, __maintainer__, __copyright__, __email__, __credits__,
+    __license__, __status__, __long_description__, __version__)
 from .util import pairs, inverted
 
 
 __all__ = (
+    '__author__',
+    '__maintainer__',
+    '__copyright__',
+    '__email__',
+    '__credits__',
+    '__license__',
+    '__status__',
+    '__long_description__',
+    '__version__',
     'BidirectionalMapping',
     'BidictException',
     'DuplicationBehavior',
@@ -46,27 +58,3 @@ __all__ = (
     'pairs',
     'inverted',
 )
-
-
-def _get_version():
-    """Get the pkg_resources.resource_string from 'VERSION' file."""
-    from pkg_resources import resource_string
-    try:
-        return resource_string(__name__, 'VERSION').decode('ascii').strip()
-    except Exception as exc:  # pragma: no cover; pylint: disable=broad-except
-        from warnings import warn
-        warn('Failed to read/set version: %r' % exc)
-        return '0.0.0'
-
-
-__author__ = 'Joshua Bronson'
-__copyright__ = 'Copyright 2017 Joshua Bronson'
-__credits__ = [  # see ../docs/thanks.rst.inc
-    'Joshua Bronson', 'Michael Arntzenius', 'Francis Carr', 'Gregory Ewing',
-    'Raymond Hettinger', 'Jozef Knaperek', 'Daniel Pope', 'Terry Reedy',
-    'David Turner', 'Tom Viner']
-__license__ = 'MPL 2.0'
-__maintainer__ = 'Joshua Bronson'
-__email__ = 'jab@math.brown.edu'
-__status__ = 'Beta'
-__version__ = _get_version()

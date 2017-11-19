@@ -24,7 +24,7 @@ Changelog
   :class:`FrozenOrderedBidict <bidict.FrozenOrderedBidict>`
   instances containing the same items in different order
   hash to different values,
-  as this results in a violation of Python's object model:
+  which results in a violation of Python's object model:
   Since a :class:`FrozenOrderedBidict <bidict.FrozenOrderedBidict>`
   and a :class:`frozenbidict <bidict.frozenbidict>` with the same items
   compare equal, they must also hash to the same value.
@@ -41,32 +41,55 @@ Changelog
   - Test with optimization flags
   - Require pylint to pass
 
-- New logo!
 
 Breaking API Changes
 ++++++++++++++++++++
 
-This release includes mutliple API simplifications and improvements.
+This release includes multiple API simplifications and improvements.
+
+- Rename:
+
+    - ``orderedbidict`` → :class:`OrderedBidict <bidict.OrderedBidict>`
+    - ``frozenorderedbidict`` → :class:`FrozenOrderedBidict <bidict.FrozenOrderedBidict>`
+
+  so these now match the case of :class:`collections.OrderedDict`.
+
+  The names of the
+  :class:`bidict <bidict.bidict>`,
+  :class:`namedbidict <bidict.namedbidict>`, and
+  :class:`frozenbidict <bidict.frozenbidict>` classes
+  have been retained as all-lowercase,
+  so they continue to match the case of
+  :class:`dict`, :func:`namedtuple <collections.namedtuple>`, and
+  :class:`frozenset`, respectively.
 
 - Merge :class:`frozenbidict <bidict.frozenbidict>` and ``BidictBase``
   together and remove ``BidictBase``.
+  :class:`frozenbidict <bidict.frozenbidict>`
+  is now the concrete base class that all other bidict types derive from.
+  See the updated :ref:`bidict-type-hierarchy`.
+
+- Merge :class:`frozenbidict <bidict.frozenbidict>` and ``FrozenBidictBase``
+  together and remove ``FrozenBidictBase``.
+  See the updated :ref:`bidict-type-hierarchy`.
 
 - Merge ``frozenorderedbidict`` and ``OrderedBidictBase`` together
-  and remove ``OrderedBidictBase``. ``_should_compare_order_sensitive()``;
-  this logic is now covered by checking ``isinstance(other, self.ORDERED_CLS)``
-  (see below).
+  and remove ``OrderedBidictBase``.
+  See the updated :ref:`bidict-type-hierarchy`.
 
-- Rename ``frozenorderedbidict`` to
-  :class:`FrozenOrderedBidict <bidict.FrozenOrderedBidict>`.
+- ``orderedbidict._should_compare_order_sensitive()`` has been removed.
+  This logic is now covered by checking ``isinstance(other,``
+  :attr:`self.ordered_cls <bidict.FrozenOrderedBidict.ordered_cls>` ``)``
+  (see below).
 
 - Change the behavior of
   :meth:`FrozenOrderedBidict.__eq__ <bidict.FrozenOrderedBidict.__eq__>`
   as follows:
 
   Add
-  :attr:`FrozenOrderedBidict.ORDERED_CLS <bidict.FrozenOrderedBidict.ORDERED_CLS>`
+  :attr:`FrozenOrderedBidict.ordered_cls <bidict.FrozenOrderedBidict.ordered_cls>`
   and set it to :class:`Reversible <bidict.compat.Reversible>`.
-  Check ``isinstance(other, self.ORDERED_CLS)`` in
+  Check ``isinstance(other, self.ordered_cls)`` in
   :meth:`FrozenOrderedBidict.__eq__ <bidict.FrozenOrderedBidict.__eq__>`
   to detect whether an equality check against another mapping should be
   order-sensitive.
@@ -78,18 +101,18 @@ This release includes mutliple API simplifications and improvements.
   :class:`Reversible <collections.abc.Reversible>` mapping,
   :class:`collections.OrderedDict` being a notable example.
 
-- ``FrozenBidictBase`` has been removed.
-  Use :class:`frozenbidict <bidict.frozenbidict>` instead.
+- Renamed: ``FrozenBidictBase._compute_hash`` →
+  :attr:`frozenbidict.compute_hash <bidict.frozenbidict.compute_hash>`
 
 - ``frozenorderedbidict._HASH_NITEMS_MAX`` has been removed.
   Since its hash value must be computed from all contained items
-  (so that hash results are consistent with equality comparisons with
-  unordered mappings containing the same items), the number of items
-  that influence the hash value should not be limitable.
+  (so that hash results are consistent with
+  equality comparisons against unordered mappings),
+  the number of items that influence the hash value should not be limitable.
 
 - ``frozenbidict._USE_ITEMSVIEW_HASH`` has been removed, and
   :meth:`frozenbidict.compute_hash <bidict.frozenbidict.compute_hash>`
-  now uses ``ItemsView._hash()`` to compute the hash always,
+  now uses ``collections.ItemsView._hash()`` to compute the hash always,
   not just when running on PyPy.
 
   Override :meth:`frozenbidict.compute_hash <bidict.frozenbidict.compute_hash>`
@@ -104,11 +127,8 @@ This release includes mutliple API simplifications and improvements.
   Simple recipes to implement them yourself are now given in
   :ref:`overwritingbidict`.
 
-- The following were also renamed:
-
-  - ``FrozenBidictBase._compute_hash`` → :attr:`frozenbidict.compute_hash
-    <bidict.frozenbidict.compute_hash>`
-  - ``orderedbidict`` → :class:`OrderedBidict <bidict.OrderedBidict>`
+- Renamed: ``FrozenBidictBase._compute_hash`` →
+  :attr:`frozenbidict.compute_hash <bidict.frozenbidict.compute_hash>`
 
 
 0.13.1 (2017-03-15)

@@ -22,7 +22,7 @@ from bidict import (
 from bidict.compat import iteritems
 
 
-settings.register_profile('default', settings(max_examples=200, deadline=300))
+settings.register_profile('default', settings(max_examples=200, deadline=None))
 settings.load_profile(getenv('HYPOTHESIS_PROFILE', 'default'))
 
 
