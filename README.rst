@@ -32,8 +32,8 @@ Status
     :target: https://ci.appveyor.com/project/jab/bidict
     :alt: AppVeyor build status (Windows)
 
-.. image:: https://coveralls.io/repos/jab/bidict/badge.svg?branch=master
-    :target: https://coveralls.io/github/jab/bidict
+.. image:: https://codecov.io/gh/jab/bidict/branch/master/graph/badge.svg
+    :target: https://codecov.io/gh/jab/bidict
     :alt: Test coverage
 
 .. image:: https://api.codacy.com/project/badge/Grade/6628756a73254cd895656348236833b8
@@ -66,7 +66,7 @@ Bidict:
 - has carefully designed APIs for
   safety, simplicity, flexibility, and ergonomics,
 - is CPython-, PyPy-, Python 2-, and Python 3-compatible,
-- has extensive `test coverage <https://coveralls.io/github/jab/bidict>`_,
+- has extensive `test coverage <https://codecov.io/gh/jab/bidict>`_,
   including property-based tests and benchmarks,
   which are run continuously on all supported Python versions and OSes,
 - integrates with Python’s collections interfaces and abstract base classes,
