@@ -1,3 +1,9 @@
+# Copyright 2017 Joshua Bronson. All Rights Reserved.
+#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
 Test script for :func:`bidict.namedbidict`::
 
     >>> from bidict import namedbidict
@@ -47,8 +53,8 @@ Comparison works as expected::
 
 Test ``base_type`` keyword arg::
 
-    >>> from bidict import FrozenBidict
-    >>> ElMap = namedbidict('ElMap', 'sym', 'el', base_type=FrozenBidict)
+    >>> from bidict import frozenbidict
+    >>> ElMap = namedbidict('ElMap', 'sym', 'el', base_type=frozenbidict)
     >>> noble = ElMap(He='helium')
     >>> hash(noble) is not 'an exception'
     True

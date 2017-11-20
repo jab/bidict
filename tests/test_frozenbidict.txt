@@ -1,7 +1,13 @@
-Test script for bidict.FrozenBidict::
+# Copyright 2017 Joshua Bronson. All Rights Reserved.
+#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-    >>> from bidict import FrozenBidict, FrozenOrderedBidict
-    >>> f1 = FrozenBidict(one=1)
+Test script for bidict.frozenbidict::
+
+    >>> from bidict import frozenbidict, FrozenOrderedBidict
+    >>> f1 = frozenbidict(one=1)
     >>> f2 = FrozenOrderedBidict([('one', 1), ('two', 2)])
     >>> f3 = FrozenOrderedBidict([('two', 2), ('one', 1)])
     >>> fs = (f1, f2, f3)

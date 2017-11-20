@@ -4,10 +4,11 @@ Other ``bidict`` Types
 ======================
 
 Now that we've covered
-:ref:`basic usage of bidict.bidict <basic-usage>` and
-:ref:`bidict.LooseBidict <LooseBidict>`,
+:ref:`basic usage <basic-usage>`,
 let's look at the remaining bidict types
 and the hierarchy they belong to.
+
+.. _bidict-type-hierarchy:
 
 ``bidict`` Type Hierarchy
 -------------------------
@@ -30,17 +31,9 @@ of :class:`BidirectionalMapping <bidict.BidirectionalMapping>` automatically.
 
 Implementing
 :class:`BidirectionalMapping <bidict.BidirectionalMapping>` is
-:class:`BidictBase <bidict.BidictBase>`.
-Users will typically only interact with subclasses of this class.
-
-Inheriting from :class:`BidictBase <bidict.BidictBase>`
-are the already-discussed
-:class:`bidict.bidict` and :class:`bidict.LooseBidict`,
-which implement :class:`collections.abc.MutableMapping`.
-
-Also inheriting from :class:`BidictBase <bidict.BidictBase>`
-is :class:`bidict.FrozenBidict`,
-the first immutable bidict you'll meet.
+:class:`frozenbidict <bidict.frozenbidict>`,
+which provides a hashable, immutable bidict type,
+and serves as a base class for mutable bidict types to extend.
 
 .. include:: frozenbidict.rst.inc
 
@@ -51,3 +44,5 @@ the first immutable bidict you'll meet.
 .. include:: polymorphism.rst.inc
 
 .. include:: extending.rst.inc
+
+Proceed to :ref:`other-functionality`.

@@ -5,13 +5,12 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-"""
-Test :attr:`bidict.__version__`.
-"""
-
-import bidict
+"""Provides :class:`_Marker` for representing singletons."""
 
 
-def test_version():
-    """Ensure the module has a ``__version__`` attribute."""
-    assert bidict.__version__
+class _Marker(object):
+    def __init__(self, name):
+        self.name = name
+
+    def __repr__(self):
+        return '<%s>' % self.name  # pragma: no cover

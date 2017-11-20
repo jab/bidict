@@ -1,3 +1,9 @@
+# Copyright 2017 Joshua Bronson. All Rights Reserved.
+#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
 Test script for bidict.bidict::
 
     >>> from bidict import bidict
@@ -176,7 +182,7 @@ Trying to insert an existing mapping does not raise, and is a no-op::
     1
 
 The following case does not half-succeed,
-leaving a bidict in an inconsistent state::
+i.e. the bidict is not in an inconsistent state after::
 
     >>> b = bidict(one=1, two=2)
     >>> b['one'] = 2
@@ -187,10 +193,10 @@ leaving a bidict in an inconsistent state::
     True
 
 ``put`` and ``putall`` allow you to have
-per-call control over collision behavior
+per-call control over duplication behavior
 (see doctests in ``../docs/unique-values.rst.inc``).
 
-Even with RAISE collision behavior,
+Even with RAISE duplication behavior,
 inserting existing items is a no-op (i.e. it doesn't raise)::
 
     >>> from bidict import RAISE

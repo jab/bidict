@@ -1,3 +1,10 @@
+# -*- coding: utf-8 -*-
+# Copyright 2017 Joshua Bronson. All Rights Reserved.
+#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
 """
 Equality and hashing tests.
 """
@@ -6,7 +13,7 @@ from collections import Counter, Hashable, OrderedDict, Mapping, defaultdict
 from itertools import product
 
 import pytest
-from bidict import FrozenBidict, FrozenOrderedBidict, OrderedBidict, bidict, namedbidict
+from bidict import FrozenOrderedBidict, OrderedBidict, bidict, namedbidict, frozenbidict
 from bidict.compat import iteritems
 
 
@@ -24,7 +31,7 @@ items = [('a', 1), ('b', 2)]  # use int values so makes sense with Counter
 itemsreversed = list(reversed(items))
 
 bidict_of_items = bidict(items)
-frozenbidict_of_items = FrozenBidict(items)
+frozenbidict_of_items = frozenbidict(items)
 namedbidict_of_items = namedbidict('named', 'keys', 'vals')(items)
 orderedbidict_of_items = OrderedBidict(items)
 orderedbidict_of_itemsreversed = OrderedBidict(itemsreversed)
@@ -65,9 +72,7 @@ not_bidicts = (
 
 
 def _infer_compare_ordered(mapping):
-    if hasattr(mapping, 'should_compare_ordered'):
-        return mapping.should_compare_ordered()
-    return bool(getattr(mapping, '__reversed__', False)) and mapping.__class__ is not dict
+    return getattr(mapping, '__reversed__', False) and mapping.__class__ is not dict
 
 
 @pytest.mark.parametrize('b, other', product(bidicts, bidicts + not_bidicts))

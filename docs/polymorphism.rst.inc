@@ -11,7 +11,7 @@ Note that none of the bidict types inherit from dict::
 
 If you must use :func:`isinstance` to check whether a bidict is dict-like,
 you can use the abstract base classes from the :mod:`collections` module,
-which is a better way to check for interface conformance::
+which is the proper way to check if an object is a mapping::
 
     >>> from collections import Mapping, MutableMapping
     >>> isinstance(bidict(), Mapping)
@@ -19,14 +19,39 @@ which is a better way to check for interface conformance::
     >>> isinstance(bidict(), MutableMapping)
     True
 
-Though you can often write more polymorphic code
-by using duck typing rather than :func:`isinstance`::
+Of course you can also use duck typing to avoid :func:`isinstance` altogether::
 
-    >>> # LBYL-style:
-    >>> if hasattr(foo, '__setitem__'):  # doctest: +SKIP
-    ...     foo['bar'] = 'baz'
     >>> # EAFP-style:
     >>> try:  # doctest: +SKIP
     ...     foo['bar'] = 'baz'
     ... except TypeError:
     ...     # plan B
+
+    >>> # LBYL-style:
+    >>> if hasattr(foo, '__setitem__'):  # doctest: +SKIP
+    ...     foo['bar'] = 'baz'
+
+Also note that since
+:class:`bidict <bidict.bidict>` extends
+:class:`frozenbidict <bidict.frozenbidict>`,
+if you need to check whether a bidict is immutable,
+testing for ``isinstance(foo, frozenbidict)``
+is not what you want::
+
+    >>> from bidict import frozenbidict
+    >>> isinstance(bidict(), frozenbidict)
+    True
+
+Instead you can check for
+``isinstance(foo, Hashable)`` or
+``isinstance(foo, MutableMapping)`` to get the desired behavior::
+
+    >>> from collections import Hashable
+    >>> isinstance(frozenbidict(), Hashable)
+    True
+    >>> isinstance(bidict(), Hashable)
+    False
+    >>> isinstance(bidict(), MutableMapping)
+    True
+    >>> isinstance(frozenbidict(), MutableMapping)
+    False

@@ -18,17 +18,17 @@ matrix:
       script: travis_retry ./build-docs.sh linkcheck
     - env: TASK=pylint
       before_script: travis_retry pip install -U pylint
-      script: pylint bidict tests/*.py
+      script: pylint bidict tests setup.py
     - env: TASK=flake8
       before_script: travis_retry pip install -U flake8
       script: flake8 bidict tests/*.py
     - env: TASK=pydocstyle
       before_script: travis_retry pip install -U pydocstyle
       script: pydocstyle bidict
-    - env: TASK=test-with-optimization-flag
+    - env: TASK=test-with-optimization-flag  # make sure there are no relied-on side effects in assert statements
       script: python3 -O -m doctest -o IGNORE_EXCEPTION_DETAIL -o ELLIPSIS tests/*.txt
 
-    # Test with all supported Python versions on Linux.
+    # Run the test suite with all supported Python versions on Linux.
     # Only run these tests for master since they're so slow on Travis.
     - env: TASK=pytest PYVER=2.7.14
       if: branch = master
@@ -52,7 +52,7 @@ matrix:
     - env: TASK=pytest PYVER=pypy3.5-5.9.0
       if: branch = master
 
-    # Test with all supported Python versions on macOS.
+    # Run the test suite with all supported Python versions on macOS.
     - env: TASK=pytest PYVER=2.7.14
       if: branch = master
       os: osx

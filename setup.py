@@ -1,24 +1,25 @@
-from io import open
+# -*- coding: utf-8 -*-
+# Copyright 2017 Joshua Bronson. All Rights Reserved.
+#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+"""
+setup.py
+"""
+
+from io import open  # pylint: disable=redefined-builtin
+
 from setuptools import setup
-from warnings import warn
 
+# Fetch bidict's package metadata from bidict/metadata.py.
+# Must use exec(open(...)) because we haven't been installed yet.
+METADATA = {'__BIDICT_SETUPPY__FILE__': __file__}
+exec(open('bidict/metadata.py').read().encode('utf8'), METADATA)  # pylint: disable=exec-used
 
-def from_file(filename, fallback):
-    try:
-        with open(filename, encoding='utf8') as f:
-            return f.read().strip()
-    except Exception as e:
-        warn('Error opening file %r, using fallback %r: %s' % (filename, fallback, e))
-        return fallback
-
-
-version = from_file('bidict/VERSION', '0.0.0')
-long_description = from_file('README.rst', 'See https://bidict.readthedocs.org').replace(
-    ':doc:', '')  # :doc: breaks long_description rendering on PyPI
-
-
-tests_require = [
-    'hypothesis==3.34.1',
+TESTS_REQ = [
+    'hypothesis==3.38.0',
     'hypothesis-pytest==0.19.0',
     'py==1.5.2',
     'pytest==3.2.5',
@@ -26,13 +27,11 @@ tests_require = [
     'sortedcollections==0.5.3',
     'sortedcontainers==1.5.7',
 ]
-
-coverage_requires = [
+COVERAGE_REQ = [
     'coverage==4.4.2',
     'pytest-cov==2.5.1',
 ]
-
-dev_requires = tests_require + coverage_requires + [
+DEV_REQ = TESTS_REQ + COVERAGE_REQ + [
     'Sphinx==1.6.5',
     'flake8==3.5.0',
     'pre-commit==1.4.1',
@@ -43,22 +42,23 @@ dev_requires = tests_require + coverage_requires + [
 
 setup(
     name='bidict',
-    version=version,
-    author='Joshua Bronson',
-    author_email='jab@math.brown.edu',
+    version=METADATA['__version__'],
+    author=METADATA['__author__'],
+    author_email=METADATA['__email__'],
     description='Efficient, Pythonic bidirectional map implementation and related functionality',
-    long_description=long_description,
-    keywords='dict, dictionary, mapping, bidirectional, bijection, bijective, injective, two-way, 2-way, double, inverse, reverse',
+    long_description=METADATA['__long_description__'],
+    keywords='dict, dictionary, mapping, datastructure, '
+             'bimap, bijection, bijective, injective, inverse, reverse, '
+             'bidirectional, two-way, 2-way',
     url='https://github.com/jab/bidict',
-    license='Mozilla PL',
+    license=METADATA['__license__'],
     packages=['bidict'],
     package_data=dict(bidict=['VERSION']),
-    zip_safe=True,
+    zip_safe=False,  # Don't zip. (We're zip-safe but prefer not to.)
     classifiers=[
         'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: Mozilla Public License 2.0 (MPL 2.0)',
-        'Natural Language :: English',
         'Operating System :: OS Independent',
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
@@ -68,13 +68,12 @@ setup(
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: Implementation :: CPython',
         'Programming Language :: Python :: Implementation :: PyPy',
-        'Topic :: Scientific/Engineering :: Mathematics',
         'Topic :: Software Development :: Libraries :: Python Modules',
-        ],
-    tests_require=tests_require,
+    ],
+    tests_require=TESTS_REQ,
     extras_require=dict(
-        test=tests_require,
-        coverage=coverage_requires,
-        dev=dev_requires,
+        test=TESTS_REQ,
+        coverage=COVERAGE_REQ,
+        dev=DEV_REQ,
     ),
 )

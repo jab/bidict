@@ -1,12 +1,22 @@
+# -*- coding: utf-8 -*-
+# Copyright 2017 Joshua Bronson. All Rights Reserved.
+#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
 """Implements :class:`bidict.bidict`, the mutable bidirectional map type."""
 
 from collections import MutableMapping
 
-from ._common import BidictBase, OVERWRITE, RAISE, ON_DUP_VAL
+from ._dup import OVERWRITE, RAISE
+from ._frozen import frozenbidict
 
 
-class bidict(BidictBase):  # noqa: N801; pylint: disable=invalid-name
+class bidict(frozenbidict):  # noqa: N801; pylint: disable=invalid-name
     """Mutable bidirectional map type."""
+
+    __hash__ = None  # since this class is mutable. explicit > implicit.
 
     def __delitem__(self, key):
         """Like dict's :attr:`__delitem__`."""
@@ -27,7 +37,7 @@ class bidict(BidictBase):  # noqa: N801; pylint: disable=invalid-name
         to protect against accidental removal of the key
         that's currently associated with *val*.
 
-        Use :attr:`put` instead if you want to specify different behavior in
+        Use :attr:`put` instead if you want to specify different policy in
         the case that the provided key or value duplicates an existing one.
         Or use :attr:`forceput` to unconditionally associate *key* with *val*,
         replacing any existing items as necessary to preserve uniqueness.
@@ -39,14 +49,16 @@ class bidict(BidictBase):  # noqa: N801; pylint: disable=invalid-name
             existing item and *val* duplicates the value of a different
             existing item.
         """
-        self._put(key, val, self._on_dup_key, self._on_dup_val, self._on_dup_kv)
+        self._put(key, val, self.on_dup_key, self.on_dup_val, self.on_dup_kv)
 
-    def put(self, key, val, on_dup_key=RAISE, on_dup_val=RAISE, on_dup_kv=ON_DUP_VAL):
+    def put(self, key, val, on_dup_key=RAISE, on_dup_val=RAISE, on_dup_kv=None):
         """
-        Associate *key* with *val* with the specified duplication behaviors.
+        Associate *key* with *val* with the specified duplication policies.
 
-        For example, if all given duplication behaviors are
-        :attr:`DuplicationBehavior.RAISE <bidict.DuplicationBehavior.RAISE>`,
+        If *on_dup_kv* is ``None``, the *on_dup_val* policy will be used for it.
+
+        For example, if all given duplication policies are
+        :attr:`RAISE <bidict.DuplicationPolicy.RAISE>`,
         then *key* will be associated with *val* if and only if
         *key* is not already associated with an existing value and
         *val* is not already associated with an existing key,
@@ -55,17 +67,17 @@ class bidict(BidictBase):  # noqa: N801; pylint: disable=invalid-name
         If *key* is already associated with *val*, this is a no-op.
 
         :raises bidict.KeyDuplicationError: if attempting to insert an item
-            whose key duplicates an existing item's, and *on_dup_key* is
-            :attr:`RAISE <bidict.DuplicationBehavior.RAISE>`.
+            whose key only duplicates an existing item's, and *on_dup_key* is
+            :attr:`RAISE <bidict.DuplicationPolicy.RAISE>`.
 
         :raises bidict.ValueDuplicationError: if attempting to insert an item
-            whose value duplicates an existing item's, and *on_dup_val* is
-            :attr:`RAISE <bidict.DuplicationBehavior.RAISE>`.
+            whose value only duplicates an existing item's, and *on_dup_val* is
+            :attr:`RAISE <bidict.DuplicationPolicy.RAISE>`.
 
         :raises bidict.KeyAndValueDuplicationError: if attempting to insert an
             item whose key duplicates one existing item's, and whose value
             duplicates another existing item's, and *on_dup_kv* is
-            :attr:`RAISE <bidict.DuplicationBehavior.RAISE>`.
+            :attr:`RAISE <bidict.DuplicationPolicy.RAISE>`.
         """
         self._put(key, val, on_dup_key, on_dup_val, on_dup_kv)
 
@@ -96,10 +108,10 @@ class bidict(BidictBase):  # noqa: N801; pylint: disable=invalid-name
 
     def popitem(self, *args, **kw):
         """Like :py:meth:`dict.popitem`."""
-        if not self._fwd:
+        if not self.fwdm:
             raise KeyError('popitem(): %s is empty' % self.__class__.__name__)
-        key, val = self._fwd.popitem(*args, **kw)
-        del self._inv[val]
+        key, val = self.fwdm.popitem(*args, **kw)
+        del self.invm[val]
         return key, val
 
     def setdefault(self, key, default=None):
@@ -109,22 +121,14 @@ class bidict(BidictBase):  # noqa: N801; pylint: disable=invalid-name
         return self[key]
 
     def update(self, *args, **kw):
-        """
-        Like :attr:`putall` with default duplication behaviors.
-
-        In particular, for :class:`bidict.bidict`,
-        *on_dup_key=OVERWRITE*, *on_dup_val=RAISE*, and *on_dup_kv=RAISE*.
-
-        For :class:`bidict.LooseBidict`,
-        *on_dup_key=OVERWRITE*, *on_dup_val=OVERWRITE*, and *on_dup_kv=OVERWRITE*.
-        """
-        self._update(False, self._on_dup_key, self._on_dup_val, self._on_dup_kv, *args, **kw)
+        """Like :attr:`putall` with default duplication policies."""
+        self._update(False, self.on_dup_key, self.on_dup_val, self.on_dup_kv, *args, **kw)
 
     def forceupdate(self, *args, **kw):
         """Like a bulk :attr:`forceput`."""
         self._update(False, OVERWRITE, OVERWRITE, OVERWRITE, *args, **kw)
 
-    def putall(self, items, on_dup_key=RAISE, on_dup_val=RAISE, on_dup_kv=ON_DUP_VAL):
+    def putall(self, items, on_dup_key=RAISE, on_dup_val=RAISE, on_dup_kv=None):
         """
         Like a bulk :attr:`put`.
 

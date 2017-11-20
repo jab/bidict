@@ -45,11 +45,7 @@ is always a constant-time operation.
 
 .. include:: values-hashable.rst.inc
 
-.. include:: unique-values.rst.inc
-
-.. include:: loosebidict.rst.inc
-
-.. include:: beware-on_dup_kv-overwrite.rst.inc
+.. include:: values-unique.rst.inc
 
 .. include:: order-matters.rst.inc
 

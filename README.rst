@@ -64,7 +64,7 @@ Bidict:
 - is in use by several teams at Google, Bank of America Merrill Lynch,
   and many others,
 - has carefully designed APIs for
-  safety, ergonomics, performance, and intuitiveness,
+  safety, simplicity, flexibility, and ergonomics,
 - is CPython-, PyPy-, Python 2-, and Python 3-compatible,
 - has extensive `test coverage <https://coveralls.io/github/jab/bidict>`_,
   including property-based tests and benchmarks,
@@ -103,8 +103,8 @@ please `let me know <mailto:jab@math.brown.edu>`_ you're using it!
 Changelog
 ---------
 
-For a history of notable changes to bidict,
-check out the :doc:`changelog`. [#fn-changelog]_
+See the :doc:`changelog` [#fn-changelog]_
+for a history of notable changes to bidict.
 
 
 .. .. include:: release-notifications.rst.inc
@@ -131,24 +131,8 @@ Installation
 Usage Documentation
 -------------------
 
-For usage documentation, please start at the :doc:`intro`
-and proceed from there.
-
-.. NOTE::
-   If you're reading this on GitHub, PyPI, in your code editor,
-   or in some other place that can't render/link the full docs properly,
-   you can find the bidict documentation on Read the Docs at:
-
-       `<https://bidict.readthedocs.io>`_
-
-   Also note: multiple versions of the documentation are published on Read the Docs,
-   and by default you will be taken to the version built from the master branch.
-   You can choose different versions from the pop-up menu in the lower-right.
-
-   If you have the `bidict source code <https://github.com/jab/bidict>`_  handy,
-   you can also browse the docs inside the ``docs`` directory,
-   and build them yourself by running ``make html`` from within that directory
-   (requires `Sphinx <https://pypi.python.org/pypi/Sphinx>`_).
+Please head to the :doc:`intro` [#fn-intro]_
+for usage documentation.
 
 
 Contributing
@@ -170,12 +154,22 @@ For information about contributing to the code,
 please see the :doc:`contributors-guide`. [#fn-contributing]_
 
 
-Alternate Links
----------------
+Finding Documentation
+---------------------
 
-In case you're viewing on GitHub, PyPI,
-or some other place that can't render/link the full docs properly:
+If you're viewing this on `<https://bidict.readthedocs.io>`_,
+note that multiple versions of the documentation are available,
+and you can choose a different version using the popup menu at the bottom-right.
+Please make sure you're viewing the version of the documentation
+that corresponds to the version of bidict you'd like to use.
+
+If you're viewing this on GitHub, PyPI, or some other place
+that can't render and link this documentation properly
+and are seeing broken links,
+try these alternate links instead:
 
 .. [#fn-contributing] `<CONTRIBUTING.rst>`_ | `<https://bidict.readthedocs.io/contributors-guide.html>`_
 
 .. [#fn-changelog] `<CHANGELOG.rst>`_ | `<https://bidict.readthedocs.io/changelog.html>`_
+
+.. [#fn-intro] `<docs/intro.rst>`_ | `<https://bidict.readthedocs.io/intro.html>`_

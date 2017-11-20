@@ -1,3 +1,10 @@
+# -*- coding: utf-8 -*-
+# Copyright 2017 Joshua Bronson. All Rights Reserved.
+#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
 """
 Property-based tests using https://hypothesis.readthedocs.io
 """
@@ -10,12 +17,12 @@ from hypothesis import assume, given, settings
 from hypothesis.strategies import integers, lists, tuples
 from bidict import (
     IGNORE, OVERWRITE, RAISE,
-    bidict, LooseBidict, LooseOrderedBidict, OrderedBidict,
-    FrozenBidict, FrozenOrderedBidict)
+    bidict, OrderedBidict,
+    frozenbidict, FrozenOrderedBidict)
 from bidict.compat import iteritems
 
 
-settings.register_profile('default', settings(max_examples=200, deadline=300))
+settings.register_profile('default', settings(max_examples=200, deadline=None))
 settings.load_profile(getenv('HYPOTHESIS_PROFILE', 'default'))
 
 
@@ -32,8 +39,9 @@ def dedup(items):
 
 # pylint: disable=C0103
 ondupbehaviors = (IGNORE, OVERWRITE, RAISE)
-mutable_bidict_types = (bidict, LooseBidict, LooseOrderedBidict, OrderedBidict)
-bidict_types = mutable_bidict_types + (FrozenBidict, FrozenOrderedBidict)
+mutable_bidict_types = (bidict, OrderedBidict)
+immutable_bidict_types = (frozenbidict, FrozenOrderedBidict)
+bidict_types = mutable_bidict_types + immutable_bidict_types
 mutating_methods_by_arity = {
     0: ('clear', 'popitem'),
     1: ('__delitem__', 'pop', 'setdefault', 'move_to_end'),
@@ -111,12 +119,12 @@ def test_consistency_after_mutation(arity, methodname, B, init, arg1, arg2, item
     assert b1.inv == to_inv_odict(iteritems(b1))
 
 
-@pytest.mark.parametrize('B', mutable_bidict_types)
 @pytest.mark.parametrize('on_dup_key', ondupbehaviors)
 @pytest.mark.parametrize('on_dup_val', ondupbehaviors)
 @pytest.mark.parametrize('on_dup_kv', ondupbehaviors)
+@pytest.mark.parametrize('B', mutable_bidict_types)
 @given(init=inititems, items=itemlists)
-def test_putall(B, on_dup_key, on_dup_val, on_dup_kv, init, items):  # noqa
+def test_putall(on_dup_key, on_dup_val, on_dup_kv, B, init, items):  # noqa
     b0 = B(init)
     expect = b0.copy()
     expectexc = None

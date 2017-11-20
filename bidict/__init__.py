@@ -1,4 +1,9 @@
 # -*- coding: utf-8 -*-
+# Copyright 2017 Joshua Bronson. All Rights Reserved.
+#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 """
 Efficient, Pythonic bidirectional map implementation and related functionality.
@@ -10,22 +15,34 @@ See https://bidict.readthedocs.io for comprehensive documentation.
 
 """
 
-from ._common import (BidirectionalMapping, BidictBase, BidictException,
-                      DuplicationBehavior, IGNORE, OVERWRITE, RAISE,
-                      DuplicationError, KeyDuplicationError, ValueDuplicationError,
-                      KeyAndValueDuplicationError)
+from ._abc import BidirectionalMapping
 from ._bidict import bidict
-from ._frozen import FrozenBidict, FrozenOrderedBidict
-from ._loose import LooseBidict, LooseOrderedBidict
+from ._dup import DuplicationPolicy, IGNORE, OVERWRITE, RAISE
+from ._exc import (
+    BidictException, DuplicationError,
+    KeyDuplicationError, ValueDuplicationError, KeyAndValueDuplicationError)
+from ._frozen import frozenbidict
 from ._named import namedbidict
-from ._ordered import OrderedBidictBase, OrderedBidict
+from ._ordered import FrozenOrderedBidict, OrderedBidict
+from .metadata import (
+    __author__, __maintainer__, __copyright__, __email__, __credits__,
+    __license__, __status__, __long_description__, __version__)
 from .util import pairs, inverted
 
+
 __all__ = (
+    '__author__',
+    '__maintainer__',
+    '__copyright__',
+    '__email__',
+    '__credits__',
+    '__license__',
+    '__status__',
+    '__long_description__',
+    '__version__',
     'BidirectionalMapping',
-    'BidictBase',
     'BidictException',
-    'DuplicationBehavior',
+    'DuplicationPolicy',
     'IGNORE',
     'OVERWRITE',
     'RAISE',
@@ -33,22 +50,11 @@ __all__ = (
     'KeyDuplicationError',
     'ValueDuplicationError',
     'KeyAndValueDuplicationError',
+    'frozenbidict',
     'bidict',
-    'LooseBidict',
-    'LooseOrderedBidict',
-    'FrozenBidict',
-    'FrozenOrderedBidict',
     'namedbidict',
-    'OrderedBidictBase',
+    'FrozenOrderedBidict',
     'OrderedBidict',
     'pairs',
     'inverted',
 )
-
-try:
-    from pkg_resources import resource_string
-    __version__ = resource_string(__name__, 'VERSION').decode('ascii').strip()
-# pylint: disable=broad-except
-except Exception as exc:  # pragma: no cover
-    from warnings import warn
-    warn('Failed to read/set version: %r' % exc)

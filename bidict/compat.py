@@ -1,4 +1,9 @@
 # -*- coding: utf-8 -*-
+# Copyright 2017 Joshua Bronson. All Rights Reserved.
+#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 u"""
 Compatibility helpers.
@@ -10,6 +15,11 @@ Compatibility helpers.
     .. py:attribute:: PYPY
 
         True iff running on PyPy.
+
+    .. py:attribute:: Reversible
+
+        ABC for iterable classes that provide a ``__reversed__()`` method,
+        as found in Python 3.6's :class:`collections.abc.Reversible`.
 
     .. py:attribute:: viewkeys
 
@@ -52,7 +62,7 @@ _compose = lambda f, g: lambda x: f(g(x))
 PY2 = version_info[0] == 2
 PYPY = python_implementation() == 'PyPy'
 
-if PY2:  # pragma: no cover
+if PY2:
     assert version_info[1] > 6, 'Python >= 2.7 required'
     viewkeys = methodcaller('viewkeys')
     viewvalues = methodcaller('viewvalues')
@@ -69,3 +79,33 @@ else:
     itervalues = _compose(iter, viewvalues)
     iteritems = _compose(iter, viewitems)
     izip = zip
+
+try:
+    from collections import Reversible
+except ImportError:
+    from abc import abstractmethod
+    from collections import Iterable
+
+    class Reversible(Iterable):
+        """Implement :class:`collections.abc.Reversible` for Python < 3.6."""
+
+        __slots__ = ()
+
+        @abstractmethod
+        def __reversed__(self):
+            while False:
+                yield None
+
+        # see "Reversible" in the table at
+        # https://docs.python.org/3/library/collections.abc.html#collections-abstract-base-classes
+        _subclsattrs = frozenset({'__reversed__', '__iter__'})
+
+        @classmethod
+        def __subclasshook__(cls, C):  # noqa: N803 ("argument name should be lowercase")
+            """Checks ``C`` for ``__reversed__`` and ``__iter__`` methods."""
+            if cls is not Reversible:
+                return NotImplemented
+            mro = getattr(C, '__mro__', None)
+            if mro is None:
+                return NotImplemented
+            return all(any(B.__dict__.get(i) for B in mro) for i in cls._subclsattrs)

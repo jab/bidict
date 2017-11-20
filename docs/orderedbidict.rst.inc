@@ -4,10 +4,11 @@
 For those times when your one-to-one mapping must also support
 remembering the order in which items were inserted
 (à la :class:`collections.OrderedDict`),
-:class:`bidict.OrderedBidict` and friends have got your back::
+:class:`bidict.OrderedBidict` has got your back::
 
     >>> from bidict import OrderedBidict
-    >>> element_by_symbol = OrderedBidict([('H', 'hydrogen'), ('He', 'helium'), ('Li', 'lithium')])
+    >>> element_by_symbol = OrderedBidict([
+    ...     ('H', 'hydrogen'), ('He', 'helium'), ('Li', 'lithium')])
     >>> element_by_symbol.inv
     OrderedBidict([('hydrogen', 'H'), ('helium', 'He'), ('lithium', 'Li')])
     >>> first, second, third = element_by_symbol.values()
@@ -81,19 +82,19 @@ and the comparison is made order-sensitively or -insensitively accordingly.
     >>> o1 == dict(o2)
     True
 
-Since Python has no "OrderedMapping" ABC,
+Since Python has decided not to provide ``Ordered`` or ``OrderedMapping`` ABCs,
 this detection can only infer order-sensitivity based on other signals:
-The comparison will be order-sensitive iff the compared-to mapping has a
-``__reversed__`` method
-(and its class is not :py:class:`dict`,
-since on PyPY dicts have a ``__reversed__`` method
-but should nonetheless be compared order-insensitively).
-If this detection is insufficient for your needs, you can override
-:attr:`should_compare_order_sensitive_to
-<bidict.OrderedBidictBase.should_compare_order_sensitive_to>`
+The comparison will be order-sensitive iff the compared-to mapping
+is an instance of :class:`collections.abc.Reversible`.
+This logic isn't perfect,
+since it's possible for a mapping to be ordered without being reversible,
+but it's good enough to cover :class:`OrderedDict <collections.OrderedDict>`\s
+and any other :class:`Mapping <collections.abc.Mapping>` implementation
+that implements :class:`Reversible <collections.abc.Reversible>`.
+If this logic is insufficient for your needs, you can override
+:attr:`ordered_cls <bidict.FrozenOrderedBidict.ordered_cls>`
 to implement whatever behavior you require.
 
-:class:`OrderedBidict <bidict.OrderedBidict>` also comes in
-:class:`loose <bidict.LooseOrderedBidict>` and
-:class:`frozen <bidict.FrozenOrderedBidict>`
-flavors.
+:class:`OrderedBidict <bidict.OrderedBidict>` also comes in a frozen flavor.
+See the :class:`FrozenOrderedBidict <bidict.FrozenOrderedBidict>`
+API documentation for more information.
