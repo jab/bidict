@@ -29,7 +29,7 @@ SETUP_REQ = [
 ]
 
 TESTS_REQ = [
-    'hypothesis==3.38.0',
+    'hypothesis==3.38.3',
     'hypothesis-pytest==0.19.0',
     'py==1.5.2',
     'pytest==3.2.5',
