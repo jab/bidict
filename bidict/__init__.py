@@ -26,7 +26,7 @@ from ._named import namedbidict
 from ._ordered import FrozenOrderedBidict, OrderedBidict
 from .metadata import (
     __author__, __maintainer__, __copyright__, __email__, __credits__,
-    __license__, __status__, __long_description__, __version__)
+    __license__, __status__, __description__, __version__)
 from .util import pairs, inverted
 
 
@@ -38,7 +38,7 @@ __all__ = (
     '__credits__',
     '__license__',
     '__status__',
-    '__long_description__',
+    '__description__',
     '__version__',
     'BidirectionalMapping',
     'BidictException',

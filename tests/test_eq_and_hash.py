@@ -14,7 +14,6 @@ from itertools import product
 
 import pytest
 from bidict import FrozenOrderedBidict, OrderedBidict, bidict, namedbidict, frozenbidict
-from bidict.compat import iteritems
 
 
 # pylint: disable=C0111
@@ -71,10 +70,6 @@ not_bidicts = (
 )
 
 
-def _infer_compare_ordered(mapping):
-    return getattr(mapping, '__reversed__', False) and mapping.__class__ is not dict
-
-
 @pytest.mark.parametrize('b, other', product(bidicts, bidicts + not_bidicts))
 def test_eq_and_hash(b, other):
     if not isinstance(other, Mapping):
@@ -82,10 +77,14 @@ def test_eq_and_hash(b, other):
     elif len(b) != len(other):
         assert b != other
     else:
-        should_compare_ordered = _infer_compare_ordered(b) and _infer_compare_ordered(other)
-        delegate = OrderedDict if should_compare_ordered else dict
-        should_be_equal = delegate(iteritems(b)) == delegate(iteritems(other))
+        should_be_equal = dict(b) == dict(other)
         are_equal = b == other
-        assert should_be_equal == are_equal
-        if should_be_equal and isinstance(b, Hashable) and isinstance(other, Hashable):
+        assert are_equal == should_be_equal
+        both_hashable = isinstance(b, Hashable) and isinstance(other, Hashable)
+        if are_equal and both_hashable:
             assert hash(b) == hash(other)
+
+        if hasattr(b, 'equals_order_sensitive') and hasattr(other, '__reversed__'):
+            are_equal_ordered = b.equals_order_sensitive(other)
+            should_be_equal_ordered = OrderedDict(b) == OrderedDict(other)
+            assert are_equal_ordered == should_be_equal_ordered

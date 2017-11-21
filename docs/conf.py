@@ -54,18 +54,17 @@ source_suffix = '.rst'
 # The master toctree document.
 master_doc = 'index'
 
+import bidict
 # General information about the project.
 project = u'bidict'
-author = u'Joshua Bronson'
-copyright = u'2017 ' + author
+author = bidict.__author__
+copyright = bidict.__copyright__
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
 # built documents.
-with io.open(os.path.abspath('../bidict/VERSION'), encoding='utf8') as f:
-    # The full version, including alpha/beta/rc tags.
-    release = f.read().strip()
-
+# The full version, including alpha/beta/rc tags.
+release = bidict.__version__
 # The short X.Y version.
 version = '.'.join(release.split('.')[:2])
 
@@ -121,7 +120,7 @@ html_theme = 'alabaster'
 # documentation.
 html_theme_options = dict(
     analytics_id='UA-10116163-3',
-    description='Efficient, Pythonic bidirectional map implementation and related functionality.',
+    description=bidict.__description__,
    #fixed_sidebar=True,
     github_banner=True,
     github_repo='bidict',

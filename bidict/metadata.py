@@ -8,47 +8,29 @@
 """Define bidict package metadata."""
 
 
-def _get_file_content(filename, fallback='', encoding='utf8'):
-    """Return content of indicated file, or fallback if not found."""
+def _get_version(fallback=u'0.0.0.version_not_found'):
+    """Return bidict version via pkg_resources, or fallback if not found."""
     # pragma: no cover
+    from pkg_resources import get_distribution, DistributionNotFound
     try:
-        from pkg_resources import resource_string
-        return resource_string('bidict', filename).decode(encoding)
-    except:  # noqa: E722; pylint: disable=bare-except
-        pass
-    # See ../setup.py
-    bidict_setuppy = globals().get('__BIDICT_SETUPPY__FILE__')
-    if not bidict_setuppy:
-        return fallback
-    from os.path import join, dirname, realpath
-    from io import open  # pylint: disable=redefined-builtin
-    thisdir = dirname(realpath(bidict_setuppy))
-    fpath = realpath(join(thisdir, filename))
-    if not fpath.startswith(thisdir):
-        return fallback
-    try:
-        with open(fpath, encoding=encoding) as fstream:
-            return fstream.read()
-    except:  # noqa: E722; pylint: disable=bare-except
+        return get_distribution('bidict').version
+    except DistributionNotFound:  # not installed
         return fallback
 
 
-__author__ = 'Joshua Bronson'
-__maintainer__ = 'Joshua Bronson'
-__copyright__ = 'Copyright 2017 Joshua Bronson'
-__email__ = 'jab@math.brown.edu'
+__author__ = u'Joshua Bronson'
+__maintainer__ = u'Joshua Bronson'
+__copyright__ = u'Copyright 2017 Joshua Bronson'
+__email__ = u'jab@math.brown.edu'
 
 # see ../docs/thanks.rst.inc
-__credits__ = [
-    'Joshua Bronson', 'Michael Arntzenius', 'Francis Carr', 'Gregory Ewing',
-    'Raymond Hettinger', 'Jozef Knaperek', 'Daniel Pope', 'Terry Reedy',
-    'David Turner', 'Tom Viner']
+__credits__ = [i.strip() for i in u"""
+Joshua Bronson, Michael Arntzenius, Francis Carr, Gregory Ewing, Raymond Hettinger, Jozef Knaperek,
+Daniel Pope, Terry Reedy, David Turner, Tom Viner
+""".split(u',')]
 
-__license__ = 'MPL 2.0'
-__status__ = 'Beta'
+__description__ = u'Efficient, Pythonic bidirectional map implementation and related functionality'
 
-__long_description__ = _get_file_content('README.rst').replace(
-    ':doc:', '(doc:)'  # :doc: breaks long_description rendering on PyPI
-) or 'See https://bidict.readthedocs.io'
-
-__version__ = _get_file_content('VERSION').strip() or '0.0.0.version_not_found'
+__license__ = u'MPL 2.0'
+__status__ = u'Beta'
+__version__ = _get_version()

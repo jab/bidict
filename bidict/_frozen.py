@@ -117,14 +117,12 @@ class frozenbidict(BidirectionalMapping):  # noqa: N801
     def __init__(self, *args, **kw):
         """Like dict's ``__init__``."""
         self.isinv = getattr(args[0], 'isinv', False) if args else False
-        self._init_fwdm_invm()
-        self._init_inv()  # lgtm [py/init-calls-subclass]
-        if args or kw:
-            self._update(True, self.on_dup_key, self.on_dup_val, self.on_dup_kv, *args, **kw)
-
-    def _init_fwdm_invm(self):
         self.fwdm = self.inv_cls() if self.isinv else self.fwd_cls()
         self.invm = self.fwd_cls() if self.isinv else self.inv_cls()
+        self._init_inv()  # lgtm [py/init-calls-subclass]
+        self._hash = None
+        if args or kw:
+            self._update(True, self.on_dup_key, self.on_dup_val, self.on_dup_kv, *args, **kw)
 
     def _init_inv(self):
         inv = object.__new__(self.__class__)
@@ -161,9 +159,8 @@ class frozenbidict(BidirectionalMapping):  # noqa: N801
         Delegates to :meth:`compute_hash` on the first call,
         then caches the result to make future calls *O(1)*.
         """
-        if hasattr(self, '_hash'):
-            return self._hash  # pylint: disable=access-member-before-definition
-        self._hash = self.compute_hash()  # pylint: disable=attribute-defined-outside-init
+        if self._hash is None:
+            self._hash = self.compute_hash()
         return self._hash
 
     def compute_hash(self):
@@ -307,8 +304,8 @@ class frozenbidict(BidirectionalMapping):  # noqa: N801
         # it avoids unnecessary duplication checking.
         copy = object.__new__(self.__class__)
         copy.isinv = self.isinv
-        copy.fwdm = self.fwdm.copy()  # pylint: disable=attribute-defined-outside-init
-        copy.invm = self.invm.copy()  # pylint: disable=attribute-defined-outside-init
+        copy.fwdm = self.fwdm.copy()
+        copy.invm = self.invm.copy()
         copy._init_inv()  # pylint: disable=protected-access
         return copy
 

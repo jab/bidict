@@ -66,34 +66,38 @@ will have its value overwritten in place::
     >>> o
     OrderedBidict([(3, 4), (5, 2), (7, 8)])
 
-Equality tests between an ordered bidict and other
-:class:`Mapping <collections.abc.Mapping>` instances
-behave as you might expect:
-An effort is made to detect when the other mapping has a guaranteed ordering,
-and the comparison is made order-sensitively or -insensitively accordingly.
 
-    >>> from collections import OrderedDict
+To ensure that equality of bidicts is transitive,
+and to comply with the
+`Liskov substitution principle <https://en.wikipedia.org/wiki/Liskov_substitution_principle>`_,
+equality tests between an ordered bidict and other
+:class:`Mapping <collections.abc.Mapping>`\s
+are always order-insensitive::
+
+    >>> from bidict import bidict
+    >>> b = bidict([('one', 1), ('two', 2)])
     >>> o1 = OrderedBidict([('one', 1), ('two', 2)])
     >>> o2 = OrderedBidict([('two', 2), ('one', 1)])
+    >>> b == o1
+    True
+    >>> b == o2
+    True
     >>> o1 == o2
-    False
-    >>> o1 == OrderedDict(o2)
-    False
-    >>> o1 == dict(o2)
     True
 
-Since Python has decided not to provide ``Ordered`` or ``OrderedMapping`` ABCs,
-this detection can only infer order-sensitivity based on other signals:
-The comparison will be order-sensitive iff the compared-to mapping
-is an instance of :class:`collections.abc.Reversible`.
-This logic isn't perfect,
-since it's possible for a mapping to be ordered without being reversible,
-but it's good enough to cover :class:`OrderedDict <collections.OrderedDict>`\s
-and any other :class:`Mapping <collections.abc.Mapping>` implementation
-that implements :class:`Reversible <collections.abc.Reversible>`.
-If this logic is insufficient for your needs, you can override
-:attr:`ordered_cls <bidict.FrozenOrderedBidict.ordered_cls>`
-to implement whatever behavior you require.
+For order-sensitive equality tests, use
+:meth:`equals_order_sensitive <bidict.FrozenOrderedBidict.equals_order_sensitive>`::
+
+    >>> o1.equals_order_sensitive(o2)
+    False
+    >>> from collections import OrderedDict
+    >>> od = OrderedDict(o2)
+    >>> o1.equals_order_sensitive(od)
+    False
+
+Note that this differs from the behavior of
+:meth:`collections.OrderedDict.__eq__`,
+by recommendation of Raymond Hettinger himself.
 
 :class:`OrderedBidict <bidict.OrderedBidict>` also comes in a frozen flavor.
 See the :class:`FrozenOrderedBidict <bidict.FrozenOrderedBidict>`

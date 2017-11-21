@@ -1,128 +1,110 @@
-language: generic
+language: python
+
+# Version used for jobs that don't override it (e.g. the one-off jobs):
+python: "3.6"
+
 
 env:
   global:
     - VENV_ROOT="$HOME/venv"
-    - PYENV_ROOT="$HOME/.pyenv"
-    - PYENV="$PYENV_ROOT/bin/pyenv"
-    # Default Python version. Used for jobs that don't specify one.
-    - PYVER=3.6.3
 
-matrix:
-  include:
-    # Each job performs a single task, and sets a "TASK" var so it's evident in the build matrix.
-
-    # One-off jobs. Override "script" and "install" to do something other than run the default (pytest).
-    - env: TASK=build-docs
-      install: travis_retry pip install Sphinx
-      script: travis_retry ./build-docs.sh linkcheck
-    - env: TASK=pylint
-      install: travis_retry pip install .[test] && travis_retry pip install pylint
-      script: pylint bidict tests setup.py
-    - env: TASK=flake8
-      install: travis_retry pip install flake8
-      script: flake8 bidict tests/*.py
-    - env: TASK=pydocstyle
-      install: travis_retry pip install pydocstyle
-      script: pydocstyle bidict
-    - env: TASK=test-with-optimization-flag  # make sure there are no relied-on side effects in assert statements
-      install: echo "(no extra install needed for doctest)"
-      script: python3 -O -m doctest -o IGNORE_EXCEPTION_DETAIL -o ELLIPSIS tests/*.txt
-
-    # Run the test suite with all supported Python versions on Linux.
-    # Only run these tests for master since they're so slow on Travis.
-    # Enable coverage for the latest stable CPython 2 and 3 releases and PyPy on Linux.
-    - env: TASK=pytest PYVER=2.7.14 COVERAGE=1
-      if: branch = master
-    - env: TASK=pytest PYVER=3.4.7
-      if: branch = master
-    - env: TASK=pytest PYVER=3.5.3
-      if: branch = master
-    - env: TASK=pytest PYVER=3.6.3 COVERAGE=1
-      if: branch = master
-    - env: TASK=pytest PYVER=3.7-dev
-      if: branch = master
-    - env: TASK=pytest PYVER=pypy2.7-5.9.0
-      if: branch = master
-    - env: TASK=pytest PYVER=pypy3.5-5.9.0 COVERAGE=1
-      if: branch = master
-
-    # Run the test suite with all supported Python versions on macOS.
-    - env: TASK=pytest PYVER=2.7.14
-      if: branch = master
-      os: osx
-      osx_image: xcode9.1
-    - env: TASK=pytest PYVER=3.4.7
-      if: branch = master
-      os: osx
-      osx_image: xcode9.1
-    - env: TASK=pytest PYVER=3.5.3
-      if: branch = master
-      os: osx
-      osx_image: xcode9.1
-    - env: TASK=pytest PYVER=3.6.3
-      if: branch = master
-      os: osx
-      osx_image: xcode9.1
-    - env: TASK=pytest PYVER=3.7-dev
-      if: branch = master
-      os: osx
-      osx_image: xcode9.1
-    - env: TASK=pytest PYVER=pypy2.7-5.9.0
-      if: branch = master
-      os: osx
-      osx_image: xcode9.1
-    - env: TASK=pytest PYVER=pypy3.5-5.9.0
-      if: branch = master
-      os: osx
-      osx_image: xcode9.1
-      # PyPy3 not available for osx64 via pyenv. Install from homebrew instead:
-      before_install: brew update  # Do not remove: https://github.com/Homebrew/brew/issues/3299
-      install:
-        - brew install pypy3
-        - pip_pypy3 install -e .[test]
-      script: pypy3 -m pytest
 
 before_install:
-  # Install pyenv and use it to install the Python version in $PYVER.
   - |
       echo "TRAVIS_PULL_REQUEST_SHA: $TRAVIS_PULL_REQUEST_SHA"
       echo "TRAVIS_COMMIT: $TRAVIS_COMMIT"
       git --no-pager log -n2
       echo
-      echo "Ensuring up-to-date pyenv..."
-      if [[ -f "$PYENV" ]]; then
-        cd "$PYENV_ROOT"
-        git pull
-        cd -
-      else
-        rm -rf "$PYENV_ROOT"
-        git clone --depth 1 https://github.com/yyuu/pyenv.git "$PYENV_ROOT"
-      fi
-      echo
-      echo "Insalling Python version $PYVER..."
-      "$PYENV" install --skip-existing "$PYVER"
-      export PYTHON="$PYENV_ROOT/versions/$PYVER/bin/python"
-      echo "$PYTHON --version"
-      $PYTHON --version
-      echo
-      echo "Ensuring up-to-date pip and virtualenv..."
-      $PYTHON -m ensurepip --upgrade
-      $PYTHON -m pip install --upgrade virtualenv
-      echo
-      echo "Creating and activating virtualenv at $VENV_ROOT..."
-      $PYTHON -m virtualenv --python="$PYTHON" "$VENV_ROOT"
-      source "$VENV_ROOT/bin/activate"
-      echo "VIRTUAL_ENV=$VIRTUAL_ENV"
+      # Work around this error, seen only with Python 3.7-dev on Travis:
+      #   pkg_resources.DistributionNotFound: The 'setuptools_scm>=1.15.0' distribution was not found and is required by the application
+      travis_retry pip install --no-binary=all setuptools_scm
+      # Travis does a shallow (--depth=50) clone by default.
+      # Clone the full history as desired by setuptools_scm.
+      git fetch --unshallow
 
-install:
+
+install:  # Install our test dependencies.
   - if [[ -n $COVERAGE ]]; then EXTRAS="test,coverage"; else EXTRAS="test"; fi
   - travis_retry pip install .[$EXTRAS]
-  - py.test --version
 
-script:
+
+script:  # Run our test suite.
   - if [[ -n $COVERAGE ]]; then COVARGS="--cov=bidict --cov-config=.coveragerc"; fi
-  - py.test $COVARGS
+  - python setup.py test
+
+
+matrix:
+  include:
+    # Each job performs a single task, and sets a "TASK" var so it's evident in the build matrix.
+
+    # Run the test suite with various Python versions.
+    # Only run these tests for commits to master to save time waiting for Travis.
+    # Also don't bother testing Python 3.4; if we work on 3.5+, we should work on 3.4 too.
+
+    ## Linux
+    ### Enable coverage for the latest stable CPython 2 and 3 releases and PyPy on Linux.
+    #### Latest stable CPython 2. Enable coverage.
+    - python: "2.7"
+      env: TASK=test COVERAGE=1
+      if: branch = master
+    #### Latest stable CPython 3. Enable coverage.
+    - python: "3.6"
+      env: TASK=test COVERAGE=1
+      if: branch = master
+    #### Test other CPython versions. No need for coverage.
+    ##### Previous stable CPython 3 version.
+    - python: "3.5"
+      env: TASK=test
+      if: branch = master
+    #### Next (in-development) CPython 3 version.
+    - python: 3.7-dev
+      env: TASK=test
+      if: branch = master
+    #### Test latest stable PyPy 3. Enable coverage.
+    - python: pypy3
+      env: TASK=test
+      if: branch = master
+    #### Test latest stable PyPy 2. No need for coverage.
+    - python: pypy
+      env: TASK=test
+      if: branch = master
+
+
+    ## macOS
+    ### Commented out since Travis's macOS builds are so slow, and testing on Linux should be sufficient.
+    #- python: "2.7"
+    #  env: TASK=test
+    #  if: branch = master
+    #  os: osx
+    #  osx_image: xcode9.1
+    #- python: "3.6"
+    #  env: TASK=test
+    #  if: branch = master
+    #  os: osx
+    #  osx_image: xcode9.1
+
+    # One-off jobs. Override "install", "before_install", and "script" to do each of these instead.
+    - env: TASK=pydocstyle
+      before_install: echo "(no before_install needed)"
+      install: travis_retry pip install pydocstyle
+      script: pydocstyle bidict
+    - env: TASK=build-docs
+      before_install: echo "(no before_install needed)"
+      install: travis_retry pip install Sphinx
+      script: travis_retry ./build-docs.sh linkcheck
+    - env: TASK=flake8
+      before_install: echo "(no before_install needed)"
+      install: travis_retry pip install flake8
+      script: flake8 bidict tests/*.py
+    - env: TASK=pylint
+      before_install: travis_retry pip install .[test]
+      install: travis_retry pip install pylint
+      script: pylint bidict tests setup.py
+    - env: TASK=test-with-optimization-flag  # make sure there are no relied-on side effects in assert statements
+      before_install: echo "(no before_install needed)"
+      install: echo "(no install needed)"
+      script: python -O -m doctest -o IGNORE_EXCEPTION_DETAIL -o ELLIPSIS tests/*.txt
+
 
 after_success:
   - |
@@ -141,7 +123,6 @@ cache:
   directories:
     - $HOME/.cache/pip
     - $HOME/.hypothesis
-    - $PYENV_ROOT
 
 sudo: false
 

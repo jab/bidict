@@ -13,7 +13,7 @@ from ._bidict import bidict
 from ._frozen import frozenbidict
 from ._marker import _Marker
 from ._miss import _MISS
-from .compat import Reversible, iteritems, izip
+from .compat import iteritems, izip
 
 
 _PRV = 1
@@ -24,11 +24,6 @@ _END = _Marker('END')
 class FrozenOrderedBidict(frozenbidict):
     u"""
     Frozen ordered bidict. Base class for :class:`OrderedBidict`.
-
-    .. py:attribute:: ordered_cls
-
-        If the *other* argument in :meth:`__eq__` is an instance of this class,
-        order-sensitive comparison will be performed.
 
     .. py:attribute:: sntl
 
@@ -54,8 +49,6 @@ class FrozenOrderedBidict(frozenbidict):
         Backing dict storing the inverse mapping data (*value* → *node*).
     """
 
-    ordered_cls = Reversible
-
     # Make explicit that FrozenOrderedBidict does not support overriding these:
     fwd_cls = None
     inv_cls = None
@@ -64,21 +57,19 @@ class FrozenOrderedBidict(frozenbidict):
         """Like :meth:`collections.OrderedDict.__init__`."""
         # pylint: disable=super-init-not-called
         self.isinv = getattr(args[0], 'isinv', False) if args else False
-        self._init_fwdm_invm()
-        self._init_sntl()
+        self.fwdm = {}
+        self.invm = {}
+        self.sntl = self._make_sentinel()
+        self._hash = None
         self._init_inv()
         if args or kw:
             self._update(True, self.on_dup_key, self.on_dup_val, self.on_dup_kv, *args, **kw)
 
-    def _init_fwdm_invm(self):
-        self.fwdm = getattr(self, 'fwdm', {})
-        self.invm = getattr(self, 'invm', {})
-        self.fwdm.clear()
-        self.invm.clear()
-
-    def _init_sntl(self):
-        self.sntl = getattr(self, 'sntl', [])
-        self.sntl[:] = [_END, self.sntl, self.sntl]
+    @staticmethod
+    def _make_sentinel():
+        sntl = []
+        sntl[:] = [_END, sntl, sntl]
+        return sntl
 
     def _init_inv(self):
         super(FrozenOrderedBidict, self)._init_inv()
@@ -91,8 +82,7 @@ class FrozenOrderedBidict(frozenbidict):
         # it avoids unnecessary duplication checking.
         copy = object.__new__(self.__class__)
         copy.isinv = self.isinv
-        copy._init_sntl()  # pylint: disable=protected-access
-        sntl = copy.sntl
+        sntl = self._make_sentinel()
         fwdm = {}
         invm = {}
         cur = sntl
@@ -102,16 +92,18 @@ class FrozenOrderedBidict(frozenbidict):
             cur[_NXT] = fwdm[key] = invm[val] = nxt
             cur = nxt
         sntl[_PRV] = nxt
-        copy.fwdm = fwdm  # pylint: disable=attribute-defined-outside-init
-        copy.invm = invm  # pylint: disable=attribute-defined-outside-init
+        copy.sntl = sntl
+        copy.fwdm = fwdm
+        copy.invm = invm
         copy._init_inv()  # pylint: disable=protected-access
         return copy
 
     __copy__ = copy
 
     def _clear(self):
-        self._init_fwdm_invm()
-        self._init_sntl()
+        self.fwdm.clear()
+        self.invm.clear()
+        self.sntl[:] = [_END, self.sntl, self.sntl]
 
     @staticmethod
     def _get_other(nodedata, key_or_val):
@@ -246,15 +238,19 @@ class FrozenOrderedBidict(frozenbidict):
         for key in self.__iter__(reverse=True):
             yield key
 
-    def __eq__(self, other):
-        """Like :meth:`collections.OrderedDict.__eq__`."""
+    def __eq__(self, other, order_sensitive=False):
+        """Check for equality with ``other`` as per ``order_sensitive``."""
         if not isinstance(other, Mapping):
             return NotImplemented
         if len(self) != len(other):
             return False
-        if isinstance(other, self.ordered_cls):
+        if order_sensitive:
             return all(i == j for (i, j) in izip(iteritems(self), iteritems(other)))
         return all(self.get(k, _MISS) == v for (k, v) in iteritems(other))
+
+    def equals_order_sensitive(self, other):
+        """Check equality with other with order sensitivity."""
+        return self.__eq__(other, order_sensitive=True)
 
     # frozenbidict.__hash__ is also correct for ordered bidicts:
     # The value is derived from all contained items and insensitive to their order.

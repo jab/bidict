@@ -61,7 +61,7 @@ Status
 Bidict:
 ^^^^^^^
 
-- is in use by several teams at Google, Bank of America Merrill Lynch,
+- is in use by several teams at Google, Venmo, Bank of America Merrill Lynch,
   and many others,
 - has carefully designed APIs for
   safety, simplicity, flexibility, and ergonomics,
