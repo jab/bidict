@@ -6,8 +6,8 @@ Changelog
 .. include:: release-notifications.rst.inc
 
 
-0.14.0 (not yet released)
--------------------------
+0.14.0 (2017-11-20)
+-------------------
 
 - Fix a bug where :class:`bidict <bidict.bidict>`\'s
   default *on_dup_kv* policy was set to
