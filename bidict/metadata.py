@@ -10,11 +10,10 @@
 
 def _get_version(fallback=u'0.0.0.version_not_found'):
     """Return bidict version via pkg_resources, or fallback if not found."""
-    # pragma: no cover
     from pkg_resources import get_distribution, DistributionNotFound
     try:
         return get_distribution('bidict').version
-    except DistributionNotFound:  # not installed
+    except DistributionNotFound:  # pragma: no cover
         return fallback
 
 

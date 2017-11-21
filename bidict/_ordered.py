@@ -110,9 +110,8 @@ class FrozenOrderedBidict(frozenbidict):
         first, second = nodedata
         if key_or_val == first:
             return second
-        elif key_or_val == second:
-            return first
-        raise KeyError(key_or_val)
+        assert key_or_val == second
+        return first
 
     def __getitem__(self, key):
         nodefwd = self.fwdm[key]
