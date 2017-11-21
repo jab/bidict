@@ -1,10 +1,10 @@
-:class:`namedbidict <bidict.namedbidict>`
+:func:`namedbidict <bidict.namedbidict>`
 -----------------------------------------
 
-:class:`bidict.namedbidict`,
+:func:`bidict.namedbidict`,
 inspired by :func:`collections.namedtuple`,
 allows you to easily generate
-a custom bidirectional map type
+a new bidirectional mapping type
 with custom attribute-based access to forward and inverse mappings::
 
     >>> from bidict import namedbidict

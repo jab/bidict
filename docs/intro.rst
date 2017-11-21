@@ -99,7 +99,7 @@ as well as additional tools
 for working with one-to-one relations:
 
 - :class:`bidict.BidirectionalMapping`
-- :class:`bidict.namedbidict`
+- :func:`bidict.namedbidict`
 - :class:`bidict.frozenbidict`
 - :class:`bidict.OrderedBidict`
 - :class:`bidict.FrozenOrderedBidict`

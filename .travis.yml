@@ -29,8 +29,19 @@ install:  # Install our test dependencies.
 
 
 script:  # Run our test suite.
-  - if [[ -n $COVERAGE ]]; then COVARGS="--cov=bidict --cov-config=.coveragerc"; fi
+  - if [[ -n $COVERAGE ]]; then export PYTEST_ADDOPTS="--cov=bidict --cov-config=.coveragerc"; fi
   - python setup.py test
+
+
+after_script:
+  - |
+      if [[ -n $COVERAGE ]]; then
+        echo "Installing codecov..."
+        travis_retry pip install codecov || exit 1
+        echo
+        echo "Uploading coverage report..."
+        codecov || exit 1
+      fi
 
 
 matrix:
@@ -62,7 +73,7 @@ matrix:
       if: branch = master
     #### Test latest stable PyPy 3. Enable coverage.
     - python: pypy3
-      env: TASK=test
+      env: TASK=test COVERAGE=1
       if: branch = master
     #### Test latest stable PyPy 2. No need for coverage.
     - python: pypy
@@ -105,16 +116,6 @@ matrix:
       install: echo "(no install needed)"
       script: python -O -m doctest -o IGNORE_EXCEPTION_DETAIL -o ELLIPSIS tests/*.txt
 
-
-after_success:
-  - |
-      if [[ -f .coverage ]]; then
-        echo "Installing codecov..."
-        travis_retry pip install codecov || exit 1
-        echo
-        echo "Uploading coverage report..."
-        codecov || exit 1
-      fi
 
 before_cache:
   - rm -rf $HOME/.cache/pip/log
