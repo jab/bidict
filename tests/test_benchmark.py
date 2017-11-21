@@ -5,9 +5,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-"""
-Benchmarks.
-"""
+"""Benchmarks."""
 
 from bidict import OrderedBidict, ValueDuplicationError, bidict
 import pytest
@@ -54,12 +52,14 @@ UPDATE_WITHDUPVAL = OrderedBidict(UPDATE_NODUP, key_with_dup_val='hydrogen')
 
 @pytest.mark.parametrize('B', BIDICT_TYPES)
 def test_put_nodup(B, benchmark):  # noqa: N803
+    """Test inserting a new item with no key or value duplication using put."""
     b = B(ELEMENTS)
     benchmark(b.put, 'K', 'potassium')
 
 
 @pytest.mark.parametrize('B', BIDICT_TYPES)
 def test_put_withdup(B, benchmark):  # noqa: N803
+    """Test inserting a new item with a duplicate value using put."""
     b = B(ELEMENTS)
 
     def runner():
@@ -71,12 +71,14 @@ def test_put_withdup(B, benchmark):  # noqa: N803
 
 @pytest.mark.parametrize('B', BIDICT_TYPES)
 def test_update_nodup(B, benchmark):  # noqa: N803
+    """Test inserting new items with no duplication using update."""
     b = B(ELEMENTS)
     benchmark(b.update, UPDATE_NODUP)
 
 
 @pytest.mark.parametrize('B', BIDICT_TYPES)
 def test_update_withdup(B, benchmark):  # noqa: N803
+    """Test inserting new items with value duplication using update."""
     b = B(ELEMENTS)
 
     def runner():
@@ -88,6 +90,7 @@ def test_update_withdup(B, benchmark):  # noqa: N803
 
 @pytest.mark.parametrize('B', BIDICT_TYPES)
 def test_forceupdate_withdup(B, benchmark):  # noqa: N803
+    """Test inserting new items with value duplication using forceupdate."""
     b = B(ELEMENTS)
     benchmark(b.forceupdate, UPDATE_WITHDUPVAL)
     assert b.inv['hydrogen'] == 'key_with_dup_val'

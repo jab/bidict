@@ -5,9 +5,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-"""
-Equality and hashing tests.
-"""
+"""Equality and hashing tests."""
 
 from collections import Counter, Hashable, OrderedDict, Mapping, defaultdict
 from itertools import product
@@ -16,12 +14,11 @@ import pytest
 from bidict import FrozenOrderedBidict, OrderedBidict, bidict, namedbidict, frozenbidict
 
 
-# pylint: disable=C0111
-class DictSubcls(dict):
+class _DictSubcls(dict):
     pass
 
 
-class OrderedBidictSubcls(OrderedBidict):
+class _OrderedBidictSubcls(OrderedBidict):
     pass
 
 
@@ -34,8 +31,8 @@ frozenbidict_of_items = frozenbidict(items)
 namedbidict_of_items = namedbidict('named', 'keys', 'vals')(items)
 orderedbidict_of_items = OrderedBidict(items)
 orderedbidict_of_itemsreversed = OrderedBidict(itemsreversed)
-orderedbidictsubcls_of_items = OrderedBidictSubcls(items)
-orderedbidictsubcls_of_itemsreversed = OrderedBidictSubcls(itemsreversed)
+orderedbidictsubcls_of_items = _OrderedBidictSubcls(items)
+orderedbidictsubcls_of_itemsreversed = _OrderedBidictSubcls(itemsreversed)
 frozenorderedbidict_of_items = FrozenOrderedBidict(items)
 frozenorderedbidict_of_itemsreversed = FrozenOrderedBidict(itemsreversed)
 bidicts = (
@@ -53,7 +50,7 @@ bidicts = (
 dict_of_itemsreversed = dict(itemsreversed)
 counter_of_itemsreversed = Counter(dict_of_itemsreversed)
 defaultdict_of_itemsreversed = defaultdict(lambda x: None, itemsreversed)
-dictsubcls_of_itemsreversed = DictSubcls(itemsreversed)
+dictsubcls_of_itemsreversed = _DictSubcls(itemsreversed)
 ordereddict_of_items = OrderedDict(items)
 ordereddict_of_itemsreversed = OrderedDict(itemsreversed)
 empty_dict = {}
@@ -72,6 +69,7 @@ not_bidicts = (
 
 @pytest.mark.parametrize('b, other', product(bidicts, bidicts + not_bidicts))
 def test_eq_and_hash(b, other):
+    """Make sure equality tests and hash results behave as expected."""
     if not isinstance(other, Mapping):
         assert b != other
     elif len(b) != len(other):

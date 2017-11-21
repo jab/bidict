@@ -1,5 +1,10 @@
 # -*- coding: utf-8 -*-
+# Copyright 2017 Joshua Bronson. All Rights Reserved.
 #
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
 # bidict documentation build configuration file, created by
 # sphinx-quickstart on Fri Aug 29 11:38:22 2014.
 #
@@ -12,14 +17,21 @@
 # All configuration values have a default; values that are commented out
 # serve to show the default.
 
+"""Sphinx configuration."""
+
 import sys
 import os
-import io
+
+
+# pylint: disable=invalid-name
+
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 sys.path.insert(0, os.path.abspath('..'))
+
+import bidict  # pylint: disable=wrong-import-position
 
 # -- General configuration ------------------------------------------------
 
@@ -54,11 +66,10 @@ source_suffix = '.rst'
 # The master toctree document.
 master_doc = 'index'
 
-import bidict
 # General information about the project.
 project = u'bidict'
 author = bidict.__author__
-copyright = bidict.__copyright__
+copyright = bidict.__copyright__  # pylint: disable=redefined-builtin
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -121,7 +132,6 @@ html_theme = 'alabaster'
 html_theme_options = dict(
     analytics_id='UA-10116163-3',
     description=bidict.__description__,
-   #fixed_sidebar=True,
     github_banner=True,
     github_repo='bidict',
     github_type='star',
@@ -129,7 +139,6 @@ html_theme_options = dict(
     page_width='1000px',
     show_powered_by=False,
     link_hover='#247BA1',
-   #show_related=True,
 )
 
 # Add any paths that contain custom themes here, relative to this directory.

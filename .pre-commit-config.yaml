@@ -1,12 +1,40 @@
--   repo: git://github.com/pre-commit/pre-commit-hooks
-    sha: v0.9.1
-    hooks:
-    -   id: trailing-whitespace
-    -   id: end-of-file-fixer
-    -   id: debug-statements
-    -   id: double-quote-string-fixer
+repos:
+- repo: git://github.com/pre-commit/pre-commit-hooks
+  sha: v1.1.1
+  hooks:
+  - id: trailing-whitespace
+  - id: end-of-file-fixer
+  - id: mixed-line-ending
+  - id: double-quote-string-fixer
+  - id: fix-encoding-pragma
+  - id: check-yaml
+  - id: flake8
+    exclude: docs/conf.py
 
-#-   repo: git://github.com/FalconSocial/pre-commit-mirrors-pep257
-#    sha: v0.3.2
-#    hooks:
-#    -   id: pep257
+- repo: git://github.com/chewse/pre-commit-mirrors-pydocstyle
+  sha: v2.1.1
+  hooks:
+  - id: pydocstyle
+
+- repo: git://github.com/Lucas-C/pre-commit-hooks
+  sha: v1.1.4
+  hooks:
+  - id: forbid-crlf
+  - id: remove-crlf
+  - id: forbid-tabs
+  - id: remove-tabs
+  - id: insert-license
+    files: \.py$
+    args:
+    - --license-filepath
+    - LICENSE_HEADER
+
+# TODO: get this working:
+#- repo: git://github.com/pre-commit/mirrors-pylint
+#  sha: v1.7.4
+#  hooks:
+#  - id: pylint
+#    args:
+#    - bidict
+#    - tests
+#    - setup.py

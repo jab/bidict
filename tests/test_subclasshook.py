@@ -15,6 +15,7 @@ from bidict import BidirectionalMapping
 
 class MyBidirectionalMapping(dict):
     """Dummy type implementing the BidirectionalMapping interface."""
+
     def __inverted__(self):
         for (key, val) in self.items():
             yield (val, key)
