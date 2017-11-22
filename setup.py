@@ -29,27 +29,27 @@ SETUP_REQ = [
 ]
 
 TESTS_REQ = [
-    'hypothesis==3.38.3',
-    'hypothesis-pytest==0.19.0',
-    'py==1.5.2',
-    'pytest==3.2.5',
-    'pytest-benchmark==3.1.1',
-    'sortedcollections==0.5.3',
-    'sortedcontainers==1.5.7',
+    'hypothesis>=3.38.4,<4',
+    'hypothesis-pytest>=0.19.0,<1',
+    'py>=1.5.2,<2',
+    'pytest>=3.2.5,<4',
+    'pytest-benchmark>=3.1.1,<4',
+    'sortedcollections>=0.5.3,<1',
+    'sortedcontainers>=1.5.7,<2',
 ]
 
 COVERAGE_REQ = [
-    'coverage==4.4.2',
-    'pytest-cov==2.5.1',
+    'coverage>=4.4.2,<5',
+    'pytest-cov>=2.5.1,<3',
 ]
 
 DEV_REQ = SETUP_REQ + TESTS_REQ + COVERAGE_REQ + [
-    'Sphinx==1.6.5',
-    'flake8==3.5.0',
-    'pre-commit==1.4.1',
-    'pydocstyle==2.1.1',
-    'pylint==1.7.4',
-    'tox==2.9.1',
+    'Sphinx>=1.6.5,<2',
+    'flake8>=3.5.0,<4',
+    'pre-commit>=1.4.1,<2',
+    'pydocstyle>=2.1.1,<3',
+    'pylint>=1.7.4,<2',
+    'tox>=2.9.1,<3',
 ]
 
 setup(
