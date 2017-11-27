@@ -10,9 +10,9 @@ but the excellent
 `sortedcollections <http://www.grantjenks.com/docs/sortedcollections/>`_
 libraries do.
 Armed with these along with bidict's
-:attr:`fwd_cls <bidict.BidictBase.fwd_cls>`
+:attr:`fwdm_cls <bidict.BidictBase.fwdm_cls>`
 and
-:attr:`inv_cls <bidict.BidictBase.inv_cls>`
+:attr:`invm_cls <bidict.BidictBase.invm_cls>`
 attributes,
 creating a sorted bidict type is dead simple::
 
@@ -23,8 +23,8 @@ creating a sorted bidict type is dead simple::
     >>> # its inverse iterate over their items in different orders):
 
     >>> class SortedBidict1(bidict.bidict):
-    ...     fwd_cls = sortedcontainers.SortedDict
-    ...     inv_cls = sortedcontainers.SortedDict
+    ...     fwdm_cls = sortedcontainers.SortedDict
+    ...     invm_cls = sortedcontainers.SortedDict
     ...     __reversed__ = lambda self: reversed(self.fwdm)
 
     >>> b = SortedBidict1({'Tokyo': 'Japan', 'Cairo': 'Egypt'})
@@ -49,8 +49,8 @@ creating a sorted bidict type is dead simple::
     >>> import sortedcollections
 
     >>> class SortedBidict2(bidict.bidict):
-    ...     fwd_cls = sortedcontainers.SortedDict
-    ...     inv_cls = sortedcollections.ValueSortedDict
+    ...     fwdm_cls = sortedcontainers.SortedDict
+    ...     invm_cls = sortedcollections.ValueSortedDict
     ...     __reversed__ = lambda self: reversed(self.fwdm)
 
     >>> element_by_atomic_number = SortedBidict2({
@@ -77,19 +77,19 @@ creating a sorted bidict type is dead simple::
     >>> list(element_by_atomic_number.inv.copy().items()) == list(atomic_number_by_element.items())
     True
 
-    >>> # To pass method calls through to the _fwd SortedDict when not present
+    >>> # To pass method calls through to the forward SortedDict when not present
     >>> # on the bidict instance, provide a custom __getattribute__ method:
     >>> def __getattribute__(self, name):
     ...     try:
     ...         return object.__getattribute__(self, name)
     ...     except AttributeError as e:
     ...         try:
-    ...             return getattr(self.fwdm, name)
+    ...             return getattr(self.inv._invm, name)
     ...         except AttributeError:
     ...             raise e
 
     >>> SortedBidict2.__getattribute__ = __getattribute__
 
-    >>> # bidict has no .peekitem attr, so the call is passed through to _fwd:
+    >>> # bidict has no .peekitem attr, so the call is passed through:
     >>> element_by_atomic_number.peekitem()
     (4, 'beryllium')

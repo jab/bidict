@@ -108,21 +108,18 @@ class bidict(frozenbidict):  # noqa: N801; pylint: disable=invalid-name
 
     def popitem(self, *args, **kw):
         """Like :py:meth:`dict.popitem`."""
-        if not self.fwdm:
+        if not self:
             raise KeyError('popitem(): %s is empty' % self.__class__.__name__)
         key, val = self.fwdm.popitem(*args, **kw)
         del self.invm[val]
         return key, val
 
-    def setdefault(self, key, default=None):
-        """Like :py:meth:`dict.setdefault`."""
-        if key not in self:
-            self[key] = default
-        return self[key]
+    setdefault = MutableMapping.setdefault
 
     def update(self, *args, **kw):
         """Like :attr:`putall` with default duplication policies."""
-        self._update(False, self.on_dup_key, self.on_dup_val, self.on_dup_kv, *args, **kw)
+        if args or kw:
+            self._update(False, self.on_dup_key, self.on_dup_val, self.on_dup_kv, *args, **kw)
 
     def forceupdate(self, *args, **kw):
         """Like a bulk :attr:`forceput`."""
@@ -135,7 +132,8 @@ class bidict(frozenbidict):  # noqa: N801; pylint: disable=invalid-name
         If one of the given items causes an exception to be raised,
         none of the items is inserted.
         """
-        self._update(False, on_dup_key, on_dup_val, on_dup_kv, items)
+        if items:
+            self._update(False, on_dup_key, on_dup_val, on_dup_kv, items)
 
 
 # MutableMapping does not implement __subclasshook__.

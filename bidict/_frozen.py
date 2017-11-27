@@ -5,46 +5,36 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-"""Implements :class:frozenbidict."""
+"""Implements :class:`frozenbidict`."""
 
-from collections import ItemsView
+from collections import ItemsView, KeysView
 
 from ._abc import BidirectionalMapping
+from ._clsprop import classproperty
 from ._dup import RAISE, OVERWRITE, IGNORE
 from ._exc import (
     DuplicationError, KeyDuplicationError, ValueDuplicationError, KeyAndValueDuplicationError)
+from ._inv import InvBase, get_inv_cls
 from ._miss import _MISS
-from .compat import PY2, iteritems
-from .util import pairs
-
-
-def _proxied(methodname, attrname='fwdm', doc=None):
-    """Make a func that calls the indicated method on the indicated attribute."""
-    def proxy(self, *args):
-        """(__doc__ set dynamically below)"""
-        attr = getattr(self, attrname)
-        meth = getattr(attr, methodname)
-        return meth(*args)
-    proxy.__name__ = methodname
-    proxy.__doc__ = doc or "Like dict's ``%s``." % methodname
-    return proxy
+from .compat import PY2, iteritems, _compose
+from .util import _arg0, pairs
 
 
 # pylint: disable=invalid-name,too-many-instance-attributes
 class frozenbidict(BidirectionalMapping):  # noqa: N801
-    u"""
+    """
     Immutable, hashable bidict type.
 
     Also serves as a base class for the other bidict types.
 
-    .. py:attribute:: fwd_cls
+    .. py:attribute:: fwdm_cls
 
         The :class:`Mapping <collections.abc.Mapping>` type
         used for the backing :attr:`fwdm` mapping,
         Defaults to :class:`dict`.
         Override this if you need different behavior.
 
-    .. py:attribute:: inv_cls
+    .. py:attribute:: invm_cls
 
         The :class:`Mapping <collections.abc.Mapping>` type
         used for the backing :attr:`invm` mapping.
@@ -77,75 +67,61 @@ class frozenbidict(BidirectionalMapping):  # noqa: N801
         (e.g. the policy used by :meth:`__setitem__` and :meth:`update`).
         Defaults to ``None``, which causes the *on_dup_kv* policy to match
         whatever *on_dup_val* policy is in effect.
-
-    .. py:attribute:: fwdm
-
-        Managed by bidict (you shouldn't need to touch this)
-        but made public since we're consenting adults.
-
-        The backing :class:`Mapping <collections.abc.Mapping>`
-        storing the forward mapping data (*key* → *value*).
-
-    .. py:attribute:: invm
-
-        Managed by bidict (you shouldn't need to touch this)
-        but made public since we're consenting adults.
-
-        The backing :class:`Mapping <collections.abc.Mapping>`
-        storing the inverse mapping data (*value* → *key*).
-
-    .. py:attribute:: isinv
-
-        Managed by bidict (you shouldn't need to touch this)
-        but made public since we're consenting adults.
-
-        :class:`bool` representing whether this bidict is the inverse of some
-        other bidict which has already been created. If True, the meaning of
-        :attr:`fwd_cls` and :attr:`inv_cls` is swapped. This enables
-        the inverse of a bidict specifying a different :attr:`fwd_cls` and
-        :attr:`inv_cls` to be passed back into its constructor such that
-        the resulting copy has its :attr:`fwd_cls` and :attr:`inv_cls`
-        set correctly.
     """
 
     on_dup_key = OVERWRITE
     on_dup_val = RAISE
     on_dup_kv = None
-    fwd_cls = dict
-    inv_cls = dict
+    fwdm_cls = dict
+    invm_cls = dict
+
+    @classproperty
+    @classmethod
+    def INV_CLS(cls):  # noqa: N802
+        """TODO"""
+        return get_inv_cls(cls)
 
     def __init__(self, *args, **kw):
         """Like dict's ``__init__``."""
-        self.isinv = getattr(args[0], 'isinv', False) if args else False
-        self.fwdm = self.inv_cls() if self.isinv else self.fwd_cls()
-        self.invm = self.fwd_cls() if self.isinv else self.inv_cls()
-        self._init_inv()  # lgtm [py/init-calls-subclass]
-        self._hash = None
+        self._fwdm = self.fwdm_cls()
+        self._invm = self.invm_cls()
+        self.inv = self.INV_CLS(self)  # pylint: disable=E1102,E1121
         if args or kw:
             self._update(True, self.on_dup_key, self.on_dup_val, self.on_dup_kv, *args, **kw)
 
-    def _init_inv(self):
-        inv = object.__new__(self.__class__)
-        inv.isinv = not self.isinv
-        inv.fwd_cls = self.inv_cls
-        inv.inv_cls = self.fwd_cls
-        inv.fwdm = self.invm
-        inv.invm = self.fwdm
-        inv.inv = self
-        self.inv = inv
+    @property
+    def fwdm(self):
+        u"""
+        Managed by bidict (you shouldn't need to touch this)
+        but made public in case you need it.
+
+        The backing :class:`Mapping <collections.abc.Mapping>`
+        storing the forward mapping data (*key* → *value*).
+        """
+        return self.inv._invm  # pylint: disable=protected-access
+
+    @property
+    def invm(self):
+        u"""
+        Managed by bidict (you shouldn't need to touch this)
+        but made public in case you need it.
+
+        The backing :class:`Mapping <collections.abc.Mapping>`
+        storing the inverse mapping data (*value* → *key*).
+        """
+        return self.inv._fwdm  # pylint: disable=protected-access
 
     def __repr__(self):
         tmpl = self.__class__.__name__ + '('
         if not self:
             return tmpl + ')'
         tmpl += '%r)'
-        # If we have a truthy __reversed__ attribute, use an ordered repr.
-        # (Python doesn't provide an Ordered or OrderedMapping ABC, else we'd
-        # check that. Must use getattr rather than hasattr since __reversed__
-        # may be set to None, which signifies non-ordered/-reversible.)
+        # If we have a __reversed__ method, use an ordered repr. Python doesn't provide an
+        # Ordered or OrderedMapping ABC, otherwise we'd check that. (Must use getattr rather
+        # than hasattr since __reversed__ may be set to None.)
         ordered = bool(getattr(self, '__reversed__', False))
-        delegate = list if ordered else dict
-        return tmpl % delegate(iteritems(self))
+        delegate = _compose(list, iteritems) if ordered else dict
+        return tmpl % delegate(self)
 
     def __eq__(self, other):
         """Like :py:meth:`dict.__eq__`."""
@@ -153,23 +129,10 @@ class frozenbidict(BidirectionalMapping):  # noqa: N801
         return self.fwdm == other
 
     def __hash__(self):
-        """
-        Return the hash of this bidict from its contained items.
-
-        Delegates to :meth:`compute_hash` on the first call,
-        then caches the result to make future calls *O(1)*.
-        """
-        if self._hash is None:
-            self._hash = self.compute_hash()
-        return self._hash
-
-    def compute_hash(self):
-        """
-        Use the pure Python implementation of Python's frozenset hashing
-        algorithm from ``collections.Set._hash`` to compute the hash
-        incrementally in constant space.
-        """
-        return ItemsView(self)._hash()  # pylint: disable=protected-access
+        """Return the hash of this bidict from its contained items."""
+        if getattr(self, '_hash', None) is None:
+            self._hash = self._itemsview()._hash()  # pylint: disable=W0201,protected-access
+        return self._hash  # pylint: disable=protected-access
 
     def _pop(self, key):
         val = self.fwdm.pop(key)
@@ -236,29 +199,54 @@ class frozenbidict(BidirectionalMapping):  # noqa: N801
         # else neither isdupkey nor isdupval.
         return isdupkey, isdupval, invbyval, fwdbykey
 
-    @staticmethod
-    def _isdupitem(key, val, oldkey, oldval):
-        dup = oldkey == key
-        assert dup == (oldval == val)
-        return dup
+    # pylint: disable=unused-argument,no-self-use
+    def _isdupitem(self, key, val, invbyval, fwdbykey):
+        # invbyval is oldkey, fwdbykey is oldval.
+        return key == invbyval  # implies val == fwdbkey too.
 
     def _write_item(self, key, val, isdupkey, isdupval, oldkey, oldval):
-        self.fwdm[key] = val
-        self.invm[val] = key
+        fwdm = self.fwdm
+        invm = self.invm
+        fwdm[key] = val
+        invm[val] = key
         if isdupkey:
-            del self.invm[oldval]
+            del invm[oldval]
         if isdupval:
-            del self.fwdm[oldkey]
+            del fwdm[oldkey]
         return key, val, isdupkey, isdupval, oldkey, oldval
+
+    def _become(self, other):
+        """TODO"""
+        self._clear()
+        # Handle differing fwdm_cls and invm_cls correctly when other is an Inv.
+        if isinstance(other, InvBase):
+            # pylint: disable=protected-access
+            self.inv._fwdm, self.inv._invm = self.inv._invm, self.inv._fwdm
+            self._fwdm, self._invm = self._invm, self._fwdm
+        fwdm = self.fwdm
+        invm = self.invm
+        for (key, val) in pairs(other):
+            fwdm[key] = val
+            invm[val] = key
 
     def _update(self, init, on_dup_key, on_dup_val, on_dup_kv, *args, **kw):
         if not args and not kw:
             return
         if on_dup_kv is None:
             on_dup_kv = on_dup_val
-        rollbackonfail = not init or RAISE in (on_dup_key, on_dup_val, on_dup_kv)
-        if rollbackonfail:
+        nokw = not kw
+        empty = not self
+        arg0 = None
+        only_become_arg0 = False
+        if nokw and empty:
+            arg0 = _arg0(args)
+            only_become_arg0 = isinstance(arg0, (BidirectionalMapping, InvBase))
+        any_raise = RAISE in (on_dup_key, on_dup_val, on_dup_kv)
+        rollback = any_raise and (not only_become_arg0) and (not init)
+        if rollback:
             return self._update_with_rollback(on_dup_key, on_dup_val, on_dup_kv, *args, **kw)
+        if only_become_arg0:
+            return self._become(arg0)
         _put = self._put
         for (key, val) in pairs(*args, **kw):
             _put(key, val, on_dup_key, on_dup_val, on_dup_kv)
@@ -282,11 +270,11 @@ class frozenbidict(BidirectionalMapping):  # noqa: N801
                 appendwrite(write_result)
 
     def _undo_write(self, key, val, isdupkey, isdupval, oldkey, oldval):
-        fwdm = self.fwdm
-        invm = self.invm
         if not isdupkey and not isdupval:
             self._pop(key)
             return
+        fwdm = self.fwdm
+        invm = self.invm
         if isdupkey:
             fwdm[key] = oldval
             invm[oldval] = key
@@ -300,33 +288,52 @@ class frozenbidict(BidirectionalMapping):  # noqa: N801
 
     def copy(self):
         """Like :py:meth:`dict.copy`."""
-        # This should be faster than ``return self.__class__(self)`` because
-        # it avoids unnecessary duplication checking.
-        copy = object.__new__(self.__class__)
-        copy.isinv = self.isinv
-        copy.fwdm = self.fwdm.copy()
-        copy.invm = self.invm.copy()
-        copy._init_inv()  # pylint: disable=protected-access
-        return copy
+        cls = self.INV_CLS if isinstance(self, InvBase) else self.__class__
+        return cls(self)
 
     __copy__ = copy
-    __len__ = _proxied('__len__')
-    __iter__ = _proxied('__iter__')
-    __getitem__ = _proxied('__getitem__')
-    values = _proxied('keys', attrname='inv')
-    values.__doc__ = \
-        "B.values() -> a set-like object providing a view on B's values.\n\n" \
-        'Note that because values of a BidirectionalMapping are also keys\n' \
-        'of its inverse, this returns a *KeysView* object rather than a\n' \
-        '*ValuesView* object, conferring set-alike benefits.'
+
+    def __iter__(self):
+        """TODO"""
+        return self.fwdm.__iter__()
+
+    def __len__(self):
+        """TODO"""
+        return self.fwdm.__len__()
+
+    def __getitem__(self, name):
+        """TODO"""
+        return self.fwdm.__getitem__(name)
+
+    def __reduce__(self):
+        """TODO"""
+        cls = self.INV_CLS if isinstance(self, InvBase) else self.__class__
+        return (cls, (), self.__dict__)
+
+    def keys(self):
+        """TODO"""
+        return self.fwdm.keys()
+
+    def values(self):
+        u"""
+        B.values() → a set-like object providing a view on B's values.
+
+        Note that because values of a BidirectionalMapping are also keys
+        of its inverse, this returns a *dict_keys* object rather than a
+        *dict_values* object, thus providing the additional set APIs.
+        """
+        return self.invm.keys()
+
+    def items(self):
+        """TODO"""
+        return self.fwdm.items()
+
+    def _itemsview(self):
+        return ItemsView(self.fwdm)
+
     if PY2:
-        viewkeys = _proxied('viewkeys')
+        def viewvalues(self):
+            """TODO"""
+            return KeysView(self.invm)
 
-        viewvalues = _proxied('viewkeys', attrname='inv',
-                              doc=values.__doc__.replace('values()', 'viewvalues()'))
-        values.__doc__ = "Like dict's ``values``."
-
-        # Use ItemsView here rather than proxying to fwdm.viewitems() so that
-        # OrderedBidictBase (whose fwdm's values are nodes, not bare values)
-        # can use it.
-        viewitems = ItemsView
+        viewitems = _itemsview
