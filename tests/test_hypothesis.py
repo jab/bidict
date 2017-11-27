@@ -9,13 +9,14 @@
 
 from collections import OrderedDict
 from os import getenv
+from pickle import dumps, loads
 
 import pytest
 from hypothesis import assume, given, settings
 from hypothesis.strategies import integers, lists, tuples
 from bidict import (
     IGNORE, OVERWRITE, RAISE,
-    bidict, OrderedBidict,
+    bidict, namedbidict, OrderedBidict,
     frozenbidict, FrozenOrderedBidict)
 from bidict.compat import iteritems
 
@@ -38,8 +39,9 @@ def dedup(items):
 
 
 # pylint: disable=C0103
+MyNamedBidict = namedbidict('MyNamedBidict', 'key', 'val')
 ondupbehaviors = (IGNORE, OVERWRITE, RAISE)
-mutable_bidict_types = (bidict, OrderedBidict)
+mutable_bidict_types = (bidict, OrderedBidict, MyNamedBidict)
 immutable_bidict_types = (frozenbidict, FrozenOrderedBidict)
 bidict_types = mutable_bidict_types + immutable_bidict_types
 mutating_methods_by_arity = {
@@ -51,6 +53,15 @@ mutating_methods_by_arity = {
 immutable = integers()
 itemlists = lists(tuples(immutable, immutable))
 inititems = itemlists.map(dedup)
+
+
+@pytest.mark.parametrize('B', bidict_types)
+@given(init=inititems)
+def test_pickle_roundtrips(B, init):  # noqa
+    bi = B(init)
+    dumped = dumps(bi)
+    roundtripped = loads(dumped)
+    assert roundtripped == bi
 
 
 @pytest.mark.parametrize('B', bidict_types)

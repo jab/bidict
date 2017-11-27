@@ -29,29 +29,31 @@ def namedbidict(typename, keyname, valname, base_type=bidict):
 
     getfwd = lambda self: self
     getfwd.__name__ = valname + '_for'
-    getfwd.__doc__ = '%s forward %s: %s → %s' % (typename, base_type.__name__, keyname, valname)
+    getfwd.__doc__ = u'%s forward %s: %s → %s' % (typename, base_type.__name__, keyname, valname)
 
     getinv = lambda self: self.inv
     getinv.__name__ = keyname + '_for'
-    getinv.__doc__ = '%s inverse %s: %s → %s' % (typename, base_type.__name__, valname, keyname)
+    getinv.__doc__ = u'%s inverse %s: %s → %s' % (typename, base_type.__name__, valname, keyname)
 
-    __reduce__ = lambda self: (_make_empty, (typename, keyname, valname), self.__dict__)
+    __reduce__ = lambda self: (_make_empty, (typename, keyname, valname, base_type), self.__dict__)
     __reduce__.__name__ = '__reduce__'
-    __reduce__.__doc__ = 'helper for pickle'
+    __reduce__.__doc__ = u'helper for pickle'
 
     __dict__ = {
         getfwd.__name__: property(getfwd),
         getinv.__name__: property(getinv),
+        '_namedbidict_getfwd': getfwd,
+        '_namedbidict_getinv': getinv,
         '__reduce__': __reduce__,
     }
     return type(typename, (base_type,), __dict__)
 
 
-def _make_empty(typename, keyname, valname):
+def _make_empty(typename, keyname, valname, base_type):
     """
-    Create an empty instance of a custom bidict.
+    Create a named bidict with the indicated arguments and return an empty instance.
 
     Used to make :func:`bidict.namedbidict` instances picklable.
     """
-    named = namedbidict(typename, keyname, valname)
-    return named()
+    cls = namedbidict(typename, keyname, valname, base_type)
+    return cls()

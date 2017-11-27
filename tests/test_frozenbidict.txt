@@ -13,13 +13,21 @@ Test script for bidict.frozenbidict::
     >>> fs = (f1, f2, f3)
     >>> all(hash(f) is not 'an error' for f in fs)
     True
+    >>> all(hash(f.inv) is not 'an error' for f in fs)
+    True
 
-Cached hash value reused (for the sake of the coverage report)::
+Hash value is cached for future calls (this shows up in coverage report)::
 
     >>> all(hash(f) for f in fs)  # should not have to call _compute_hash() again
     True
 
 Insertable into sets and dicts::
 
-    >>> dict.fromkeys(fs) and set(fs) is not 'an error'
+    >>> set(fs) is not 'an error'
+    True
+    >>> dict.fromkeys(fs) is not 'an error'
+    True
+    >>> set(f.inv for f in fs) is not 'an error'
+    True
+    >>> dict.fromkeys(f.inv for f in fs) is not 'an error'
     True
