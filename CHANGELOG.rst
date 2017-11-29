@@ -6,8 +6,8 @@ Changelog
 .. include:: release-notifications.rst.inc
 
 
-0.14.1 (not yet released)
--------------------------
+0.14.1 (2017-11-28)
+-------------------
 
 - Fix a bug introduced in 0.14.0 where hashing a
   :class:`frozenbidict <bidict.frozenbidict>`\’s inverse
