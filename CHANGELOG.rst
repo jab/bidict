@@ -6,10 +6,19 @@ Changelog
 .. include:: release-notifications.rst.inc
 
 
+0.14.1 (2017-11-28)
+-------------------
+
+- Fix a bug where hashing a :class:`frozenbidict <bidict.frozenbidict>`\’s
+  inverse (e.g. ``f = frozenbidict(); {f.inv: 'oops'}``) would result in
+  ``AttributeError: 'frozenbidict' object has no attribute '_hash'``.
+
+
+
 0.14.0 (2017-11-20)
 -------------------
 
-- Fix a bug where :class:`bidict <bidict.bidict>`\'s
+- Fix a bug where :class:`bidict <bidict.bidict>`\’s
   default *on_dup_kv* policy was set to
   :class:`RAISE <bidict.DuplicationPolicy.RAISE>`,
   rather than matching whatever *on_dup_val* policy was in effect
@@ -189,7 +198,7 @@ This release includes multiple API simplifications and improvements.
   :class:`frozenbidict <bidict.frozenfidict>` and
   :class:`frozenorderedbidict <bidict.FrozenOrderedBidict>`.
   have been reworked to improve performance and flexibility.
-  :class:`frozenorderedbidict <bidict.FrozenOrderedBidict>`\'s
+  :class:`frozenorderedbidict <bidict.FrozenOrderedBidict>`\’s
   hash implementation is now order-sensitive.
 
   See
