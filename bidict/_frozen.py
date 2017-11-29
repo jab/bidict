@@ -159,7 +159,7 @@ class frozenbidict(BidirectionalMapping):  # noqa: N801
         then caches the result to make future calls *O(1)*.
         """
         if getattr(self, '_hash', None) is None:  # pylint: disable=protected-access
-            self._hash = self.compute_hash()
+            self._hash = self.compute_hash()  # pylint: disable=attribute-defined-outside-init
         return self._hash
 
     def compute_hash(self):
@@ -328,4 +328,4 @@ class frozenbidict(BidirectionalMapping):  # noqa: N801
         # Use ItemsView here rather than proxying to fwdm.viewitems() so that
         # ordered bidicts (whose fwdm's values are nodes, not bare values)
         # can use it.
-        viewitems = lambda self: ItemsView(self)
+        viewitems = lambda self: ItemsView(self)  # pylint: disable=unnecessary-lambda
