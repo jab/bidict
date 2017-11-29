@@ -120,7 +120,6 @@ class frozenbidict(BidirectionalMapping):  # noqa: N801
         self.fwdm = self.inv_cls() if self.isinv else self.fwd_cls()
         self.invm = self.fwd_cls() if self.isinv else self.inv_cls()
         self._init_inv()  # lgtm [py/init-calls-subclass]
-        self._hash = None
         if args or kw:
             self._update(True, self.on_dup_key, self.on_dup_val, self.on_dup_kv, *args, **kw)
 
@@ -159,8 +158,8 @@ class frozenbidict(BidirectionalMapping):  # noqa: N801
         Delegates to :meth:`compute_hash` on the first call,
         then caches the result to make future calls *O(1)*.
         """
-        if self._hash is None:
-            self._hash = self.compute_hash()
+        if getattr(self, '_hash', None) is None:  # pylint: disable=protected-access
+            self._hash = self.compute_hash()  # pylint: disable=attribute-defined-outside-init
         return self._hash
 
     def compute_hash(self):
@@ -327,6 +326,6 @@ class frozenbidict(BidirectionalMapping):  # noqa: N801
         values.__doc__ = "Like dict's ``values``."
 
         # Use ItemsView here rather than proxying to fwdm.viewitems() so that
-        # OrderedBidictBase (whose fwdm's values are nodes, not bare values)
+        # ordered bidicts (whose fwdm's values are nodes, not bare values)
         # can use it.
-        viewitems = ItemsView
+        viewitems = lambda self: ItemsView(self)  # pylint: disable=unnecessary-lambda
