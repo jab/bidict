@@ -211,3 +211,13 @@ inserting existing items is a no-op (i.e. it doesn't raise)::
     True
     >>> sorted(b.items(), key=lambda x: x[1])
     [('one', 1), ('two', 2), ('three', 3)]
+
+Python 2 dict view APIs are supported::
+
+    >>> from bidict.compat import PY2
+    >>> sorted(b.viewkeys()) == sorted(b.keys()) if PY2 else True
+    True
+    >>> sorted(b.viewvalues()) == sorted(b.values()) if PY2 else True
+    True
+    >>> sorted(b.viewitems()) == sorted(b.items()) if PY2 else True
+    True

@@ -326,6 +326,6 @@ class frozenbidict(BidirectionalMapping):  # noqa: N801
         values.__doc__ = "Like dict's ``values``."
 
         # Use ItemsView here rather than proxying to fwdm.viewitems() so that
-        # OrderedBidictBase (whose fwdm's values are nodes, not bare values)
+        # ordered bidicts (whose fwdm's values are nodes, not bare values)
         # can use it.
-        viewitems = ItemsView
+        viewitems = lambda self: ItemsView(self)

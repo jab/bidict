@@ -6,13 +6,19 @@ Changelog
 .. include:: release-notifications.rst.inc
 
 
-0.14.1 (2017-11-28)
--------------------
+0.14.1 (not yet released)
+-------------------------
 
-- Fix a bug where hashing a :class:`frozenbidict <bidict.frozenbidict>`\’s
-  inverse (e.g. ``f = frozenbidict(); {f.inv: 'oops'}``) would result in
-  ``AttributeError: 'frozenbidict' object has no attribute '_hash'``.
+- Fix a bug introduced in 0.14.0 where hashing a
+  :class:`frozenbidict <bidict.frozenbidict>`\’s inverse
+  (e.g. ``f = frozenbidict(); {f.inv: '...'}``)
+  would cause an ``AttributeError``.
 
+- Fix a bug introduced in 0.14.0 for Python 2 users where calling
+  :meth:`bidict.viewitems() <bidict.frozenbidict.viewitems>`
+  would cause a ``TypeError``.
+  Thanks Richard Sanger for
+  `reporting <https://github.com/jab/bidict/issues/48>`_.
 
 
 0.14.0 (2017-11-20)
