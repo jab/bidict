@@ -8,13 +8,13 @@ a new bidirectional mapping type
 with custom attribute-based access to forward and inverse mappings::
 
     >>> from bidict import namedbidict
-    >>> ElementMap = namedbidict('ElementMap', 'symbol', 'element')
+    >>> ElementMap = namedbidict('ElementMap', 'symbol', 'name')
     >>> noble_gases = ElementMap(He='helium')
-    >>> noble_gases.element_for['He']
+    >>> noble_gases.name_for['He']
     'helium'
     >>> noble_gases.symbol_for['helium']
     'He'
-    >>> noble_gases.element_for['Ne'] = 'neon'
+    >>> noble_gases.name_for['Ne'] = 'neon'
     >>> del noble_gases.symbol_for['helium']
     >>> noble_gases
     ElementMap({'Ne': 'neon'})

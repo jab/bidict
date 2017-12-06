@@ -97,8 +97,8 @@ The rest of the ``MutableMapping`` interface is supported::
     >>> bi.get('one')
     1
     >>> bi.get('zero')
-    >>> bi.get('zero', 0)
-    0
+    >>> bi.get('zero', 'default')
+    'default'
     >>> list(bi.keys())
     ['one']
     >>> list(bi.values())
@@ -111,6 +111,10 @@ The rest of the ``MutableMapping`` interface is supported::
     2
     >>> bi.pop('one')
     1
+    >>> bi
+    bidict({'two': 2})
+    >>> bi.inv
+    bidict({2: 'two'})
     >>> bi.pop('wrong', 'number', 'of', 'args')
     Traceback (most recent call last):
         ...

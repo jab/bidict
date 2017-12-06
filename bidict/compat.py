@@ -51,6 +51,7 @@ Compatibility helpers.
 from operator import methodcaller
 from platform import python_implementation
 from sys import version_info
+from warnings import warn
 
 _compose = lambda f, g: lambda x: f(g(x))
 
@@ -58,7 +59,8 @@ PY2 = version_info[0] == 2
 PYPY = python_implementation() == 'PyPy'
 
 if PY2:
-    assert version_info[1] > 6, 'Python >= 2.7 required'
+    if version_info[1] < 7:  # pragma: no cover
+        warn('Python < 2.7 is unsupported.')
     viewkeys = methodcaller('viewkeys')
     viewvalues = methodcaller('viewvalues')
     viewitems = methodcaller('viewitems')
@@ -67,6 +69,8 @@ if PY2:
     iteritems = methodcaller('iteritems')
     from itertools import izip
 else:
+    if version_info[1] < 3:  # pragma: no cover
+        warn('Python3 < 3.3 is unsupported.')
     viewkeys = methodcaller('keys')
     viewvalues = methodcaller('values')
     viewitems = methodcaller('items')

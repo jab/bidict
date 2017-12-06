@@ -27,49 +27,23 @@ class FrozenOrderedBidict(frozenbidict):
 
     .. py:attribute:: sntl
 
-        Managed by bidict (you shouldn't need to touch this)
-        but made public since we're consenting adults.
-
         Sentinel node for the backing circular doubly-linked list of
         [*data*, *previous*, *next*] nodes storing the ordering.
         The *data* contained in each node is (*key_or_val*, *val_or_key*).
 
     .. py:attribute:: fwdm
 
-        Managed by bidict (you shouldn't need to touch this)
-        but made public since we're consenting adults.
-
         Backing dict storing the forward mapping data (*key* → *node*).
 
     .. py:attribute:: invm
 
-        Managed by bidict (you shouldn't need to touch this)
-        but made public since we're consenting adults.
-
         Backing dict storing the inverse mapping data (*value* → *node*).
     """
 
-    # Make explicit that FrozenOrderedBidict does not support overriding these:
-    fwd_cls = None
-    inv_cls = None
-
     def __init__(self, *args, **kw):
         """Like :meth:`collections.OrderedDict.__init__`."""
-        # pylint: disable=super-init-not-called
-        self.isinv = getattr(args[0], 'isinv', False) if args else False
-        self.fwdm = {}
-        self.invm = {}
-        self.sntl = self._make_sentinel()
-        self._hash = None
-        self._init_inv()
-        if args or kw:
-            self._update(True, self.on_dup_key, self.on_dup_val, self.on_dup_kv, *args, **kw)
-
-    @staticmethod
-    def _make_sentinel():
-        sntl = []
-        sntl[:] = [_END, sntl, sntl]
-        return sntl
+        self.sntl = _make_sentinel()
+        super(FrozenOrderedBidict, self).__init__(*args, **kw)
 
     def _init_inv(self):
         super(FrozenOrderedBidict, self)._init_inv()
@@ -78,11 +52,10 @@ class FrozenOrderedBidict(frozenbidict):
     # Can't reuse frozenbidict.copy since we have different internal structure.
     def copy(self):
         """Like :meth:`collections.OrderedDict.copy`."""
-        # This should be faster than ``return self.__class__(self)`` because
-        # it avoids unnecessary duplication checking.
+        # This should be faster than ``return self.__class__(self)``.
         copy = object.__new__(self.__class__)
         copy.isinv = self.isinv
-        sntl = self._make_sentinel()
+        sntl = _make_sentinel()
         fwdm = {}
         invm = {}
         cur = sntl
@@ -105,18 +78,10 @@ class FrozenOrderedBidict(frozenbidict):
         self.invm.clear()
         self.sntl[:] = [_END, self.sntl, self.sntl]
 
-    @staticmethod
-    def _get_other(nodedata, key_or_val):
-        first, second = nodedata
-        if key_or_val == first:
-            return second
-        assert key_or_val == second
-        return first
-
     def __getitem__(self, key):
         nodefwd = self.fwdm[key]
         datafwd = nodefwd[0]
-        val = self._get_other(datafwd, key)
+        val = _get_other(datafwd, key)
         nodeinv = self.invm[val]
         assert nodeinv is nodefwd
         return val
@@ -124,7 +89,7 @@ class FrozenOrderedBidict(frozenbidict):
     def _pop(self, key):
         nodefwd = self.fwdm.pop(key)
         datafwd, prv, nxt = nodefwd
-        val = self._get_other(datafwd, key)
+        val = _get_other(datafwd, key)
         nodeinv = self.invm.pop(val)
         assert nodeinv is nodefwd
         prv[_NXT] = nxt
@@ -149,9 +114,9 @@ class FrozenOrderedBidict(frozenbidict):
             oldkey = oldval = _MISS
         elif isdupkey and isdupval:
             datafwd = nodefwd[0]
-            oldval = self._get_other(datafwd, key)
+            oldval = _get_other(datafwd, key)
             datainv, invprv, invnxt = nodeinv
-            oldkey = self._get_other(datainv, val)
+            oldkey = _get_other(datainv, val)
             assert oldkey != key
             assert oldval != val
             # We have to collapse nodefwd and nodeinv into a single node, i.e. drop one of them.
@@ -172,7 +137,7 @@ class FrozenOrderedBidict(frozenbidict):
             nodefwd[0] = (key, val)
         elif isdupkey:
             datafwd = nodefwd[0]
-            oldval = self._get_other(datafwd, key)
+            oldval = _get_other(datafwd, key)
             oldkey = _MISS
             oldnodeinv = invm.pop(oldval)
             assert oldnodeinv is nodefwd
@@ -180,7 +145,7 @@ class FrozenOrderedBidict(frozenbidict):
             node = nodefwd
         elif isdupval:
             datainv = nodeinv[0]
-            oldkey = self._get_other(datainv, val)
+            oldkey = _get_other(datainv, val)
             oldval = _MISS
             oldnodefwd = fwdm.pop(oldkey)
             assert oldnodefwd is nodeinv
@@ -233,9 +198,15 @@ class FrozenOrderedBidict(frozenbidict):
 
     def __reversed__(self):
         """Like :meth:`collections.OrderedDict.__reversed__`."""
-        # python2 lacks `yield from` syntax
         for key in self.__iter__(reverse=True):
             yield key
+
+    def __ne__(self, other, order_sensitive=False):
+        result = self.__eq__(other, order_sensitive=order_sensitive)
+        if result is NotImplemented:
+            return NotImplemented
+        assert isinstance(result, bool)
+        return not result
 
     def __eq__(self, other, order_sensitive=False):
         """Check for equality with ``other`` as per ``order_sensitive``."""
@@ -288,3 +259,17 @@ class OrderedBidict(FrozenOrderedBidict, bidict):
             node[_PRV] = sntl
             node[_NXT] = frst
             sntl[_NXT] = frst[_PRV] = node
+
+
+def _make_sentinel():
+    sntl = []
+    sntl[:] = [_END, sntl, sntl]
+    return sntl
+
+
+def _get_other(nodedata, key_or_val):
+    first, second = nodedata
+    if key_or_val == first:
+        return second
+    assert key_or_val == second
+    return first

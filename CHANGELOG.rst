@@ -6,6 +6,24 @@ Changelog
 .. include:: release-notifications.rst.inc
 
 
+0.14.2 (2017-12-06)
+-------------------
+
+- Make initializing (or updating an empty bidict) from only another
+  :class:`BidirectionalMapping <bidict.BidirectionalMapping>`
+  more efficient by skipping unnecessary duplication checking.
+
+- Fix accidental ignoring of specified ``base_type`` argument
+  when (un)pickling a :func:`namedbidict <bidict.namedbidict>`.
+
+- Fix incorrect inversion of
+  ``some_named_bidict.inv.[fwdname]_for`` and
+  ``some_named_bidict.inv.[invname]_for``.
+
+- Only warn when an unsupported Python version is detected
+  (e.g. Python < 2.7) rather than raising :class:`AssertionError`.
+
+
 0.14.1 (2017-11-28)
 -------------------
 
@@ -75,7 +93,7 @@ This release includes multiple API simplifications and improvements.
 
   The names of the
   :class:`bidict <bidict.bidict>`,
-  :class:`namedbidict <bidict.namedbidict>`, and
+  :func:`namedbidict <bidict.namedbidict>`, and
   :class:`frozenbidict <bidict.frozenbidict>` classes
   have been retained as all-lowercase
   so that they continue to match the case of

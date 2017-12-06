@@ -5,7 +5,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-"""Implements :class:`bidict.namedbidict`."""
+"""Implements :func:`bidict.namedbidict`."""
 
 import re
 
@@ -27,15 +27,15 @@ def namedbidict(typename, keyname, valname, base_type=bidict):
             raise ValueError('"%s" does not match pattern %s' %
                              (name, _LEGALNAMEPAT))
 
-    getfwd = lambda self: self
+    getfwd = lambda self: self.inv if self.isinv else self
     getfwd.__name__ = valname + '_for'
-    getfwd.__doc__ = '%s forward %s: %s → %s' % (typename, base_type.__name__, keyname, valname)
+    getfwd.__doc__ = u'%s forward %s: %s → %s' % (typename, base_type.__name__, keyname, valname)
 
-    getinv = lambda self: self.inv
+    getinv = lambda self: self if self.isinv else self.inv
     getinv.__name__ = keyname + '_for'
-    getinv.__doc__ = '%s inverse %s: %s → %s' % (typename, base_type.__name__, valname, keyname)
+    getinv.__doc__ = u'%s inverse %s: %s → %s' % (typename, base_type.__name__, valname, keyname)
 
-    __reduce__ = lambda self: (_make_empty, (typename, keyname, valname), self.__dict__)
+    __reduce__ = lambda self: (_make_empty, (typename, keyname, valname, base_type), self.__dict__)
     __reduce__.__name__ = '__reduce__'
     __reduce__.__doc__ = 'helper for pickle'
 
@@ -47,11 +47,11 @@ def namedbidict(typename, keyname, valname, base_type=bidict):
     return type(typename, (base_type,), __dict__)
 
 
-def _make_empty(typename, keyname, valname):
+def _make_empty(typename, keyname, valname, base_type):
     """
-    Create an empty instance of a custom bidict.
+    Create a named bidict with the indicated arguments and return an empty instance.
 
     Used to make :func:`bidict.namedbidict` instances picklable.
     """
-    named = namedbidict(typename, keyname, valname)
-    return named()
+    cls = namedbidict(typename, keyname, valname, base_type=base_type)
+    return cls()

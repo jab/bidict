@@ -7,16 +7,25 @@
 Test script for :func:`bidict.namedbidict`::
 
     >>> from bidict import namedbidict
-    >>> ElementMap = namedbidict('ElementMap', 'symbol', 'element')
+    >>> ElementMap = namedbidict('ElementMap', 'symbol', 'name')
     >>> noble_gases = ElementMap(He='helium')
-    >>> noble_gases.element_for['He']
+    >>> noble_gases.name_for['He']
     'helium'
     >>> noble_gases.symbol_for['helium']
     'He'
-    >>> noble_gases.element_for['Ne'] = 'neon'
+    >>> noble_gases.name_for['Ne'] = 'neon'
     >>> del noble_gases.symbol_for['helium']
     >>> noble_gases
     ElementMap({'Ne': 'neon'})
+
+``.inv`` still works too::
+
+    >>> noble_gases.inv
+    ElementMap({'neon': 'Ne'})
+    >>> noble_gases.inv.name_for['Ne']
+    'neon'
+    >>> noble_gases.inv.symbol_for['neon']
+    'Ne'
 
 Pickling works::
 

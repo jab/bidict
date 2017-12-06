@@ -5,7 +5,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-"""Implements :class:frozenbidict."""
+"""Implements :class:`frozenbidict`."""
 
 from collections import ItemsView
 
@@ -14,7 +14,7 @@ from ._dup import RAISE, OVERWRITE, IGNORE
 from ._exc import (
     DuplicationError, KeyDuplicationError, ValueDuplicationError, KeyAndValueDuplicationError)
 from ._miss import _MISS
-from .compat import PY2, iteritems
+from .compat import PY2, _compose, iteritems
 from .util import pairs
 
 
@@ -80,24 +80,15 @@ class frozenbidict(BidirectionalMapping):  # noqa: N801
 
     .. py:attribute:: fwdm
 
-        Managed by bidict (you shouldn't need to touch this)
-        but made public since we're consenting adults.
-
         The backing :class:`Mapping <collections.abc.Mapping>`
         storing the forward mapping data (*key* → *value*).
 
     .. py:attribute:: invm
 
-        Managed by bidict (you shouldn't need to touch this)
-        but made public since we're consenting adults.
-
         The backing :class:`Mapping <collections.abc.Mapping>`
         storing the inverse mapping data (*value* → *key*).
 
     .. py:attribute:: isinv
-
-        Managed by bidict (you shouldn't need to touch this)
-        but made public since we're consenting adults.
 
         :class:`bool` representing whether this bidict is the inverse of some
         other bidict which has already been created. If True, the meaning of
@@ -119,6 +110,7 @@ class frozenbidict(BidirectionalMapping):  # noqa: N801
         self.isinv = getattr(args[0], 'isinv', False) if args else False
         self.fwdm = self.inv_cls() if self.isinv else self.fwd_cls()
         self.invm = self.fwd_cls() if self.isinv else self.inv_cls()
+        self.itemsview = ItemsView(self)
         self._init_inv()  # lgtm [py/init-calls-subclass]
         if args or kw:
             self._update(True, self.on_dup_key, self.on_dup_val, self.on_dup_kv, *args, **kw)
@@ -130,6 +122,7 @@ class frozenbidict(BidirectionalMapping):  # noqa: N801
         inv.inv_cls = self.fwd_cls
         inv.fwdm = self.invm
         inv.invm = self.fwdm
+        inv.itemsview = ItemsView(inv)
         inv.inv = self
         self.inv = inv
 
@@ -138,18 +131,12 @@ class frozenbidict(BidirectionalMapping):  # noqa: N801
         if not self:
             return tmpl + ')'
         tmpl += '%r)'
-        # If we have a truthy __reversed__ attribute, use an ordered repr.
-        # (Python doesn't provide an Ordered or OrderedMapping ABC, else we'd
-        # check that. Must use getattr rather than hasattr since __reversed__
-        # may be set to None, which signifies non-ordered/-reversible.)
+        # If we have a __reversed__ method, use an ordered repr. Python doesn't provide an
+        # Ordered or OrderedMapping ABC, otherwise we'd check that. (Must use getattr rather
+        # than hasattr since __reversed__ may be set to None.)
         ordered = bool(getattr(self, '__reversed__', False))
-        delegate = list if ordered else dict
-        return tmpl % delegate(iteritems(self))
-
-    def __eq__(self, other):
-        """Like :py:meth:`dict.__eq__`."""
-        # This should be faster than using Mapping.__eq__'s implementation.
-        return self.fwdm == other
+        delegate = _compose(list, iteritems) if ordered else dict
+        return tmpl % delegate(self)
 
     def __hash__(self):
         """
@@ -159,16 +146,19 @@ class frozenbidict(BidirectionalMapping):  # noqa: N801
         then caches the result to make future calls *O(1)*.
         """
         if getattr(self, '_hash', None) is None:  # pylint: disable=protected-access
-            self._hash = self.compute_hash()  # pylint: disable=attribute-defined-outside-init
+            # pylint: disable=protected-access,attribute-defined-outside-init
+            self._hash = self.itemsview._hash()
         return self._hash
 
-    def compute_hash(self):
-        """
-        Use the pure Python implementation of Python's frozenset hashing
-        algorithm from ``collections.Set._hash`` to compute the hash
-        incrementally in constant space.
-        """
-        return ItemsView(self)._hash()  # pylint: disable=protected-access
+    def __eq__(self, other):
+        """Like :py:meth:`dict.__eq__`."""
+        # This should be faster than using Mapping's __eq__ implementation.
+        return self.fwdm == other
+
+    def __ne__(self, other):
+        """Like :py:meth:`dict.__eq__`."""
+        # This should be faster than using Mapping's __ne__ implementation.
+        return self.fwdm != other
 
     def _pop(self, key):
         val = self.fwdm.pop(key)
@@ -180,9 +170,9 @@ class frozenbidict(BidirectionalMapping):  # noqa: N801
         self.invm.clear()
 
     def _put(self, key, val, on_dup_key, on_dup_val, on_dup_kv):
-        result = self._dedup_item(key, val, on_dup_key, on_dup_val, on_dup_kv)
-        if result:
-            self._write_item(key, val, *result)
+        dedup_result = self._dedup_item(key, val, on_dup_key, on_dup_val, on_dup_kv)
+        if dedup_result:
+            self._write_item(key, val, *dedup_result)
 
     def _dedup_item(self, key, val, on_dup_key, on_dup_val, on_dup_kv):
         """
@@ -242,12 +232,14 @@ class frozenbidict(BidirectionalMapping):  # noqa: N801
         return dup
 
     def _write_item(self, key, val, isdupkey, isdupval, oldkey, oldval):
-        self.fwdm[key] = val
-        self.invm[val] = key
+        fwdm = self.fwdm
+        invm = self.invm
+        fwdm[key] = val
+        invm[val] = key
         if isdupkey:
-            del self.invm[oldval]
+            del invm[oldval]
         if isdupval:
-            del self.fwdm[oldkey]
+            del fwdm[oldkey]
         return key, val, isdupkey, isdupval, oldkey, oldval
 
     def _update(self, init, on_dup_key, on_dup_val, on_dup_kv, *args, **kw):
@@ -255,8 +247,16 @@ class frozenbidict(BidirectionalMapping):  # noqa: N801
             return
         if on_dup_kv is None:
             on_dup_kv = on_dup_val
-        rollbackonfail = not init or RAISE in (on_dup_key, on_dup_val, on_dup_kv)
-        if rollbackonfail:
+        empty = not self
+        only_copy_from_bimap = empty and not kw and isinstance(args[0], BidirectionalMapping)
+        if only_copy_from_bimap:  # no need to check for duplication
+            write_item = self._write_item
+            for (key, val) in iteritems(args[0]):
+                write_item(key, val, False, False, _MISS, _MISS)
+            return
+        raise_on_dup = RAISE in (on_dup_key, on_dup_val, on_dup_kv)
+        rollback = raise_on_dup and not init
+        if rollback:
             return self._update_with_rollback(on_dup_key, on_dup_val, on_dup_kv, *args, **kw)
         _put = self._put
         for (key, val) in pairs(*args, **kw):
@@ -281,11 +281,11 @@ class frozenbidict(BidirectionalMapping):  # noqa: N801
                 appendwrite(write_result)
 
     def _undo_write(self, key, val, isdupkey, isdupval, oldkey, oldval):
-        fwdm = self.fwdm
-        invm = self.invm
         if not isdupkey and not isdupval:
             self._pop(key)
             return
+        fwdm = self.fwdm
+        invm = self.invm
         if isdupkey:
             fwdm[key] = oldval
             invm[oldval] = key
@@ -299,8 +299,7 @@ class frozenbidict(BidirectionalMapping):  # noqa: N801
 
     def copy(self):
         """Like :py:meth:`dict.copy`."""
-        # This should be faster than ``return self.__class__(self)`` because
-        # it avoids unnecessary duplication checking.
+        # This should be faster than ``return self.__class__(self)``.
         copy = object.__new__(self.__class__)
         copy.isinv = self.isinv
         copy.fwdm = self.fwdm.copy()
@@ -325,7 +324,6 @@ class frozenbidict(BidirectionalMapping):  # noqa: N801
                               doc=values.__doc__.replace('values()', 'viewvalues()'))
         values.__doc__ = "Like dict's ``values``."
 
-        # Use ItemsView here rather than proxying to fwdm.viewitems() so that
-        # ordered bidicts (whose fwdm's values are nodes, not bare values)
-        # can use it.
-        viewitems = lambda self: ItemsView(self)  # pylint: disable=unnecessary-lambda
+        def viewitems(self):
+            """Like dict's ``viewitems``."""
+            return self.itemsview
