@@ -18,7 +18,9 @@ exec(open('bidict/metadata.py').read().encode('utf8'), METADATA)  # pylint: disa
 
 try:
     LONG_DESCRIPTION = open('README.rst').read().replace(
-        ':doc:', '(doc:)'  # :doc: breaks rendering on PyPI
+        ':doc:', ''  # :doc: breaks rendering on PyPI
+    ).replace(  # the _static content isn't available on PyPI
+        './_static/logo.png', 'https://github.com/jab/bidict/raw/master/_static/logo.png'
     )
 except:  # noqa; pylint: disable=bare-except
     LONG_DESCRIPTION = 'See https://bidict.readthedocs.io'
