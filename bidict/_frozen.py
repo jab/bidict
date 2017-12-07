@@ -8,6 +8,7 @@
 """Implements :class:`frozenbidict`."""
 
 from collections import ItemsView
+from weakref import ref
 
 from ._abc import BidirectionalMapping
 from ._dup import RAISE, OVERWRITE, IGNORE
@@ -36,20 +37,6 @@ class frozenbidict(BidirectionalMapping):  # noqa: N801
     Immutable, hashable bidict type.
 
     Also serves as a base class for the other bidict types.
-
-    .. py:attribute:: fwd_cls
-
-        The :class:`Mapping <collections.abc.Mapping>` type
-        used for the backing :attr:`fwdm` mapping,
-        Defaults to :class:`dict`.
-        Override this if you need different behavior.
-
-    .. py:attribute:: inv_cls
-
-        The :class:`Mapping <collections.abc.Mapping>` type
-        used for the backing :attr:`invm` mapping.
-        Defaults to :class:`dict`.
-        Override this if you need different behavior.
 
     .. py:attribute:: on_dup_key
 
@@ -88,43 +75,81 @@ class frozenbidict(BidirectionalMapping):  # noqa: N801
         The backing :class:`Mapping <collections.abc.Mapping>`
         storing the inverse mapping data (*value* → *key*).
 
-    .. py:attribute:: isinv
+    .. py:attribute:: fwdm_cls
 
-        :class:`bool` representing whether this bidict is the inverse of some
-        other bidict which has already been created. If True, the meaning of
-        :attr:`fwd_cls` and :attr:`inv_cls` is swapped. This enables
-        the inverse of a bidict specifying a different :attr:`fwd_cls` and
-        :attr:`inv_cls` to be passed back into its constructor such that
-        the resulting copy has its :attr:`fwd_cls` and :attr:`inv_cls`
-        set correctly.
+        The :class:`Mapping <collections.abc.Mapping>` type
+        used for the backing :attr:`fwdm` mapping,
+        Defaults to :class:`dict`.
+        Override this if you need different behavior.
+
+    .. py:attribute:: invm_cls
+
+        The :class:`Mapping <collections.abc.Mapping>` type
+        used for the backing :attr:`invm` mapping.
+        Defaults to :class:`dict`.
+        Override this if you need different behavior.
     """
 
     on_dup_key = OVERWRITE
     on_dup_val = RAISE
     on_dup_kv = None
-    fwd_cls = dict
-    inv_cls = dict
+    fwdm_cls = dict
+    invm_cls = dict
 
     def __init__(self, *args, **kw):
         """Like dict's ``__init__``."""
-        self.isinv = getattr(args[0], 'isinv', False) if args else False
-        self.fwdm = self.inv_cls() if self.isinv else self.fwd_cls()
-        self.invm = self.fwd_cls() if self.isinv else self.inv_cls()
-        self.itemsview = ItemsView(self)
+        self.fwdm = self.fwdm_cls()
+        self.invm = self.invm_cls()
         self._init_inv()  # lgtm [py/init-calls-subclass]
         if args or kw:
             self._update(True, self.on_dup_key, self.on_dup_val, self.on_dup_kv, *args, **kw)
 
+    @classmethod
+    def inv_cls(cls):
+        """Return the inverse of this bidict class (with fwdm_cls and invm_cls swapped)."""
+        if cls.fwdm_cls is cls.invm_cls:
+            return cls
+        if not getattr(cls, '_inv_cls', None):
+            class _Inv(cls):
+                fwdm_cls = cls.invm_cls
+                invm_cls = cls.fwdm_cls
+                inv_cls = cls
+            _Inv.__name__ = cls.__name__
+            _Inv.__doc__ = cls.__doc__
+            cls._inv_cls = _Inv
+        return cls._inv_cls
+
     def _init_inv(self):
-        inv = object.__new__(self.__class__)
-        inv.isinv = not self.isinv
-        inv.fwd_cls = self.inv_cls
-        inv.inv_cls = self.fwd_cls
+        self._inv = inv = object.__new__(self.inv_cls())
+        inv.fwdm_cls = self.invm_cls
+        inv.invm_cls = self.fwdm_cls
         inv.fwdm = self.invm
         inv.invm = self.fwdm
-        inv.itemsview = ItemsView(inv)
-        inv.inv = self
-        self.inv = inv
+        inv._invref = ref(self)  # pylint: disable=protected-access
+        inv._inv = self._invref = None  # pylint: disable=protected-access
+
+    @property
+    def _isinv(self):
+        return self._inv is None
+
+    @property
+    def inv(self):
+        """The inverse of this bidict."""
+        if self._inv is not None:
+            return self._inv
+        inv = self._invref()  # pylint: disable=E1102
+        if inv is not None:
+            return inv
+        # Refcount of referent must have dropped to zero, as in `bidict().inv.inv`. Init a new one.
+        self._init_inv()
+        return self._inv
+
+    @property
+    def __dict_pickle_safe__(self):
+        return dict(self.__dict__, _invref=None)
+
+    def __reduce__(self):
+        return self.__class__, (), self.__dict_pickle_safe__
 
     def __repr__(self):
         tmpl = self.__class__.__name__ + '('
@@ -147,7 +172,7 @@ class frozenbidict(BidirectionalMapping):  # noqa: N801
         """
         if getattr(self, '_hash', None) is None:  # pylint: disable=protected-access
             # pylint: disable=protected-access,attribute-defined-outside-init
-            self._hash = self.itemsview._hash()
+            self._hash = ItemsView(self)._hash()
         return self._hash
 
     def __eq__(self, other):
@@ -301,7 +326,6 @@ class frozenbidict(BidirectionalMapping):  # noqa: N801
         """Like :py:meth:`dict.copy`."""
         # This should be faster than ``return self.__class__(self)``.
         copy = object.__new__(self.__class__)
-        copy.isinv = self.isinv
         copy.fwdm = self.fwdm.copy()
         copy.invm = self.invm.copy()
         copy._init_inv()  # pylint: disable=protected-access
@@ -326,4 +350,4 @@ class frozenbidict(BidirectionalMapping):  # noqa: N801
 
         def viewitems(self):
             """Like dict's ``viewitems``."""
-            return self.itemsview
+            return ItemsView(self)

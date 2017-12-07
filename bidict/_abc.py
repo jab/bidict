@@ -18,7 +18,7 @@ class BidirectionalMapping(Mapping):  # pylint: disable=abstract-method
 
     .. py:attribute:: inv
 
-        The inverse mapping.
+        The inverse bidirectional mapping.
 
     .. py:attribute:: _subclsattrs
 

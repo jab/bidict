@@ -1,4 +1,4 @@
-.. _sortedbidicts:
+.. _sorted-bidict-recipes:
 
 Sorted Bidict Recipes
 #####################
@@ -10,9 +10,9 @@ but the excellent
 `sortedcollections <http://www.grantjenks.com/docs/sortedcollections/>`_
 libraries do.
 Armed with these along with bidict's
-:attr:`fwd_cls <bidict.BidictBase.fwd_cls>`
+:attr:`fwdm_cls <bidict.BidictBase.fwdm_cls>`
 and
-:attr:`inv_cls <bidict.BidictBase.inv_cls>`
+:attr:`invm_cls <bidict.BidictBase.invm_cls>`
 attributes,
 creating a sorted bidict type is dead simple::
 
@@ -22,14 +22,14 @@ creating a sorted bidict type is dead simple::
     >>> # and whose inverse items stay sorted by *their* keys (i.e. it and
     >>> # its inverse iterate over their items in different orders):
 
-    >>> class SortedBidict1(bidict.bidict):
-    ...     fwd_cls = sortedcontainers.SortedDict
-    ...     inv_cls = sortedcontainers.SortedDict
+    >>> class KeySortedBidict(bidict.bidict):
+    ...     fwdm_cls = sortedcontainers.SortedDict
+    ...     invm_cls = sortedcontainers.SortedDict
     ...     __reversed__ = lambda self: reversed(self.fwdm)
 
-    >>> b = SortedBidict1({'Tokyo': 'Japan', 'Cairo': 'Egypt'})
+    >>> b = KeySortedBidict({'Tokyo': 'Japan', 'Cairo': 'Egypt'})
     >>> b
-    SortedBidict1([('Cairo', 'Egypt'), ('Tokyo', 'Japan')])
+    KeySortedBidict([('Cairo', 'Egypt'), ('Tokyo', 'Japan')])
 
     >>> b['Lima'] = 'Peru'
 
@@ -48,17 +48,17 @@ creating a sorted bidict type is dead simple::
 
     >>> import sortedcollections
 
-    >>> class SortedBidict2(bidict.bidict):
-    ...     fwd_cls = sortedcontainers.SortedDict
-    ...     inv_cls = sortedcollections.ValueSortedDict
+    >>> class FwdKeySortedBidict(bidict.bidict):
+    ...     fwdm_cls = sortedcontainers.SortedDict
+    ...     invm_cls = sortedcollections.ValueSortedDict
     ...     __reversed__ = lambda self: reversed(self.fwdm)
 
-    >>> element_by_atomic_number = SortedBidict2({
+    >>> element_by_atomic_number = FwdKeySortedBidict({
     ...     3: 'lithium', 1: 'hydrogen', 2: 'helium'})
 
     >>> # stays sorted by key:
     >>> element_by_atomic_number
-    SortedBidict2([(1, 'hydrogen'), (2, 'helium'), (3, 'lithium')])
+    FwdKeySortedBidict([(1, 'hydrogen'), (2, 'helium'), (3, 'lithium')])
 
     >>> # .inv stays sorted by value:
     >>> list(element_by_atomic_number.inv.items())
@@ -69,15 +69,7 @@ creating a sorted bidict type is dead simple::
     >>> list(element_by_atomic_number.inv.items())
     [('hydrogen', 1), ('helium', 2), ('lithium', 3), ('beryllium', 4)]
 
-    >>> # order is preserved correctly when passing .inv back into constructor:
-    >>> atomic_number_by_element = SortedBidict2(element_by_atomic_number.inv)
-    >>> list(atomic_number_by_element.items()) == list(element_by_atomic_number.inv.items())
-    True
-    >>> # copies of .inv preserve order correctly too:
-    >>> list(element_by_atomic_number.inv.copy().items()) == list(atomic_number_by_element.items())
-    True
-
-    >>> # To pass method calls through to the _fwd SortedDict when not present
+    >>> # To pass method calls through to the fwdm SortedDict when not present
     >>> # on the bidict instance, provide a custom __getattribute__ method:
     >>> def __getattribute__(self, name):
     ...     try:
@@ -88,8 +80,8 @@ creating a sorted bidict type is dead simple::
     ...         except AttributeError:
     ...             raise e
 
-    >>> SortedBidict2.__getattribute__ = __getattribute__
+    >>> FwdKeySortedBidict.__getattribute__ = __getattribute__
 
-    >>> # bidict has no .peekitem attr, so the call is passed through to _fwd:
+    >>> # bidict has no .peekitem attr, so the call is passed through to fwdm:
     >>> element_by_atomic_number.peekitem()
     (4, 'beryllium')

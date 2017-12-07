@@ -6,6 +6,48 @@ Changelog
 .. include:: release-notifications.rst.inc
 
 
+0.15.0 (not yet released)
+-------------------------
+
+- Use weakrefs to refer to a bidict's inverse internally,
+  no longer creating a reference cycle.
+  Memory for a bidict that you create can now be reclaimed
+  as soon as you no longer hold any references to it.
+  Fixes `#24 <https://github.com/jab/bidict/issues/20>`_.
+
+Breaking API Changes
+++++++++++++++++++++
+
+- Rename ``fwd_cls`` → :attr:`fwdm_cls <bidict.frozenbidict.fwdm_cls>`
+
+- Rename ``inv_cls`` → :attr:`invm_cls <bidict.frozenbidict.invm_cls>`
+
+  :attr:`inv_cls <bidict.frozenbidict.inv_cls>`
+  now refers to a new classmethod that returns
+  the computed inverse bidict class,
+  not the user-overridable class of the backing inverse mapping.
+
+  This enabled improving the logic if you specify a different
+  :attr:`fwdm_cls <bidict.frozenbidict.fwdm_cls>` and
+  :attr:`invm_cls <bidict.frozenbidict.invm_cls>`
+  in a custom bidict subclass,
+  as in the :ref:`sorted-bidict-recipes`:
+  bidict now dynamically computes the
+  :attr:`inv_cls <bidict.frozenbidict.inv_cls>`
+  of your custom bidict to have the inverse
+  :attr:`fwdm_cls <bidict.frozenbidict.fwdm_cls>` and
+  :attr:`invm_cls <bidict.frozenbidict.invm_cls>`
+  of your custom bidict.
+
+  If creating a new instance of such a custom bidict
+  from the inverse of an existing instance,
+  the :attr:`fwdm_cls <bidict.frozenbidict.fwdm_cls>`
+  and :attr:`invm_cls <bidict.frozenbidict.invm_cls>`
+  of the new instance are no longer incorrectly swapped.
+
+- Rename ``isinv`` to ``_isinv``.
+
+
 0.14.2 (2017-12-06)
 -------------------
 

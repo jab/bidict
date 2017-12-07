@@ -27,15 +27,16 @@ def namedbidict(typename, keyname, valname, base_type=bidict):
             raise ValueError('"%s" does not match pattern %s' %
                              (name, _LEGALNAMEPAT))
 
-    getfwd = lambda self: self.inv if self.isinv else self
+    getfwd = lambda self: self.inv if self._isinv else self  # pylint: disable=protected-access
     getfwd.__name__ = valname + '_for'
     getfwd.__doc__ = u'%s forward %s: %s → %s' % (typename, base_type.__name__, keyname, valname)
 
-    getinv = lambda self: self if self.isinv else self.inv
+    getinv = lambda self: self if self._isinv else self.inv  # pylint: disable=protected-access
     getinv.__name__ = keyname + '_for'
     getinv.__doc__ = u'%s inverse %s: %s → %s' % (typename, base_type.__name__, valname, keyname)
 
-    __reduce__ = lambda self: (_make_empty, (typename, keyname, valname, base_type), self.__dict__)
+    __reduce__ = lambda self: (
+        _make_empty, (typename, keyname, valname, base_type), self.__dict_pickle_safe__)
     __reduce__.__name__ = '__reduce__'
     __reduce__.__doc__ = 'helper for pickle'
 

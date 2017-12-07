@@ -54,7 +54,6 @@ class FrozenOrderedBidict(frozenbidict):
         """Like :meth:`collections.OrderedDict.copy`."""
         # This should be faster than ``return self.__class__(self)``.
         copy = object.__new__(self.__class__)
-        copy.isinv = self.isinv
         sntl = _make_sentinel()
         fwdm = {}
         invm = {}
