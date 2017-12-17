@@ -3,6 +3,8 @@ Addendum
 
 .. include:: performance.rst.inc
 
+.. include:: inv-avoids-reference-cycles.rst.inc
+
 Terminology
 -----------
 

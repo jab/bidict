@@ -29,8 +29,6 @@ But it also maintains the inverse bidict via the
     bidict({'hydrogen': 'H'})
     >>> element_by_symbol.inv['hydrogen']
     'H'
-    >>> element_by_symbol.inv.inv is element_by_symbol
-    True
 
 Concise, efficient, Pythonic.
 
