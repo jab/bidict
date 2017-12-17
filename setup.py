@@ -25,33 +25,36 @@ try:
 except:  # noqa; pylint: disable=bare-except
     LONG_DESCRIPTION = 'See https://bidict.readthedocs.io'
 
-SETUP_REQ = [
+SETUP_REQS = [
     'pytest-runner',
     'setuptools_scm',
 ]
 
-TESTS_REQ = [
-    'hypothesis>=3.38.4,<4',
-    'hypothesis-pytest>=0.19.0,<1',
-    'py>=1.5.2,<2',
-    'pytest>=3.2.5,<4',
-    'pytest-benchmark>=3.1.1,<4',
-    'sortedcollections>=0.5.3,<1',
-    'sortedcontainers>=1.5.7,<2',
+TEST_REQS = [
+    'hypothesis<4',
+    'hypothesis-pytest<1',
+    'py<2',
+    'pytest<4',
+    'pytest-benchmark<4',
+    'sortedcollections<1',
+    'sortedcontainers<2',
 ]
 
-COVERAGE_REQ = [
-    'coverage>=4.4.2,<5',
-    'pytest-cov>=2.5.1,<3',
+COVERAGE_REQS = [
+    'coverage<5',
+    'pytest-cov<3',
 ]
 
-DEV_REQ = SETUP_REQ + TESTS_REQ + COVERAGE_REQ + [
-    'Sphinx>=1.6.5,<2',
-    'flake8>=3.5.0,<4',
-    'pre-commit>=1.4.1,<2',
-    'pydocstyle>=2.1.1,<3',
-    'pylint>=1.7.4,<2',
-    'tox>=2.9.1,<3',
+DEV_REQ = SETUP_REQS + TEST_REQS + COVERAGE_REQS + [
+    'Sphinx<2',
+    'pre-commit<2',
+    'tox<3',
+    # Peg to more specific versions of the following dependencies since they'd
+    # have a higher chance of breaking CI otherwise. Upgrade to newer versions
+    # manually to have a chance to fix any resulting breakage.
+    'flake8<3.6',
+    'pydocstyle<2.2',
+    'pylint<1.9',
 ]
 
 setup(
@@ -83,11 +86,11 @@ setup(
         'Programming Language :: Python :: Implementation :: PyPy',
         'Topic :: Software Development :: Libraries :: Python Modules',
     ],
-    setup_requires=SETUP_REQ,
-    tests_require=TESTS_REQ,
+    setup_requires=SETUP_REQS,
+    tests_require=TEST_REQS,
     extras_require=dict(
-        test=TESTS_REQ,
-        coverage=COVERAGE_REQ,
+        test=TEST_REQS,
+        coverage=COVERAGE_REQS,
         dev=DEV_REQ,
     ),
 )

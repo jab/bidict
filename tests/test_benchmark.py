@@ -7,8 +7,10 @@
 
 """Benchmarks."""
 
-from bidict import OrderedBidict, ValueDuplicationError, bidict
 import pytest
+
+from bidict import OrderedBidict, ValueDuplicationError, bidict
+
 
 BIDICT_TYPES = (bidict, OrderedBidict)
 
