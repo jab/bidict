@@ -7,9 +7,11 @@
 
 """Property-based tests using https://hypothesis.readthedocs.io."""
 
+import gc
 from collections import OrderedDict
 from os import getenv
 from pickle import dumps, loads
+from weakref import ref
 
 import pytest
 from hypothesis import assume, given, settings
@@ -18,7 +20,7 @@ from bidict import (
     IGNORE, OVERWRITE, RAISE,
     bidict, namedbidict, OrderedBidict,
     frozenbidict, FrozenOrderedBidict)
-from bidict.compat import iteritems
+from bidict.compat import PYPY, iteritems
 
 
 settings.register_profile('default', settings(max_examples=200, deadline=None))
@@ -99,7 +101,7 @@ def test_bidirectional_mappings(B, init):  # noqa
 @pytest.mark.parametrize(
     'arity, methodname',
     [(a, m) for (a, ms) in iteritems(mutating_methods_by_arity) for m in ms])
-@pytest.mark.parametrize('B', mutable_bidict_types)  # noqa
+@pytest.mark.parametrize('B', bidict_types)  # noqa
 @given(init=inititems, arg1=immutable, arg2=immutable, items=itemlists)
 def test_consistency_after_mutation(arity, methodname, B, init, arg1, arg2, items):
     """
@@ -159,3 +161,17 @@ def test_putall(on_dup_key, on_dup_val, on_dup_kv, B, init, items):  # noqa
     assert type(checkexc) == type(expectexc)  # pylint: disable=C0123
     assert check == expect
     assert check.inv == expect.inv
+
+
+# ref: http://doc.pypy.org/en/latest/cpython_differences.html#differences-related-to-garbage-collection-strategies  pylint: disable=line-too-long;  # noqa
+# "It also means that weak references may stay alive for a bit longer than expected."
+@pytest.mark.skipif(PYPY, reason='Weak references on PyPy are not immediately freed')
+@pytest.mark.parametrize('B', bidict_types)
+def test_no_reference_cycles(B):  # noqa: N803
+    gc.disable()
+    b = B()
+    weak = ref(b)
+    assert weak() is not None
+    del b
+    assert weak() is None
+    gc.enable()

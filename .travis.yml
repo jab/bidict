@@ -82,17 +82,13 @@ matrix:
 
 
     ## macOS
-    ### Commented out since Travis's macOS builds are so slow, and testing on Linux should be sufficient.
-    #- python: "2.7"
-    #  env: TASK=test
-    #  if: branch = master
-    #  os: osx
-    #  osx_image: xcode9.1
-    #- python: "3.6"
-    #  env: TASK=test
-    #  if: branch = master
-    #  os: osx
-    #  osx_image: xcode9.1
+    ### Only test one Python version since Travis's macOS builds are so slow.
+    #### Comented out since Python on Travis is so poorly supported.
+    ####- python: "2.7"
+    ####  env: TASK=test
+    ####  if: branch = master
+    ####  os: osx
+    ####  osx_image: xcode9.2
 
     # One-off jobs. Override "install", "before_install", and "script" to do each of these instead.
     - env: TASK=pydocstyle
