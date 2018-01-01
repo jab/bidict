@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2017 Joshua Bronson. All Rights Reserved.
+# Copyright 2018 Joshua Bronson. All Rights Reserved.
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -19,7 +19,7 @@ def _get_version(fallback=u'0.0.0.version_not_found'):
 
 __author__ = u'Joshua Bronson'
 __maintainer__ = u'Joshua Bronson'
-__copyright__ = u'Copyright 2017 Joshua Bronson'
+__copyright__ = u'Copyright 2018 Joshua Bronson'
 __email__ = u'jab@math.brown.edu'
 
 # see ../docs/thanks.rst.inc
