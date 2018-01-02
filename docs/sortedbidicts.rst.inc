@@ -10,9 +10,9 @@ but the excellent
 `sortedcollections <http://www.grantjenks.com/docs/sortedcollections/>`_
 libraries do.
 Armed with these along with bidict's
-:attr:`fwdm_cls <bidict.BidictBase.fwdm_cls>`
+:attr:`~bidict.BidictBase.fwdm_cls`
 and
-:attr:`invm_cls <bidict.BidictBase.invm_cls>`
+:attr:`~bidict.BidictBase.invm_cls`
 attributes,
 creating a sorted bidict type is dead simple::
 

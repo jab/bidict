@@ -3,9 +3,9 @@ Order Matters
 
 Performing a bulk insert operation
 (e.g. on initialization or
-via :func:`update() <bidict.bidict.update>`,
-:func:`forceupdate() <bidict.bidict.forceupdate>`,
-or :func:`putall() <bidict.bidict.putall>`),
+via :func:`~bidict.bidict.update`,
+:func:`~bidict.bidict.forceupdate`,
+or :func:`~bidict.bidict.putall`),
 is like performing a sequence of single insert operations
 for each of the provided items
 (with the advantage that the bulk insert fails clean, i.e. if it fails,

@@ -1,5 +1,5 @@
-:func:`namedbidict <bidict.namedbidict>`
------------------------------------------
+:func:`~bidict.namedbidict`
+---------------------------
 
 :func:`bidict.namedbidict`,
 inspired by :func:`collections.namedtuple`,

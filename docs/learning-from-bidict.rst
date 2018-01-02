@@ -39,10 +39,10 @@ API Design
 
   - Using :meth:`abc.ABCMeta.register`,
     :meth:`abc.ABCMeta.__subclasshook__`, and
-    :py:obj:`NotImplemented`.
+    :obj:`NotImplemented`.
 
 - Beyond :class:`collections.abc.Mapping`, bidicts implement as much of the
-  :class:`dict` and :class:`OrderedDict <collections.OrderedDict>` APIs as possible.
+  :class:`dict` and :class:`~collections.OrderedDict` APIs as possible.
   When working with APIs, familiarity and memorability are hugely important.
 
 
@@ -54,14 +54,14 @@ Python's data model
   how that interacts with ordered vs. unordered hashable types
   that may compare equal
   (e.g.
-  :class:`frozenbidict <bidict.frozenbidict>` and
-  :class:`FrozenOrderedBidict <bidict.FrozenOrderedBidict>`),
+  :class:`~bidict.frozenbidict` and
+  :class:`~bidict.FrozenOrderedBidict`),
   some interesting resulting corner cases
 
   - :ref:`nan-as-key`
 
   - equal keys of different type,
-    intransitive equality (as in :class:`OrderedDict <collections.OrderedDict>`):
+    intransitive equality (as in :class:`~collections.OrderedDict`):
     https://github.com/cosmologicon/pywat/issues/38
 
     - "Intransitive equality was a mistake." –Raymond Hettinger

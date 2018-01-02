@@ -14,11 +14,6 @@ bidict
     :exclude-members: __dict__,__weakref__
     :private-members:
 
-bidict.util
------------
-
-.. automodule:: bidict.util
-    :members:
 
 bidict.compat
 -------------

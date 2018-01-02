@@ -1,5 +1,5 @@
-:class:`OrderedBidict <bidict.OrderedBidict>`
----------------------------------------------
+:class:`~bidict.OrderedBidict`
+------------------------------
 
 For those times when your one-to-one mapping must also support
 remembering the order in which items were inserted
@@ -23,7 +23,7 @@ remembering the order in which items were inserted
     >>> last
     'Be'
 
-The additional methods of :class:`collections.OrderedDict` are supported too::
+The additional methods of :class:`~collections.OrderedDict` are supported too::
 
     >>> element_by_symbol.popitem(last=True)
     ('Be', 'beryllium')
@@ -39,7 +39,7 @@ The additional methods of :class:`collections.OrderedDict` are supported too::
     >>> element_by_symbol
     OrderedBidict([('H', 'hydrogen'), ('He', 'helium'), ('Li', 'lithium')])
 
-As with :class:`OrderedDict <collections.OrderedDict>`,
+As with :class:`~collections.OrderedDict`,
 updating an existing item preserves its position in the order,
 while deleting an item and re-adding it moves it to the end::
 
@@ -71,7 +71,7 @@ To ensure that equality of bidicts is transitive,
 and to comply with the
 `Liskov substitution principle <https://en.wikipedia.org/wiki/Liskov_substitution_principle>`_,
 equality tests between an ordered bidict and other
-:class:`Mapping <collections.abc.Mapping>`\s
+:class:`~collections.abc.Mapping`\s
 are always order-insensitive::
 
     >>> from bidict import bidict
@@ -86,7 +86,7 @@ are always order-insensitive::
     True
 
 For order-sensitive equality tests, use
-:meth:`equals_order_sensitive <bidict.FrozenOrderedBidict.equals_order_sensitive>`::
+:meth:`~bidict.FrozenOrderedBidict.equals_order_sensitive`::
 
     >>> o1.equals_order_sensitive(o2)
     False
@@ -99,6 +99,6 @@ Note that this differs from the behavior of
 :meth:`collections.OrderedDict.__eq__`,
 by recommendation of Raymond Hettinger himself.
 
-:class:`OrderedBidict <bidict.OrderedBidict>` also comes in a frozen flavor.
-See the :class:`FrozenOrderedBidict <bidict.FrozenOrderedBidict>`
+:class:`~bidict.OrderedBidict` also comes in a frozen flavor.
+See the :class:`~bidict.FrozenOrderedBidict`
 API documentation for more information.

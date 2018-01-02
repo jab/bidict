@@ -6,7 +6,7 @@ Other Functionality
 ``inverted()``
 --------------
 
-bidict provides the :class:`inverted() <bidict.inverted>` iterator
+bidict provides the :class:`~bidict.inverted` iterator
 to help you get inverse pairs from various types of objects.
 
 Pass in a mapping to get the inverse mapping::

@@ -18,7 +18,7 @@ Test script for bidict.frozenbidict::
 
 Hash value is cached for future calls (this shows up in coverage report)::
 
-    >>> all(hash(f) for f in fs)  # should not have to call _compute_hash() again
+    >>> all(hash(f) for f in fs)  # uses cached value, does not have to recompute hash
     True
 
 Insertable into sets and dicts::

@@ -32,8 +32,8 @@ Of course you can also use duck typing to avoid :func:`isinstance` altogether::
     ...     foo['bar'] = 'baz'
 
 Also note that since
-:class:`bidict <bidict.bidict>` extends
-:class:`frozenbidict <bidict.frozenbidict>`,
+:class:`~bidict.bidict` extends
+:class:`~bidict.frozenbidict`,
 if you need to check whether a bidict is immutable,
 testing for ``isinstance(foo, frozenbidict)``
 is not what you want::

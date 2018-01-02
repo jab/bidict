@@ -58,7 +58,7 @@ class bidict(frozenbidict):  # noqa: N801; pylint: disable=invalid-name
         If *on_dup_kv* is ``None``, the *on_dup_val* policy will be used for it.
 
         For example, if all given duplication policies are
-        :attr:`RAISE <bidict.DuplicationPolicy.RAISE>`,
+        :attr:`~bidict.DuplicationPolicy.RAISE`,
         then *key* will be associated with *val* if and only if
         *key* is not already associated with an existing value and
         *val* is not already associated with an existing key,
@@ -68,16 +68,16 @@ class bidict(frozenbidict):  # noqa: N801; pylint: disable=invalid-name
 
         :raises bidict.KeyDuplicationError: if attempting to insert an item
             whose key only duplicates an existing item's, and *on_dup_key* is
-            :attr:`RAISE <bidict.DuplicationPolicy.RAISE>`.
+            :attr:`~bidict.DuplicationPolicy.RAISE`.
 
         :raises bidict.ValueDuplicationError: if attempting to insert an item
             whose value only duplicates an existing item's, and *on_dup_val* is
-            :attr:`RAISE <bidict.DuplicationPolicy.RAISE>`.
+            :attr:`~bidict.DuplicationPolicy.RAISE`.
 
         :raises bidict.KeyAndValueDuplicationError: if attempting to insert an
             item whose key duplicates one existing item's, and whose value
             duplicates another existing item's, and *on_dup_kv* is
-            :attr:`RAISE <bidict.DuplicationPolicy.RAISE>`.
+            :attr:`~bidict.DuplicationPolicy.RAISE`.
         """
         self._put(key, val, on_dup_key, on_dup_val, on_dup_kv)
 

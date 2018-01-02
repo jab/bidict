@@ -26,7 +26,7 @@ resulting in::
 This could result in surprises or problems down the line.
 
 Instead, bidict raises a
-:class:`ValueDuplicationError <bidict.ValueDuplicationError>`
+:class:`~bidict.ValueDuplicationError`
 so you have an opportunity to catch this early
 and resolve the conflict before it causes problems later on::
 
@@ -42,7 +42,7 @@ which advises,
 | *Errors should never pass silently.*
 | *Unless explicitly silenced.*
 
-Similarly, initializations and :func:`update() <bidict.bidict.update>` calls
+Similarly, initializations and :func:`~bidict.bidict.update` calls
 that would overwrite the key of an existing value
 raise an exception too::
 
@@ -56,7 +56,7 @@ raise an exception too::
         ...
     ValueDuplicationError: 1
 
-If an :func:`update() <bidict.bidict.update>` call raises,
+If an :func:`~bidict.bidict.update` call raises,
 you can be sure that none of the supplied items were inserted::
 
     >>> b
@@ -88,8 +88,8 @@ This design naturally falls out of the behavior of Python's built-in dict,
 and protects against unexpected data loss.
 
 One set of alternatives to this behavior is provided by
-:func:`forceput() <bidict.bidict.forceput>` and
-:func:`forceupdate() <bidict.bidict.forceupdate>`,
+:func:`~bidict.bidict.forceput` and
+:func:`~bidict.bidict.forceupdate`,
 which allow you to explicitly overwrite existing keys and values::
 
     >>> b = bidict({'one': 1})
@@ -101,19 +101,19 @@ which allow you to explicitly overwrite existing keys and values::
     bidict({'three': 1})
 
 For even more control,
-you can use :func:`put() <bidict.bidict.put>`
-instead of :func:`forceput() <bidict.bidict.forceput>`
-or :func:`__setitem__() <bidict.bidict.__setitem__>`,
-and :func:`putall() <bidict.bidict.putall>`
-instead of :func:`update() <bidict.bidict.update>`
-or :func:`forceupdate() <bidict.bidict.forceupdate>`.
+you can use :func:`~bidict.bidict.put`
+instead of :func:`~bidict.bidict.forceput`
+or :func:`~bidict.bidict.__setitem__`,
+and :func:`~bidict.bidict.putall`
+instead of :func:`~bidict.bidict.update`
+or :func:`~bidict.bidict.forceupdate`.
 These methods allow you to specify different strategies for handling
 key and value duplication via
 the *on_dup_key*, *on_dup_val*, and *on_dup_kv* arguments.
 Three possible options are
-:class:`RAISE <bidict.DuplicationPolicy.RAISE>`,
-:class:`OVERWRITE <bidict.DuplicationPolicy.OVERWRITE>`, and
-:class:`IGNORE <bidict.DuplicationPolicy.IGNORE>`::
+:attr:`~bidict.DuplicationPolicy.RAISE`,
+:attr:`~bidict.DuplicationPolicy.OVERWRITE`, and
+:attr:`~bidict.DuplicationPolicy.IGNORE`::
 
     >>> from bidict import RAISE, OVERWRITE, IGNORE
     >>> b = bidict({2: 4})
@@ -133,18 +133,18 @@ Three possible options are
 
 If not specified,
 the *on_dup_key* and *on_dup_val* keyword arguments of
-:func:`put() <bidict.bidict.put>`
+:func:`~bidict.bidict.put`
 and
-:func:`putall() <bidict.bidict.putall>`
+:func:`~bidict.bidict.putall`
 default to
-:class:`RAISE <bidict.DuplicationPolicy.RAISE>`,
+:attr:`~bidict.DuplicationPolicy.RAISE`,
 providing stricter-by-default alternatives to
-:func:`__setitem__() <bidict.bidict.__setitem__>`
+:func:`~bidict.bidict.__setitem__`
 and
-:func:`update() <bidict.bidict.update>`.
+:func:`~bidict.bidict.update`.
 (These defaults complement the looser alternatives
-provided by :func:`forceput() <bidict.bidict.forceput>`
-and :func:`forceupdate() <bidict.bidict.forceupdate>`.)
+provided by :func:`~bidict.bidict.forceput`
+and :func:`~bidict.bidict.forceupdate`.)
 
 .. _key-and-value-duplication:
 

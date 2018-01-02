@@ -1,7 +1,7 @@
 .. _inv-avoids-reference-cycles:
 
-:attr:`.inv <bidict.BidirectionalMapping.inv>` Avoids Reference Cycles
-----------------------------------------------------------------------
+:attr:`~bidict.BidirectionalMapping.inv` Avoids Reference Cycles
+----------------------------------------------------------------
 
 A careful reader might notice the following...
 

@@ -43,8 +43,10 @@ class frozenbidict(BidirectionalMapping):  # noqa: N801
         The default :class:`DuplicationPolicy` used in the event that an item
         duplicates only the key of another item,
         when a policy has not been specified explicitly
-        (e.g. the policy used by :meth:`__setitem__` and :meth:`update`).
-        Defaults to :class:`OVERWRITE <DuplicationPolicy.OVERWRITE>`
+        (e.g. the policy used by
+        :meth:`~bidict.bidict.__setitem__` and
+        :meth:`~bidict.bidict.update`).
+        Defaults to :attr:`~DuplicationPolicy.OVERWRITE`
         to match :class:`dict`'s behavior.
 
     .. py:attribute:: on_dup_val
@@ -52,8 +54,10 @@ class frozenbidict(BidirectionalMapping):  # noqa: N801
         The default :class:`DuplicationPolicy` used in the event that an item
         duplicates only the value of another item,
         when a policy has not been specified explicitly
-        (e.g. the policy used by :meth:`__setitem__` and :meth:`update`).
-        Defaults to :class:`RAISE <DuplicationPolicy.RAISE>`
+        (e.g. the policy used by
+        :meth:`~bidict.bidict.__setitem__` and
+        :meth:`~bidict.bidict.update`).
+        Defaults to :attr:`~DuplicationPolicy.RAISE`
         to prevent unintended overwrite of another item.
 
     .. py:attribute:: on_dup_kv
@@ -61,30 +65,32 @@ class frozenbidict(BidirectionalMapping):  # noqa: N801
         The default :class:`DuplicationPolicy` used in the event that an item
         duplicates the key of another item and the value of yet another item,
         when a policy has not been specified explicitly
-        (e.g. the policy used by :meth:`__setitem__` and :meth:`update`).
+        (e.g. the policy used by
+        :meth:`~bidict.bidict.__setitem__` and
+        :meth:`~bidict.bidict.update`).
         Defaults to ``None``, which causes the *on_dup_kv* policy to match
         whatever *on_dup_val* policy is in effect.
 
     .. py:attribute:: fwdm
 
-        The backing :class:`Mapping <collections.abc.Mapping>`
+        The backing :class:`~collections.abc.Mapping`
         storing the forward mapping data (*key* → *value*).
 
     .. py:attribute:: invm
 
-        The backing :class:`Mapping <collections.abc.Mapping>`
+        The backing :class:`~collections.abc.Mapping`
         storing the inverse mapping data (*value* → *key*).
 
     .. py:attribute:: fwdm_cls
 
-        The :class:`Mapping <collections.abc.Mapping>` type
+        The :class:`~collections.abc.Mapping` type
         used for the backing :attr:`fwdm` mapping,
         Defaults to :class:`dict`.
         Override this if you need different behavior.
 
     .. py:attribute:: invm_cls
 
-        The :class:`Mapping <collections.abc.Mapping>` type
+        The :class:`~collections.abc.Mapping` type
         used for the backing :attr:`invm` mapping.
         Defaults to :class:`dict`.
         Override this if you need different behavior.
@@ -106,7 +112,7 @@ class frozenbidict(BidirectionalMapping):  # noqa: N801
 
     @classmethod
     def inv_cls(cls):
-        """Return the inverse of this bidict class (with fwdm_cls and invm_cls swapped)."""
+        """Return the inverse of this bidict class (with *fwdm_cls* and *invm_cls* swapped)."""
         if cls.fwdm_cls is cls.invm_cls:
             return cls
         if not getattr(cls, '_inv_cls', None):
@@ -164,12 +170,7 @@ class frozenbidict(BidirectionalMapping):  # noqa: N801
         return tmpl % delegate(self)
 
     def __hash__(self):
-        """
-        Return the hash of this bidict from its contained items.
-
-        Delegates to :meth:`compute_hash` on the first call,
-        then caches the result to make future calls *O(1)*.
-        """
+        """Return the hash of this bidict from its contained items."""
         if getattr(self, '_hash', None) is None:  # pylint: disable=protected-access
             # pylint: disable=protected-access,attribute-defined-outside-init
             self._hash = ItemsView(self)._hash()
@@ -208,13 +209,15 @@ class frozenbidict(BidirectionalMapping):  # noqa: N801
         (key, val) already present is construed as a no-op, not a duplication.
 
         If duplication is found and the corresponding duplication policy is
-        *RAISE*, raise the appropriate error.
+        :attr:`~bidict.DuplicationPolicy.RAISE`, raise the appropriate error.
 
         If duplication is found and the corresponding duplication policy is
-        *IGNORE*, return *None*.
+        :attr:`~bidict.DuplicationPolicy.IGNORE`, return *None*.
 
         If duplication is found and the corresponding duplication policy is
-        *OVERWRITE*, or if no duplication is found, return the dedup result
+        :attr:`~bidict.DuplicationPolicy.OVERWRITE`,
+        or if no duplication is found,
+        return the dedup result
         *(isdupkey, isdupval, invbyval, fwdbykey)*.
         """
         if on_dup_kv is None:
@@ -338,9 +341,9 @@ class frozenbidict(BidirectionalMapping):  # noqa: N801
     values = _proxied('keys', attrname='inv')
     values.__doc__ = \
         "B.values() -> a set-like object providing a view on B's values.\n\n" \
-        'Note that because values of a BidirectionalMapping are also keys\n' \
-        'of its inverse, this returns a *KeysView* object rather than a\n' \
-        '*ValuesView* object, conferring set-alike benefits.'
+        'Note that because values of a :class:`~bidict.BidirectionalMapping` are\n' \
+        'also keys of its inverse, this returns a :class:`~collections.abc.KeysView`\n' \
+        'rather than a :class:`~collections.abc.ValuesView`, conferring set-alike benefits.'
     if PY2:
         viewkeys = _proxied('viewkeys')
 

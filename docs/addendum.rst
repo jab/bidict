@@ -29,9 +29,9 @@ Terminology
   but technically values are also keys themselves.
 
   Concretely, this allows bidict to return a set-like (*dict_keys*) object
-  for :func:`bidict.values <bidict.BidictBase.values>` (Python 3) /
-  ``bidict.viewvalues()``
-  (Python 2.7), rather than a non-set-like *dict_values* object.
+  for :meth:`~bidict.frozenbidict.values` (Python 3) /
+  ``viewvalues()`` (Python 2.7),
+  rather than a non-set-like *dict_values* object.
 
 
 Missing bidicts in Stdlib!

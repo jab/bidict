@@ -1,9 +1,9 @@
-:class:`frozenbidict <bidict.frozenbidict>`
+:class:`~bidict.frozenbidict`
 -------------------------------------------
 
 As you would expect,
 attempting to mutate a
-:class:`frozenbidict <bidict.frozenbidict>`
+:class:`~bidict.frozenbidict`
 after initializing it causes an error::
 
     >>> from bidict import frozenbidict
@@ -13,7 +13,7 @@ after initializing it causes an error::
         ...
     TypeError...
 
-:class:`frozenbidict <bidict.frozenbidict>`
+:class:`~bidict.frozenbidict`
 also implements :class:`collections.abc.Hashable`,
 so it's suitable for insertion into sets or other mappings::
 
@@ -22,5 +22,5 @@ so it's suitable for insertion into sets or other mappings::
     >>> {f: 1} is not 'an error'
     True
 
-See the :class:`frozenbidict <bidict.frozenbidict>`
+See the :class:`~bidict.frozenbidict`
 API documentation for more information.

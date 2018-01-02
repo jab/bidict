@@ -4,13 +4,13 @@
 ############################
 
 If you'd like
-:class:`OVERWRITE <bidict.DuplicationPolicy.OVERWRITE>`
+:attr:`~bidict.DuplicationPolicy.OVERWRITE`
 to be the default duplication policy for
-:func:`__setitem__() <bidict.bidict.__setitem__>` and
-:func:`update() <bidict.bidict.update>`,
+:func:`~bidict.bidict.__setitem__` and
+:func:`~bidict.bidict.update`,
 rather than always having to use
-:func:`forceput() <bidict.bidict.forceput>` and
-:func:`forceupdate() <bidict.bidict.forceupdate>`,
+:func:`~bidict.bidict.forceput` and
+:func:`~bidict.bidict.forceupdate`,
 you can use the following recipe::
 
     >>> from bidict import bidict, OVERWRITE
@@ -28,7 +28,7 @@ you can use the following recipe::
     OverwritingBidict({'three': 1})
 
 As with
-:class:`bidict.bidict <bidict.bidict>`,
+:class:`bidict.bidict`,
 ``OverwritingBidict.put()`` and
 ``OverwritingBidict.putall()``
 will still provide per-call overrides for duplication policies,
@@ -43,7 +43,7 @@ simply adapt this recipe to have the class inherit from
 Beware of ``OVERWRITE``
 :::::::::::::::::::::::
 
-With a default :class:`OVERWRITE <bidict.DuplicationPolicy.OVERWRITE>` policy
+With a default :attr:`~bidict.DuplicationPolicy.OVERWRITE` policy
 as in the ``OverwritingBidict`` recipe above,
 beware of the following potentially surprising behavior::
 

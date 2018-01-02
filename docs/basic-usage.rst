@@ -10,7 +10,7 @@ Let's return to the example from the :ref:`intro`::
 
 As we saw, this behaves just like a dict,
 but maintains a special
-:attr:`inv <bidict.BidirectionalMapping.inv>` attribute
+:attr:`~bidict.BidirectionalMapping.inv` attribute
 giving access to inverse mappings::
 
     >>> element_by_symbol.inv['helium'] = 'He'
