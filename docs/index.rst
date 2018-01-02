@@ -9,6 +9,7 @@
     addendum
     changelog
     api
+    learning-from-bidict
     contributors-guide
     code-of-conduct
 

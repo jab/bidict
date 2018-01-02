@@ -70,9 +70,8 @@ Bidict:
   including property-based tests and benchmarks,
   which are run continuously on all supported Python versions and OSes,
 - integrates with Python’s collections interfaces and abstract base classes,
-- is thoroughly and attentively documented,
-  and
-- is made up of mature, concise, and well-reviewed code.
+- has mature, well-factored, well-documented code.
+
 
 Community and Support
 ---------------------
@@ -135,6 +134,17 @@ Please head to the :doc:`intro` [#fn-intro]_
 for usage documentation.
 
 
+Learning from bidict
+--------------------
+
+I have learned a surprisingly large amount
+of fascinating advanced Python programming
+from working on bidict,
+especially in light of its relatively small codebase.
+Check out :doc:`learning-from-bidict` [#fn-learning]_
+if you're interested in learning from bidict too.
+
+
 Contributing
 ------------
 
@@ -173,3 +183,5 @@ try these alternate links instead:
 .. [#fn-changelog] `<CHANGELOG.rst>`_ | `<https://bidict.readthedocs.io/changelog.html>`_
 
 .. [#fn-intro] `<docs/intro.rst>`_ | `<https://bidict.readthedocs.io/intro.html>`_
+
+.. [#fn-learning] `<docs/learning-from-bidict.rst>`_ | `<https://bidict.readthedocs.io/learning-from-bidict.html>`_

@@ -1,3 +1,5 @@
+.. _nan-as-key:
+
 nan As Key
 ^^^^^^^^^^
 
