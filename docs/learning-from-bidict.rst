@@ -39,7 +39,7 @@ API Design
 
   - Using :meth:`abc.ABCMeta.register`,
     :meth:`abc.ABCMeta.__subclasshook__`, and
-    :class:`NotImplemented`
+    :py:obj:`NotImplemented`.
 
 - Beyond :class:`collections.abc.Mapping`, bidicts implement as much of the
   :class:`dict` and :class:`OrderedDict <collections.OrderedDict>` APIs as possible.
