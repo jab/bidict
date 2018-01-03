@@ -137,12 +137,14 @@ for usage documentation.
 Learning from bidict
 --------------------
 
-I have learned a surprisingly large amount
-of fascinating advanced Python programming
-from working on bidict,
-especially in light of its relatively small codebase.
-Check out :doc:`learning-from-bidict` [#fn-learning]_
-if you're interested in learning from bidict too.
+One of the most rewarding things about working on bidict
+– and also the most surprising,
+especially in light of the small codebase (just ~600 sloc) –
+is how much fun, advanced Python material
+has turned up in the process.
+
+Check out the :doc:`learning-from-bidict` [#fn-learning]_ docs
+if you're interested in taking a tour.
 
 
 Contributing

@@ -67,6 +67,11 @@ will have its value overwritten in place::
     OrderedBidict([(3, 4), (5, 2), (7, 8)])
 
 
+.. _eq-order-insensitive:
+
+:meth:`~bidict.FrozenOrderedBidict.__eq__` is order-insensitive
+###############################################################
+
 To ensure that equality of bidicts is transitive,
 and to comply with the
 `Liskov substitution principle <https://en.wikipedia.org/wiki/Liskov_substitution_principle>`_,

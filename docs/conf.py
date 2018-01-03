@@ -49,10 +49,12 @@ extensions = [
     'sphinx.ext.coverage',
     'sphinx.ext.viewcode',
     'sphinx.ext.intersphinx',
+    'sphinx.ext.todo',
     'alabaster',
 ]
 
 intersphinx_mapping = {'python': ('https://docs.python.org/3', None)}
+todo_include_todos = True
 
 # Add any paths that contain templates here, relative to this directory.
 #templates_path = ['_templates']
