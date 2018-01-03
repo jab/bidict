@@ -81,8 +81,9 @@ Python's data model
   - If a :class:`~bidict.bidict` contains the same items as another
     :class:`~collections.abc.Mapping` of a different subtype,
     should the :class:`~bidict.bidict` compare equal to the other mapping?
-    (Or should it at least compare unequal if the other instance is not
-    also a :class:`~bidict.BidirectionalMapping`?)
+    Or should it at least compare unequal if the other instance is not
+    also a :class:`~bidict.BidirectionalMapping`?
+    Or should it return the :obj:`NotImplemented` object?
 
     - bidict's ``__eq__()`` design errs on the side of allowing more type polymorphism,
       on the grounds that this is probably what the majority of use cases expect and that this
@@ -130,12 +131,42 @@ API Design
 
 - Integrating with :mod:`collections` via :mod:`collections.abc` and :mod:`abc`
 
-  - Extending :class:`collections.abc.Mapping` and :class:`collections.abc.MutableMapping`
+- Implementing ABCs like :class:`collections.abc.Hashable`
 
-  - How to make virtual subclasses using
-    :meth:`abc.ABCMeta.register` or
-    :meth:`abc.ABCMeta.__subclasshook__` and
-    :obj:`NotImplemented`.
+- Thanks to :class:`~collections.abc.Hashable`
+  implementing :meth:`abc.ABCMeta.__subclasshook__`,
+  implementing a class that implements all the required methods of the
+  :class:`~collections.abc.Hashable` interface
+  (that is, just :meth:`~collections.abc.Hashable.__hash__` in this case)
+  makes it a virtual subclass already, no need to explicitly extend.
+  I.e. As long as ``Foo`` implements a ``__hash__()`` method,
+  ``issubclass(Foo, Hashable)`` would always be True,
+  no need to explicitly subclass via ``class Foo(Hashable):``
+
+- :class:`collections.abc.Mapping` and
+  :class:`collections.abc.MutableMapping`
+  don't implement :meth:`~abc.ABCMeta.__subclasshook__`,
+  so must either explicitly subclass
+  (if you want to inherit any of their implementations)
+  or use :meth:`abc.ABCMeta.register`
+  (to register as a virtual subclass without inheriting any implementation)
+
+- Providing a new open ABC like :class:`~bidict.BidirectionalMapping`
+
+  - Implement :meth:`abc.ABCMeta.__subclasshook__`
+
+    - Can return the :obj:`NotImplemented` object
+
+  - See `how bidict.BidirectionalMapping does this
+    <https://github.com/jab/bidict/blob/958ca85/bidict/_abc.py>`_
+
+- Notice we have :class:`collections.abc.Reversible`
+  but no ``collections.abc.Ordered`` or ``collections.abc.OrderedMapping``
+
+  - Would have been useful for bidict's ``__repr__()`` implementation
+    (see `source <https://github.com/jab/bidict/blob/958ca85/bidict/_frozen.py#L165>`_),
+    and potentially for interop with other ordered mapping implementations
+    such as `SortedDict <http://www.grantjenks.com/docs/sortedcontainers/sorteddict.html>`_
 
 - Beyond :class:`collections.abc.Mapping`, bidicts implement additional APIs
   that :class:`dict` and :class:`~collections.OrderedDict` implement.
