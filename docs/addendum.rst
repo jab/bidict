@@ -70,7 +70,7 @@ Caveats
 
 .. include:: caveat-mutation.rst.inc
 
-.. include:: caveat-equivalence-vs-identity.rst.inc
+.. include:: caveat-equivalent-distinct-hashables.rst.inc
 
 .. include:: caveat-nan-as-key.rst.inc
 
