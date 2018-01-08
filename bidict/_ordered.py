@@ -187,7 +187,7 @@ class FrozenOrderedBidict(frozenbidict):
         fwdm = self.fwdm
         sntl = self.sntl
         cur = sntl[_PRV if reverse else _NXT]
-        while cur is not sntl:
+        while cur is not sntl:  # lgtm [py/comparison-using-is]
             data, prv, nxt = cur
             korv = data[0]
             node = fwdm.get(korv)
