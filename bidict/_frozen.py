@@ -31,6 +31,12 @@ def _proxied(methodname, attrname='fwdm', doc=None):
     return proxy
 
 
+# Since BidirectionalMapping implements __subclasshook__, and frozenbidict
+# provides all the required attributes that the __subclasshook__ checks for,
+# frozenbidict would be a (virtual) subclass of BidirectionalMapping even if
+# it didn't subclass it explicitly. But subclassing it explicitly allows
+# frozenbidict to inherit the optimized __inverted__ implementation that
+# BidirectionalMapping also provides.
 # pylint: disable=invalid-name,too-many-instance-attributes
 class frozenbidict(BidirectionalMapping):  # noqa: N801
     u"""

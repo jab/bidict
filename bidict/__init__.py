@@ -15,6 +15,25 @@ See https://bidict.readthedocs.io for comprehensive documentation.
 
 """
 
+# Welcome to the bidict source code.
+#
+# Beginning a code review? Excellent!
+#
+# This __init__.py just collects functionality implemented in the other files
+# and exports it under the `bidict` module namespace.
+#
+# If you're looking for an interesting place to head next, check out _abc.py.
+# There the BidirectionalMapping abstract base class (ABC) is defined, which
+# all the bidirectional mapping types that bidict provides are subclasses of.
+#
+# ONE MORE THING! If you are not reading this on https://github.com/jab/bidict
+# right now, you may not be viewing the latest version of the code. Please head
+# to https://github.com/jab/bidict to review the latest version, which contains
+# important improvements over older versions.
+#
+# Thank you for reading =)
+# —jab ʕ•●̫•ʔ
+
 from ._abc import BidirectionalMapping
 from ._bidict import bidict
 from ._dup import DuplicationPolicy, IGNORE, OVERWRITE, RAISE

@@ -16,6 +16,15 @@ Changelog
   See the new :ref:`inv-avoids-reference-cycles` documentation.
   Fixes `#24 <https://github.com/jab/bidict/issues/20>`_.
 
+- Classes no longer have to provide an ``__inverted__``
+  attribute to be considered virtual subclasses of
+  :class:`~bidict.BidirectionalMapping`.
+
+- If :func:`bidict.inverted` is passed
+  an object with an ``__inverted__`` attribute,
+  it now ensures it is :func:`callable`
+  before returning the result of calling it.
+
 Breaking API Changes
 ++++++++++++++++++++
 

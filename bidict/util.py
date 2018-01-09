@@ -19,7 +19,7 @@ def pairs(*args, **kw):
 
     If a positional argument is provided,
     its pairs are yielded before those of any keyword arguments.
-    The positional argument may be a mapping or sequence or pairs.
+    The positional argument may be a mapping or an iterable of pairs.
 
     >>> list(pairs({'a': 1}, b=2))
     [('a', 1), ('b', 2)]
@@ -46,18 +46,24 @@ def _arg0(args):
     return args[0]
 
 
-def inverted(data):
+def inverted(obj):
     """
-    Yield the inverse items of the provided mapping or iterable.
+    Yield the inverse items of the provided object.
 
-    Works with any object that can be iterated over as a mapping or in pairs,
-    or that implements its own *__inverted__* method.
+    If `obj` has a :func:`callable` ``__inverted__`` attribute
+    (such as :attr:`bidict.BidirectionalMapping.__inverted__`),
+    just return the result of calling the ``__inverted__`` attribute.
+
+    Otherwise, return an iterator that iterates over the items in `obj`,
+    inverting each item on the fly.
+
+    .. seealso:: :attr:`bidict.BidirectionalMapping.__inverted__`
     """
-    inv = getattr(data, '__inverted__', None)
-    return inv() if inv else _inverted(data)
+    inv = getattr(obj, '__inverted__', None)
+    return inv() if callable(inv) else _inverted_on_the_fly(obj)
 
 
-def _inverted(data):
-    # This is faster than `return imap(tuple, imap(reversed, pairs(data)))`:
-    for (key, val) in pairs(data):
+def _inverted_on_the_fly(iterable):
+    # This is faster than `return imap(tuple, imap(reversed, pairs(iterable)))`:
+    for (key, val) in pairs(iterable):
         yield (val, key)

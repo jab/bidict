@@ -5,7 +5,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-"""Provides bidict ABCs."""
+"""Provides the :class:`BidirectionalMapping` abstract base class (ABC)."""
 
 from collections import Mapping
 
@@ -14,7 +14,11 @@ from .compat import iteritems
 
 class BidirectionalMapping(Mapping):  # pylint: disable=abstract-method
     """Abstract base class for bidirectional mappings.
-    Extends :class:`collections.abc.Mapping`.
+
+    Extends :class:`collections.abc.Mapping` primarily by adding the :attr:`inv`
+    attribute, which holds a reference to the inverse mapping.
+
+    All the bidirectional mapping types that bidict provides subclass this.
 
     .. py:attribute:: inv
 
@@ -31,11 +35,23 @@ class BidirectionalMapping(Mapping):  # pylint: disable=abstract-method
     inv = NotImplemented
 
     def __inverted__(self):
-        """Get an iterator over the items in :attr:`inv`."""
+        """Get an iterator over the items in :attr:`inv`.
+
+        This is functionally equivalent to iterating over each item in the
+        forward mapping and inverting each one on the fly, but this is more
+        efficient. Since we already have the inverted items stored in
+        :attr:`inv`, we can just iterate over them directly.
+
+        Providing this default implementation enables external functions,
+        particularly :func:`~bidict.inverted`, to use this optimized
+        implementation when available, instead of having to invert on the fly.
+
+        .. seealso:: :func:`bidict.inverted`
+        """
         return iteritems(self.inv)
 
     _subclsattrs = frozenset({
-        'inv', '__inverted__',
+        'inv',  # __inverted__ is just an optimization, not a requirement of the interface
         # see "Mapping" in the table at
         # https://docs.python.org/3/library/collections.abc.html#collections-abstract-base-classes
         '__getitem__', '__iter__', '__len__',  # abstract methods
