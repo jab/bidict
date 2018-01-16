@@ -62,7 +62,7 @@ Bidict:
 ^^^^^^^
 
 - is in use by several teams at Google, Venmo, Bank of America Merrill Lynch,
-  and many others,
+  Two Sigma, and many others,
 - has carefully designed APIs for
   safety, simplicity, flexibility, and ergonomics,
 - is CPython-, PyPy-, Python 2-, and Python 3-compatible,
@@ -87,8 +87,10 @@ and provide as much support for it as possible.
 
 Please feel free to leave a message in the
 `chatroom <https://gitter.im/jab/bidict>`_
-or `open an issue <https://github.com/jab/bidict/issues>`_
-after reviewing the :doc:`contributors-guide`. [#fn-contributing]_
+or to open a new issue on GitHub.
+Don't forget to search through
+`existing issues <https://github.com/jab/bidict/issues>`_
+first and to review the :doc:`contributors-guide` [#fn-contributing]_.
 
 
 Notice of Usage
@@ -96,7 +98,12 @@ Notice of Usage
 
 If you are already using bidict, and especially if
 you/your organization is a significant user,
-please `let me know <mailto:jab@math.brown.edu>`_ you're using it!
+please let me know you're using it!
+
+You can
+`email me <mailto:jab@math.brown.edu?subject=bidict&body=I%20am%20using%20bidict%20for...>`_,
+`open an issue <https://github.com/jab/bidict/issues/new?title=Notice+of+Usage&body=I+am+using+bidict+for...>`_,
+or leave a message in the `chat room <https://gitter.im/jab/bidict>`_.
 
 
 Changelog

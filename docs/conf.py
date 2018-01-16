@@ -305,6 +305,5 @@ htmlhelp_basename = 'bidictdoc'
 
 # Ignore urls matching these regex strings when doing "make linkcheck"
 linkcheck_ignore = [
-    r'https://github.com/jab/bidict/fork',  # gives 404 if not logged in
 ]
 linkcheck_timeout = 30  # 5s default too low
