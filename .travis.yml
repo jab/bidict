@@ -3,6 +3,7 @@ language: python
 # Version used for jobs that don't override it (e.g. the one-off jobs):
 python: "3.6"
 
+sudo: false
 
 env:
   global:
@@ -83,7 +84,7 @@ matrix:
 
     ## macOS
     ### Only test one Python version since Travis's macOS builds are so slow.
-    #### Comented out since Python on Travis is so poorly supported.
+    #### Commented out since Travis does not maintain Python on macOS actively enough.
     ####- python: "2.7"
     ####  env: TASK=test
     ####  if: branch = master
@@ -116,12 +117,12 @@ matrix:
 before_cache:
   - rm -rf $HOME/.cache/pip/log
 
+
 cache:
   directories:
     - $HOME/.cache/pip
     - $HOME/.hypothesis
 
-sudo: false
 
 notifications:
   webhooks:
@@ -129,6 +130,7 @@ notifications:
       - https://webhooks.gitter.im/e/bf64fb45a633c0935b9b
   email:
     recipients: jab@math.brown.edu
+
 
 deploy:
   - provider: pypi
