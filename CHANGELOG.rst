@@ -10,9 +10,9 @@ Changelog
 -------------------------
 
 - Use weakrefs to refer to a bidict's inverse internally,
-  no longer creating a reference cycle.
+  no longer creating a strong reference cycle.
   Memory for a bidict that you create can now be reclaimed
-  as soon as you no longer hold any references to it.
+  in CPython as soon as you no longer hold any references to it.
   See the new :ref:`inv-avoids-reference-cycles` documentation.
   Fixes `#24 <https://github.com/jab/bidict/issues/20>`_.
 
