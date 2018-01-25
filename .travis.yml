@@ -46,6 +46,9 @@ after_script:
 
 
 matrix:
+  allow_failures:
+    - env: ALLOW_FAIL=1
+
   include:
     # Each job performs a single task, and sets a "TASK" var so it's evident in the build matrix.
 
@@ -70,7 +73,7 @@ matrix:
       if: branch = master
     #### Next (in-development) CPython 3 version.
     - python: 3.7-dev
-      env: TASK=test
+      env: TASK=test ALLOW_FAIL=1
       if: branch = master
     #### Test latest stable PyPy 3. Enable coverage.
     - python: pypy3
