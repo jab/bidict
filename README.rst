@@ -73,6 +73,28 @@ Bidict:
 - has mature, well-factored, well-documented code.
 
 
+Installation
+------------
+
+``pip install bidict``
+
+
+Quick start
+-----------
+
+    >>> from bidict import bidict
+    >>> element_by_symbol = bidict({'H': 'hydrogen'})
+    >>> element_by_symbol['H']
+    'hydrogen'
+    >>> element_by_symbol.inv['hydrogen']
+    'H'
+
+
+For more usage documentation,
+head to the :doc:`intro` [#fn-intro]_
+and proceed from there.
+
+
 Community and Support
 ---------------------
 
@@ -126,19 +148,6 @@ Release Notifications
 
 Tip: `Follow bidict on Sibbell <https://sibbell.com/github/jab/bidict/releases/>`_
 to be notified when a new version of bidict is released.
-
-
-Installation
-------------
-
-``pip install bidict``
-
-
-Usage Documentation
--------------------
-
-Please head to the :doc:`intro` [#fn-intro]_
-for usage documentation.
 
 
 Learning from bidict
