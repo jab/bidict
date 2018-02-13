@@ -10,3 +10,7 @@ ul.simple li {
 a.image-reference:hover {
   border-bottom: 0 !important;
 }
+
+#status img {
+  max-width: 130px;  /* override the inherited max-width: 100% in case a badge fails to load */
+}

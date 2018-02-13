@@ -24,13 +24,13 @@ Status
     :target: https://bidict.readthedocs.io/en/master/
     :alt: Documentation
 
-.. image:: https://travis-ci.org/jab/bidict.svg?branch=master
+.. image:: https://api.travis-ci.org/jab/bidict.svg?branch=master
     :target: https://travis-ci.org/jab/bidict
-    :alt: Travis-CI build status (Linux and macOS)
+    :alt: Travis-CI build status
 
 .. image:: https://ci.appveyor.com/api/projects/status/gk133415udncwto3/branch/master?svg=true
     :target: https://ci.appveyor.com/project/jab/bidict
-    :alt: AppVeyor build status (Windows)
+    :alt: AppVeyor (Windows) build status
 
 .. image:: https://codecov.io/gh/jab/bidict/branch/master/graph/badge.svg
     :target: https://codecov.io/gh/jab/bidict
@@ -79,7 +79,7 @@ Installation
 ``pip install bidict``
 
 
-Quick start
+Quick Start
 -----------
 
     >>> from bidict import bidict
