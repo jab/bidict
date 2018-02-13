@@ -13,7 +13,7 @@ from ._bidict import bidict
 from ._frozen import frozenbidict
 from ._marker import _Marker
 from ._miss import _MISS
-from .compat import iteritems, izip
+from .compat import _compose, iteritems, izip
 
 
 _PRV = 1
@@ -186,14 +186,15 @@ class FrozenOrderedBidict(frozenbidict):
         """Like :meth:`collections.OrderedDict.__iter__`."""
         fwdm = self.fwdm
         sntl = self.sntl
-        cur = sntl[_PRV if reverse else _NXT]
+        nextidx = _PRV if reverse else _NXT
+        cur = sntl[nextidx]
         while cur is not sntl:  # lgtm [py/comparison-using-is]
-            data, prv, nxt = cur
+            data = cur[0]
             korv = data[0]
             node = fwdm.get(korv)
             key = korv if node is cur else data[1]
             yield key
-            cur = prv if reverse else nxt
+            cur = cur[nextidx]
 
     def __reversed__(self):
         """Like :meth:`collections.OrderedDict.__reversed__`."""
@@ -220,6 +221,8 @@ class FrozenOrderedBidict(frozenbidict):
     def equals_order_sensitive(self, other):
         """Check equality with other with order sensitivity."""
         return self.__eq__(other, order_sensitive=True)
+
+    __repr_delegate__ = _compose(list, iteritems)
 
     # frozenbidict.__hash__ is also correct for ordered bidicts:
     # The value is derived from all contained items and insensitive to their order.

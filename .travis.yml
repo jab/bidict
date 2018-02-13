@@ -86,8 +86,7 @@ matrix:
 
 
     ## macOS
-    ### Only test one Python version since Travis's macOS builds are so slow.
-    #### Commented out since Travis does not maintain Python on macOS actively enough.
+    ### Commented out pending https://github.com/travis-ci/travis-ci/issues/2312
     ####- python: "2.7"
     ####  env: TASK=test
     ####  if: branch = master

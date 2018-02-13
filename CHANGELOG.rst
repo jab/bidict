@@ -25,6 +25,15 @@ Changelog
   it now ensures it is :func:`callable`
   before returning the result of calling it.
 
+- Make :func:`bidict.FrozenOrderedBidict.__iter__` slightly more efficient.
+
+- :func:`~bidict.frozenbidict.__repr__` no longer dynamically checks
+  for a ``__reversed__`` method to determine whether to use an ordered or
+  unordered ``__repr__`` delegate. Now it always just calls the new
+  :func:`~bidict.frozenbidict.__repr_delegate__` instead, which may be
+  explicitly overridden as needed.
+
+
 Breaking API Changes
 ++++++++++++++++++++
 

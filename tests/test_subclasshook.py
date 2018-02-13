@@ -26,7 +26,7 @@ class MyBidirectionalMapping(dict):
         return MyBidirectionalMapping(self.__inverted__())
 
 
-class OldStyleClass:
+class OldStyleClass:  # pylint: disable=old-style-class,no-init
     """In Python 2 this is an old-style class (not derived from object)."""
 
 
