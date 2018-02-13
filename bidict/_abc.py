@@ -12,7 +12,7 @@ from collections import Mapping
 from .compat import iteritems
 
 
-class BidirectionalMapping(Mapping):  # pylint: disable=abstract-method
+class BidirectionalMapping(Mapping):  # pylint: disable=abstract-method,no-init
     """Abstract base class for bidirectional mappings.
 
     Extends :class:`collections.abc.Mapping` primarily by adding the :attr:`inv`

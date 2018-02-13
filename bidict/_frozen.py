@@ -15,7 +15,7 @@ from ._dup import RAISE, OVERWRITE, IGNORE
 from ._exc import (
     DuplicationError, KeyDuplicationError, ValueDuplicationError, KeyAndValueDuplicationError)
 from ._miss import _MISS
-from .compat import PY2, _compose, iteritems
+from .compat import PY2, iteritems
 from .util import pairs
 
 
@@ -168,12 +168,9 @@ class frozenbidict(BidirectionalMapping):  # noqa: N801
         if not self:
             return tmpl + ')'
         tmpl += '%r)'
-        # If we have a __reversed__ method, use an ordered repr. Python doesn't provide an
-        # Ordered or OrderedMapping ABC, otherwise we'd check that. (Must use getattr rather
-        # than hasattr since __reversed__ may be set to None.)
-        ordered = bool(getattr(self, '__reversed__', False))
-        delegate = _compose(list, iteritems) if ordered else dict
-        return tmpl % delegate(self)
+        return tmpl % self.__class__.__repr_delegate__(self)
+
+    __repr_delegate__ = dict
 
     def __hash__(self):
         """Return the hash of this bidict from its contained items."""
