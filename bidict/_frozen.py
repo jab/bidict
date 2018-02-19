@@ -49,123 +49,99 @@ from .util import pairs
 
 # pylint: disable=invalid-name
 class frozenbidict(BidirectionalMapping):  # noqa: N801
-    u"""
-    Immutable, hashable bidict type.
+    """Immutable, hashable bidict type.
 
     Also serves as a base class for the other bidict types.
-
-    .. py:attribute:: on_dup_key
-
-        The default :class:`DuplicationPolicy` used in the event that an item
-        duplicates only the key of another item,
-        when a policy has not been specified explicitly
-        (e.g. the policy used by
-        :meth:`~bidict.bidict.__setitem__` and
-        :meth:`~bidict.bidict.update`).
-        Defaults to :attr:`~DuplicationPolicy.OVERWRITE`
-        to match :class:`dict`'s behavior.
-
-        See also :ref:`extending`
-
-    .. py:attribute:: on_dup_val
-
-        The default :class:`DuplicationPolicy` used in the event that an item
-        duplicates only the value of another item,
-        when a policy has not been specified explicitly
-        (e.g. the policy used by
-        :meth:`~bidict.bidict.__setitem__` and
-        :meth:`~bidict.bidict.update`).
-        Defaults to :attr:`~DuplicationPolicy.RAISE`
-        to prevent unintended overwrite of another item.
-
-        See also :ref:`extending`
-
-    .. py:attribute:: on_dup_kv
-
-        The default :class:`DuplicationPolicy` used in the event that an item
-        duplicates the key of another item and the value of yet another item,
-        when a policy has not been specified explicitly
-        (e.g. the policy used by
-        :meth:`~bidict.bidict.__setitem__` and
-        :meth:`~bidict.bidict.update`).
-        Defaults to ``None``, which causes the *on_dup_kv* policy to match
-        whatever *on_dup_val* policy is in effect.
-
-        See also :ref:`extending`
-
-    .. py:attribute:: fwdm
-
-        The backing :class:`~collections.abc.Mapping`
-        storing the forward mapping data (*key* → *value*).
-
-    .. py:attribute:: invm
-
-        The backing :class:`~collections.abc.Mapping`
-        storing the inverse mapping data (*value* → *key*).
-
-    .. py:attribute:: fwdm_cls
-
-        The :class:`~collections.abc.Mapping` type
-        used for the backing :attr:`fwdm` mapping,
-        Defaults to :class:`dict`.
-        Override this if you need different behavior.
-
-        See also :ref:`extending`
-
-    .. py:attribute:: invm_cls
-
-        The :class:`~collections.abc.Mapping` type
-        used for the backing :attr:`invm` mapping.
-        Defaults to :class:`dict`.
-        Override this if you need different behavior.
-
-        See also :ref:`extending`
     """
 
-    __slots__ = ['fwdm', 'invm', '_inv', '_invref', '_hash']
+    __slots__ = ['_fwdm', '_invm', '_inv', '_invweak', '_hash']
 
     if not PY2:
         __slots__.append('__weakref__')
 
+    #: The default :class:`DuplicationPolicy` used in the event that an item
+    #: duplicates only the key of another item,
+    #: when a policy has not been specified explicitly
+    #: (e.g. the policy used by
+    #: :meth:`~bidict.bidict.__setitem__` and
+    #: :meth:`~bidict.bidict.update`).
+    #: Defaults to :attr:`~DuplicationPolicy.OVERWRITE`
+    #: to match :class:`dict`'s behavior.
+    #: See also :ref:`extending`
     on_dup_key = OVERWRITE
+
+    #: The default :class:`DuplicationPolicy` used in the event that an item
+    #: duplicates only the value of another item,
+    #: when a policy has not been specified explicitly
+    #: (e.g. the policy used by
+    #: :meth:`~bidict.bidict.__setitem__` and
+    #: :meth:`~bidict.bidict.update`).
+    #: Defaults to :attr:`~DuplicationPolicy.RAISE`
+    #: to prevent unintended overwrite of another item.
+    #: See also :ref:`extending`
     on_dup_val = RAISE
+
+    #: The default :class:`DuplicationPolicy` used in the event that an item
+    #: duplicates the key of another item and the value of yet another item,
+    #: when a policy has not been specified explicitly
+    #: (e.g. the policy used by
+    #: :meth:`~bidict.bidict.__setitem__` and
+    #: :meth:`~bidict.bidict.update`).
+    #: Defaults to ``None``, which causes the *on_dup_kv* policy to match
+    #: whatever *on_dup_val* policy is in effect.
+    #: See also :ref:`extending`
     on_dup_kv = None
-    fwdm_cls = dict
-    invm_cls = dict
+
+    _fwdm_cls = dict
+    _invm_cls = dict
 
     def __init__(self, *args, **kw):  # pylint: disable=super-init-not-called
         """Make a new bidirectional dictionary.
         The signature is the same as that of regular dictionaries.
         Items passed in are added in the order they are passed,
-        respecting this bidict type's duplication policies along the way.
+        respecting the current duplication policies in the process.
         See also :attr:`on_dup_key`, :attr:`on_dup_val`, :attr:`on_dup_kv`
         """
-        self.fwdm = self.fwdm_cls()
-        self.invm = self.invm_cls()
+        #: The backing :class:`~collections.abc.Mapping`
+        #: storing the forward mapping data (*key* → *value*).
+        self._fwdm = self._fwdm_cls()
+        #: The backing :class:`~collections.abc.Mapping`
+        #: storing the inverse mapping data (*value* → *key*).
+        self._invm = self._invm_cls()
         self._init_inv()  # lgtm [py/init-calls-subclass]
         if args or kw:
             self._update(True, self.on_dup_key, self.on_dup_val, self.on_dup_kv, *args, **kw)
 
-    @classmethod
-    def inv_cls(cls):
-        """The inverse of this bidict type, i.e. one with *fwdm_cls* and *invm_cls* swapped."""
-        if cls.fwdm_cls is cls.invm_cls:
-            return cls
-        if not getattr(cls, '_inv_cls', None):
-            class _Inv(cls):
-                fwdm_cls = cls.invm_cls
-                invm_cls = cls.fwdm_cls
-                inv_cls = cls
-            _Inv.__name__ = cls.__name__ + 'Inv'
-            cls._inv_cls = _Inv
-        return cls._inv_cls
-
     def _init_inv(self):
-        self._inv = inv = object.__new__(self.inv_cls())
-        inv.fwdm = self.invm
-        inv.invm = self.fwdm
-        inv._invref = ref(self)  # pylint: disable=protected-access
-        inv._inv = self._invref = None  # pylint: disable=protected-access
+        # Compute the type for this bidict's inverse bidict (will be different from this
+        # bidict's type if _fwdm_cls and _invm_cls are different).
+        inv_cls = self._inv_cls()
+        # Create the inverse bidict instance via object.__new__, bypassing its __init__ so that its
+        # _fwdm and _invm can be assigned to this bidict's _invm and _fwdm. Store it in self._inv,
+        # which holds a strong reference to a bidict's inverse, if one is available.
+        self._inv = inv = object.__new__(inv_cls)
+        inv._fwdm = self._invm  # pylint: disable=protected-access
+        inv._invm = self._fwdm  # pylint: disable=protected-access
+        # Only give the inverse a weak reference to this bidict to avoid creating a reference cycle,
+        # stored in the _invweak attribute. See also the :ref:`inv-avoids-reference-cycles` docs.
+        inv._inv = None  # pylint: disable=protected-access
+        inv._invweak = ref(self)  # pylint: disable=protected-access
+        # Since this bidict has a strong reference to its inverse already, set its _invweak to None.
+        self._invweak = None
+
+    @classmethod
+    def _inv_cls(cls):
+        """The inverse of this bidict type, i.e. one with *_fwdm_cls* and *_invm_cls* swapped."""
+        if cls._fwdm_cls is cls._invm_cls:
+            return cls
+        if not getattr(cls, '_inv_cls_', None):
+            class _Inv(cls):
+                _fwdm_cls = cls._invm_cls
+                _invm_cls = cls._fwdm_cls
+                _inv_cls_ = cls
+            _Inv.__name__ = cls.__name__ + 'Inv'
+            cls._inv_cls_ = _Inv
+        return cls._inv_cls_
 
     @property
     def _isinv(self):
@@ -174,9 +150,12 @@ class frozenbidict(BidirectionalMapping):  # noqa: N801
     @property
     def inv(self):
         """The inverse of this bidict."""
+        # Resolve and return a strong reference to the inverse bidict.
+        # One may be stored in self._inv already.
         if self._inv is not None:
             return self._inv
-        inv = self._invref()  # pylint: disable=E1102
+        # Otherwise a weakref may be stored in self._invweak, in which case resolve it.
+        inv = self._invweak()  # pylint: disable=E1102
         if inv is not None:
             return inv
         # Refcount of referent must have dropped to zero, as in `bidict().inv.inv`. Init a new one.
@@ -184,18 +163,28 @@ class frozenbidict(BidirectionalMapping):  # noqa: N801
         return self._inv
 
     def __getstate__(self):
+        """Implemented because use of :attr:`__slots__` would prevent pickling otherwise.
+
+        See also :meth:`object.__getstate__`.
+        """
         state = {}
         for cls in self.__class__.__mro__:
             slots = getattr(cls, '__slots__', ())
             for slot in slots:
                 if hasattr(self, slot):
                     state[slot] = getattr(self, slot)
+        # weakrefs can't (and don't need to) be pickled.
         state['__weakref__'] = None
-        state['_invref'] = None
+        state['_invweak'] = None
         return state
 
     def __setstate__(self, state):
+        """Implemented because use of :attr:`__slots__` would prevent unpickling otherwise.
+
+        See also :meth:`object.__setstate__`.
+        """
         for slot, value in iteritems(state):
+            # __weakref__ attribute is not writeable.
             if slot == '__weakref__':
                 continue
             setattr(self, slot, value)
@@ -208,8 +197,8 @@ class frozenbidict(BidirectionalMapping):  # noqa: N801
         return '%s(%r)' % (clsname, self.__repr_delegate__())
 
     def __repr_delegate__(self):
-        """The object used by :attr:`__repr__` to represent the contained items."""
-        return self.fwdm
+        """The object used by :meth:`__repr__` to represent the contained items."""
+        return self._fwdm
 
     def __hash__(self):
         """The hash of this bidict as determined by its items."""
@@ -243,8 +232,8 @@ class frozenbidict(BidirectionalMapping):  # noqa: N801
     # and `update` share a lot of the same behavior (inserting the provided items while respecting
     # the active duplication policies), so it makes sense for them to share implementation too.)
     def _pop(self, key):
-        val = self.fwdm.pop(key)
-        del self.invm[val]
+        val = self._fwdm.pop(key)
+        del self._invm[val]
         return val
 
     def _put(self, key, val, on_dup_key, on_dup_val, on_dup_kv):
@@ -274,8 +263,8 @@ class frozenbidict(BidirectionalMapping):  # noqa: N801
         """
         if on_dup_kv is None:
             on_dup_kv = on_dup_val
-        fwdm = self.fwdm
-        invm = self.invm
+        fwdm = self._fwdm
+        invm = self._invm
         fwdbykey = fwdm.get(key, _MISS)
         invbyval = invm.get(val, _MISS)
         isdupkey = fwdbykey is not _MISS
@@ -315,8 +304,8 @@ class frozenbidict(BidirectionalMapping):  # noqa: N801
         return dup
 
     def _write_item(self, key, val, isdupkey, isdupval, oldkey, oldval):
-        fwdm = self.fwdm
-        invm = self.invm
+        fwdm = self._fwdm
+        invm = self._invm
         fwdm[key] = val
         invm[val] = key
         if isdupkey:
@@ -367,8 +356,8 @@ class frozenbidict(BidirectionalMapping):  # noqa: N801
         if not isdupkey and not isdupval:
             self._pop(key)
             return
-        fwdm = self.fwdm
-        invm = self.invm
+        fwdm = self._fwdm
+        invm = self._invm
         if isdupkey:
             fwdm[key] = oldval
             invm[oldval] = key
@@ -388,24 +377,28 @@ class frozenbidict(BidirectionalMapping):  # noqa: N801
         # copies of each of the backing mappings, and make them the backing mappings of the copy,
         # avoiding copying items one at a time.
         copy = object.__new__(self.__class__)
-        copy.fwdm = self.fwdm.copy()
-        copy.invm = self.invm.copy()
+        copy._fwdm = self._fwdm.copy()  # pylint: disable=protected-access
+        copy._invm = self._invm.copy()  # pylint: disable=protected-access
         copy._init_inv()  # pylint: disable=protected-access
         return copy
 
-    __copy__ = copy
+    def __copy__(self):
+        """Used for the copy protocol.
+        See also :mod:`copy`.
+        """
+        return self.copy()
 
     def __len__(self):
         """The number of contained items."""
-        return len(self.fwdm)
+        return len(self._fwdm)
 
     def __iter__(self):
         """Iterator over the contained items."""
-        return iter(self.fwdm)
+        return iter(self._fwdm)
 
     def __getitem__(self, key):
         """``x.__getitem__(key) <==> x[key]``"""
-        return self.fwdm[key]
+        return self._fwdm[key]
 
     def values(self):
         """A set-like object providing a view on the contained values.
@@ -421,7 +414,7 @@ class frozenbidict(BidirectionalMapping):  # noqa: N801
     if PY2:
         def viewkeys(self):
             """A set-like object providing a view on the contained keys."""
-            return self.fwdm.viewkeys()
+            return self._fwdm.viewkeys()
 
         def viewvalues(self):  # noqa: D102; pylint: disable=missing-docstring
             return self.inv.viewkeys()
@@ -433,7 +426,7 @@ class frozenbidict(BidirectionalMapping):  # noqa: N801
             return ItemsView(self)
 
         # __ne__ added automatically in Python 3 when you implement __eq__, but not in Python 2.
-        def __ne__(self, other):
+        def __ne__(self, other):  # noqa: N802
             """``x.__ne__(other) <==> x != other``"""
             return not self == other  # Implement __ne__ in terms of __eq__.
 

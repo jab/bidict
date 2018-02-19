@@ -231,3 +231,10 @@ Python 2 dict view APIs are supported::
     True
     >>> sorted(b.viewitems()) == sorted(b.items()) if PY2 else True
     True
+
+Check if copy.copy ends up calling frozenbidict.__copy__
+(should show up in the coverage report)::
+
+    >>> from copy import copy
+    >>> copy(bidict())
+    bidict()

@@ -117,8 +117,8 @@ class bidict(frozenbidict, MutableMapping):  # noqa: N801; pylint: disable=inval
 
     def clear(self):
         """Remove all items."""
-        self.fwdm.clear()
-        self.invm.clear()
+        self._fwdm.clear()
+        self._invm.clear()
 
     def pop(self, key, default=_MISS):
         u"""x.pop(k[,d]) → v
@@ -143,8 +143,8 @@ class bidict(frozenbidict, MutableMapping):  # noqa: N801; pylint: disable=inval
         """
         if not self:
             raise KeyError('mapping is empty')
-        key, val = self.fwdm.popitem()
-        del self.invm[val]
+        key, val = self._fwdm.popitem()
+        del self._invm[val]
         return key, val
 
     def update(self, *args, **kw):

@@ -35,38 +35,25 @@ Changelog
   :func:`~bidict.frozenbidict.__repr_delegate__` instead, which may be
   explicitly overridden as needed.
 
+- If you create a custom bidict subclass whose ``_fwdm_cls``
+  differs from its ``_invm_cls``
+  (as in the ``FwdKeySortedBidict`` example
+  from the :ref:`sorted-bidict-recipes`),
+  the inverse bidirectional mapping type
+  (with ``_fwdm_cls`` and ``_invm_cls`` swapped)
+  is now correctly computed and used automatically
+  for your custom bidict's
+  :attr:`~bidict.frozenbidict.inv` bidict.
+
 
 Breaking API Changes
 ++++++++++++++++++++
 
-- Rename ``fwd_cls`` → :attr:`~bidict.frozenbidict.fwdm_cls`
+- Rename ``bidict.frozenbidict.fwd_cls`` → ``..._fwdm_cls``.
 
-- Rename ``inv_cls`` → :attr:`~bidict.frozenbidict.invm_cls`
+- Rename ``bidict.frozenbidict.inv_cls`` → ``..._invm_cls``.
 
-  :attr:`~bidict.frozenbidict.inv_cls`
-  now refers to a new classmethod that returns
-  the computed inverse bidict class,
-  not the user-overridable class of the backing inverse mapping.
-
-  This enabled improving the logic if you specify a different
-  :attr:`~bidict.frozenbidict.fwdm_cls` and
-  :attr:`~bidict.frozenbidict.invm_cls`
-  in a custom bidict subclass,
-  as in the :ref:`sorted-bidict-recipes`:
-  bidict now dynamically computes the
-  :attr:`~bidict.frozenbidict.inv_cls`
-  of your custom bidict to have the inverse
-  :attr:`~bidict.frozenbidict.fwdm_cls` and
-  :attr:`~bidict.frozenbidict.invm_cls`
-  of your custom bidict.
-
-  If creating a new instance of such a custom bidict
-  from the inverse of an existing instance,
-  the :attr:`~bidict.frozenbidict.fwdm_cls`
-  and :attr:`~bidict.frozenbidict.invm_cls`
-  of the new instance are no longer incorrectly swapped.
-
-- Rename ``isinv`` to ``_isinv``.
+- Rename ``bidict.frozenbidict.isinv`` → ``..._isinv``.
 
 - :class:`~bidict.DuplicationPolicy` now just extends :class:`object`
   (rather than ``bidict._Marker``).
@@ -246,7 +233,7 @@ This release includes multiple API simplifications and improvements.
   :ref:`overwritingbidict`.
 
 - Rename ``FrozenBidictBase._compute_hash()`` →
-  ``frozenbidict.compute_hash()``
+  ``frozenbidict.compute_hash()``.
 
 - Rename ``DuplicationBehavior`` →
   :class:`~bidict.DuplicationPolicy`.
@@ -437,8 +424,8 @@ This release includes multiple API simplifications and improvements.
 Breaking API Changes
 ++++++++++++++++++++
 
-- Rename ``KeyExistsException`` to :class:`~bidict.KeyDuplicationError`
-  and ``ValueExistsException`` to :class:`~bidict.ValueDuplicationError`.
+- Rename ``KeyExistsException`` → :class:`~bidict.KeyDuplicationError`
+  and ``ValueExistsException`` → :class:`~bidict.ValueDuplicationError`.
 
 - When overwriting the key of an existing value in an :class:`orderedbidict <bidict.OrderedBidict>`,
   the position of the existing item is now preserved,
@@ -528,7 +515,7 @@ Breaking API Changes
   when attempting to insert a mapping with a non-unique key.
   `#21 <https://github.com/jab/bidict/issues/21>`_
 
-- Rename ``collapsingbidict`` to ``loosebidict``
+- Rename ``collapsingbidict`` → ``loosebidict``
   now that it suppresses
   ``ValueExistsException``
   rather than the less general ``CollapseException``.
@@ -579,5 +566,4 @@ Breaking API Changes
   to :func:`bidict.util.pairs`
   (also available from top level as :func:`bidict.pairs`).
 
-- Rename ``bidict_type`` keyword arg to ``base_type``
-  in :func:`bidict.namedbidict`.
+- Rename :func:`bidict.namedbidict`\'s ``bidict_type`` argument ``base_type``.

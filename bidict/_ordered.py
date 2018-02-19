@@ -47,7 +47,7 @@ class FrozenOrderedBidict(frozenbidict):
     Also the base class for :class:`OrderedBidict`, which adds mutable behavior.
     """
 
-    __slots__ = ('sntl',)
+    __slots__ = ('_sntl',)
 
     def __init__(self, *args, **kw):
         """Make a new ordered bidirectional mapping.
@@ -64,7 +64,7 @@ class FrozenOrderedBidict(frozenbidict):
         # (hence the constant `_PRV` and `_NXT` indices above).
         # `data` is a pair containing the key and value of an item
         # in an arbitrary order, i.e. (`key_or_val`, `val_or_key`).
-        self.sntl = _make_sentinel()
+        self._sntl = _make_sentinel()
 
         # Like unordered bidicts, ordered bidicts also store
         # two backing one-directional mappings `fwdm` and `invm`.
@@ -79,7 +79,7 @@ class FrozenOrderedBidict(frozenbidict):
 
     def _init_inv(self):
         super(FrozenOrderedBidict, self)._init_inv()
-        self.inv.sntl = self.sntl
+        self.inv._sntl = self._sntl  # pylint: disable=protected-access
 
     # Can't reuse frozenbidict.copy since we have different internal structure.
     def copy(self):
@@ -96,27 +96,25 @@ class FrozenOrderedBidict(frozenbidict):
             cur[_NXT] = fwdm[key] = invm[val] = nxt
             cur = nxt
         sntl[_PRV] = nxt
-        copy.sntl = sntl
-        copy.fwdm = fwdm
-        copy.invm = invm
+        copy._sntl = sntl  # pylint: disable=protected-access
+        copy._fwdm = fwdm  # pylint: disable=protected-access
+        copy._invm = invm  # pylint: disable=protected-access
         copy._init_inv()  # pylint: disable=protected-access
         return copy
 
-    __copy__ = copy
-
     def __getitem__(self, key):
-        nodefwd = self.fwdm[key]
+        nodefwd = self._fwdm[key]
         datafwd = nodefwd[0]
         val = _get_other(datafwd, key)
-        nodeinv = self.invm[val]
+        nodeinv = self._invm[val]
         assert nodeinv is nodefwd
         return val
 
     def _pop(self, key):
-        nodefwd = self.fwdm.pop(key)
+        nodefwd = self._fwdm.pop(key)
         datafwd, prv, nxt = nodefwd
         val = _get_other(datafwd, key)
-        nodeinv = self.invm.pop(val)
+        nodeinv = self._invm.pop(val)
         assert nodeinv is nodefwd
         prv[_NXT] = nxt
         nxt[_PRV] = prv
@@ -130,10 +128,10 @@ class FrozenOrderedBidict(frozenbidict):
 
     # pylint: disable=arguments-differ
     def _write_item(self, key, val, isdupkey, isdupval, nodeinv, nodefwd):
-        fwdm = self.fwdm
-        invm = self.invm
+        fwdm = self._fwdm
+        invm = self._invm
         if not isdupkey and not isdupval:
-            sntl = self.sntl
+            sntl = self._sntl
             last = sntl[_PRV]
             node = [(key, val), last, sntl]
             sntl[_PRV] = last[_NXT] = fwdm[key] = invm[val] = node
@@ -183,8 +181,8 @@ class FrozenOrderedBidict(frozenbidict):
 
     # pylint: disable=arguments-differ
     def _undo_write(self, key, val, isdupkey, isdupval, nodeinv, nodefwd, oldkey, oldval):  # lgtm
-        fwdm = self.fwdm
-        invm = self.invm
+        fwdm = self._fwdm
+        invm = self._invm
         if not isdupkey and not isdupval:
             self._pop(key)
         elif isdupkey and isdupval:
@@ -211,8 +209,8 @@ class FrozenOrderedBidict(frozenbidict):
 
     def __iter__(self, reverse=False):
         """An iterator over this bidict's items in order."""
-        fwdm = self.fwdm
-        sntl = self.sntl
+        fwdm = self._fwdm
+        sntl = self._sntl
         nextidx = _PRV if reverse else _NXT
         cur = sntl[nextidx]
         while cur is not sntl:  # lgtm [py/comparison-using-is]
@@ -257,9 +255,9 @@ class OrderedBidict(FrozenOrderedBidict, bidict):
 
     def clear(self):
         """Remove all items."""
-        self.fwdm.clear()
-        self.invm.clear()
-        self.sntl[:] = [_END, self.sntl, self.sntl]
+        self._fwdm.clear()
+        self._invm.clear()
+        self._sntl[:] = [_END, self._sntl, self._sntl]
 
     def popitem(self, last=True):  # pylint: disable=arguments-differ
         """x.popitem() → (k, v)
@@ -282,11 +280,11 @@ class OrderedBidict(FrozenOrderedBidict, bidict):
 
         :raises KeyError: if the key does not exist
         """
-        node = self.fwdm[key]
+        node = self._fwdm[key]
         _, prv, nxt = node
         prv[_NXT] = nxt
         nxt[_PRV] = prv
-        sntl = self.sntl
+        sntl = self._sntl
         if last:
             last = sntl[_PRV]
             node[_PRV] = last
