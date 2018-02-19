@@ -70,8 +70,11 @@ not_bidicts = (
 @pytest.mark.parametrize('b, other', product(bidicts, bidicts + not_bidicts))
 def test_eq_and_hash(b, other):
     """Make sure equality tests and hash results behave as expected."""
+    b_has_eq_order_sens = hasattr(b, 'equals_order_sensitive')
     if not isinstance(other, Mapping):
         assert b != other
+        if b_has_eq_order_sens:
+            assert not b.equals_order_sensitive(other)
     elif len(b) != len(other):
         assert b != other
     else:
@@ -81,9 +84,7 @@ def test_eq_and_hash(b, other):
         both_hashable = isinstance(b, Hashable) and isinstance(other, Hashable)
         if are_equal and both_hashable:
             assert hash(b) == hash(other)
-
-        if hasattr(b, 'equals_order_sensitive'):
+        if b_has_eq_order_sens:
             are_equal_ordered = b.equals_order_sensitive(other)
-            should_be_equal_ordered = OrderedDict(b) == (
-                OrderedDict(other) if isinstance(other, Mapping) else other)
+            should_be_equal_ordered = OrderedDict(b) == OrderedDict(other)
             assert are_equal_ordered == should_be_equal_ordered
