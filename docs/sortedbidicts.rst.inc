@@ -10,9 +10,9 @@ but the excellent
 `sortedcollections <http://www.grantjenks.com/docs/sortedcollections/>`_
 libraries do.
 Armed with these along with bidict's
-:attr:`~bidict.BidictBase.fwdm_cls`
+:attr:`~bidict.BidictBase._fwdm_cls`
 and
-:attr:`~bidict.BidictBase.invm_cls`
+:attr:`~bidict.BidictBase._invm_cls`
 attributes,
 creating a sorted bidict type is dead simple::
 
@@ -23,8 +23,8 @@ creating a sorted bidict type is dead simple::
     >>> # its inverse iterate over their items in different orders):
 
     >>> class KeySortedBidict(bidict.bidict):
-    ...     fwdm_cls = sortedcontainers.SortedDict
-    ...     invm_cls = sortedcontainers.SortedDict
+    ...     _fwdm_cls = sortedcontainers.SortedDict
+    ...     _invm_cls = sortedcontainers.SortedDict
     ...
     ...     # Include this for nicer repr's:
     ...     __repr_delegate__ = lambda x: list(x.items())
@@ -51,8 +51,8 @@ creating a sorted bidict type is dead simple::
     >>> import sortedcollections
 
     >>> class FwdKeySortedBidict(bidict.bidict):
-    ...     fwdm_cls = sortedcontainers.SortedDict
-    ...     invm_cls = sortedcollections.ValueSortedDict
+    ...     _fwdm_cls = sortedcontainers.SortedDict
+    ...     _invm_cls = sortedcollections.ValueSortedDict
     ...
     ...     # Include this for nicer repr's:
     ...     __repr_delegate__ = lambda x: list(x.items())
@@ -73,29 +73,31 @@ creating a sorted bidict type is dead simple::
     >>> list(element_by_atomic_number.inv.items())
     [('hydrogen', 1), ('helium', 2), ('lithium', 3), ('beryllium', 4)]
 
-    >>> # This works because a bidict whose fwdm_cls differs from its invm_cls calculates
-    >>> # its inverse class (which has fwdm_cls and invm_cls swapped) automatically:
-    >>> inv_cls = FwdKeySortedBidict.inv_cls()
-    >>> inv_cls.__name__
-    'FwdKeySortedBidictInv'
-    >>> FwdKeySortedBidict.fwdm_cls is inv_cls.invm_cls
-    True
-    >>> FwdKeySortedBidict.invm_cls is inv_cls.fwdm_cls
-    True
+    >>> # This works because a bidict whose _fwdm_cls differs from its _invm_cls computes
+    >>> # its inverse class (which has _fwdm_cls and _invm_cls swapped) automatically:
+    >>> FwdKeySortedBidictInv = element_by_atomic_number.inv.__class__
+    >>> FwdKeySortedBidict._fwdm_cls
+    <class 'sortedcontainers.sorteddict.SortedDict'>
+    >>> FwdKeySortedBidictInv._invm_cls
+    <class 'sortedcontainers.sorteddict.SortedDict'>
+    >>> FwdKeySortedBidict._invm_cls
+    <class 'sortedcollections.recipes.ValueSortedDict'>
+    >>> FwdKeySortedBidictInv._fwdm_cls
+    <class 'sortedcollections.recipes.ValueSortedDict'>
 
-    >>> # To pass method calls through to the fwdm SortedDict when not present
+    >>> # To pass method calls through to the _fwdm SortedDict when not present
     >>> # on the bidict instance, provide a custom __getattribute__ method:
     >>> def __getattribute__(self, name):
     ...     try:
     ...         return object.__getattribute__(self, name)
     ...     except AttributeError as e:
     ...         try:
-    ...             return getattr(self.fwdm, name)
+    ...             return getattr(self._fwdm, name)
     ...         except AttributeError:
     ...             raise e
 
     >>> FwdKeySortedBidict.__getattribute__ = __getattribute__
 
-    >>> # bidict has no .peekitem attr, so the call is passed through to fwdm:
+    >>> # bidict has no .peekitem attr, so the call is passed through to _fwdm:
     >>> element_by_atomic_number.peekitem()
     (4, 'beryllium')
