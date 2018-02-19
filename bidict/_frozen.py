@@ -289,19 +289,22 @@ class frozenbidict(BidirectionalMapping):  # noqa: N801
                 raise KeyAndValueDuplicationError(key, val)
             elif on_dup_kv is IGNORE:
                 return
-            # else on_dup_kv is OVERWRITE. Fall through to return on last line.
+            assert on_dup_kv is OVERWRITE, 'invalid on_dup_kv: %r' % on_dup_kv
+            # Fall through to the return statement on the last line.
         elif isdupkey:
             if on_dup_key is RAISE:
                 raise KeyDuplicationError(key)
             elif on_dup_key is IGNORE:
                 return
-            # else on_dup_key is OVERWRITE. Fall through to return on last line.
+            assert on_dup_key is OVERWRITE, 'invalid on_dup_key: %r' % on_dup_key
+            # Fall through to the return statement on the last line.
         elif isdupval:
             if on_dup_val is RAISE:
                 raise ValueDuplicationError(val)
             elif on_dup_val is IGNORE:
                 return
-            # else on_dup_val is OVERWRITE. Fall through to return on last line.
+            assert on_dup_val is OVERWRITE, 'invalid on_dup_val: %r' % on_dup_val
+            # Fall through to the return statement on the last line.
         # else neither isdupkey nor isdupval.
         return isdupkey, isdupval, invbyval, fwdbykey
 

@@ -9,6 +9,7 @@
 
 import re
 
+from ._frozen import frozenbidict
 from ._bidict import bidict
 
 
@@ -22,36 +23,41 @@ def namedbidict(typename, keyname, valname, base_type=bidict):
 
     Analagous to :func:`collections.namedtuple`.
     """
+    if not isinstance(base_type, type) or not issubclass(base_type, frozenbidict):
+        raise TypeError('base_type must be a subclass of frozenbidict')
+
     for name in typename, keyname, valname:
         if not _LEGALNAMERE.match(name):
-            raise ValueError('"%s" does not match pattern %s' %
-                             (name, _LEGALNAMEPAT))
+            raise ValueError('%r does not match pattern %s' % (name, _LEGALNAMEPAT))
 
-    getfwd = lambda self: self.inv if self._isinv else self  # pylint: disable=protected-access
-    getfwd.__name__ = valname + '_for'
-    getfwd.__doc__ = u'%s forward %s: %s → %s' % (typename, base_type.__name__, keyname, valname)
+    class _Named(base_type):
 
-    getinv = lambda self: self if self._isinv else self.inv  # pylint: disable=protected-access
-    getinv.__name__ = keyname + '_for'
-    getinv.__doc__ = u'%s inverse %s: %s → %s' % (typename, base_type.__name__, valname, keyname)
+        __slots__ = ()
 
-    __reduce__ = lambda self: (
-        _make_empty, (typename, keyname, valname, base_type), self.__getstate__())
-    __reduce__.__name__ = '__reduce__'
-    __reduce__.__doc__ = 'helper for pickle'
+        def _getfwd(self):
+            return self.inv if self._isinv else self  # pylint: disable=protected-access
 
-    __dict__ = {
-        getfwd.__name__: property(getfwd),
-        getinv.__name__: property(getinv),
-        '__reduce__': __reduce__,
-    }
-    return type(typename, (base_type,), __dict__)
+        def _getinv(self):
+            return self if self._isinv else self.inv  # pylint: disable=protected-access
+
+        def __reduce__(self):
+            return (_make_empty, (typename, keyname, valname, base_type), self.__getstate__())
+
+    bname = base_type.__name__
+    fname = valname + '_for'
+    iname = keyname + '_for'
+    names = dict(typename=typename, bname=bname, keyname=keyname, valname=valname)
+    fdoc = u'{typename} forward {bname}: {keyname} → {valname}'.format(**names)
+    idoc = u'{typename} inverse {bname}: {valname} → {keyname}'.format(**names)
+    setattr(_Named, fname, property(_Named._getfwd, doc=fdoc))  # pylint: disable=protected-access
+    setattr(_Named, iname, property(_Named._getinv, doc=idoc))  # pylint: disable=protected-access
+
+    _Named.__name__ = typename
+    return _Named
 
 
 def _make_empty(typename, keyname, valname, base_type):
-    """
-    Create a named bidict with the indicated arguments and return an empty instance.
-
+    """Create a named bidict with the indicated arguments and return an empty instance.
     Used to make :func:`bidict.namedbidict` instances picklable.
     """
     cls = namedbidict(typename, keyname, valname, base_type=base_type)

@@ -8,9 +8,9 @@
 """Property-based tests using https://hypothesis.readthedocs.io."""
 
 import gc
+import pickle
 from collections import OrderedDict
 from os import getenv
-from pickle import dumps, loads
 from weakref import ref
 
 import pytest
@@ -61,9 +61,11 @@ inititems = itemlists.map(dedup)
 @given(init=inititems)
 def test_pickle_roundtrips(B, init):  # noqa
     bi = B(init)
-    # Must use -1 for "latest pickle protocol" in Python 2
-    dumped = dumps(bi, -1) if PY2 else dumps(bi)
-    roundtripped = loads(dumped)
+    # Pickling ordered bidicts in Python 2 requires a higher (non-default) protocol version
+    ordered = issubclass(B, FrozenOrderedBidict)
+    dumps_args = dict(protocol=2) if PY2 and ordered else {}
+    dumped = pickle.dumps(bi, **dumps_args)
+    roundtripped = pickle.loads(dumped)
     assert roundtripped == bi
 
 
@@ -88,7 +90,7 @@ def test_equality(B, init):  # noqa
 @pytest.mark.parametrize('B', bidict_types)
 @given(init=inititems)
 def test_bidirectional_mappings(B, init):  # noqa
-    ordered = bool(getattr(B, '__reversed__', None))
+    ordered = issubclass(B, FrozenOrderedBidict)
     C = list if ordered else sorted  # noqa
     b = B(init)
     keysf = C(k for (k, v) in iteritems(b))

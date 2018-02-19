@@ -10,20 +10,34 @@ due to reliance on side effects in assert statements)::
 
     >>> from bidict import OrderedBidict, DuplicationError, RAISE, OVERWRITE
     >>> b = OrderedBidict([(0, 1)])
+    >>> exc = None
     >>> try:
     ...     b.update([(0, 2), (3, 4), (5, 4)])
-    ... except DuplicationError:
-    ...     pass
+    ... except DuplicationError as e:
+    ...     exc = e
+    >>> exc is not None
+    True
     >>> len(b.inv)
     1
+    >>> exc = None
     >>> try:
     ...     b.putall([(2, 1), (2, 3)], on_dup_key=RAISE, on_dup_val=OVERWRITE)
-    ... except DuplicationError:
-    ...     pass
+    ... except DuplicationError as e:
+    ...     exc = e
+    >>> exc is not None
+    True
     >>> len(b)
     1
     >>> b.forceupdate([(0, 1), (2, 3), (0, 3)])
-    >>> len(b)
-    1
-    >>> 2 in b
-    False
+    >>> b
+    OrderedBidict([(0, 3)])
+
+Test iterating over an ordered bidict as well as reversing::
+
+    >>> b[4] = 5
+    >>> b
+    OrderedBidict([(0, 3), (4, 5)])
+    >>> list(iter(b))
+    [0, 4]
+    >>> list(reversed(b))
+    [4, 0]

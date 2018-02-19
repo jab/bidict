@@ -169,7 +169,7 @@ class FrozenOrderedBidict(frozenbidict):
             assert oldnodeinv is nodefwd
             invm[val] = nodefwd
             node = nodefwd
-        elif isdupval:
+        else:  # isdupval
             datainv = nodeinv[0]
             oldkey = _get_other(datainv, val)
             oldval = _MISS
@@ -202,7 +202,7 @@ class FrozenOrderedBidict(frozenbidict):
             assert tmp is nodefwd
             invm[oldval] = nodefwd
             assert fwdm[key] is nodefwd
-        elif isdupval:
+        else:  # isdupval
             nodeinv[0] = (oldkey, val)
             tmp = fwdm.pop(key)
             assert tmp is nodeinv

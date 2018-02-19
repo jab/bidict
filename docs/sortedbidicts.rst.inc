@@ -73,6 +73,16 @@ creating a sorted bidict type is dead simple::
     >>> list(element_by_atomic_number.inv.items())
     [('hydrogen', 1), ('helium', 2), ('lithium', 3), ('beryllium', 4)]
 
+    >>> # This works because a bidict whose fwdm_cls differs from its invm_cls calculates
+    >>> # its inverse class (which has fwdm_cls and invm_cls swapped) automatically:
+    >>> inv_cls = FwdKeySortedBidict.inv_cls()
+    >>> inv_cls.__name__
+    'FwdKeySortedBidictInv'
+    >>> FwdKeySortedBidict.fwdm_cls is inv_cls.invm_cls
+    True
+    >>> FwdKeySortedBidict.invm_cls is inv_cls.fwdm_cls
+    True
+
     >>> # To pass method calls through to the fwdm SortedDict when not present
     >>> # on the bidict instance, provide a custom __getattribute__ method:
     >>> def __getattribute__(self, name):

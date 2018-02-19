@@ -153,6 +153,12 @@ Empty update is a no-op::
     >>> bi
     bidict()
 
+Not part of the public API, but test this anyway for the coverage::
+
+    >>> bi._update(False, bi.on_dup_key, bi.on_dup_val, bi.on_dup_kv)
+    >>> bi
+    bidict()
+
 Initializing with different keys mapping to the same value fails::
 
     >>> bidict([(1, 1), (2, 1)])
