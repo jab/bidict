@@ -101,8 +101,11 @@ For order-sensitive equality tests, use
     False
 
 Note that this differs from the behavior of
-:meth:`collections.OrderedDict.__eq__`,
-by recommendation of Raymond Hettinger himself.
+:class:`collections.OrderedDict`\'s ``__eq__``,
+by recommendation of Raymond Hettinger (the author) himself
+(who said that making OrderedDict's ``__eq__``
+`intransitive <https://github.com/cosmologicon/pywat/issues/38>`_
+was a mistake).
 
 :class:`~bidict.OrderedBidict` also comes in a frozen flavor.
 See the :class:`~bidict.FrozenOrderedBidict`

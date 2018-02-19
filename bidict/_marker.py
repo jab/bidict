@@ -5,10 +5,14 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-"""Provides :class:`_Marker` for representing singletons."""
+
+"""Provides :class:`_Marker`, an internal type for representing singletons."""
 
 
 class _Marker(object):
+
+    __slots__ = ('name',)
+
     def __init__(self, name):
         self.name = name
 

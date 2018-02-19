@@ -1,3 +1,5 @@
+.. _values-must-be-unique:
+
 Values Must Be Unique
 +++++++++++++++++++++
 

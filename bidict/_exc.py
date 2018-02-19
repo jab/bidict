@@ -5,6 +5,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+
 """Provides all bidict exceptions."""
 
 
@@ -13,7 +14,9 @@ class BidictException(Exception):
 
 
 class DuplicationError(BidictException):
-    """Base class for exceptions raised when uniqueness is violated."""
+    """Base class for exceptions raised when uniqueness is violated
+    as per the RAISE duplication policy.
+    """
 
 
 class KeyDuplicationError(DuplicationError):
@@ -25,8 +28,7 @@ class ValueDuplicationError(DuplicationError):
 
 
 class KeyAndValueDuplicationError(KeyDuplicationError, ValueDuplicationError):
-    """
-    Raised when a given item's key and value are not unique.
+    """Raised when a given item's key and value are not unique.
 
     That is, its key duplicates that of another item,
     and its value duplicates that of a different other item.

@@ -26,7 +26,7 @@ creating a sorted bidict type is dead simple::
     ...     fwdm_cls = sortedcontainers.SortedDict
     ...     invm_cls = sortedcontainers.SortedDict
     ...
-    ...     # Purely cosmetic, only necessary for nicer repr's
+    ...     # Include this for nicer repr's:
     ...     __repr_delegate__ = lambda x: list(x.items())
 
     >>> b = KeySortedBidict({'Tokyo': 'Japan', 'Cairo': 'Egypt'})
@@ -54,7 +54,7 @@ creating a sorted bidict type is dead simple::
     ...     fwdm_cls = sortedcontainers.SortedDict
     ...     invm_cls = sortedcollections.ValueSortedDict
     ...
-    ...     # Purely cosmetic, only necessary for nicer repr's
+    ...     # Include this for nicer repr's:
     ...     __repr_delegate__ = lambda x: list(x.items())
 
     >>> element_by_atomic_number = FwdKeySortedBidict({

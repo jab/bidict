@@ -45,4 +45,4 @@ and serves as a base class for mutable bidict types to extend.
 
 .. include:: extending.rst.inc
 
-Proceed to :ref:`other-functionality`.
+Next proceed to :ref:`other-functionality`.

@@ -28,17 +28,29 @@ Python's data model
 
   - See :ref:`sorted-bidict-recipes` for example
 
-- Using :meth:`object.__reduce__` to make an object pickleable
+- Using
+  :meth:`object.__getstate__`,
+  :meth:`object.__setstate__`, and
+  :meth:`object.__reduce__` to make an object pickleable
   that otherwise wouldn't be,
   due to e.g. using weakrefs (see below)
+
+- Using :ref:`slots` to speed up attribute access and reduce memory usage
+
+  - Must be careful with pickling and weakrefs, see ``frozenbidict.__getstate__``
 
 - Making an immutable type hashable,
   i.e. insertable into :class:`dict`\s and :class:`set`\s
 
   - See :meth:`object.__hash__` and :meth:`object.__eq__` docs
 
-  - If overriding :meth:`object.__eq__`, don't forget to override
-    :meth:`object.__ne__`
+  - If overriding :meth:`object.__eq__`:
+
+    - Don't forget to override
+      :meth:`object.__ne__` (automatic for Python 3, not Python 2)
+
+    - See https://eev.ee/blog/2012/03/24/python-faq-equality/
+      ("When Python sees a == b, it tries the following...")
 
   - How this affects hashable ordered collections
     like :class:`~bidict.FrozenOrderedBidict`
@@ -106,6 +118,15 @@ Using :mod:`weakref`
 ====================
 
 - See :ref:`inv-avoids-reference-cycles`
+
+
+Other interesting things discovered in the standard library
+===========================================================
+
+- :mod:`reprlib` and :func:`reprlib.recursive_repr`
+  (but not needed for bidict because there's no way to insert a bidict into itself)
+- :func:`operator.methodcaller`
+- :attr:`platform.python_implementation`
 
 
 :func:`~collections.namedtuple`-style dynamic class generation

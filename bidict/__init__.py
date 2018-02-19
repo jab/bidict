@@ -5,34 +5,39 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+
+#==============================================================================
+#                    * Welcome to the bidict source code *
+#==============================================================================
+
+# Doing a code review? You'll find a "Code review nav" comment like the one
+# below at the top and bottom of the most important source files. This provides
+# a suggested path through the source while you're still getting familiar.
+#
+# Note: If you aren't reading this on https://github.com/jab/bidict, you may be
+# viewing an outdated version of the code. Please head to GitHub to review the
+# latest version, which contains important improvements over older versions.
+#
+# Thank you for reading and for any feedback you provide.
+
+#==============================================================================
+#                           * Code review nav *               Next: _abc.py →
+#==============================================================================
+
+
 """
 Efficient, Pythonic bidirectional map implementation and related functionality.
 
-See https://bidict.readthedocs.io for comprehensive documentation.
+If you are reading this elsewhere,
+please see https://bidict.readthedocs.io for the most up-to-date documentation,
+and https://github.com/jab/bidict for the most up-to-date code.
 
 .. :copyright: (c) 2018 Joshua Bronson.
 .. :license: MPLv2. See LICENSE for details.
-
 """
 
-# Welcome to the bidict source code.
-#
-# Beginning a code review? Excellent!
-#
-# This __init__.py just collects functionality implemented in the other files
-# and exports it under the `bidict` module namespace.
-#
-# If you're looking for an interesting place to head next, check out _abc.py.
-# There the BidirectionalMapping abstract base class (ABC) is defined, which
-# all the bidirectional mapping types that bidict provides are subclasses of.
-#
-# ONE MORE THING! If you are not reading this on https://github.com/jab/bidict
-# right now, you may not be viewing the latest version of the code. Please head
-# to https://github.com/jab/bidict to review the latest version, which contains
-# important improvements over older versions.
-#
-# Thank you for reading =)
-# —jab ʕ•●̫•ʔ
+# This __init__.py only collects functionality implemented in the rest of the
+# source and exports it under the `bidict` module namespace (via `__all__`).
 
 from ._abc import BidirectionalMapping
 from ._bidict import bidict
@@ -77,3 +82,8 @@ __all__ = (
     'pairs',
     'inverted',
 )
+
+
+#==============================================================================
+#                           * Code review nav *               Next: _abc.py →
+#==============================================================================

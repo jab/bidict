@@ -5,6 +5,26 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+
+#==============================================================================
+#                    * Welcome to the bidict source code *
+#==============================================================================
+
+# Doing a code review? You'll find a "Code review nav" comment like the one
+# below at the top and bottom of the most important source files. This provides
+# a suggested path through the source while you're still getting familiar.
+#
+# Note: If you aren't reading this on https://github.com/jab/bidict, you may be
+# viewing an outdated version of the code. Please head to GitHub to review the
+# latest version, which contains important improvements over older versions.
+#
+# Thank you for reading and for any feedback you provide.
+
+#==============================================================================
+#  ← Prev: _bidict.py         * Code review nav *
+#==============================================================================
+
+
 """Implements :class:`bidict.OrderedBidict` and :class:`bidict.FrozenOrderedBidict`."""
 
 from collections import Mapping
@@ -13,7 +33,7 @@ from ._bidict import bidict
 from ._frozen import frozenbidict
 from ._marker import _Marker
 from ._miss import _MISS
-from .compat import _compose, iteritems, izip
+from .compat import iteritems, izip
 
 
 _PRV = 1
@@ -22,27 +42,39 @@ _END = _Marker('END')
 
 
 class FrozenOrderedBidict(frozenbidict):
-    u"""
-    Frozen ordered bidict. Base class for :class:`OrderedBidict`.
+    """Frozen (i.e. hashable, immutable) ordered bidict.
 
-    .. py:attribute:: sntl
-
-        Sentinel node for the backing circular doubly-linked list of
-        [*data*, *previous*, *next*] nodes storing the ordering.
-        The *data* contained in each node is (*key_or_val*, *val_or_key*).
-
-    .. py:attribute:: fwdm
-
-        Backing dict storing the forward mapping data (*key* → *node*).
-
-    .. py:attribute:: invm
-
-        Backing dict storing the inverse mapping data (*value* → *node*).
+    Also the base class for :class:`OrderedBidict`, which adds mutable behavior.
     """
 
+    __slots__ = ('sntl',)
+
     def __init__(self, *args, **kw):
-        """Like :meth:`collections.OrderedDict.__init__`."""
+        """Make a new ordered bidirectional mapping.
+        The signature is the same as that of regular dictionaries.
+        Items passed in are added in the order they are passed,
+        respecting this bidict type's duplication policies along the way.
+        The order in which items are inserted is remembered,
+        similar to :class:`collections.OrderedDict`.
+        """
+        # Sentinel node for the backing linked list that stores the items in order.
+        # Implemented as a circular doubly-linked list.
+        # A linked list node (including the sentinel node) is represented
+        # via a 3-element list, `[data, prev_node, next_node]`, for efficiency
+        # (hence the constant `_PRV` and `_NXT` indices above).
+        # `data` is a pair containing the key and value of an item
+        # in an arbitrary order, i.e. (`key_or_val`, `val_or_key`).
         self.sntl = _make_sentinel()
+
+        # Like unordered bidicts, ordered bidicts also store
+        # two backing one-directional mappings `fwdm` and `invm`.
+        # But rather than mapping key→val and val→key (respectively),
+        # they map key→node and val→node (respectively),
+        # where the node is the same when key and val are associated with one another.
+        # To effect this difference, _write_item and _undo_write are overridden.
+        # But much of the rest of frozenbidict's implementation,
+        # including frozenbidict.__init__ and frozenbidict._update,
+        # are inherited and reused without modification. Code reuse ftw.
         super(FrozenOrderedBidict, self).__init__(*args, **kw)
 
     def _init_inv(self):
@@ -51,7 +83,7 @@ class FrozenOrderedBidict(frozenbidict):
 
     # Can't reuse frozenbidict.copy since we have different internal structure.
     def copy(self):
-        """Like :meth:`collections.OrderedDict.copy`."""
+        """A shallow copy of this ordered bidict."""
         # This should be faster than ``return self.__class__(self)``.
         copy = object.__new__(self.__class__)
         sntl = _make_sentinel()
@@ -71,11 +103,6 @@ class FrozenOrderedBidict(frozenbidict):
         return copy
 
     __copy__ = copy
-
-    def _clear(self):
-        self.fwdm.clear()
-        self.invm.clear()
-        self.sntl[:] = [_END, self.sntl, self.sntl]
 
     def __getitem__(self, key):
         nodefwd = self.fwdm[key]
@@ -183,7 +210,7 @@ class FrozenOrderedBidict(frozenbidict):
             assert invm[val] is nodeinv
 
     def __iter__(self, reverse=False):
-        """Like :meth:`collections.OrderedDict.__iter__`."""
+        """An iterator over this bidict's items in order."""
         fwdm = self.fwdm
         sntl = self.sntl
         nextidx = _PRV if reverse else _NXT
@@ -197,32 +224,22 @@ class FrozenOrderedBidict(frozenbidict):
             cur = cur[nextidx]
 
     def __reversed__(self):
-        """Like :meth:`collections.OrderedDict.__reversed__`."""
+        """An iterator over this bidict's items in reverse order."""
         for key in self.__iter__(reverse=True):
             yield key
 
-    def __ne__(self, other, order_sensitive=False):
-        result = self.__eq__(other, order_sensitive=order_sensitive)
-        if result is NotImplemented:
-            return NotImplemented
-        assert isinstance(result, bool)
-        return not result
-
-    def __eq__(self, other, order_sensitive=False):
-        """Check for equality with ``other`` as per ``order_sensitive``."""
-        if not isinstance(other, Mapping):
-            return NotImplemented
-        if len(self) != len(other):
-            return False
-        if order_sensitive:
-            return all(i == j for (i, j) in izip(iteritems(self), iteritems(other)))
-        return all(self.get(k, _MISS) == v for (k, v) in iteritems(other))
-
     def equals_order_sensitive(self, other):
-        """Check equality with other with order sensitivity."""
-        return self.__eq__(other, order_sensitive=True)
+        """Order-sensitive equality check.
 
-    __repr_delegate__ = _compose(list, iteritems)
+        See also :ref:`eq-order-insensitive`
+        """
+        if not isinstance(other, Mapping) or len(self) != len(other):
+            return False
+        return all(i == j for (i, j) in izip(iteritems(self), iteritems(other)))
+
+    def __repr_delegate__(self):
+        """See :attr:`bidict.frozenbidict.__repr_delegate__`."""
+        return list(iteritems(self))
 
     # frozenbidict.__hash__ is also correct for ordered bidicts:
     # The value is derived from all contained items and insensitive to their order.
@@ -234,18 +251,37 @@ class FrozenOrderedBidict(frozenbidict):
 class OrderedBidict(FrozenOrderedBidict, bidict):
     """Mutable bidict type that maintains items in insertion order."""
 
-    __hash__ = None  # since this class is mutable. explicit > implicit.
+    __slots__ = ()
+
+    __hash__ = None  # since this class is mutable; explicit > implicit.
+
+    def clear(self):
+        """Remove all items."""
+        self.fwdm.clear()
+        self.invm.clear()
+        self.sntl[:] = [_END, self.sntl, self.sntl]
 
     def popitem(self, last=True):  # pylint: disable=arguments-differ
-        """Like :meth:`collections.OrderedDict.popitem`."""
+        """x.popitem() → (k, v)
+
+        Remove and return the most recently added item as a (key, value) pair
+        if *last* is True, else the least recently added item.
+
+        :raises KeyError: if *x* is empty.
+        """
         if not self:
-            raise KeyError(self.__class__.__name__ + ' is empty')
+            raise KeyError('mapping is empty')
         key = next((reversed if last else iter)(self))
         val = self._pop(key)
         return key, val
 
     def move_to_end(self, key, last=True):
-        """Like :meth:`collections.OrderedDict.move_to_end`."""
+        """Move an existing key to the beginning or end of this ordered bidict.
+
+        The item is moved to the end if *last* is True, else to the beginning.
+
+        :raises KeyError: if the key does not exist
+        """
         node = self.fwdm[key]
         _, prv, nxt = node
         prv[_NXT] = nxt
@@ -275,3 +311,8 @@ def _get_other(nodedata, key_or_val):
         return second
     assert key_or_val == second
     return first
+
+
+#==============================================================================
+#  ← Prev: _bidict.py         * Code review nav *
+#==============================================================================

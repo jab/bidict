@@ -5,21 +5,46 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+
+#==============================================================================
+#                    * Welcome to the bidict source code *
+#==============================================================================
+
+# Doing a code review? You'll find a "Code review nav" comment like the one
+# below at the top and bottom of the most important source files. This provides
+# a suggested path through the source while you're still getting familiar.
+#
+# Note: If you aren't reading this on https://github.com/jab/bidict, you may be
+# viewing an outdated version of the code. Please head to GitHub to review the
+# latest version, which contains important improvements over older versions.
+#
+# Thank you for reading and for any feedback you provide.
+
+#==============================================================================
+#  ← Prev: _frozen.py         * Code review nav *         Next: _ordered.py →
+#==============================================================================
+
+
 """Implements :class:`bidict.bidict`, the mutable bidirectional map type."""
 
 from collections import MutableMapping
 
 from ._dup import OVERWRITE, RAISE
 from ._frozen import frozenbidict
+from ._miss import _MISS
 
 
-class bidict(frozenbidict):  # noqa: N801; pylint: disable=invalid-name
+# Extend MutableMapping explicitly because it doesn't implement __subclasshook__, as well as to
+# inherit method implementations it provides that bidict can reuse (namely `setdefault`)
+class bidict(frozenbidict, MutableMapping):  # noqa: N801; pylint: disable=invalid-name
     """Mutable bidirectional map type."""
 
-    __hash__ = None  # since this class is mutable. explicit > implicit.
+    __slots__ = ()
+
+    __hash__ = None  # since this class is mutable; explicit > implicit.
 
     def __delitem__(self, key):
-        """Like dict's :attr:`__delitem__`."""
+        """``x.__delitem__(y) <==> del x[y]``"""
         self._pop(key)
 
     def __setitem__(self, key, val):
@@ -92,29 +117,35 @@ class bidict(frozenbidict):  # noqa: N801; pylint: disable=invalid-name
 
     def clear(self):
         """Remove all items."""
-        self._clear()
+        self.fwdm.clear()
+        self.invm.clear()
 
-    def pop(self, key, *args):
-        """Like :py:meth:`dict.pop`."""
-        args_len = len(args) + 1
-        if args_len > 2:
-            raise TypeError('pop expected at most 2 arguments, got %d' % args_len)
+    def pop(self, key, default=_MISS):
+        u"""x.pop(k[,d]) → v
+
+        Remove specified key and return the corresponding value.
+
+        :raises KeyError: if *key* is not found and no *default* is provided.
+        """
         try:
             return self._pop(key)
         except KeyError:
-            if args:
-                return args[0]  # default
-            raise
+            if default is _MISS:
+                raise
+            return default
 
-    def popitem(self, *args, **kw):
-        """Like :py:meth:`dict.popitem`."""
+    def popitem(self):
+        """x.popitem() → (k, v)
+
+        Remove and return some item as a (key, value) pair.
+
+        :raises KeyError: if *x* is empty.
+        """
         if not self:
-            raise KeyError('popitem(): %s is empty' % self.__class__.__name__)
-        key, val = self.fwdm.popitem(*args, **kw)
+            raise KeyError('mapping is empty')
+        key, val = self.fwdm.popitem()
         del self.invm[val]
         return key, val
-
-    setdefault = MutableMapping.setdefault
 
     def update(self, *args, **kw):
         """Like :attr:`putall` with default duplication policies."""
@@ -136,6 +167,6 @@ class bidict(frozenbidict):  # noqa: N801; pylint: disable=invalid-name
             self._update(False, on_dup_key, on_dup_val, on_dup_kv, items)
 
 
-# MutableMapping does not implement __subclasshook__.
-# Must register as a subclass explicitly.
-MutableMapping.register(bidict)
+#==============================================================================
+#  ← Prev: _frozen.py         * Code review nav *         Next: _ordered.py →
+#==============================================================================
