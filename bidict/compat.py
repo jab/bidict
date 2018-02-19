@@ -5,6 +5,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+
 u"""
 Compatibility helpers.
 
@@ -18,62 +19,70 @@ Compatibility helpers.
 
     .. py:attribute:: viewkeys
 
-        viewkeys(D) → a set-like object providing a view on D's keys.
+        viewkeys(x) → a set-like object providing a view on x's keys.
 
     .. py:attribute:: viewvalues
 
-        viewvalues(D) → an object providing a view on D's values.
+        viewvalues(x) → an object providing a view on x's values.
 
     .. py:attribute:: viewitems
 
-        viewitems(D) → a set-like object providing a view on D's items.
+        viewitems(x) → a set-like object providing a view on x's items.
 
     .. py:attribute:: iterkeys
 
-        iterkeys(D) → an iterator over the keys of D.
+        iterkeys(x) → an iterator over the keys of x.
 
     .. py:attribute:: itervalues
 
-        itervalues(D) → an iterator over the values of D.
+        itervalues(x) → an iterator over the values of x.
 
     .. py:attribute:: iteritems
 
-        iteritems(D) → an iterator over the (key, value) items of D.
+        iteritems(x) → an iterator over the (key, value) items of x.
 
     .. py:attribute:: izip
 
         Alias for :func:`zip` on Python 3 / ``itertools.izip`` on Python 2.
-
 """
-
-# pylint: disable-all
 
 from operator import methodcaller
 from platform import python_implementation
 from sys import version_info
 from warnings import warn
 
-_compose = lambda f, g: lambda x: f(g(x))
-
 PY2 = version_info[0] == 2
 PYPY = python_implementation() == 'PyPy'
 
+# Without the following, pylint gives lots of false positives like
+# "Constant name "viewkeys" doesn't conform to UPPER_CASE naming style"
+# pylint: disable=invalid-name
+
 if PY2:
+
     if version_info[1] < 7:  # pragma: no cover
         warn('Python < 2.7 is unsupported.')
+
     viewkeys = methodcaller('viewkeys')
     viewvalues = methodcaller('viewvalues')
     viewitems = methodcaller('viewitems')
     iterkeys = methodcaller('iterkeys')
     itervalues = methodcaller('itervalues')
     iteritems = methodcaller('iteritems')
-    from itertools import izip
+    from itertools import izip  # pylint: disable=no-name-in-module,unused-import
+
 else:
+
     if version_info[1] < 3:  # pragma: no cover
         warn('Python3 < 3.3 is unsupported.')
+
     viewkeys = methodcaller('keys')
     viewvalues = methodcaller('values')
     viewitems = methodcaller('items')
+
+    def _compose(f, g):
+        return lambda x: f(g(x))
+
     iterkeys = _compose(iter, viewkeys)
     itervalues = _compose(iter, viewvalues)
     iteritems = _compose(iter, viewitems)

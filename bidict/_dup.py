@@ -5,30 +5,31 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+
 """Provides bidict duplication behaviors."""
+
 
 from ._marker import _Marker
 
 
-class DuplicationPolicy(_Marker):
-    """
-    Provide RAISE, OVERWRITE, and IGNORE duplication policies.
+class DuplicationPolicy(object):
+    """Provides bidict's duplication policies.
 
-    .. py:attribute:: RAISE
-
-        Raise an exception when a duplication is encountered.
-
-    .. py:attribute:: OVERWRITE
-
-        Overwrite an existing item when a duplication is encountered.
-
-    .. py:attribute:: IGNORE
-
-        Keep the existing item and ignore the new item when a duplication is
-        encountered.
+    See also :ref:`values-must-be-unique`
     """
 
+    __slots__ = ()
 
-DuplicationPolicy.RAISE = RAISE = DuplicationPolicy('RAISE')
-DuplicationPolicy.OVERWRITE = OVERWRITE = DuplicationPolicy('OVERWRITE')
-DuplicationPolicy.IGNORE = IGNORE = DuplicationPolicy('IGNORE')
+    #: Raise an exception when a duplication is encountered.
+    RAISE = _Marker('RAISE')
+
+    #: Overwrite an existing item when a duplication is encountered.
+    OVERWRITE = _Marker('OVERWRITE')
+
+    #: Keep the existing item and ignore the new item when a duplication is encountered.
+    IGNORE = _Marker('IGNORE')
+
+
+RAISE = DuplicationPolicy.RAISE
+OVERWRITE = DuplicationPolicy.OVERWRITE
+IGNORE = DuplicationPolicy.IGNORE

@@ -10,9 +10,12 @@ bidict
 
 .. automodule:: bidict
     :members:
+    :member-order: bysource
     :special-members:
-    :exclude-members: __dict__,__weakref__
-    :private-members:
+    :show-inheritance:
+    :undoc-members:
+    :exclude-members: __abstractmethods__,__dict__,__module__,__weakref__
+..  :inherited-members:
 
 
 bidict.compat

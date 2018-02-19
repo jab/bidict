@@ -5,7 +5,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-"""Provides the "MISSING" marker."""
+
+"""Provides the :obj:`_MISS` sentinel, for internally signaling "missing/not found"."""
 
 from ._marker import _Marker
 

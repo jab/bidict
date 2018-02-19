@@ -16,7 +16,7 @@ is the main bidirectional map data structure provided.
 It implements the familiar API you're used to from dict::
 
     >>> from bidict import bidict
-    >>> element_by_symbol = bidict(H='hydrogen')
+    >>> element_by_symbol = bidict({'H': 'hydrogen'})
     >>> element_by_symbol
     bidict({'H': 'hydrogen'})
     >>> element_by_symbol['H']
@@ -33,7 +33,7 @@ But it also maintains the inverse bidict via the
 Concise, efficient, Pythonic.
 
 
-Why Can't I Just Use A dict?
+Why can't I just use a dict?
 ----------------------------
 
 A skeptic writes:
@@ -92,9 +92,8 @@ Additional Functionality
 ------------------------
 
 Besides the standard :class:`bidict.bidict` class,
-the :mod:`bidict` package provides other bidict variants,
-as well as additional tools
-for working with one-to-one relations:
+the :mod:`bidict` package provides other bidirectional map variants,
+as well as some utilities for working with them and related objects:
 
 - :class:`bidict.BidirectionalMapping`
 - :func:`bidict.namedbidict`

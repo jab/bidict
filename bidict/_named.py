@@ -36,7 +36,7 @@ def namedbidict(typename, keyname, valname, base_type=bidict):
     getinv.__doc__ = u'%s inverse %s: %s → %s' % (typename, base_type.__name__, valname, keyname)
 
     __reduce__ = lambda self: (
-        _make_empty, (typename, keyname, valname, base_type), self.__dict_pickle_safe__)
+        _make_empty, (typename, keyname, valname, base_type), self.__getstate__())
     __reduce__.__name__ = '__reduce__'
     __reduce__.__doc__ = 'helper for pickle'
 

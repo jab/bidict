@@ -5,7 +5,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-"""Utilities for working with one-to-one relations."""
+
+"""Useful functions for working with bidirectional mappings and related data."""
 
 from collections import Mapping
 from itertools import chain
@@ -56,8 +57,7 @@ def inverted(obj):
 
     Otherwise, return an iterator that iterates over the items in `obj`,
     inverting each item on the fly.
-
-    .. seealso:: :attr:`bidict.BidirectionalMapping.__inverted__`
+    See also :attr:`bidict.BidirectionalMapping.__inverted__`
     """
     inv = getattr(obj, '__inverted__', None)
     return inv() if callable(inv) else _inverted_on_the_fly(obj)

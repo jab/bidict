@@ -20,7 +20,7 @@ from bidict import (
     IGNORE, OVERWRITE, RAISE,
     bidict, namedbidict, OrderedBidict,
     frozenbidict, FrozenOrderedBidict)
-from bidict.compat import PYPY, iteritems
+from bidict.compat import PY2, PYPY, iteritems
 
 
 settings.register_profile('default', settings(max_examples=200, deadline=None))
@@ -61,7 +61,8 @@ inititems = itemlists.map(dedup)
 @given(init=inititems)
 def test_pickle_roundtrips(B, init):  # noqa
     bi = B(init)
-    dumped = dumps(bi)
+    # Must use -1 for "latest pickle protocol" in Python 2
+    dumped = dumps(bi, -1) if PY2 else dumps(bi)
     roundtripped = loads(dumped)
     assert roundtripped == bi
 

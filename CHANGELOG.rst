@@ -9,6 +9,8 @@ Changelog
 0.15.0 (not yet released)
 -------------------------
 
+- Use :ref:`slots` to speed up bidict attribute access and reduce memory usage.
+
 - Use weakrefs to refer to a bidict's inverse internally,
   no longer creating a strong reference cycle.
   Memory for a bidict that you create can now be reclaimed
@@ -65,6 +67,20 @@ Breaking API Changes
   of the new instance are no longer incorrectly swapped.
 
 - Rename ``isinv`` to ``_isinv``.
+
+- :class:`~bidict.DuplicationPolicy` now just extends :class:`object`
+  (rather than ``bidict._Marker``).
+  And its
+  :attr:`~bidict.DuplicationPolicy.RAISE`,
+  :attr:`~bidict.DuplicationPolicy.OVERWRITE`, and
+  :attr:`~bidict.DuplicationPolicy.IGNORE`
+  attributes now extend ``bidict._Marker``
+  (rather than :class:`~bidict.DuplicationPolicy`).
+  (So it is no longer possible to create an infinite chain like
+  ``DuplicationPolicy.RAISE.RAISE.RAISE...``.)
+
+- Pickling bidicts on Python 2 now requires the latest version of the
+  pickle protocol (specified via -1), e.g. ``pickle.dumps(mybidict, -1)``
 
 
 0.14.2 (2017-12-06)
@@ -226,8 +242,8 @@ This release includes multiple API simplifications and improvements.
 
 - Rename:
 
-    - ``bidict.BidictBase._fwd_class`` → :attr:`bidict.frozenbidict.fwd_cls`
-    - ``bidict.BidictBase._inv_class`` → :attr:`bidict.frozenbidict.inv_cls`
+    - ``bidict.BidictBase._fwd_class`` → ``bidict.frozenbidict.fwd_cls``
+    - ``bidict.BidictBase._inv_class`` → ``bidict.frozenbidict.inv_cls``
     - ``bidict.BidictBase._on_dup_key`` → :attr:`bidict.frozenbidict.on_dup_key`
     - ``bidict.BidictBase._on_dup_val`` → :attr:`bidict.frozenbidict.on_dup_val`
     - ``bidict.BidictBase._on_dup_kv`` → :attr:`bidict.frozenbidict.on_dup_kv`
