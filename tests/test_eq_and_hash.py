@@ -82,7 +82,8 @@ def test_eq_and_hash(b, other):
         if are_equal and both_hashable:
             assert hash(b) == hash(other)
 
-        if hasattr(b, 'equals_order_sensitive') and hasattr(other, '__reversed__'):
+        if hasattr(b, 'equals_order_sensitive'):
             are_equal_ordered = b.equals_order_sensitive(other)
-            should_be_equal_ordered = OrderedDict(b) == OrderedDict(other)
+            should_be_equal_ordered = OrderedDict(b) == (
+                OrderedDict(other) if isinstance(other, Mapping) else other)
             assert are_equal_ordered == should_be_equal_ordered

@@ -71,3 +71,11 @@ Test ``base_type`` keyword arg::
     Traceback (most recent call last):
         ...
     TypeError...
+
+    >>> exc = None
+    >>> try:
+    ...     namedbidict('ElMap', 'sym', 'el', base_type='not a bidict')
+    ... except TypeError as e:
+    ...     exc = e
+    >>> exc is not None
+    True

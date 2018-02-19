@@ -23,7 +23,7 @@ def namedbidict(typename, keyname, valname, base_type=bidict):
 
     Analagous to :func:`collections.namedtuple`.
     """
-    if not issubclass(base_type, frozenbidict):
+    if not isinstance(base_type, type) or not issubclass(base_type, frozenbidict):
         raise TypeError('base_type must be a subclass of frozenbidict')
 
     for name in typename, keyname, valname:
@@ -43,15 +43,14 @@ def namedbidict(typename, keyname, valname, base_type=bidict):
         def __reduce__(self):
             return (_make_empty, (typename, keyname, valname, base_type), self.__getstate__())
 
-
     bname = base_type.__name__
     fname = valname + '_for'
     iname = keyname + '_for'
     names = dict(typename=typename, bname=bname, keyname=keyname, valname=valname)
     fdoc = u'{typename} forward {bname}: {keyname} → {valname}'.format(**names)
     idoc = u'{typename} inverse {bname}: {valname} → {keyname}'.format(**names)
-    setattr(_Named, fname, property(_Named._getfwd, doc=fdoc))
-    setattr(_Named, iname, property(_Named._getinv, doc=idoc))
+    setattr(_Named, fname, property(_Named._getfwd, doc=fdoc))  # pylint: disable=protected-access
+    setattr(_Named, iname, property(_Named._getinv, doc=idoc))  # pylint: disable=protected-access
 
     _Named.__name__ = typename
     return _Named
