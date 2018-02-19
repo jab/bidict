@@ -79,8 +79,19 @@ Breaking API Changes
   (So it is no longer possible to create an infinite chain like
   ``DuplicationPolicy.RAISE.RAISE.RAISE...``.)
 
-- Pickling bidicts on Python 2 now requires the latest version of the
-  pickle protocol (specified via -1), e.g. ``pickle.dumps(mybidict, -1)``
+- :func:`~bidict.namedbidict` now raises :class:`TypeError` if the provided
+  ``base_type`` is not a subclass of :class:`~bidict.frozenbidict`.
+
+- Pickling ordered bidicts now requires
+  at least version 2 of the pickle protocol.
+  If you are using Python 3,
+  :attr:`pickle.DEFAULT_PROTOCOL` is 3 anyway,
+  so this will not affect you.
+  However if you are using in Python 2,
+  :attr:`~pickle.DEFAULT_PROTOCOL` is 0,
+  so you must now explicitly specify the version
+  in your :func:`pickle.dumps` calls,
+  e.g. ``pickle.dumps(ob, 2)``.
 
 
 0.14.2 (2017-12-06)
