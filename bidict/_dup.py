@@ -6,13 +6,18 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 
-"""Provides bidict duplication behaviors."""
+"""Provides bidict duplication policies and the :class:`_OnDup` class."""
 
+
+from collections import namedtuple
 
 from ._marker import _Marker
 
 
-class DuplicationPolicy(object):
+_OnDup = namedtuple('_OnDup', 'key val kv')
+
+
+class DuplicationPolicy(_Marker):
     """Provides bidict's duplication policies.
 
     See also :ref:`values-must-be-unique`
@@ -20,16 +25,12 @@ class DuplicationPolicy(object):
 
     __slots__ = ()
 
-    #: Raise an exception when a duplication is encountered.
-    RAISE = _Marker('RAISE')
 
-    #: Overwrite an existing item when a duplication is encountered.
-    OVERWRITE = _Marker('OVERWRITE')
+#: Raise an exception when a duplication is encountered.
+RAISE = DuplicationPolicy('DUP_POLICY.RAISE')
 
-    #: Keep the existing item and ignore the new item when a duplication is encountered.
-    IGNORE = _Marker('IGNORE')
+#: Overwrite an existing item when a duplication is encountered.
+OVERWRITE = DuplicationPolicy('DUP_POLICY.OVERWRITE')
 
-
-RAISE = DuplicationPolicy.RAISE
-OVERWRITE = DuplicationPolicy.OVERWRITE
-IGNORE = DuplicationPolicy.IGNORE
+#: Keep the existing item and ignore the new item when a duplication is encountered.
+IGNORE = DuplicationPolicy('DUP_POLICY.IGNORE')

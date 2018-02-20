@@ -106,6 +106,7 @@ def test_bidirectional_mappings(B, init):  # noqa
     [(a, m) for (a, ms) in iteritems(mutating_methods_by_arity) for m in ms])
 @pytest.mark.parametrize('B', bidict_types)  # noqa
 @given(init=inititems, arg1=immutable, arg2=immutable, items=itemlists)
+# pylint: disable=too-many-arguments
 def test_consistency_after_mutation(arity, methodname, B, init, arg1, arg2, items):
     """
     Call every mutating method on every bidict type that supports it,

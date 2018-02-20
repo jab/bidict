@@ -35,10 +35,10 @@ def namedbidict(typename, keyname, valname, base_type=bidict):
         __slots__ = ()
 
         def _getfwd(self):
-            return self.inv if self._isinv else self  # pylint: disable=protected-access
+            return self.inv if self._isinv else self
 
         def _getinv(self):
-            return self if self._isinv else self.inv  # pylint: disable=protected-access
+            return self if self._isinv else self.inv
 
         def __reduce__(self):
             return (_make_empty, (typename, keyname, valname, base_type), self.__getstate__())

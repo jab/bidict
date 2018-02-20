@@ -1,6 +1,11 @@
-[MESSAGES CONTROL]
-disable=too-many-ancestors,too-many-locals,too-few-public-methods,inconsistent-return-statements
+# https://docs.pylint.org/en/latest/technical_reference/features.html
 
-# Maximum number of arguments for function / method
-max-args=9
-max-attributes=8
+[MESSAGES CONTROL]
+
+# Maximum number of parents for a class.
+# The default of 7 results in "too-many-ancestors" for all bidict classes.
+max-parents = 12
+
+# Maximum number of arguments for a function.
+# The default of 5 only leaves room for 4 args besides self for methods.
+max-args=6

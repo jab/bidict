@@ -6,14 +6,9 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 
-"""Provides :class:`_Marker`, an internal type for representing singletons."""
+"""Provides the :obj:`_NOOP` sentinel, for internally signaling "no-op"."""
 
-from collections import namedtuple
+from ._marker import _Marker
 
 
-class _Marker(namedtuple('_Marker', 'name')):
-
-    __slots__ = ()
-
-    def __repr__(self):
-        return '<%s>' % self.name  # pragma: no cover
+_NOOP = _Marker('NO-OP')

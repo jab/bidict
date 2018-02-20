@@ -113,9 +113,9 @@ These methods allow you to specify different strategies for handling
 key and value duplication via
 the *on_dup_key*, *on_dup_val*, and *on_dup_kv* arguments.
 Three possible options are
-:attr:`~bidict.DuplicationPolicy.RAISE`,
-:attr:`~bidict.DuplicationPolicy.OVERWRITE`, and
-:attr:`~bidict.DuplicationPolicy.IGNORE`::
+:attr:`~bidict.RAISE`,
+:attr:`~bidict.OVERWRITE`, and
+:attr:`~bidict.IGNORE`::
 
     >>> from bidict import RAISE, OVERWRITE, IGNORE
     >>> b = bidict({2: 4})
@@ -139,7 +139,7 @@ the *on_dup_key* and *on_dup_val* keyword arguments of
 and
 :func:`~bidict.bidict.putall`
 default to
-:attr:`~bidict.DuplicationPolicy.RAISE`,
+:attr:`~bidict.RAISE`,
 providing stricter-by-default alternatives to
 :func:`~bidict.bidict.__setitem__`
 and

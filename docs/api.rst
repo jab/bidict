@@ -18,6 +18,13 @@ bidict
 ..  :inherited-members:
 
 
+.. autodata:: bidict.RAISE
+
+.. autodata:: bidict.OVERWRITE
+
+.. autodata:: bidict.IGNORE
+
+
 bidict.compat
 -------------
 

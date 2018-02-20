@@ -29,7 +29,7 @@
 
 from collections import MutableMapping
 
-from ._dup import OVERWRITE, RAISE
+from ._dup import OVERWRITE, RAISE, _OnDup
 from ._frozen import frozenbidict
 from ._miss import _MISS
 
@@ -42,6 +42,8 @@ class bidict(frozenbidict, MutableMapping):  # noqa: N801; pylint: disable=inval
     __slots__ = ()
 
     __hash__ = None  # since this class is mutable; explicit > implicit.
+
+    _ON_DUP_OVERWRITE = _OnDup(key=OVERWRITE, val=OVERWRITE, kv=OVERWRITE)
 
     def __delitem__(self, key):
         """``x.__delitem__(y) <==> del x[y]``"""
@@ -74,7 +76,8 @@ class bidict(frozenbidict, MutableMapping):  # noqa: N801; pylint: disable=inval
             existing item and *val* duplicates the value of a different
             existing item.
         """
-        self._put(key, val, self.on_dup_key, self.on_dup_val, self.on_dup_kv)
+        on_dup = self._get_on_dup()
+        self._put(key, val, on_dup)
 
     def put(self, key, val, on_dup_key=RAISE, on_dup_val=RAISE, on_dup_kv=None):
         """
@@ -82,8 +85,7 @@ class bidict(frozenbidict, MutableMapping):  # noqa: N801; pylint: disable=inval
 
         If *on_dup_kv* is ``None``, the *on_dup_val* policy will be used for it.
 
-        For example, if all given duplication policies are
-        :attr:`~bidict.DuplicationPolicy.RAISE`,
+        For example, if all given duplication policies are :attr:`~bidict.RAISE`,
         then *key* will be associated with *val* if and only if
         *key* is not already associated with an existing value and
         *val* is not already associated with an existing key,
@@ -93,18 +95,19 @@ class bidict(frozenbidict, MutableMapping):  # noqa: N801; pylint: disable=inval
 
         :raises bidict.KeyDuplicationError: if attempting to insert an item
             whose key only duplicates an existing item's, and *on_dup_key* is
-            :attr:`~bidict.DuplicationPolicy.RAISE`.
+            :attr:`~bidict.RAISE`.
 
         :raises bidict.ValueDuplicationError: if attempting to insert an item
             whose value only duplicates an existing item's, and *on_dup_val* is
-            :attr:`~bidict.DuplicationPolicy.RAISE`.
+            :attr:`~bidict.RAISE`.
 
         :raises bidict.KeyAndValueDuplicationError: if attempting to insert an
             item whose key duplicates one existing item's, and whose value
             duplicates another existing item's, and *on_dup_kv* is
-            :attr:`~bidict.DuplicationPolicy.RAISE`.
+            :attr:`~bidict.RAISE`.
         """
-        self._put(key, val, on_dup_key, on_dup_val, on_dup_kv)
+        on_dup = self._get_on_dup((on_dup_key, on_dup_val, on_dup_kv))
+        self._put(key, val, on_dup)
 
     def forceput(self, key, val):
         """
@@ -113,7 +116,7 @@ class bidict(frozenbidict, MutableMapping):  # noqa: N801; pylint: disable=inval
         Replace any existing mappings containing key *key* or value *val*
         as necessary to preserve uniqueness.
         """
-        self._put(key, val, OVERWRITE, OVERWRITE, OVERWRITE)
+        self._put(key, val, self._ON_DUP_OVERWRITE)
 
     def clear(self):
         """Remove all items."""
@@ -150,11 +153,11 @@ class bidict(frozenbidict, MutableMapping):  # noqa: N801; pylint: disable=inval
     def update(self, *args, **kw):
         """Like :attr:`putall` with default duplication policies."""
         if args or kw:
-            self._update(False, self.on_dup_key, self.on_dup_val, self.on_dup_kv, *args, **kw)
+            self._update(False, None, *args, **kw)
 
     def forceupdate(self, *args, **kw):
         """Like a bulk :attr:`forceput`."""
-        self._update(False, OVERWRITE, OVERWRITE, OVERWRITE, *args, **kw)
+        self._update(False, self._ON_DUP_OVERWRITE, *args, **kw)
 
     def putall(self, items, on_dup_key=RAISE, on_dup_val=RAISE, on_dup_kv=None):
         """
@@ -164,7 +167,8 @@ class bidict(frozenbidict, MutableMapping):  # noqa: N801; pylint: disable=inval
         none of the items is inserted.
         """
         if items:
-            self._update(False, on_dup_key, on_dup_val, on_dup_kv, items)
+            on_dup = self._get_on_dup((on_dup_key, on_dup_val, on_dup_kv))
+            self._update(False, on_dup, items)
 
 
 #==============================================================================

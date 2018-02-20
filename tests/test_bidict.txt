@@ -155,7 +155,7 @@ Empty update is a no-op::
 
 Not part of the public API, but test this anyway for the coverage::
 
-    >>> bi._update(False, bi.on_dup_key, bi.on_dup_val, bi.on_dup_kv)
+    >>> bi._update(False, None)
     >>> bi
     bidict()
 

@@ -49,22 +49,28 @@ Changelog
 Breaking API Changes
 ++++++++++++++++++++
 
-- Rename ``bidict.frozenbidict.fwd_cls`` → ``..._fwdm_cls``.
+- Rename:
+ 
+  - ``bidict.frozenbidict.fwdm`` → ``._fwdm``
+  - ``bidict.frozenbidict.invm`` → ``._invm``
+  - ``bidict.frozenbidict.fwd_cls`` → ``._fwdm_cls``
+  - ``bidict.frozenbidict.inv_cls`` → ``._invm_cls``
+  - ``bidict.frozenbidict.isinv`` → ``._isinv``
 
-- Rename ``bidict.frozenbidict.inv_cls`` → ``..._invm_cls``.
+  Though overriding ``_fwdm_cls`` and ``_invm_cls`` remains supported
+  (see :ref:`extending`),
+  this is not a common enough use case to warrant public names.
+  Most users do not need to know or care about any of these.
 
-- Rename ``bidict.frozenbidict.isinv`` → ``..._isinv``.
-
-- :class:`~bidict.DuplicationPolicy` now just extends :class:`object`
-  (rather than ``bidict._Marker``).
-  And its
-  :attr:`~bidict.DuplicationPolicy.RAISE`,
-  :attr:`~bidict.DuplicationPolicy.OVERWRITE`, and
-  :attr:`~bidict.DuplicationPolicy.IGNORE`
-  attributes now extend ``bidict._Marker``
-  (rather than :class:`~bidict.DuplicationPolicy`).
+- The :attr:`~bidict.RAISE`,
+  :attr:`~bidict.OVERWRITE`, and
+  :attr:`~bidict.IGNORE`
+  duplication policies are no longer available as attributes of
+  :class:`bidict.DuplicationPolicy`,
+  and can now only be accesseed as attributes of
+  the :mod:`bidict` module namespace.
   (So it is no longer possible to create an infinite chain like
-  ``DuplicationPolicy.RAISE.RAISE.RAISE...``.)
+  ``DuplicationPolicy.RAISE.RAISE.RAISE...``)
 
 - :func:`~bidict.namedbidict` now raises :class:`TypeError` if the provided
   ``base_type`` is not a subclass of :class:`~bidict.frozenbidict`.
@@ -118,8 +124,7 @@ Breaking API Changes
 -------------------
 
 - Fix a bug where :class:`~bidict.bidict`\’s
-  default *on_dup_kv* policy was set to
-  :attr:`~bidict.DuplicationPolicy.RAISE`,
+  default *on_dup_kv* policy was set to :attr:`~bidict.RAISE`,
   rather than matching whatever *on_dup_val* policy was in effect
   as was :ref:`documented <key-and-value-duplication>`.
 
@@ -348,15 +353,15 @@ This release includes multiple API simplifications and improvements.
   duplicates any existing item's.
   These can take the following values:
 
-  - :attr:`~bidict.DuplicationPolicy.RAISE`
-  - :attr:`~bidict.DuplicationPolicy.OVERWRITE`
-  - :attr:`~bidict.DuplicationPolicy.IGNORE`
+  - :attr:`~bidict.RAISE`
+  - :attr:`~bidict.OVERWRITE`
+  - :attr:`~bidict.IGNORE`
 
   ``on_dup_kv`` can also take ``ON_DUP_VAL``.
 
   If not provided,
   :func:`~bidict.bidict.put` uses the
-  :attr:`~bidict.DuplicationPolicy.RAISE` policy by default.
+  :attr:`~bidict.RAISE` policy by default.
 
 - New :func:`~bidict.bidict.putall` method
   provides a bulk :func:`~bidict.bidict.put` API,

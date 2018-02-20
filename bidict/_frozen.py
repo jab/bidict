@@ -27,14 +27,15 @@
 
 """Implements :class:`frozenbidict`, the base class for all other bidict types."""
 
-from collections import ItemsView, Mapping
+from collections import ItemsView, Mapping, namedtuple
 from weakref import ref
 
 from ._abc import BidirectionalMapping
-from ._dup import RAISE, OVERWRITE, IGNORE
+from ._dup import RAISE, OVERWRITE, IGNORE, _OnDup
 from ._exc import (
     DuplicationError, KeyDuplicationError, ValueDuplicationError, KeyAndValueDuplicationError)
 from ._miss import _MISS
+from ._noop import _NOOP
 from .compat import PY2, iteritems
 from .util import pairs
 
@@ -65,7 +66,7 @@ class frozenbidict(BidirectionalMapping):  # noqa: N801
     #: (e.g. the policy used by
     #: :meth:`~bidict.bidict.__setitem__` and
     #: :meth:`~bidict.bidict.update`).
-    #: Defaults to :attr:`~DuplicationPolicy.OVERWRITE`
+    #: Defaults to :attr:`~bidict.OVERWRITE`
     #: to match :class:`dict`'s behavior.
     #: See also :ref:`extending`
     on_dup_key = OVERWRITE
@@ -76,7 +77,7 @@ class frozenbidict(BidirectionalMapping):  # noqa: N801
     #: (e.g. the policy used by
     #: :meth:`~bidict.bidict.__setitem__` and
     #: :meth:`~bidict.bidict.update`).
-    #: Defaults to :attr:`~DuplicationPolicy.RAISE`
+    #: Defaults to :attr:`~bidict.RAISE`
     #: to prevent unintended overwrite of another item.
     #: See also :ref:`extending`
     on_dup_val = RAISE
@@ -110,7 +111,7 @@ class frozenbidict(BidirectionalMapping):  # noqa: N801
         self._invm = self._invm_cls()
         self._init_inv()  # lgtm [py/init-calls-subclass]
         if args or kw:
-            self._update(True, self.on_dup_key, self.on_dup_val, self.on_dup_kv, *args, **kw)
+            self._update(True, None, *args, **kw)
 
     def _init_inv(self):
         # Compute the type for this bidict's inverse bidict (will be different from this
@@ -154,12 +155,12 @@ class frozenbidict(BidirectionalMapping):  # noqa: N801
         # One may be stored in self._inv already.
         if self._inv is not None:
             return self._inv
-        # Otherwise a weakref may be stored in self._invweak, in which case resolve it.
-        inv = self._invweak()  # pylint: disable=E1102
+        # Otherwise a weakref is stored in self._invweak. Try to get a strong ref from it.
+        inv = self._invweak()
         if inv is not None:
             return inv
         # Refcount of referent must have dropped to zero, as in `bidict().inv.inv`. Init a new one.
-        self._init_inv()
+        self._init_inv()  # Now this bidict will retain a strong ref to its inverse.
         return self._inv
 
     def __getstate__(self):
@@ -202,7 +203,7 @@ class frozenbidict(BidirectionalMapping):  # noqa: N801
 
     def __hash__(self):
         """The hash of this bidict as determined by its items."""
-        if getattr(self, '_hash', None) is None:  # pylint: disable=protected-access
+        if getattr(self, '_hash', None) is None:
             # pylint: disable=protected-access,attribute-defined-outside-init
             self._hash = ItemsView(self)._hash()
         return self._hash
@@ -236,74 +237,87 @@ class frozenbidict(BidirectionalMapping):  # noqa: N801
         del self._invm[val]
         return val
 
-    def _put(self, key, val, on_dup_key, on_dup_val, on_dup_kv):
-        dedup_result = self._dedup_item(key, val, on_dup_key, on_dup_val, on_dup_kv)
-        if dedup_result:
-            self._write_item(key, val, *dedup_result)
+    def _put(self, key, val, on_dup):
+        dedup_result = self._dedup_item(key, val, on_dup)
+        if dedup_result is not _NOOP:
+            self._write_item(key, val, dedup_result)
 
-    def _dedup_item(self, key, val, on_dup_key, on_dup_val, on_dup_kv):
+    def _dedup_item(self, key, val, on_dup):
         """
         Check *key* and *val* for any duplication in self.
 
-        Handle any duplication as per the given duplication policies.
+        Handle any duplication as per the duplication policies given in *on_dup*.
 
         (key, val) already present is construed as a no-op, not a duplication.
 
         If duplication is found and the corresponding duplication policy is
-        :attr:`~bidict.DuplicationPolicy.RAISE`, raise the appropriate error.
+        :attr:`~bidict.RAISE`, raise the appropriate error.
 
         If duplication is found and the corresponding duplication policy is
-        :attr:`~bidict.DuplicationPolicy.IGNORE`, return *None*.
+        :attr:`~bidict.IGNORE`, return *None*.
 
         If duplication is found and the corresponding duplication policy is
-        :attr:`~bidict.DuplicationPolicy.OVERWRITE`,
+        :attr:`~bidict.OVERWRITE`,
         or if no duplication is found,
-        return the dedup result
-        *(isdupkey, isdupval, invbyval, fwdbykey)*.
+        return the _DedupResult *(isdupkey, isdupval, oldkey, oldval)*.
         """
-        if on_dup_kv is None:
-            on_dup_kv = on_dup_val
         fwdm = self._fwdm
         invm = self._invm
-        fwdbykey = fwdm.get(key, _MISS)
-        invbyval = invm.get(val, _MISS)
-        isdupkey = fwdbykey is not _MISS
-        isdupval = invbyval is not _MISS
+        oldval = fwdm.get(key, _MISS)
+        oldkey = invm.get(val, _MISS)
+        isdupkey = oldval is not _MISS
+        isdupval = oldkey is not _MISS
+        dedup_result = _DedupResult(isdupkey, isdupval, oldkey, oldval)
         if isdupkey and isdupval:
-            if self._isdupitem(key, val, invbyval, fwdbykey):
+            if self._isdupitem(key, val, dedup_result):
                 # (key, val) duplicates an existing item -> no-op.
-                return
+                return _NOOP
             # key and val each duplicate a different existing item.
-            if on_dup_kv is RAISE:
+            if on_dup.kv is RAISE:
                 raise KeyAndValueDuplicationError(key, val)
-            elif on_dup_kv is IGNORE:
-                return
-            assert on_dup_kv is OVERWRITE, 'invalid on_dup_kv: %r' % on_dup_kv
+            elif on_dup.kv is IGNORE:
+                return _NOOP
+            assert on_dup.kv is OVERWRITE, 'invalid on_dup_kv: %r' % on_dup.kv
             # Fall through to the return statement on the last line.
         elif isdupkey:
-            if on_dup_key is RAISE:
+            if on_dup.key is RAISE:
                 raise KeyDuplicationError(key)
-            elif on_dup_key is IGNORE:
-                return
-            assert on_dup_key is OVERWRITE, 'invalid on_dup_key: %r' % on_dup_key
+            elif on_dup.key is IGNORE:
+                return _NOOP
+            assert on_dup.key is OVERWRITE, 'invalid on_dup.key: %r' % on_dup.key
             # Fall through to the return statement on the last line.
         elif isdupval:
-            if on_dup_val is RAISE:
+            if on_dup.val is RAISE:
                 raise ValueDuplicationError(val)
-            elif on_dup_val is IGNORE:
-                return
-            assert on_dup_val is OVERWRITE, 'invalid on_dup_val: %r' % on_dup_val
+            elif on_dup.val is IGNORE:
+                return _NOOP
+            assert on_dup.val is OVERWRITE, 'invalid on_dup.val: %r' % on_dup.val
             # Fall through to the return statement on the last line.
         # else neither isdupkey nor isdupval.
-        return isdupkey, isdupval, invbyval, fwdbykey
+        return dedup_result
 
     @staticmethod
-    def _isdupitem(key, val, oldkey, oldval):
-        dup = oldkey == key
-        assert dup == (oldval == val)
-        return dup
+    def _isdupitem(key, val, dedup_result):
+        isdupkey, isdupval, oldkey, oldval = dedup_result
+        isdupitem = oldkey == key
+        assert isdupitem == (oldval == val), '%r %r %r' % (key, val, dedup_result)
+        if isdupitem:
+            assert isdupkey
+            assert isdupval
+        return isdupitem
 
-    def _write_item(self, key, val, isdupkey, isdupval, oldkey, oldval):
+    @classmethod
+    def _get_on_dup(cls, on_dup=None):
+        if on_dup is None:
+            on_dup = _OnDup(cls.on_dup_key, cls.on_dup_val, cls.on_dup_kv)
+        elif not isinstance(on_dup, _OnDup):
+            on_dup = _OnDup(*on_dup)
+        if on_dup.kv is None:
+            on_dup = on_dup._replace(kv=on_dup.val)
+        return on_dup
+
+    def _write_item(self, key, val, dedup_result):
+        isdupkey, isdupval, oldkey, oldval = dedup_result
         fwdm = self._fwdm
         invm = self._invm
         fwdm[key] = val
@@ -312,47 +326,49 @@ class frozenbidict(BidirectionalMapping):  # noqa: N801
             del invm[oldval]
         if isdupval:
             del fwdm[oldkey]
-        return key, val, isdupkey, isdupval, oldkey, oldval
+        return _WriteResult(key, val, oldkey, oldval)
 
-    def _update(self, init, on_dup_key, on_dup_val, on_dup_kv, *args, **kw):
+    def _update(self, init, on_dup, *args, **kw):
         if not args and not kw:
             return
-        if on_dup_kv is None:
-            on_dup_kv = on_dup_val
+        on_dup = self._get_on_dup(on_dup)
         empty = not self
         only_copy_from_bimap = empty and not kw and isinstance(args[0], BidirectionalMapping)
         if only_copy_from_bimap:  # no need to check for duplication
             write_item = self._write_item
             for (key, val) in iteritems(args[0]):
-                write_item(key, val, False, False, _MISS, _MISS)
+                write_item(key, val, _NODUP)
             return
-        raise_on_dup = RAISE in (on_dup_key, on_dup_val, on_dup_kv)
+        raise_on_dup = RAISE in on_dup
         rollback = raise_on_dup and not init
         if rollback:
-            return self._update_with_rollback(on_dup_key, on_dup_val, on_dup_kv, *args, **kw)
+            self._update_with_rollback(on_dup, *args, **kw)
+            return
         _put = self._put
         for (key, val) in pairs(*args, **kw):
-            _put(key, val, on_dup_key, on_dup_val, on_dup_kv)
+            _put(key, val, on_dup)
 
-    def _update_with_rollback(self, on_dup_key, on_dup_val, on_dup_kv, *args, **kw):
+    def _update_with_rollback(self, on_dup, *args, **kw):
         """Update, rolling back on failure."""
-        writes = []
-        appendwrite = writes.append
+        writelog = []
+        appendlog = writelog.append
         dedup_item = self._dedup_item
         write_item = self._write_item
         for (key, val) in pairs(*args, **kw):
             try:
-                dedup_result = dedup_item(key, val, on_dup_key, on_dup_val, on_dup_kv)
+                dedup_result = dedup_item(key, val, on_dup)
             except DuplicationError:
                 undo_write = self._undo_write
-                for write in reversed(writes):
-                    undo_write(*write)
+                for dedup_result, write_result in reversed(writelog):
+                    undo_write(dedup_result, write_result)
                 raise
-            if dedup_result:
-                write_result = write_item(key, val, *dedup_result)
-                appendwrite(write_result)
+            if dedup_result is not _NOOP:
+                write_result = write_item(key, val, dedup_result)
+                appendlog((dedup_result, write_result))
 
-    def _undo_write(self, key, val, isdupkey, isdupval, oldkey, oldval):
+    def _undo_write(self, dedup_result, write_result):
+        isdupkey, isdupval, _, _ = dedup_result
+        key, val, oldkey, oldval = write_result
         if not isdupkey and not isdupval:
             self._pop(key)
             return
@@ -429,6 +445,11 @@ class frozenbidict(BidirectionalMapping):  # noqa: N801
         def __ne__(self, other):  # noqa: N802
             """``x.__ne__(other) <==> x != other``"""
             return not self == other  # Implement __ne__ in terms of __eq__.
+
+
+_DedupResult = namedtuple('_DedupResult', 'isdupkey isdupval invbyval fwdbykey')
+_WriteResult = namedtuple('_WriteResult', 'key val oldkey oldval')
+_NODUP = _DedupResult(False, False, _MISS, _MISS)
 
 
 #==============================================================================

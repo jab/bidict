@@ -30,12 +30,13 @@
 from collections import Mapping
 
 from ._bidict import bidict
-from ._frozen import frozenbidict
+from ._frozen import frozenbidict, _WriteResult
 from ._marker import _Marker
 from ._miss import _MISS
 from .compat import iteritems, izip
 
 
+_DAT = 0
 _PRV = 1
 _NXT = 2
 _END = _Marker('END')
@@ -84,7 +85,7 @@ class FrozenOrderedBidict(frozenbidict):
     # Can't reuse frozenbidict.copy since we have different internal structure.
     def copy(self):
         """A shallow copy of this ordered bidict."""
-        # This should be faster than ``return self.__class__(self)``.
+        # Fast copy implementation bypassing __init__. See comments in :meth:`frozenbidict.copy`.
         copy = object.__new__(self.__class__)
         sntl = _make_sentinel()
         fwdm = {}
@@ -104,7 +105,7 @@ class FrozenOrderedBidict(frozenbidict):
 
     def __getitem__(self, key):
         nodefwd = self._fwdm[key]
-        datafwd = nodefwd[0]
+        datafwd = nodefwd[_DAT]
         val = _get_other(datafwd, key)
         nodeinv = self._invm[val]
         assert nodeinv is nodefwd
@@ -122,14 +123,22 @@ class FrozenOrderedBidict(frozenbidict):
         return val
 
     @staticmethod
-    def _isdupitem(key, val, nodeinv, nodefwd):  # pylint: disable=arguments-differ
+    def _isdupitem(key, val, dedup_result):
         """Return whether (key, val) duplicates an existing item."""
-        return nodeinv is nodefwd
+        isdupkey, isdupval, nodeinv, nodefwd = dedup_result
+        isdupitem = nodeinv is nodefwd
+        if isdupitem:
+            assert isdupkey
+            assert isdupval
+            data = nodefwd[_DAT]
+            assert key in data
+            assert val in data
+        return isdupitem
 
-    # pylint: disable=arguments-differ
-    def _write_item(self, key, val, isdupkey, isdupval, nodeinv, nodefwd):
+    def _write_item(self, key, val, dedup_result):  # pylint: disable=too-many-locals
         fwdm = self._fwdm
         invm = self._invm
+        isdupkey, isdupval, nodeinv, nodefwd = dedup_result
         if not isdupkey and not isdupval:
             sntl = self._sntl
             last = sntl[_PRV]
@@ -137,7 +146,7 @@ class FrozenOrderedBidict(frozenbidict):
             sntl[_PRV] = last[_NXT] = fwdm[key] = invm[val] = node
             oldkey = oldval = _MISS
         elif isdupkey and isdupval:
-            datafwd = nodefwd[0]
+            datafwd = nodefwd[_DAT]
             oldval = _get_other(datafwd, key)
             datainv, invprv, invnxt = nodeinv
             oldkey = _get_other(datainv, val)
@@ -158,9 +167,9 @@ class FrozenOrderedBidict(frozenbidict):
             assert tmp is nodefwd
             fwdm[key] = invm[val] = nodefwd
             # Update nodefwd with new item.
-            nodefwd[0] = (key, val)
+            nodefwd[_DAT] = (key, val)
         elif isdupkey:
-            datafwd = nodefwd[0]
+            datafwd = nodefwd[_DAT]
             oldval = _get_other(datafwd, key)
             oldkey = _MISS
             oldnodeinv = invm.pop(oldval)
@@ -168,7 +177,7 @@ class FrozenOrderedBidict(frozenbidict):
             invm[val] = nodefwd
             node = nodefwd
         else:  # isdupval
-            datainv = nodeinv[0]
+            datainv = nodeinv[_DAT]
             oldkey = _get_other(datainv, val)
             oldval = _MISS
             oldnodefwd = fwdm.pop(oldkey)
@@ -176,13 +185,14 @@ class FrozenOrderedBidict(frozenbidict):
             fwdm[key] = nodeinv
             node = nodeinv
         if isdupkey ^ isdupval:
-            node[0] = (key, val)
-        return key, val, isdupkey, isdupval, nodeinv, nodefwd, oldkey, oldval
+            node[_DAT] = (key, val)
+        return _WriteResult(key, val, oldkey, oldval)
 
-    # pylint: disable=arguments-differ
-    def _undo_write(self, key, val, isdupkey, isdupval, nodeinv, nodefwd, oldkey, oldval):  # lgtm
+    def _undo_write(self, dedup_result, write_result):  # pylint: disable=too-many-locals
         fwdm = self._fwdm
         invm = self._invm
+        isdupkey, isdupval, nodeinv, nodefwd = dedup_result
+        key, val, oldkey, oldval = write_result
         if not isdupkey and not isdupval:
             self._pop(key)
         elif isdupkey and isdupval:
@@ -190,18 +200,18 @@ class FrozenOrderedBidict(frozenbidict):
             datainv, invprv, invnxt = nodeinv
             assert datainv == (val, oldkey) or datainv == (oldkey, val)
             # Restore original items.
-            nodefwd[0] = (key, oldval)
+            nodefwd[_DAT] = (key, oldval)
             invprv[_NXT] = invnxt[_PRV] = nodeinv
             fwdm[oldkey] = invm[val] = nodeinv
             invm[oldval] = fwdm[key] = nodefwd
         elif isdupkey:
-            nodefwd[0] = (key, oldval)
+            nodefwd[_DAT] = (key, oldval)
             tmp = invm.pop(val)
             assert tmp is nodefwd
             invm[oldval] = nodefwd
             assert fwdm[key] is nodefwd
         else:  # isdupval
-            nodeinv[0] = (oldkey, val)
+            nodeinv[_DAT] = (oldkey, val)
             tmp = fwdm.pop(key)
             assert tmp is nodeinv
             fwdm[oldkey] = nodeinv
@@ -214,7 +224,7 @@ class FrozenOrderedBidict(frozenbidict):
         nextidx = _PRV if reverse else _NXT
         cur = sntl[nextidx]
         while cur is not sntl:  # lgtm [py/comparison-using-is]
-            data = cur[0]
+            data = cur[_DAT]
             korv = data[0]
             node = fwdm.get(korv)
             key = korv if node is cur else data[1]

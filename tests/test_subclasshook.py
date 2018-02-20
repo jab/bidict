@@ -13,7 +13,7 @@ BidirectionalMapping's interface, it is automatically a subclass.
 from bidict import BidirectionalMapping
 
 
-class MyBidirectionalMapping(dict):
+class MyBidirectionalMapping(dict):  # pylint: disable=too-few-public-methods
     """Dummy type implementing the BidirectionalMapping interface."""
 
     def __inverted__(self):
@@ -26,7 +26,7 @@ class MyBidirectionalMapping(dict):
         return MyBidirectionalMapping(self.__inverted__())
 
 
-class OldStyleClass:  # pylint: disable=old-style-class,no-init
+class OldStyleClass:  # pylint: disable=old-style-class,no-init,too-few-public-methods
     """In Python 2 this is an old-style class (not derived from object)."""
 
 

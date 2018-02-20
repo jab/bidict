@@ -4,7 +4,7 @@
 ############################
 
 If you'd like
-:attr:`~bidict.DuplicationPolicy.OVERWRITE`
+:attr:`~bidict.OVERWRITE`
 to be the default duplication policy for
 :func:`~bidict.bidict.__setitem__` and
 :func:`~bidict.bidict.update`,
@@ -43,7 +43,7 @@ simply adapt this recipe to have the class inherit from
 Beware of ``OVERWRITE``
 :::::::::::::::::::::::
 
-With a default :attr:`~bidict.DuplicationPolicy.OVERWRITE` policy
+With a default :attr:`~bidict.OVERWRITE` policy
 as in the ``OverwritingBidict`` recipe above,
 beware of the following potentially surprising behavior::
 
