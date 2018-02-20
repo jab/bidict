@@ -22,16 +22,16 @@ creating a sorted bidict type is dead simple::
     >>> # and whose inverse items stay sorted by *their* keys (i.e. it and
     >>> # its inverse iterate over their items in different orders):
 
-    >>> class KeySortedBidict(bidict.bidict):
+    >>> class SortedBidict(bidict.bidict):
     ...     _fwdm_cls = sortedcontainers.SortedDict
     ...     _invm_cls = sortedcontainers.SortedDict
     ...
     ...     # Include this for nicer repr's:
     ...     __repr_delegate__ = lambda x: list(x.items())
 
-    >>> b = KeySortedBidict({'Tokyo': 'Japan', 'Cairo': 'Egypt'})
+    >>> b = SortedBidict({'Tokyo': 'Japan', 'Cairo': 'Egypt'})
     >>> b
-    KeySortedBidict([('Cairo', 'Egypt'), ('Tokyo', 'Japan')])
+    SortedBidict([('Cairo', 'Egypt'), ('Tokyo', 'Japan')])
 
     >>> b['Lima'] = 'Peru'
 
@@ -50,19 +50,19 @@ creating a sorted bidict type is dead simple::
 
     >>> import sortedcollections
 
-    >>> class FwdKeySortedBidict(bidict.bidict):
+    >>> class KeySortedBidict(bidict.bidict):
     ...     _fwdm_cls = sortedcontainers.SortedDict
     ...     _invm_cls = sortedcollections.ValueSortedDict
     ...
     ...     # Include this for nicer repr's:
     ...     __repr_delegate__ = lambda x: list(x.items())
 
-    >>> element_by_atomic_number = FwdKeySortedBidict({
+    >>> element_by_atomic_number = KeySortedBidict({
     ...     3: 'lithium', 1: 'hydrogen', 2: 'helium'})
 
     >>> # stays sorted by key:
     >>> element_by_atomic_number
-    FwdKeySortedBidict([(1, 'hydrogen'), (2, 'helium'), (3, 'lithium')])
+    KeySortedBidict([(1, 'hydrogen'), (2, 'helium'), (3, 'lithium')])
 
     >>> # .inv stays sorted by value:
     >>> list(element_by_atomic_number.inv.items())
@@ -74,17 +74,25 @@ creating a sorted bidict type is dead simple::
     [('hydrogen', 1), ('helium', 2), ('lithium', 3), ('beryllium', 4)]
 
     >>> # This works because a bidict whose _fwdm_cls differs from its _invm_cls computes
-    >>> # its inverse class (which has _fwdm_cls and _invm_cls swapped) automatically:
-    >>> FwdKeySortedBidictInv = element_by_atomic_number.inv.__class__
-    >>> FwdKeySortedBidict._fwdm_cls
-    <class 'sortedcontainers.sorteddict.SortedDict'>
-    >>> FwdKeySortedBidictInv._invm_cls
-    <class 'sortedcontainers.sorteddict.SortedDict'>
-    >>> FwdKeySortedBidict._invm_cls
+    >>> # its inverse class -- which (note) is not actually the same class as the original,
+    >>> # as it needs to have its _fwdm_cls and _invm_cls swapped -- automatically.
+    >>> # You can see this if you inspect the inverse bidict:
+    >>> element_by_atomic_number.inv  # Note the different class, which was auto-generated:
+    KeySortedBidictInv([('hydrogen', 1), ('helium', 2), ('lithium', 3), ('beryllium', 4)])
+    >>> ValueSortedBidict = element_by_atomic_number.inv.__class__
+    >>> ValueSortedBidict._fwdm_cls
     <class 'sortedcollections.recipes.ValueSortedDict'>
-    >>> FwdKeySortedBidictInv._fwdm_cls
-    <class 'sortedcollections.recipes.ValueSortedDict'>
+    >>> ValueSortedBidict._invm_cls
+    <class 'sortedcontainers.sorteddict.SortedDict'>
 
+    >>> # Round trips work as expected:
+    >>> atomic_number_by_element = ValueSortedBidict(element_by_atomic_number.inv)
+    >>> atomic_number_by_element
+    KeySortedBidictInv([('hydrogen', 1), ('helium', 2), ('lithium', 3), ('beryllium', 4)])
+    >>> KeySortedBidict(atomic_number_by_element.inv) == element_by_atomic_number
+    True
+
+    >>> # One other useful trick:
     >>> # To pass method calls through to the _fwdm SortedDict when not present
     >>> # on the bidict instance, provide a custom __getattribute__ method:
     >>> def __getattribute__(self, name):
@@ -96,8 +104,10 @@ creating a sorted bidict type is dead simple::
     ...         except AttributeError:
     ...             raise e
 
-    >>> FwdKeySortedBidict.__getattribute__ = __getattribute__
+    >>> KeySortedBidict.__getattribute__ = __getattribute__
 
     >>> # bidict has no .peekitem attr, so the call is passed through to _fwdm:
     >>> element_by_atomic_number.peekitem()
     (4, 'beryllium')
+    >>> element_by_atomic_number.inv.peekitem()
+    ('beryllium', 4)
