@@ -20,8 +20,9 @@
 #
 # Thank you for reading and for any feedback you provide.
 
+#                             * Code review nav *
 #==============================================================================
-#  ← Prev: __init__.py          * Code review nav *        Next: _frozen.py →
+#  ← Prev: __init__.py         Current: _abc.py            Next: _frozen.py →
 #==============================================================================
 
 
@@ -95,6 +96,7 @@ class BidirectionalMapping(Mapping):  # pylint: disable=abstract-method,no-init
         return all(any(B.__dict__.get(i) for B in mro) for i in cls._subclsattrs)
 
 
+#                             * Code review nav *
 #==============================================================================
-#  ← Prev: __init__.py          * Code review nav *        Next: _frozen.py →
+#  ← Prev: __init__.py         Current: _abc.py            Next: _frozen.py →
 #==============================================================================

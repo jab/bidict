@@ -6,44 +6,44 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 
-u"""
-Compatibility helpers.
+u"""Compatibility helpers.
 
-    .. py:attribute:: PY2
+.. py:attribute:: PY2
 
-        True iff running on Python 2.
+    True iff running on Python 2.
 
-    .. py:attribute:: PYPY
+.. py:attribute:: PYPY
 
-        True iff running on PyPy.
+    True iff running on PyPy.
 
-    .. py:attribute:: viewkeys
+.. py:attribute:: viewkeys
 
-        viewkeys(x) → a set-like object providing a view on x's keys.
+    ``viewkeys(x) → x.viewkeys() if PY2 else x.keys()``
 
-    .. py:attribute:: viewvalues
+.. py:attribute:: viewvalues
 
-        viewvalues(x) → an object providing a view on x's values.
+    ``viewvalues(x) → x.viewvalues() if PY2 else x.values()``
 
-    .. py:attribute:: viewitems
+.. py:attribute:: viewitems
 
-        viewitems(x) → a set-like object providing a view on x's items.
+    ``viewitems(x) → x.viewitems() if PY2 else x.items()``
 
-    .. py:attribute:: iterkeys
+.. py:attribute:: iterkeys
 
-        iterkeys(x) → an iterator over the keys of x.
+    ``iterkeys(x) → x.iterkeys() if PY2 else iter(x.keys())``
 
-    .. py:attribute:: itervalues
+.. py:attribute:: itervalues
 
-        itervalues(x) → an iterator over the values of x.
+    ``itervalues(x) → x.itervalues() if PY2 else iter(x.values())``
 
-    .. py:attribute:: iteritems
+.. py:attribute:: iteritems
 
-        iteritems(x) → an iterator over the (key, value) items of x.
+    ``iteritems(x) → x.iteritems() if PY2 else iter(x.items())``
 
-    .. py:attribute:: izip
+.. py:attribute:: izip
 
-        Alias for :func:`zip` on Python 3 / ``itertools.izip`` on Python 2.
+    ``itertools.izip() if PY2 else zip``
+
 """
 
 from operator import methodcaller

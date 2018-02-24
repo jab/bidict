@@ -20,8 +20,9 @@
 #
 # Thank you for reading and for any feedback you provide.
 
+#                             * Code review nav *
 #==============================================================================
-#  ← Prev: _frozen.py         * Code review nav *         Next: _ordered.py →
+#  ← Prev: _frozen.py         Current: _bidict.py         Next: _ordered.py →
 #==============================================================================
 
 
@@ -57,16 +58,16 @@ class bidict(frozenbidict, MutableMapping):  # noqa: N801; pylint: disable=inval
 
         If *key* is already associated with a different value,
         the old value will be replaced with *val*,
-        as with dict's :attr:`__setitem__`.
+        as with dict's :meth:`__setitem__`.
 
         If *val* is already associated with a different key,
         an exception is raised
         to protect against accidental removal of the key
         that's currently associated with *val*.
 
-        Use :attr:`put` instead if you want to specify different policy in
+        Use :meth:`put` instead if you want to specify different policy in
         the case that the provided key or value duplicates an existing one.
-        Or use :attr:`forceput` to unconditionally associate *key* with *val*,
+        Or use :meth:`forceput` to unconditionally associate *key* with *val*,
         replacing any existing items as necessary to preserve uniqueness.
 
         :raises bidict.ValueDuplicationError: if *val* duplicates that of an
@@ -124,7 +125,7 @@ class bidict(frozenbidict, MutableMapping):  # noqa: N801; pylint: disable=inval
         self._invm.clear()
 
     def pop(self, key, default=_MISS):
-        u"""x.pop(k[,d]) → v
+        u"""*x.pop(k[, d]) → v*
 
         Remove specified key and return the corresponding value.
 
@@ -138,7 +139,7 @@ class bidict(frozenbidict, MutableMapping):  # noqa: N801; pylint: disable=inval
             return default
 
     def popitem(self):
-        """x.popitem() → (k, v)
+        u"""*x.popitem() → (k, v)*
 
         Remove and return some item as a (key, value) pair.
 
@@ -151,17 +152,17 @@ class bidict(frozenbidict, MutableMapping):  # noqa: N801; pylint: disable=inval
         return key, val
 
     def update(self, *args, **kw):
-        """Like :attr:`putall` with default duplication policies."""
+        """Like :meth:`putall` with default duplication policies."""
         if args or kw:
             self._update(False, None, *args, **kw)
 
     def forceupdate(self, *args, **kw):
-        """Like a bulk :attr:`forceput`."""
+        """Like a bulk :meth:`forceput`."""
         self._update(False, self._ON_DUP_OVERWRITE, *args, **kw)
 
     def putall(self, items, on_dup_key=RAISE, on_dup_val=RAISE, on_dup_kv=None):
         """
-        Like a bulk :attr:`put`.
+        Like a bulk :meth:`put`.
 
         If one of the given items causes an exception to be raised,
         none of the items is inserted.
@@ -171,6 +172,7 @@ class bidict(frozenbidict, MutableMapping):  # noqa: N801; pylint: disable=inval
             self._update(False, on_dup, items)
 
 
+#                             * Code review nav *
 #==============================================================================
-#  ← Prev: _frozen.py         * Code review nav *         Next: _ordered.py →
+#  ← Prev: _frozen.py         Current: _bidict.py         Next: _ordered.py →
 #==============================================================================

@@ -20,8 +20,9 @@
 #
 # Thank you for reading and for any feedback you provide.
 
+#                             * Code review nav *
 #==============================================================================
-#  ← Prev: _abc.py           * Code review nav *           Next: _bidict.py →
+#  ← Prev: _abc.py            Current: _frozen.py          Next: _bidict.py →
 #==============================================================================
 
 
@@ -452,6 +453,7 @@ _WriteResult = namedtuple('_WriteResult', 'key val oldkey oldval')
 _NODUP = _DedupResult(False, False, _MISS, _MISS)
 
 
+#                             * Code review nav *
 #==============================================================================
-#  ← Prev: _abc.py           * Code review nav *           Next: _bidict.py →
+#  ← Prev: _abc.py            Current: _frozen.py          Next: _bidict.py →
 #==============================================================================

@@ -20,8 +20,9 @@
 #
 # Thank you for reading and for any feedback you provide.
 
+#                             * Code review nav *
 #==============================================================================
-#  ← Prev: _bidict.py         * Code review nav *
+#  ← Prev: _bidict.py         Current: _ordered.py                      <FIN>
 #==============================================================================
 
 
@@ -246,7 +247,7 @@ class FrozenOrderedBidict(frozenbidict):  # lgtm [py/missing-equals]
         return all(i == j for (i, j) in izip(iteritems(self), iteritems(other)))
 
     def __repr_delegate__(self):
-        """See :attr:`bidict.frozenbidict.__repr_delegate__`."""
+        """See :meth:`bidict.frozenbidict.__repr_delegate__`."""
         return list(iteritems(self))
 
     # frozenbidict.__hash__ is also correct for ordered bidicts:
@@ -270,7 +271,7 @@ class OrderedBidict(FrozenOrderedBidict, bidict):
         self._sntl[:] = [_END, self._sntl, self._sntl]
 
     def popitem(self, last=True):  # pylint: disable=arguments-differ
-        """x.popitem() → (k, v)
+        u"""*x.popitem() → (k, v)*
 
         Remove and return the most recently added item as a (key, value) pair
         if *last* is True, else the least recently added item.
@@ -321,6 +322,7 @@ def _get_other(nodedata, key_or_val):
     return first
 
 
+#                             * Code review nav *
 #==============================================================================
-#  ← Prev: _bidict.py         * Code review nav *
+#  ← Prev: _bidict.py         Current: _ordered.py                      <FIN>
 #==============================================================================

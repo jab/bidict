@@ -20,17 +20,20 @@
 #
 # Thank you for reading and for any feedback you provide.
 
+#                             * Code review nav *
 #==============================================================================
-#                           * Code review nav *               Next: _abc.py →
+#                             Current: __init__.py            Next: _abc.py →
 #==============================================================================
 
 
 """
 Efficient, Pythonic bidirectional map implementation and related functionality.
 
-If you are reading this elsewhere,
-please see https://bidict.readthedocs.io for the most up-to-date documentation,
-and https://github.com/jab/bidict for the most up-to-date code.
+.. note::
+
+    If you are reading this elsewhere,
+    please see https://bidict.readthedocs.io for the most up-to-date documentation,
+    and https://github.com/jab/bidict for the most up-to-date code.
 
 .. :copyright: (c) 2018 Joshua Bronson.
 .. :license: MPLv2. See LICENSE for details.
@@ -84,6 +87,7 @@ __all__ = (
 )
 
 
+#                             * Code review nav *
 #==============================================================================
-#                           * Code review nav *               Next: _abc.py →
+#                             Current: __init__.py            Next: _abc.py →
 #==============================================================================
