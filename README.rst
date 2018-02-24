@@ -110,22 +110,27 @@ and provide as much support for it as possible.
 Please feel free to leave a message in the
 `chatroom <https://gitter.im/jab/bidict>`_
 or to open a new issue on GitHub.
-Don't forget to search through
+You can search through
 `existing issues <https://github.com/jab/bidict/issues>`_
-first and to review the :doc:`contributors-guide` [#fn-contributing]_.
+before creating a new one
+in case your questions or concerns have been adressed there already.
 
 
 Notice of Usage
 ---------------
 
-If you are already using bidict, and especially if
-you/your organization is a significant user,
-please let me know you're using it!
+If you use bidict,
+and especially if your usage or your organization is significant in some way,
+please let me know.
+Hearing that people are using bidict is a powerful antidote
+to the loneliness of maintaining an open-source project by myself. 😅
 
-You can
-`email me <mailto:jab@math.brown.edu?subject=bidict&body=I%20am%20using%20bidict%20for...>`_,
-`open an issue <https://github.com/jab/bidict/issues/new?title=Notice+of+Usage&body=I+am+using+bidict+for...>`_,
-or leave a message in the `chat room <https://gitter.im/jab/bidict>`_.
+You can:
+
+- quickly +1 `this issue <https://github.com/jab/bidict/issues/62>`_
+- create your own `dedicated issue <https://github.com/jab/bidict/issues/new?title=Notice+of+Usage&body=I+am+using+bidict+for...>`_
+- leave a message in the `chat room <https://gitter.im/jab/bidict>`_
+- `email me <mailto:jab@math.brown.edu?subject=bidict&body=I%20am%20using%20bidict%20for...>`_
 
 
 Changelog
@@ -155,31 +160,61 @@ Learning from bidict
 
 One of the most rewarding things about working on bidict
 – and also the most surprising,
-especially in light of the small codebase (just ~600 sloc) –
-is how much fun, advanced Python material
+especially in light of the small codebase –
+is how much fun, advanced Python
 has turned up in the process.
 
-Check out the :doc:`learning-from-bidict` [#fn-learning]_ docs
-if you're interested in taking a tour.
+Check out :doc:`learning-from-bidict` [#fn-learning]_
+if you're interested in learning more.
+(And if that piques your interest,
+perhaps you'd like to `become a reviewer <#reviewers-wanted>`_?)
 
 
 Contributing
 ------------
 
 Bidict is currently a one-person operation
-maintained on a voluntary basis for the public good.
-Your help would be most welcome.
+maintained on a voluntary basis
+with no other sponsorship.
+Your help would be most welcome!
+
+
+Reviewers Wanted!
+^^^^^^^^^^^^^^^^^
+
+.. `this issue <...>`__ avoids "Duplicate explicit target name" Sphinx warning
+.. caused by other `this issue <...>`_ link above. See:
+.. https://github.com/sphinx-doc/sphinx/issues/3921#issuecomment-315581557
+
+One of the most valuable ways to contribute is to become a reviewer.
+If you are interested in reviewing future changes,
+please +1 `this issue <https://github.com/jab/bidict/issues/63>`__.
+
+Doing a complete review of latest master would also be tremendously helpful.
+There are currently only about 650 lines of code,
+so a full review may not even take much time.
+
+If you see some code, tests, docs, or anything else that could use improvement,
+please open an issue or submit a pull request.
+(On the off chance you finish a review without spotting any issues,
+please let me know that too!)
+
+If you are interested in getting a guided tour of the codebase
+to help with your review,
+I would be happy to try to coordinate a screenshare.
+
+
+Becoming a sponsor
+^^^^^^^^^^^^^^^^^^
 
 If bidict has helped you accomplish your work,
 especially work you've been paid for,
-please consider supporting bidict's maintenance and development.
+please consider supporting bidict's continued maintenance and development
+and/or asking your organization to do the same.
 
 .. image:: https://raw.githubusercontent.com/jab/bidict/master/_static/support-on-gumroad.png
     :target: https://gumroad.com/l/bidict
     :alt: Support bidict
-
-For information about contributing to the code,
-please see the :doc:`contributors-guide`. [#fn-contributing]_
 
 
 Finding Documentation
@@ -197,8 +232,6 @@ and are seeing broken links,
 try these alternate links instead:
 
 .. [#fn-intro] `<docs/intro.rst>`_ | `<https://bidict.readthedocs.io/intro.html>`_
-
-.. [#fn-contributing] `<CONTRIBUTING.rst>`_ | `<https://bidict.readthedocs.io/contributors-guide.html>`_
 
 .. [#fn-changelog] `<CHANGELOG.rst>`_ | `<https://bidict.readthedocs.io/changelog.html>`_
 

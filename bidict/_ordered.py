@@ -42,7 +42,7 @@ _NXT = 2
 _END = _Marker('END')
 
 
-class FrozenOrderedBidict(frozenbidict):
+class FrozenOrderedBidict(frozenbidict):  # lgtm [py/missing-equals]
     """Frozen (i.e. hashable, immutable) ordered bidict.
 
     Also the base class for :class:`OrderedBidict`, which adds mutable behavior.

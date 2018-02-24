@@ -7,6 +7,7 @@ Bug reports, feature requests, patches, and other contributions are warmly welco
 Contribution should be as easy and friendly as possible.
 Below are a few guidelines contributors should follow to facilitate the process.
 
+
 Getting Started
 ---------------
 
@@ -28,6 +29,7 @@ Getting Started
 - If you would like to contribute a patch,
   make sure you've `created your own fork <https://github.com/jab/bidict/fork>`_
   and have cloned it to your computer.
+
 
 Making Changes
 --------------
@@ -81,6 +83,7 @@ Making Changes
       issue number from the tracker. The body describes the behavior without
       the patch, why it's a problem, and how the patch fixes the problem.
 
+
 Submitting Changes
 ------------------
 
@@ -100,46 +103,42 @@ Submitting Changes
   creating a welcoming and inclusive community.
   Expect nothing less of any project.
 
-Becoming a Core Contributor
----------------------------
 
-Currently `@jab <https://github.com/jab>`_ is the only person responsible
-for bidict maintenance and development.
-Additional core contributors are welcome.
-
-Donation and Other Ways to Contribute
--------------------------------------
+Other Ways to Contribute
+------------------------
 
 Besides filing issues and pull requests, there are other ways to contribute.
 
-.. image:: https://img.shields.io/badge/Gumroad-Support%20bidict-orange.svg
+.. image:: https://img.shields.io/badge/Chip%20in%20via-Gumroad-orange.svg
   :target: https://gumroad.com/l/bidict
-  :alt: Gumroad - Support bidict
+  :alt: Chip in via Gumroad
 
-.. image:: https://img.shields.io/badge/Bountysource-Support%20bidict-brightgreen.svg
+.. image:: https://img.shields.io/badge/Chip%20in%20via-Bountysource-brightgreen.svg
   :target: https://www.bountysource.com/teams/bidict
-  :alt: Bountysource - Support bidict
+  :alt: Chip in via Bountysource
 
-.. image:: https://img.shields.io/badge/PayPal-Support%20bidict-blue.svg
+.. image:: https://img.shields.io/badge/Chip%20in%20via-PayPal-blue.svg
   :target: https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=jab%40math%2ebrown%2eedu&lc=US&item_name=Support%20bidict&button_subtype=services&currency_code=USD&bn=PP%2dBuyNowBF%3aPaypal%2dBuy%2520a%2520Drink%2dblue%2esvg%3aNonHosted
-  :alt: PayPal - Support bidict
+  :alt: Chip in via PayPal
 
 - If you read the code and learned something new,
-  let us know and it'll give us the warm fuzzies.
+  please let me know.
 
-- If you're using bidict in a project you work on, blog about your experience.
+- If you're using bidict in a project you work on,
+  please post about your experience and send me a link.
 
-- If you come across other people who could find it useful, spread the word.
+- If you come across other people who could find bidict useful,
+  please spread the word.
 
 - If bidict has helped you accomplish your work,
   especially work you've been paid for,
-  please `support bidict's continued maintenance and development
-  <https://gumroad.com/l/bidict>`_
-  and/or ask your organization to do the same.
+  please support bidict's continued maintenance and development
+  financially, and/or ask your organization to do the same:
 
 .. image:: ./_static/support-on-gumroad.png
   :target: https://gumroad.com/l/bidict
   :alt: Support bidict
+
 
 Code of Conduct
 ---------------
@@ -148,11 +147,5 @@ All participation in this project should respect the
 :doc:`code-of-conduct`. [#fn-coc]_
 
 By participating, you are expected to honor this code.
-
-Thanks
-------
-
-Contributions are gratefully received.
-Thank you for your friendly participation.
 
 .. [#fn-coc] `<CODE_OF_CONDUCT.rst>`_ | `<https://bidict.readthedocs.io/code-of-conduct.html>`_
