@@ -59,7 +59,7 @@ inititems = itemlists.map(dedup)
 
 @pytest.mark.parametrize('B', bidict_types)
 def test_slots(B):  # noqa
-    """See https://stackoverflow.com/a/28059785."""
+    """See https://docs.python.org/3/reference/datamodel.html#notes-on-using-slots."""
     stop_at = {object}
     if PY2:
         stop_at.update({Mapping, MutableMapping})  # These don't define __slots__ in Python 2.

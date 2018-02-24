@@ -6,10 +6,31 @@ Changelog
 .. include:: release-notifications.rst.inc
 
 
+Type Hierarchy Reminder
+-----------------------
+
+When reading the below,
+remember that :class:`bidict.bidict` extends :class:`bidict.frozenbidict`, and
+:class:`~bidict.OrderedBidict` extends :class:`~bidict.FrozenOrderedBidict`.
+So the changes to the frozen bidict types described below
+often apply to the non-frozen types as well.
+
+See also :ref:`bidict-type-hierarchy`.
+
+
 0.15.0 (not yet released)
 -------------------------
 
+Speedups and memory usage improvements
+++++++++++++++++++++++++++++++++++++++
+
 - Use :ref:`slots` to speed up bidict attribute access and reduce memory usage.
+  On Python 3,
+  instantiating a large number of bidicts now uses ~57% the amount of memory
+  that it used before,
+  and on Python 2 only ~33% the amount of memory that it used before,
+  in a simple but representative
+  `benchmark <https://github.com/jab/bidict/pull/56#issuecomment-368203591>`_.
 
 - Use weakrefs to refer to a bidict's inverse internally,
   no longer creating a strong reference cycle.
@@ -18,22 +39,17 @@ Changelog
   See the new :ref:`inv-avoids-reference-cycles` documentation.
   Fixes `#24 <https://github.com/jab/bidict/issues/20>`_.
 
-- Classes no longer have to provide an ``__inverted__``
-  attribute to be considered virtual subclasses of
-  :class:`~bidict.BidirectionalMapping`.
+- Make :func:`bidict.frozenbidict.__eq__` significantly
+  more speed- and memory-efficient when comparing to
+  a non-:class:`dict` :class:`~collections.abc.Mapping`.
+  (``Mapping.__eq__()``\'s inefficient implementation will now never be used.)
+  The implementation is now more reusable as well.
 
-- If :func:`bidict.inverted` is passed
-  an object with an ``__inverted__`` attribute,
-  it now ensures it is :func:`callable`
-  before returning the result of calling it.
+- Make :func:`bidict.FrozenOrderedBidict.__iter__` and
+  ``bidict.FrozenOrderedBidict.__eq__()`` slightly faster.
 
-- Make :func:`bidict.FrozenOrderedBidict.__iter__` slightly more efficient.
-
-- :func:`~bidict.frozenbidict.__repr__` no longer dynamically checks
-  for a ``__reversed__`` method to determine whether to use an ordered or
-  unordered ``__repr__`` delegate. Now it always just calls the new
-  :func:`~bidict.frozenbidict.__repr_delegate__` instead, which may be
-  explicitly overridden as needed.
+Minor Bugfix
+++++++++++++
 
 - If you create a custom bidict subclass whose ``_fwdm_cls``
   differs from its ``_invm_cls``
@@ -45,9 +61,27 @@ Changelog
   for your custom bidict's
   :attr:`~bidict.frozenbidict.inv` bidict.
 
+Miscellaneous
++++++++++++++
 
-Breaking API Changes
-++++++++++++++++++++
+- Classes no longer have to provide an ``__inverted__``
+  attribute to be considered virtual subclasses of
+  :class:`~bidict.BidirectionalMapping`.
+
+- If :func:`bidict.inverted` is passed
+  an object with an ``__inverted__`` attribute,
+  it now ensures it is :func:`callable`
+  before returning the result of calling it.
+
+- :func:`~bidict.frozenbidict.__repr__` no longer checks for a ``__reversed__``
+  method to determine whether to use an ordered or unordered-style repr.
+  It now calls the new :func:`~bidict.frozenbidict.__repr_delegate__` instead
+  (which may be overridden if needed), for better composability.
+
+Minor Breaking API Changes
+++++++++++++++++++++++++++
+
+The following breaking changes are expected to affect few if any users.
 
 - Rename:
  
@@ -67,10 +101,11 @@ Breaking API Changes
   :attr:`~bidict.IGNORE`
   duplication policies are no longer available as attributes of
   :class:`bidict.DuplicationPolicy`,
-  and can now only be accesseed as attributes of
-  the :mod:`bidict` module namespace.
-  (So it is no longer possible to create an infinite chain like
-  ``DuplicationPolicy.RAISE.RAISE.RAISE...``)
+  and can now only be accessed as attributes of
+  the :mod:`bidict` module namespace,
+  which was the canonical way to refer to them anyway.
+  It is now no longer possible to create an infinite chain like
+  ``DuplicationPolicy.RAISE.RAISE.RAISE...``
 
 - :func:`~bidict.namedbidict` now raises :class:`TypeError` if the provided
   ``base_type`` is not a subclass of :class:`~bidict.frozenbidict`.
@@ -98,8 +133,8 @@ Breaking API Changes
   when (un)pickling a :func:`~bidict.namedbidict`.
 
 - Fix incorrect inversion of
-  ``some_named_bidict.inv.[fwdname]_for`` and
-  ``some_named_bidict.inv.[invname]_for``.
+  ``some_named_bidict.inv.<fwdname>_for`` and
+  ``some_named_bidict.inv.<invname>_for``.
 
 - Only warn when an unsupported Python version is detected
   (e.g. Python < 2.7) rather than raising :class:`AssertionError`.
