@@ -9,7 +9,7 @@
 
 import gc
 import pickle
-from collections import OrderedDict
+from collections import Mapping, MutableMapping, OrderedDict
 from os import getenv
 from weakref import ref
 
@@ -55,6 +55,24 @@ mutating_methods_by_arity = {
 immutable = integers()
 itemlists = lists(tuples(immutable, immutable))
 inititems = itemlists.map(dedup)
+
+
+@pytest.mark.parametrize('B', bidict_types)
+def test_slots(B):  # noqa
+    """See https://stackoverflow.com/a/28059785."""
+    stop_at = {object}
+    if PY2:
+        stop_at.update({Mapping, MutableMapping})  # These don't define __slots__ in Python 2.
+    cls_by_slot = {}
+    for cls in B.__mro__:
+        if cls in stop_at:
+            break
+        slots = cls.__dict__.get('__slots__')
+        assert slots is not None, 'Expected %r to define __slots__' % cls
+        for slot in slots:
+            seen_at = cls_by_slot.get(slot)
+            assert not seen_at, '%r repeats slot %r declared first by %r' % (seen_at, slot, cls)
+            cls_by_slot[slot] = cls
 
 
 @pytest.mark.parametrize('B', bidict_types)
