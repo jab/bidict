@@ -47,7 +47,7 @@ class bidict(frozenbidict, MutableMapping):  # noqa: N801; pylint: disable=inval
     _ON_DUP_OVERWRITE = _OnDup(key=OVERWRITE, val=OVERWRITE, kv=OVERWRITE)
 
     def __delitem__(self, key):
-        """``x.__delitem__(y) <==> del x[y]``"""
+        u"""*x.__delitem__(y)　⟺　del x[y]*"""
         self._pop(key)
 
     def __setitem__(self, key, val):

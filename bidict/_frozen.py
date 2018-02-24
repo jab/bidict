@@ -213,14 +213,15 @@ class frozenbidict(BidirectionalMapping):  # noqa: N801
     # inefficient ``dict(self.items()) == dict(other.items())`` comparison, so override it with a
     # more efficient implementation.
     def __eq__(self, other):
-        """``x.__eq__(other) <==> x == other``
+        u"""*x.__eq__(other)　⟺　x == other*
 
-        Equivalent to ``dict(x.items()) == dict(other.items())``
+        Equivalent to *dict(x.items()) == dict(other.items())*
         but more efficient.
 
-        Note this implementation of ``__eq__`` is inherited by subclasses of
-        this class, in particular by the ordered bidict subclasses, so ``==``
+        Note this implementation of :meth:`__eq__` is inherited by subclasses
+        of this class, in particular by the ordered bidict subclasses, so ==
         comparison is always order-insensitive.
+
         See also :meth:`bidict.FrozenOrderedBidict.equals_order_sensitive`
         """
         if not isinstance(other, Mapping) or len(self) != len(other):
@@ -401,7 +402,7 @@ class frozenbidict(BidirectionalMapping):  # noqa: N801
 
     def __copy__(self):
         """Used for the copy protocol.
-        See also :mod:`copy`.
+        See also the :mod:`copy` module.
         """
         return self.copy()
 
@@ -414,7 +415,7 @@ class frozenbidict(BidirectionalMapping):  # noqa: N801
         return iter(self._fwdm)
 
     def __getitem__(self, key):
-        """``x.__getitem__(key) <==> x[key]``"""
+        u"""*x.__getitem__(key)　⟺　x[key]*"""
         return self._fwdm[key]
 
     def values(self):
@@ -444,7 +445,7 @@ class frozenbidict(BidirectionalMapping):  # noqa: N801
 
         # __ne__ added automatically in Python 3 when you implement __eq__, but not in Python 2.
         def __ne__(self, other):  # noqa: N802
-            """``x.__ne__(other) <==> x != other``"""
+            u"""*x.__ne__(other)　⟺　x != other*"""
             return not self == other  # Implement __ne__ in terms of __eq__.
 
 
