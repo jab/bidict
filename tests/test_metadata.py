@@ -10,22 +10,20 @@
 import bidict
 
 
-# pylint: disable=all
-# (otherwise pylint flags duplicate code in bidict/metadata.py)
-META_ATTRS = [
-    '__author__',
-    '__maintainer__',
-    '__copyright__',
-    '__email__',
-    '__credits__',
-    '__description__',
-    '__license__',
-    '__status__',
-    '__version__',
-]
+METADATA_ATTRS = """
+__author__
+__maintainer__
+__copyright__
+__email__
+__credits__
+__description__
+__license__
+__status__
+__version__
+""".split()
 
 
 def test_metadata():
     """Ensure bidict has expected metadata attributes."""
-    for i in META_ATTRS:
+    for i in METADATA_ATTRS:
         assert getattr(bidict, i)

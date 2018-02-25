@@ -45,8 +45,8 @@ Speedups and memory usage improvements
   (``Mapping.__eq__()``\'s inefficient implementation will now never be used.)
   The implementation is now more reusable as well.
 
-- Make :func:`bidict.FrozenOrderedBidict.__iter__` and
-  ``bidict.FrozenOrderedBidict.__eq__()`` slightly faster.
+- Make :func:`bidict.FrozenOrderedBidict.__iter__` as well as
+  equality comparison slightly faster for ordered bidicts.
 
 Minor Bugfix
 ++++++++++++

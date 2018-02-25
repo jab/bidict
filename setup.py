@@ -13,7 +13,7 @@ from setuptools import setup
 
 # Fetch bidict's package metadata from bidict/metadata.py.
 # Must use exec(open(...)) because we haven't been installed yet.
-METADATA = {}
+METADATA = dict(__name__=__name__)
 exec(open('bidict/metadata.py').read().encode('utf8'), METADATA)  # pylint: disable=exec-used
 
 try:
@@ -59,7 +59,11 @@ DEV_REQ = SETUP_REQS + TEST_REQS + COVERAGE_REQS + [
 
 setup(
     name='bidict',
-    use_scm_version=True,
+    use_scm_version={
+        'version_scheme': 'guess-next-dev',
+        'local_scheme': 'dirty-tag',
+        'write_to': 'bidict/_version.py',
+    },
     author=METADATA['__author__'],
     author_email=METADATA['__email__'],
     description=METADATA['__description__'],

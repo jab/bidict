@@ -50,49 +50,47 @@ UPDATE_NODUP = OrderedBidict((
 UPDATE_WITHDUPVAL = OrderedBidict(UPDATE_NODUP, key_with_dup_val='hydrogen')
 
 
-# pylint: disable=C0103,C0111
-
-@pytest.mark.parametrize('B', BIDICT_TYPES)
-def test_put_nodup(B, benchmark):  # noqa: N803
+@pytest.mark.parametrize('bi_cls', BIDICT_TYPES)
+def test_put_nodup(bi_cls, benchmark):
     """Test inserting a new item with no key or value duplication using put."""
-    b = B(ELEMENTS)
-    benchmark(b.put, 'K', 'potassium')
+    some_bidict = bi_cls(ELEMENTS)
+    benchmark(some_bidict.put, 'K', 'potassium')
 
 
-@pytest.mark.parametrize('B', BIDICT_TYPES)
-def test_put_withdup(B, benchmark):  # noqa: N803
+@pytest.mark.parametrize('bi_cls', BIDICT_TYPES)
+def test_put_withdup(bi_cls, benchmark):
     """Test inserting a new item with a duplicate value using put."""
-    b = B(ELEMENTS)
+    some_bidict = bi_cls(ELEMENTS)
 
-    def runner():
+    def _runner():
         with pytest.raises(ValueDuplicationError):
-            b.put('key_with_dup_val', 'hydrogen')
+            some_bidict.put('key_with_dup_val', 'hydrogen')
 
-    benchmark(runner)
+    benchmark(_runner)
 
 
-@pytest.mark.parametrize('B', BIDICT_TYPES)
-def test_update_nodup(B, benchmark):  # noqa: N803
+@pytest.mark.parametrize('bi_cls', BIDICT_TYPES)
+def test_update_nodup(bi_cls, benchmark):
     """Test inserting new items with no duplication using update."""
-    b = B(ELEMENTS)
-    benchmark(b.update, UPDATE_NODUP)
+    some_bidict = bi_cls(ELEMENTS)
+    benchmark(some_bidict.update, UPDATE_NODUP)
 
 
-@pytest.mark.parametrize('B', BIDICT_TYPES)
-def test_update_withdup(B, benchmark):  # noqa: N803
+@pytest.mark.parametrize('bi_cls', BIDICT_TYPES)
+def test_update_withdup(bi_cls, benchmark):
     """Test inserting new items with value duplication using update."""
-    b = B(ELEMENTS)
+    some_bidict = bi_cls(ELEMENTS)
 
-    def runner():
+    def _runner():
         with pytest.raises(ValueDuplicationError):
-            b.update(UPDATE_WITHDUPVAL)
+            some_bidict.update(UPDATE_WITHDUPVAL)
 
-    benchmark(runner)
+    benchmark(_runner)
 
 
-@pytest.mark.parametrize('B', BIDICT_TYPES)
-def test_forceupdate_withdup(B, benchmark):  # noqa: N803
+@pytest.mark.parametrize('bi_cls', BIDICT_TYPES)
+def test_forceupdate_withdup(bi_cls, benchmark):
     """Test inserting new items with value duplication using forceupdate."""
-    b = B(ELEMENTS)
-    benchmark(b.forceupdate, UPDATE_WITHDUPVAL)
-    assert b.inv['hydrogen'] == 'key_with_dup_val'
+    some_bidict = bi_cls(ELEMENTS)
+    benchmark(some_bidict.forceupdate, UPDATE_WITHDUPVAL)
+    assert some_bidict.inv['hydrogen'] == 'key_with_dup_val'

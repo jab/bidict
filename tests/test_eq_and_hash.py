@@ -22,69 +22,68 @@ class _OrderedBidictSubcls(OrderedBidict):
     pass
 
 
-# pylint: disable=C0103
-items = [('a', 1), ('b', 2)]  # use int values so makes sense with Counter
-itemsreversed = list(reversed(items))
+ITEMS = [('a', 1), ('b', 2)]  # use int values so we can use with Counter below
+ITEMS_REV = list(reversed(ITEMS))
 
-bidict_of_items = bidict(items)
-frozenbidict_of_items = frozenbidict(items)
-namedbidict_of_items = namedbidict('named', 'keys', 'vals')(items)
-orderedbidict_of_items = OrderedBidict(items)
-orderedbidict_of_itemsreversed = OrderedBidict(itemsreversed)
-orderedbidictsubcls_of_items = _OrderedBidictSubcls(items)
-orderedbidictsubcls_of_itemsreversed = _OrderedBidictSubcls(itemsreversed)
-frozenorderedbidict_of_items = FrozenOrderedBidict(items)
-frozenorderedbidict_of_itemsreversed = FrozenOrderedBidict(itemsreversed)
-bidicts = (
-    bidict_of_items,
-    frozenbidict_of_items,
-    namedbidict_of_items,
-    orderedbidict_of_items,
-    orderedbidict_of_itemsreversed,
-    orderedbidictsubcls_of_items,
-    orderedbidictsubcls_of_itemsreversed,
-    frozenorderedbidict_of_items,
-    frozenorderedbidict_of_itemsreversed,
+BIDICT = bidict(ITEMS)
+FROZEN = frozenbidict(ITEMS)
+NAMED = namedbidict('named', 'keys', 'vals')(ITEMS)
+ORDERED = OrderedBidict(ITEMS)
+ORDERED_REV = OrderedBidict(ITEMS_REV)
+ORDERED_SUB = _OrderedBidictSubcls(ITEMS)
+ORDERED_SUB_REV = _OrderedBidictSubcls(ITEMS_REV)
+FROZEN_ORDERED = FrozenOrderedBidict(ITEMS)
+FROZEN_ORDERED_REV = FrozenOrderedBidict(ITEMS_REV)
+BIDICTS = (
+    BIDICT,
+    FROZEN,
+    NAMED,
+    ORDERED,
+    ORDERED_REV,
+    ORDERED_SUB,
+    ORDERED_SUB_REV,
+    FROZEN_ORDERED,
+    FROZEN_ORDERED_REV,
 )
 
-dict_of_itemsreversed = dict(itemsreversed)
-counter_of_itemsreversed = Counter(dict_of_itemsreversed)
-defaultdict_of_itemsreversed = defaultdict(lambda x: None, itemsreversed)
-dictsubcls_of_itemsreversed = _DictSubcls(itemsreversed)
-ordereddict_of_items = OrderedDict(items)
-ordereddict_of_itemsreversed = OrderedDict(itemsreversed)
-empty_dict = {}
-not_a_mapping = 42
-not_bidicts = (
-    dict_of_itemsreversed,
-    counter_of_itemsreversed,
-    defaultdict_of_itemsreversed,
-    dictsubcls_of_itemsreversed,
-    ordereddict_of_items,
-    ordereddict_of_itemsreversed,
-    empty_dict,
-    not_a_mapping,
+DICT_REV = dict(ITEMS_REV)
+COUNTER_REV = Counter(DICT_REV)
+DEFAULTDICT_REV = defaultdict(lambda x: None, ITEMS_REV)
+DICT_SUB_REV = _DictSubcls(ITEMS_REV)
+ORDERED_DICT = OrderedDict(ITEMS)
+ORDERED_DICT_REV = OrderedDict(ITEMS_REV)
+EMPTY_DICT = {}
+NOT_A_MAPPING = 42
+NOT_BIDICTS = (
+    DICT_REV,
+    COUNTER_REV,
+    DEFAULTDICT_REV,
+    DICT_SUB_REV,
+    ORDERED_DICT,
+    ORDERED_DICT_REV,
+    EMPTY_DICT,
+    NOT_A_MAPPING,
 )
 
 
-@pytest.mark.parametrize('b, other', product(bidicts, bidicts + not_bidicts))
-def test_eq_and_hash(b, other):
+@pytest.mark.parametrize('some_bidict, other', product(BIDICTS, BIDICTS + NOT_BIDICTS))
+def test_eq_and_hash(some_bidict, other):
     """Make sure equality tests and hash results behave as expected."""
-    b_has_eq_order_sens = hasattr(b, 'equals_order_sensitive')
+    b_has_eq_order_sens = hasattr(some_bidict, 'equals_order_sensitive')
     if not isinstance(other, Mapping):
-        assert b != other
+        assert some_bidict != other
         if b_has_eq_order_sens:
-            assert not b.equals_order_sensitive(other)
-    elif len(b) != len(other):
-        assert b != other
+            assert not some_bidict.equals_order_sensitive(other)
+    elif len(some_bidict) != len(other):
+        assert some_bidict != other
     else:
-        should_be_equal = dict(b) == dict(other)
-        are_equal = b == other
+        should_be_equal = dict(some_bidict) == dict(other)
+        are_equal = some_bidict == other
         assert are_equal == should_be_equal
-        both_hashable = isinstance(b, Hashable) and isinstance(other, Hashable)
+        both_hashable = isinstance(some_bidict, Hashable) and isinstance(other, Hashable)
         if are_equal and both_hashable:
-            assert hash(b) == hash(other)
+            assert hash(some_bidict) == hash(other)
         if b_has_eq_order_sens:
-            are_equal_ordered = b.equals_order_sensitive(other)
-            should_be_equal_ordered = OrderedDict(b) == OrderedDict(other)
+            are_equal_ordered = some_bidict.equals_order_sensitive(other)
+            should_be_equal_ordered = OrderedDict(some_bidict) == OrderedDict(other)
             assert are_equal_ordered == should_be_equal_ordered
