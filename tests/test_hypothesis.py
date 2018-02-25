@@ -14,57 +14,234 @@ from os import getenv
 from weakref import ref
 
 import pytest
-from hypothesis import assume, given, settings
-from hypothesis.strategies import integers, lists, tuples
+from hypothesis import assume, given, settings, strategies as strat
 from bidict import (
+    BidictException,
     IGNORE, OVERWRITE, RAISE,
     bidict, namedbidict, OrderedBidict,
     frozenbidict, FrozenOrderedBidict)
-from bidict.compat import PY2, PYPY, iteritems
+from bidict.compat import PY2, PYPY, iterkeys, itervalues, iteritems
 
 
 settings.register_profile('default', settings(max_examples=200, deadline=None))
 settings.load_profile(getenv('HYPOTHESIS_PROFILE', 'default'))
 
 
-# pylint: disable=C0111
-def to_inv_odict(items):
-    """Return an OrderedDict with the inverse of each item in ``items``."""
+def inv_od(items):
+    """An OrderedDict containing the inverse of each item in *items*."""
     return OrderedDict((v, k) for (k, v) in items)
 
 
-def dedup(items):
-    """Given some generated items, prune any with duplicated keys or values."""
-    pruned = list(iteritems(to_inv_odict(iteritems(to_inv_odict(items)))))
+def ensure_no_dup(items):
+    """Given some hypothesis-generated items, prune any with duplicated keys or values."""
+    pruned = list(iteritems(inv_od(iteritems(inv_od(items)))))
     assume(len(pruned) >= len(items) // 2)
     return pruned
 
 
-# pylint: disable=C0103
+def ensure_dup(key=False, val=False):
+    """Return a function that takes some hypothesis-generated items
+    and ensures they contain the specified type of duplication."""
+    assert key or val
+    def _wrapped(items):  # noqa: E306 (expected 1 blank line before a nested definition)
+        fwd = dict(items)
+        if key:
+            assume(len(fwd) < len(items))
+        if val:
+            inv = dict((v, k) for (k, v) in items)
+            assume(len(inv) < len(items))
+        if key and val:
+            invinv = dict((v, k) for (k, v) in iteritems(inv))
+            # If an item has a duplicate key and val, they must duplicate two other distinct items.
+            assume(len(invinv) < len(fwd))
+        return items
+    return _wrapped
+
+
 MyNamedBidict = namedbidict('MyNamedBidict', 'key', 'val')
-ondupbehaviors = (IGNORE, OVERWRITE, RAISE)
-mutable_bidict_types = (bidict, OrderedBidict, MyNamedBidict)
-immutable_bidict_types = (frozenbidict, FrozenOrderedBidict)
-bidict_types = mutable_bidict_types + immutable_bidict_types
-mutating_methods_by_arity = {
-    0: ('clear', 'popitem'),
-    1: ('__delitem__', 'pop', 'setdefault', 'move_to_end'),
-    2: ('__setitem__', 'pop', 'put', 'forceput', 'setdefault'),
-    -1: ('update', 'forceupdate'),
-}
-immutable = integers()
-itemlists = lists(tuples(immutable, immutable))
-inititems = itemlists.map(dedup)
+MyNamedFrozenBidict = namedbidict('MyNamedBidict', 'key', 'val', base_type=frozenbidict)
+MUTABLE_BIDICT_TYPES = (bidict, OrderedBidict, MyNamedBidict)
+IMMUTABLE_BIDICT_TYPES = (frozenbidict, FrozenOrderedBidict, MyNamedFrozenBidict)
+BIDICT_TYPES = MUTABLE_BIDICT_TYPES + IMMUTABLE_BIDICT_TYPES
+HS_BIDICT_TYPES = strat.sampled_from(BIDICT_TYPES)
+HS_MUTABLE_BIDICT_TYPES = strat.sampled_from(MUTABLE_BIDICT_TYPES)
+
+HS_DUP_POLICIES = strat.sampled_from((IGNORE, OVERWRITE, RAISE))
+HS_BOOLEANS = strat.booleans()
+HS_IMMUTABLES = HS_BOOLEANS | strat.none() | strat.integers()
+HS_PAIRS = strat.tuples(HS_IMMUTABLES, HS_IMMUTABLES)
+HS_LISTS_PAIRS = strat.lists(HS_PAIRS)
+HS_LISTS_PAIRS_NODUP = HS_LISTS_PAIRS.map(ensure_no_dup)
+HS_LISTS_PAIRS_DUP = (
+    HS_LISTS_PAIRS.map(ensure_dup(key=True)) |
+    HS_LISTS_PAIRS.map(ensure_dup(val=True)) |
+    HS_LISTS_PAIRS.map(ensure_dup(key=True, val=True)))
+HS_METHOD_ARGS = strat.sampled_from((
+    # 0-arity
+    ('clear', ()),
+    ('popitem', ()),
+    # 1-arity
+    ('__delitem__', (HS_IMMUTABLES,)),
+    ('pop', (HS_IMMUTABLES,)),
+    ('setdefault', (HS_IMMUTABLES,)),
+    ('move_to_end', (HS_IMMUTABLES,)),
+    ('update', (HS_LISTS_PAIRS,)),
+    ('forceupdate', (HS_LISTS_PAIRS,)),
+    # 2-arity
+    ('pop', (HS_IMMUTABLES, HS_IMMUTABLES)),
+    ('setdefault', (HS_IMMUTABLES, HS_IMMUTABLES)),
+    ('move_to_end', (HS_IMMUTABLES, HS_BOOLEANS)),
+    ('__setitem__', (HS_IMMUTABLES, HS_IMMUTABLES)),
+    ('put', (HS_IMMUTABLES, HS_IMMUTABLES)),
+    ('forceput', (HS_IMMUTABLES, HS_IMMUTABLES)),
+))
 
 
-@pytest.mark.parametrize('B', bidict_types)
-def test_slots(B):  # noqa
+def assert_items_match(map1, map2, assertmsg=None):
+    """Ensure map1 and map2 contain the same items (and in the same order, if they're ordered)."""
+    if assertmsg is None:
+        assertmsg = repr((map1, map2))
+    both_ordered = all(isinstance(m, (OrderedDict, FrozenOrderedBidict)) for m in (map1, map2))
+    canon = list if both_ordered else set
+    assert canon(iteritems(map1)) == canon(iteritems(map2)), assertmsg
+
+
+@given(bi_cls=HS_BIDICT_TYPES, init=HS_LISTS_PAIRS_NODUP)
+def test_eq_ne(bi_cls, init):
+    """Test == and != comparison between bidicts and other objects."""
+    some_bidict = bi_cls(init)
+    equal_dict = dict(init)
+    equal_odict = OrderedDict(init)
+    inv_odict = inv_od(iteritems(equal_odict))
+    inv_dict = dict(inv_odict)
+    assert some_bidict == equal_dict
+    assert some_bidict == equal_odict
+    assert not some_bidict != equal_dict
+    assert not some_bidict != equal_odict
+    assert some_bidict.inv == inv_dict
+    assert some_bidict.inv == inv_odict
+    assert not some_bidict.inv != inv_dict
+    assert not some_bidict.inv != inv_odict
+    unequal_odict = OrderedDict(equal_odict, new_key='new_val')
+    unequal_dict = dict(unequal_odict)
+    assert some_bidict != unequal_dict
+    assert some_bidict != unequal_odict
+    assert not some_bidict == unequal_dict
+    assert not some_bidict == unequal_odict
+    # Test comparison with a non-Mapping too.
+    assert not some_bidict == 'not a mapping'
+    assert not some_bidict.inv == 'not a mapping'
+    assert some_bidict != 'not a mapping'
+    assert some_bidict.inv != 'not a mapping'
+
+
+@given(bi_cls=HS_BIDICT_TYPES, init=HS_LISTS_PAIRS_NODUP)
+def test_bijectivity(bi_cls, init):
+    """*b[k] == v  <==>  b.inv[v] == k*"""
+    some_bidict = bi_cls(init)
+    ordered = issubclass(bi_cls, FrozenOrderedBidict)
+    canon = list if ordered else set
+    keys = canon(iterkeys(some_bidict))
+    vals = canon(itervalues(some_bidict))
+    fwd_by_keys = canon(some_bidict[k] for k in iterkeys(some_bidict))
+    inv_by_vals = canon(some_bidict.inv[v] for v in itervalues(some_bidict))
+    assert keys == inv_by_vals
+    assert vals == fwd_by_keys
+    inv = some_bidict.inv
+    inv_keys = canon(iterkeys(inv))
+    inv_vals = canon(itervalues(inv))
+    inv_fwd_by_keys = canon(inv[k] for k in iterkeys(inv))
+    inv_inv_by_vals = canon(inv.inv[v] for v in itervalues(inv))
+    assert inv_keys == inv_inv_by_vals
+    assert inv_vals == inv_fwd_by_keys
+
+
+@given(bi_cls=HS_MUTABLE_BIDICT_TYPES, init=HS_LISTS_PAIRS_NODUP,
+       method_args=HS_METHOD_ARGS, data=strat.data())
+def test_consistency_after_mutation(bi_cls, init, method_args, data):
+    """Call every mutating method on every bidict that implements it,
+    and ensure the bidict is left in a consistent state afterward.
+    """
+    methodname, hs_args = method_args
+    method = getattr(bi_cls, methodname, None)
+    if not method:
+        return
+    args = tuple(data.draw(i) for i in hs_args)
+    bi_init = bi_cls(init)
+    bi_clone = bi_init.copy()
+    assert_items_match(bi_init, bi_clone)
+    try:
+        method(bi_clone, *args)
+    except (KeyError, BidictException) as exc:
+        # Call should fail clean, i.e. bi_clone should be in the same state it was before the call.
+        assertmsg = '%r did not fail clean: %r' % (method, exc)
+        assert_items_match(bi_clone, bi_init, assertmsg)
+        assert_items_match(bi_clone.inv, bi_init.inv, assertmsg)
+    # Whether the call failed or succeeded, bi_clone should pass consistency checks.
+    assert len(bi_clone) == sum(1 for _ in iteritems(bi_clone))
+    assert len(bi_clone) == sum(1 for _ in iteritems(bi_clone.inv))
+    assert_items_match(bi_clone, dict(bi_clone))
+    assert_items_match(bi_clone.inv, dict(bi_clone.inv))
+    assert_items_match(bi_clone, inv_od(iteritems(bi_clone.inv)))
+    assert_items_match(bi_clone.inv, inv_od(iteritems(bi_clone)))
+
+
+@given(bi_cls=HS_MUTABLE_BIDICT_TYPES, init=HS_LISTS_PAIRS_NODUP, items=HS_LISTS_PAIRS_DUP,
+       on_dup_key=HS_DUP_POLICIES, on_dup_val=HS_DUP_POLICIES, on_dup_kv=HS_DUP_POLICIES)
+def test_dup_policies_bulk(bi_cls, init, items, on_dup_key, on_dup_val, on_dup_kv):
+    """Attempting a bulk update with *items* should yield the same result as
+    attempting to set each of the items sequentially
+    while respecting the duplication policies that are in effect.
+    """
+    bi_init = bi_cls(init)
+    expect = bi_init.copy()
+    expectexc = None
+    for (key, val) in items:
+        try:
+            expect.put(key, val, on_dup_key=on_dup_key, on_dup_val=on_dup_val, on_dup_kv=on_dup_kv)
+        except BidictException as exc:
+            expectexc = exc
+            expect = bi_init  # bulk updates fail clean
+            break
+    check = bi_init.copy()
+    checkexc = None
+    try:
+        check.putall(items, on_dup_key=on_dup_key, on_dup_val=on_dup_val, on_dup_kv=on_dup_kv)
+    except BidictException as exc:
+        checkexc = exc
+    assert type(checkexc) == type(expectexc)  # pylint: disable=unidiomatic-typecheck
+    assert_items_match(check, expect)
+    assert_items_match(check.inv, expect.inv)
+
+
+# Skip this test on PyPy where reference counting isn't used to free objects immediately. See:
+# http://doc.pypy.org/en/latest/cpython_differences.html#differences-related-to-garbage-collection-strategies
+# "It also means that weak references may stay alive for a bit longer than expected."
+@pytest.mark.skipif(PYPY, reason='objects with 0 refcount not freed immediately on PyPy')
+@given(bi_cls=HS_BIDICT_TYPES)
+def test_no_reference_cycles(bi_cls):
+    """When you delete your last strong reference to a bidict,
+    there are no remaining strong references to it
+    (e.g. no reference cycle was created between it and its inverse)
+    so its memory can be reclaimed immediately.
+    """
+    gc.disable()
+    some_bidict = bi_cls()
+    weak = ref(some_bidict)
+    assert weak() is not None
+    del some_bidict
+    assert weak() is None
+    gc.enable()
+
+
+@given(bi_cls=HS_BIDICT_TYPES)
+def test_slots(bi_cls):
     """See https://docs.python.org/3/reference/datamodel.html#notes-on-using-slots."""
     stop_at = {object}
     if PY2:
         stop_at.update({Mapping, MutableMapping})  # These don't define __slots__ in Python 2.
     cls_by_slot = {}
-    for cls in B.__mro__:
+    for cls in bi_cls.__mro__:
         if cls in stop_at:
             break
         slots = cls.__dict__.get('__slots__')
@@ -75,125 +252,14 @@ def test_slots(B):  # noqa
             cls_by_slot[slot] = cls
 
 
-@pytest.mark.parametrize('B', bidict_types)
-@given(init=inititems)
-def test_pickle_roundtrips(B, init):  # noqa
-    bi = B(init)
-    # Pickling ordered bidicts in Python 2 requires a higher (non-default) protocol version
-    ordered = issubclass(B, FrozenOrderedBidict)
-    dumps_args = dict(protocol=2) if PY2 and ordered else {}
-    dumped = pickle.dumps(bi, **dumps_args)
-    roundtripped = pickle.loads(dumped)
-    assert roundtripped == bi
-
-
-@pytest.mark.parametrize('B', bidict_types)
-@given(init=inititems)
-def test_equality(B, init):  # noqa
-    b = B(init)
-    d = dict(init)
-    o = OrderedDict(init)
-    oi = to_inv_odict(iteritems(o))
-    di = OrderedDict(oi)
-    assert b == d
-    assert b == o
-    assert not b != d
-    assert not b != o
-    assert b.inv == oi
-    assert b.inv == di
-    assert not b.inv != oi
-    assert not b.inv != di
-
-
-@pytest.mark.parametrize('B', bidict_types)
-@given(init=inititems)
-def test_bidirectional_mappings(B, init):  # noqa
-    ordered = issubclass(B, FrozenOrderedBidict)
-    C = list if ordered else sorted  # noqa
-    b = B(init)
-    keysf = C(k for (k, v) in iteritems(b))
-    keysi = C(b.inv[v] for (k, v) in iteritems(b))
-    assert keysf == keysi
-    valsf = C(b[k] for (v, k) in iteritems(b.inv))
-    valsi = C(v for (v, k) in iteritems(b.inv))
-    assert valsf == valsi
-
-
-@pytest.mark.parametrize(
-    'arity, methodname',
-    [(a, m) for (a, ms) in iteritems(mutating_methods_by_arity) for m in ms])
-@pytest.mark.parametrize('B', bidict_types)  # noqa
-@given(init=inititems, arg1=immutable, arg2=immutable, items=itemlists)
-# pylint: disable=too-many-arguments
-def test_consistency_after_mutation(arity, methodname, B, init, arg1, arg2, items):
-    """
-    Call every mutating method on every bidict type that supports it,
-    and ensure the bidict is left in a consistent state afterward.
-    """
-    method = getattr(B, methodname, None)
-    if not method:
-        return
-    args = []
-    if arity == -1:
-        args.append(items)
-    else:
-        if arity > 0:
-            args.append(arg1)
-        if arity > 1:
-            args.append(arg2)
-    b0 = B(init)
-    b1 = b0.copy()
-    try:
-        method(b1, *args)
-    except Exception as exc:  # pylint: disable=W0703
-        # method should fail clean, i.e. b1 should be in the same state it was before the call.
-        assert b1 == b0, '%r did not fail clean: %r' % (method, exc)
-        assert b1.inv == b0.inv, '%r did not fail clean: %r' % (method, exc)
-    # Whether method failed or succeeded, b1 should pass consistency checks.
-    assert len(b1) == sum(1 for _ in iteritems(b1))
-    assert len(b1) == sum(1 for _ in iteritems(b1.inv))
-    assert b1 == dict(iteritems(b1))
-    assert b1.inv == dict(iteritems(b1.inv))
-    assert b1 == to_inv_odict(iteritems(b1.inv))
-    assert b1.inv == to_inv_odict(iteritems(b1))
-
-
-@pytest.mark.parametrize('on_dup_key', ondupbehaviors)
-@pytest.mark.parametrize('on_dup_val', ondupbehaviors)
-@pytest.mark.parametrize('on_dup_kv', ondupbehaviors)
-@pytest.mark.parametrize('B', mutable_bidict_types)
-@given(init=inititems, items=itemlists)
-def test_putall(on_dup_key, on_dup_val, on_dup_kv, B, init, items):  # noqa
-    b0 = B(init)
-    expect = b0.copy()
-    expectexc = None
-    for (k, v) in items:
-        try:
-            expect.put(k, v, on_dup_key=on_dup_key, on_dup_val=on_dup_val, on_dup_kv=on_dup_kv)
-        except Exception as exc:  # pylint: disable=W0703
-            expectexc = exc
-            expect = b0  # bulk updates fail clean
-            break
-    check = b0.copy()
-    checkexc = None
-    try:
-        check.putall(items, on_dup_key=on_dup_key, on_dup_val=on_dup_val, on_dup_kv=on_dup_kv)
-    except Exception as exc:  # pylint: disable=W0703
-        checkexc = exc
-    assert type(checkexc) == type(expectexc)  # pylint: disable=C0123
-    assert check == expect
-    assert check.inv == expect.inv
-
-
-# ref: http://doc.pypy.org/en/latest/cpython_differences.html#differences-related-to-garbage-collection-strategies  pylint: disable=line-too-long;  # noqa
-# "It also means that weak references may stay alive for a bit longer than expected."
-@pytest.mark.skipif(PYPY, reason='Weak references on PyPy are not immediately freed')
-@pytest.mark.parametrize('B', bidict_types)
-def test_no_reference_cycles(B):  # noqa: N803
-    gc.disable()
-    b = B()
-    weak = ref(b)
-    assert weak() is not None
-    del b
-    assert weak() is None
-    gc.enable()
+@given(bi_cls=HS_BIDICT_TYPES, init=HS_LISTS_PAIRS_NODUP)
+def test_pickle_roundtrips(bi_cls, init):
+    """A bidict should equal the result of unpickling its pickle."""
+    some_bidict = bi_cls(init)
+    dumps_args = {}
+    # Pickling ordered bidicts in Python 2 requires a higher (non-default) protocol version.
+    if PY2 and issubclass(bi_cls, FrozenOrderedBidict):
+        dumps_args['protocol'] = 2
+    pickled = pickle.dumps(some_bidict, **dumps_args)
+    roundtripped = pickle.loads(pickled)
+    assert roundtripped == some_bidict

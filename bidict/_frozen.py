@@ -202,7 +202,7 @@ class frozenbidict(BidirectionalMapping):  # noqa: N801
         """The object used by :meth:`__repr__` to represent the contained items."""
         return self._fwdm
 
-    def __hash__(self):
+    def __hash__(self):  # lgtm [py/equals-hash-mismatch]
         """The hash of this bidict as determined by its items."""
         if getattr(self, '_hash', None) is None:
             # pylint: disable=protected-access,attribute-defined-outside-init
