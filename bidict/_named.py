@@ -10,7 +10,7 @@
 import re
 
 from ._abc import BidirectionalMapping
-from ._mut import bidict
+from ._bidict import bidict
 
 
 _REQUIRED_ATTRS = ('inv', '_isinv', '__getstate__')

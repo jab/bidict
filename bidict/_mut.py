@@ -26,7 +26,7 @@
 #==============================================================================
 
 
-"""Implements :class:`bidict.bidict`, the mutable bidirectional map type."""
+"""Implements :class:`_MutableBidict`, a base class for mutable bidirectional mappings."""
 
 from collections import MutableMapping
 
@@ -171,13 +171,7 @@ class _MutableBidict(BidictBase, MutableMapping):
             self._update(False, on_dup, items)
 
 
-class bidict(_MutableBidict):  # noqa: N801; pylint: disable=invalid-name
-    """Mutable bidirectional map type."""
-
-    __slots__ = ()
-
-
 #                             * Code review nav *
 #==============================================================================
-#  ← Prev: _base.py             Current: _mut.py          Next: _ordered.py →
+#  ← Prev: _base.py             Current: _mut.py           Next: _bidict.py →
 #==============================================================================
