@@ -43,12 +43,12 @@ Efficient, Pythonic bidirectional map implementation and related functionality.
 # source and exports it under the `bidict` module namespace (via `__all__`).
 
 from ._abc import BidirectionalMapping
+from ._base import BidictBase, frozenbidict
 from ._bidict import bidict
 from ._dup import DuplicationPolicy, IGNORE, OVERWRITE, RAISE
 from ._exc import (
     BidictException, DuplicationError,
     KeyDuplicationError, ValueDuplicationError, KeyAndValueDuplicationError)
-from ._frozen import BidictBase, frozenbidict
 from ._named import namedbidict
 from ._ordered import FrozenOrderedBidict, OrderedBidict, OrderedBidictBase
 from .metadata import (

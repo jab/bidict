@@ -22,11 +22,11 @@
 
 #                             * Code review nav *
 #==============================================================================
-#  ← Prev: _abc.py            Current: _frozen.py          Next: _bidict.py →
+#  ← Prev: _abc.py             Current: _base.py           Next: _bidict.py →
 #==============================================================================
 
 
-"""Implements :class:`frozenbidict`, the base class for all other bidict types."""
+"""Implements :class:`BidictBase`, the base class for all other bidict types."""
 
 from collections import ItemsView, Mapping, namedtuple
 from weakref import ref
@@ -41,11 +41,11 @@ from .compat import PY2, iteritems
 from .util import pairs
 
 
-# Since BidirectionalMapping implements __subclasshook__, and frozenbidict
+# Since BidirectionalMapping implements __subclasshook__, and BidictBase
 # provides all the required attributes that the __subclasshook__ checks for,
-# frozenbidict would be a (virtual) subclass of BidirectionalMapping even if
+# BidictBase would be a (virtual) subclass of BidirectionalMapping even if
 # it didn't subclass it explicitly. But subclassing BidirectionalMapping
-# explicitly allows frozenbidict to inherit any useful methods that
+# explicitly allows BidictBase to inherit any useful methods that
 # BidirectionalMapping provides that aren't part of the required interface,
 # such as its optimized __inverted__ implementation.
 
@@ -218,8 +218,8 @@ class BidictBase(BidirectionalMapping):
         selfget = self.get
         return all(selfget(k, _MISS) == v for (k, v) in iteritems(other))
 
-    # The following methods mutate frozenbidicts and so are not public. But they are implemented in
-    # this immutable class (rather than the mutable `bidict` subclass) because they are used here
+    # The following methods are mutating and so are not public. But they are implemented in this
+    # non-mutable base class (rather than the mutable `bidict` subclass) because they are used here
     # during initialization (starting with the `_update` method). (Why is this? Because `__init__`
     # and `update` share a lot of the same behavior (inserting the provided items while respecting
     # the active duplication policies), so it makes sense for them to share implementation too.)
@@ -458,5 +458,5 @@ _NODUP = _DedupResult(False, False, _MISS, _MISS)
 
 #                             * Code review nav *
 #==============================================================================
-#  ← Prev: _abc.py            Current: _frozen.py          Next: _bidict.py →
+#  ← Prev: _abc.py             Current: _base.py           Next: _bidict.py →
 #==============================================================================

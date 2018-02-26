@@ -22,7 +22,7 @@
 
 #                             * Code review nav *
 #==============================================================================
-#  ← Prev: _frozen.py         Current: _bidict.py         Next: _ordered.py →
+#  ← Prev: _base.py           Current: _bidict.py         Next: _ordered.py →
 #==============================================================================
 
 
@@ -30,8 +30,8 @@
 
 from collections import MutableMapping
 
+from ._base import BidictBase
 from ._dup import OVERWRITE, RAISE, _OnDup
-from ._frozen import BidictBase
 from ._miss import _MISS
 
 
@@ -179,5 +179,5 @@ class bidict(_MutableBidict):  # noqa: N801; pylint: disable=invalid-name
 
 #                             * Code review nav *
 #==============================================================================
-#  ← Prev: _frozen.py         Current: _bidict.py         Next: _ordered.py →
+#  ← Prev: _base.py           Current: _bidict.py         Next: _ordered.py →
 #==============================================================================
