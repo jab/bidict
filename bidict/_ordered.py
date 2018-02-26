@@ -31,7 +31,7 @@
 from collections import Mapping
 
 from ._base import _WriteResult, BidictBase, frozenbidict
-from ._bidict import bidict
+from ._mut import bidict
 from ._marker import _Marker
 from ._miss import _MISS
 from .compat import iteritems, izip

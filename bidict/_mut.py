@@ -22,7 +22,7 @@
 
 #                             * Code review nav *
 #==============================================================================
-#  ← Prev: _base.py           Current: _bidict.py         Next: _ordered.py →
+#  ← Prev: _base.py             Current: _mut.py          Next: _ordered.py →
 #==============================================================================
 
 
@@ -179,5 +179,5 @@ class bidict(_MutableBidict):  # noqa: N801; pylint: disable=invalid-name
 
 #                             * Code review nav *
 #==============================================================================
-#  ← Prev: _base.py           Current: _bidict.py         Next: _ordered.py →
+#  ← Prev: _base.py             Current: _mut.py          Next: _ordered.py →
 #==============================================================================

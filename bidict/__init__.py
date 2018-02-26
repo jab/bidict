@@ -44,7 +44,7 @@ Efficient, Pythonic bidirectional map implementation and related functionality.
 
 from ._abc import BidirectionalMapping
 from ._base import BidictBase, frozenbidict
-from ._bidict import bidict
+from ._mut import bidict
 from ._dup import DuplicationPolicy, IGNORE, OVERWRITE, RAISE
 from ._exc import (
     BidictException, DuplicationError,
