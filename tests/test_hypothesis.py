@@ -9,7 +9,7 @@
 
 import gc
 import pickle
-from collections import Mapping, MutableMapping, OrderedDict
+from collections import Hashable, Mapping, MutableMapping, OrderedDict
 from os import getenv
 from weakref import ref
 
@@ -58,13 +58,28 @@ def ensure_dup(key=False, val=False):
     return _wrapped
 
 
+class OverwritingBidict(bidict):
+    """A :class:`~bidict.bidict` subclass with default OVERWRITE behavior."""
+    __slots__ = ()
+    on_dup_val = OVERWRITE
+
+
+class OverwritingOrderedBidict(OrderedBidict):
+    """An :class:`~bidict.OrderedBidict` subclass with a default OVERWRITE behavior."""
+    __slots__ = ()
+    on_dup_val = OVERWRITE
+
+
 MyNamedBidict = namedbidict('MyNamedBidict', 'key', 'val')
 MyNamedFrozenBidict = namedbidict('MyNamedBidict', 'key', 'val', base_type=frozenbidict)
-MUTABLE_BIDICT_TYPES = (bidict, OrderedBidict, MyNamedBidict)
+MUTABLE_BIDICT_TYPES = (
+    bidict, OverwritingBidict, OrderedBidict, OverwritingOrderedBidict, MyNamedBidict)
 IMMUTABLE_BIDICT_TYPES = (frozenbidict, FrozenOrderedBidict, MyNamedFrozenBidict)
 BIDICT_TYPES = MUTABLE_BIDICT_TYPES + IMMUTABLE_BIDICT_TYPES
+MAPPING_TYPES = BIDICT_TYPES + (dict, OrderedDict)
 HS_BIDICT_TYPES = strat.sampled_from(BIDICT_TYPES)
 HS_MUTABLE_BIDICT_TYPES = strat.sampled_from(MUTABLE_BIDICT_TYPES)
+HS_MAPPING_TYPES = strat.sampled_from(MAPPING_TYPES)
 
 HS_DUP_POLICIES = strat.sampled_from((IGNORE, OVERWRITE, RAISE))
 HS_BOOLEANS = strat.booleans()
@@ -106,33 +121,48 @@ def assert_items_match(map1, map2, assertmsg=None):
     assert canon(iteritems(map1)) == canon(iteritems(map2)), assertmsg
 
 
-@given(bi_cls=HS_BIDICT_TYPES, init=HS_LISTS_PAIRS_NODUP)
-def test_eq_ne(bi_cls, init):
-    """Test == and != comparison between bidicts and other objects."""
+@given(data=strat.data())
+def test_eq_ne_hash(data):
+    """Test various equality comparisons and hashes between bidicts and other objects."""
+    bi_cls = data.draw(HS_BIDICT_TYPES)
+    init = data.draw(HS_LISTS_PAIRS_NODUP)
     some_bidict = bi_cls(init)
-    equal_dict = dict(init)
-    equal_odict = OrderedDict(init)
-    inv_odict = inv_od(iteritems(equal_odict))
-    inv_dict = dict(inv_odict)
-    assert some_bidict == equal_dict
-    assert some_bidict == equal_odict
-    assert not some_bidict != equal_dict
-    assert not some_bidict != equal_odict
-    assert some_bidict.inv == inv_dict
-    assert some_bidict.inv == inv_odict
-    assert not some_bidict.inv != inv_dict
-    assert not some_bidict.inv != inv_odict
-    unequal_odict = OrderedDict(equal_odict, new_key='new_val')
-    unequal_dict = dict(unequal_odict)
-    assert some_bidict != unequal_dict
-    assert some_bidict != unequal_odict
-    assert not some_bidict == unequal_dict
-    assert not some_bidict == unequal_odict
-    # Test comparison with a non-Mapping too.
-    assert not some_bidict == 'not a mapping'
-    assert not some_bidict.inv == 'not a mapping'
-    assert some_bidict != 'not a mapping'
-    assert some_bidict.inv != 'not a mapping'
+    other_cls = data.draw(HS_MAPPING_TYPES)
+    other_equal = other_cls(init)
+    other_equal_inv = inv_od(iteritems(other_equal))
+    assert some_bidict == other_equal
+    assert not some_bidict != other_equal
+    assert some_bidict.inv == other_equal_inv
+    assert not some_bidict.inv != other_equal_inv
+    has_eq_order_sens = getattr(bi_cls, 'equals_order_sensitive', None)
+    other_is_ordered = getattr(other_cls, '__reversed__', None)
+    if has_eq_order_sens and other_is_ordered:
+        assert some_bidict.equals_order_sensitive(other_equal)
+        assert some_bidict.inv.equals_order_sensitive(other_equal_inv)
+    both_hashable = issubclass(bi_cls, Hashable) and issubclass(other_cls, Hashable)
+    if both_hashable:
+        assert hash(some_bidict) == hash(other_equal)
+
+    unequal_init = data.draw(HS_LISTS_PAIRS_NODUP)
+    assume(unequal_init != init)
+    other_unequal = other_cls(unequal_init)
+    other_unequal_inv = inv_od(iteritems(other_unequal))
+    assert some_bidict != other_unequal
+    assert not some_bidict == other_unequal
+    assert some_bidict.inv != other_unequal_inv
+    assert not some_bidict.inv == other_unequal_inv
+    if has_eq_order_sens:
+        assert not some_bidict.equals_order_sensitive(other_unequal)
+        assert not some_bidict.inv.equals_order_sensitive(other_unequal_inv)
+
+    not_a_mapping = 'not a mapping'
+    assert not some_bidict == not_a_mapping
+    assert not some_bidict.inv == not_a_mapping
+    assert some_bidict != not_a_mapping
+    assert some_bidict.inv != not_a_mapping
+    if has_eq_order_sens:
+        assert not some_bidict.equals_order_sensitive(not_a_mapping)
+        assert not some_bidict.inv.equals_order_sensitive(not_a_mapping)
 
 
 @given(bi_cls=HS_BIDICT_TYPES, init=HS_LISTS_PAIRS_NODUP)
