@@ -49,12 +49,8 @@ from .util import pairs
 # BidirectionalMapping provides that aren't part of the required interface,
 # such as its optimized __inverted__ implementation.
 
-# pylint: disable=invalid-name
-class frozenbidict(BidirectionalMapping):  # noqa: N801
-    """Immutable, hashable bidict type.
-
-    Also serves as a base class for the other bidict types.
-    """
+class BidictBase(BidirectionalMapping):
+    """Base class implementing :class:`BidirectionalMapping`."""
 
     __slots__ = ['_fwdm', '_invm', '_inv', '_invweak', '_hash']
 
@@ -201,13 +197,6 @@ class frozenbidict(BidirectionalMapping):  # noqa: N801
     def __repr_delegate__(self):
         """The object used by :meth:`__repr__` to represent the contained items."""
         return self._fwdm
-
-    def __hash__(self):  # lgtm [py/equals-hash-mismatch]
-        """The hash of this bidict as determined by its items."""
-        if getattr(self, '_hash', None) is None:
-            # pylint: disable=protected-access,attribute-defined-outside-init
-            self._hash = ItemsView(self)._hash()
-        return self._hash
 
     # The inherited Mapping.__eq__ implementation would work, but it's implemented in terms of an
     # inefficient ``dict(self.items()) == dict(other.items())`` comparison, so override it with a
@@ -447,6 +436,19 @@ class frozenbidict(BidirectionalMapping):  # noqa: N801
         def __ne__(self, other):  # noqa: N802
             u"""*x.__ne__(other)　⟺　x != other*"""
             return not self == other  # Implement __ne__ in terms of __eq__.
+
+
+class frozenbidict(BidictBase):  # noqa: N801 (class names should use CapWords convention)
+    """Immutable, hashable bidict type."""
+
+    __slots__ = ()
+
+    def __hash__(self):  # lgtm [py/equals-hash-mismatch]
+        """The hash of this bidict as determined by its items."""
+        if getattr(self, '_hash', None) is None:
+            # pylint: disable=protected-access,attribute-defined-outside-init
+            self._hash = ItemsView(self)._hash()
+        return self._hash
 
 
 _DedupResult = namedtuple('_DedupResult', 'isdupkey isdupval invbyval fwdbykey')

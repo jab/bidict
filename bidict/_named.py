@@ -9,26 +9,36 @@
 
 import re
 
-from ._frozen import frozenbidict
+from ._abc import BidirectionalMapping
 from ._bidict import bidict
 
 
-_LEGALNAMEPAT = '^[A-z][A-z0-9_]*$'
-_LEGALNAMERE = re.compile(_LEGALNAMEPAT)
+_REQUIRED_ATTRS = ('inv', '_isinv', '__getstate__')
+_VALID_NAME_PAT = '^[A-z][A-z0-9_]*$'
+_VALID_NAME_RE = re.compile(_VALID_NAME_PAT)
+_valid_name = _VALID_NAME_RE.match  # pylint: disable=invalid-name; (lol)
+
+
+def _valid_base_type(base_type):
+    if not isinstance(base_type, type) or not issubclass(base_type, BidirectionalMapping):
+        return False
+    inst = base_type()
+    try:
+        return all(getattr(inst, attr) is not NotImplemented for attr in _REQUIRED_ATTRS)
+    except:  # noqa: E722; pylint: disable=bare-except
+        return False
 
 
 def namedbidict(typename, keyname, valname, base_type=bidict):
-    """
-    Create a bidict type with custom accessors.
+    """Create a bidict type with custom accessors.
 
     Analagous to :func:`collections.namedtuple`.
     """
-    if not isinstance(base_type, type) or not issubclass(base_type, frozenbidict):
-        raise TypeError('base_type must be a subclass of frozenbidict')
-
-    for name in typename, keyname, valname:
-        if not _LEGALNAMERE.match(name):
-            raise ValueError('%r does not match pattern %s' % (name, _LEGALNAMEPAT))
+    invalid_name = next((i for i in (typename, keyname, valname) if not _valid_name(i)), None)
+    if invalid_name:
+        raise ValueError(invalid_name)
+    if not _valid_base_type(base_type):
+        raise TypeError(base_type)
 
     class _Named(base_type):
 

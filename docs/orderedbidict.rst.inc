@@ -32,6 +32,7 @@ The additional methods of :class:`~collections.OrderedDict` are supported too::
     >>> element_by_symbol['H'] = 'hydrogen'
     >>> element_by_symbol
     OrderedBidict([('He', 'helium'), ('Li', 'lithium'), ('H', 'hydrogen')])
+
     >>> element_by_symbol.move_to_end('Li')  # works on Python < 3.2 too
     >>> element_by_symbol
     OrderedBidict([('He', 'helium'), ('H', 'hydrogen'), ('Li', 'lithium')])
@@ -101,11 +102,10 @@ For order-sensitive equality tests, use
     False
 
 Note that this differs from the behavior of
-:class:`collections.OrderedDict`\'s ``__eq__``,
+:class:`collections.OrderedDict`\'s ``__eq__()``,
 by recommendation of Raymond Hettinger (the author) himself
-(who said that making OrderedDict's ``__eq__``
-`intransitive <https://github.com/cosmologicon/pywat/issues/38>`_
-was a mistake).
+(who said that making OrderedDict's ``__eq__()``
+intransitive was a mistake).
 
 :class:`~bidict.OrderedBidict` also comes in a frozen flavor.
 See the :class:`~bidict.FrozenOrderedBidict`

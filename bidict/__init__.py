@@ -48,9 +48,9 @@ from ._dup import DuplicationPolicy, IGNORE, OVERWRITE, RAISE
 from ._exc import (
     BidictException, DuplicationError,
     KeyDuplicationError, ValueDuplicationError, KeyAndValueDuplicationError)
-from ._frozen import frozenbidict
+from ._frozen import BidictBase, frozenbidict
 from ._named import namedbidict
-from ._ordered import FrozenOrderedBidict, OrderedBidict
+from ._ordered import FrozenOrderedBidict, OrderedBidict, OrderedBidictBase
 from .metadata import (
     __author__, __maintainer__, __copyright__, __email__, __credits__,
     __license__, __status__, __description__, __version__)
@@ -77,10 +77,12 @@ __all__ = (
     'KeyDuplicationError',
     'ValueDuplicationError',
     'KeyAndValueDuplicationError',
+    'BidictBase',
     'frozenbidict',
     'bidict',
     'namedbidict',
     'FrozenOrderedBidict',
+    'OrderedBidictBase',
     'OrderedBidict',
     'pairs',
     'inverted',

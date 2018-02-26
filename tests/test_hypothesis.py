@@ -10,6 +10,7 @@
 import gc
 import pickle
 from collections import Hashable, Mapping, MutableMapping, OrderedDict
+from operator import eq, ne
 from os import getenv
 from weakref import ref
 
@@ -112,13 +113,15 @@ HS_METHOD_ARGS = strat.sampled_from((
 ))
 
 
-def assert_items_match(map1, map2, assertmsg=None):
+def assert_items_match(map1, map2, assertmsg=None, relation=eq):
     """Ensure map1 and map2 contain the same items (and in the same order, if they're ordered)."""
     if assertmsg is None:
         assertmsg = repr((map1, map2))
     both_ordered = all(isinstance(m, (OrderedDict, FrozenOrderedBidict)) for m in (map1, map2))
     canon = list if both_ordered else set
-    assert canon(iteritems(map1)) == canon(iteritems(map2)), assertmsg
+    canon_map1 = canon(iteritems(map1))
+    canon_map2 = canon(iteritems(map2))
+    assert relation(canon_map1, canon_map2), assertmsg
 
 
 @given(data=strat.data())
@@ -130,6 +133,8 @@ def test_eq_ne_hash(data):
     other_cls = data.draw(HS_MAPPING_TYPES)
     other_equal = other_cls(init)
     other_equal_inv = inv_od(iteritems(other_equal))
+    assert_items_match(some_bidict, other_equal)
+    assert_items_match(some_bidict.inv, other_equal_inv)
     assert some_bidict == other_equal
     assert not some_bidict != other_equal
     assert some_bidict.inv == other_equal_inv
@@ -139,7 +144,7 @@ def test_eq_ne_hash(data):
     if has_eq_order_sens and other_is_ordered:
         assert some_bidict.equals_order_sensitive(other_equal)
         assert some_bidict.inv.equals_order_sensitive(other_equal_inv)
-    both_hashable = issubclass(bi_cls, Hashable) and issubclass(other_cls, Hashable)
+    both_hashable = all(issubclass(cls, Hashable) for cls in (bi_cls, other_cls))
     if both_hashable:
         assert hash(some_bidict) == hash(other_equal)
 
@@ -147,6 +152,8 @@ def test_eq_ne_hash(data):
     assume(unequal_init != init)
     other_unequal = other_cls(unequal_init)
     other_unequal_inv = inv_od(iteritems(other_unequal))
+    assert_items_match(some_bidict, other_unequal, relation=ne)
+    assert_items_match(some_bidict.inv, other_unequal_inv, relation=ne)
     assert some_bidict != other_unequal
     assert not some_bidict == other_unequal
     assert some_bidict.inv != other_unequal_inv
@@ -169,7 +176,7 @@ def test_eq_ne_hash(data):
 def test_bijectivity(bi_cls, init):
     """*b[k] == v  <==>  b.inv[v] == k*"""
     some_bidict = bi_cls(init)
-    ordered = issubclass(bi_cls, FrozenOrderedBidict)
+    ordered = getattr(bi_cls, '__reversed__', None)
     canon = list if ordered else set
     keys = canon(iterkeys(some_bidict))
     vals = canon(itervalues(some_bidict))
@@ -288,7 +295,7 @@ def test_pickle_roundtrips(bi_cls, init):
     some_bidict = bi_cls(init)
     dumps_args = {}
     # Pickling ordered bidicts in Python 2 requires a higher (non-default) protocol version.
-    if PY2 and issubclass(bi_cls, FrozenOrderedBidict):
+    if PY2 and issubclass(bi_cls, (OrderedBidict, FrozenOrderedBidict)):
         dumps_args['protocol'] = 2
     pickled = pickle.dumps(some_bidict, **dumps_args)
     roundtripped = pickle.loads(pickled)

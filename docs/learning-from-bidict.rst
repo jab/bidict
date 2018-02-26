@@ -37,7 +37,7 @@ Python's data model
 
 - Using :ref:`slots` to speed up attribute access and reduce memory usage
 
-  - Must be careful with pickling and weakrefs, see ``frozenbidict.__getstate__``
+  - Must be careful with pickling and weakrefs, see ``BidictBase.__getstate__()``
 
 - Making an immutable type hashable,
   i.e. insertable into :class:`dict`\s and :class:`set`\s
@@ -65,7 +65,8 @@ Python's data model
       used to hash :class:`frozenset`\s.
 
       Since :class:`~collections.abc.ItemsView` extends
-      :class:`~collections.abc.Set`, :class:`~bidict.frozenbidict`
+      :class:`~collections.abc.Set`,
+      :meth:`bidict.frozenbidict.__hash__`
       can just call ``ItemsView(self)._hash()``.
 
         - Why is :meth:`collections.abc.Set._hash` private?
@@ -102,13 +103,13 @@ Python's data model
       is more Pythonic.
 
     - Any user who does need exact-type-matching equality can just override
-      :meth:`bidict’s __eq__() <bidict.frozenbidict.__eq__>` method in a subclass.
+      :meth:`bidict’s __eq__() <bidict.BidictBase.__eq__>` method in a subclass.
 
       - If this subclass were also hashable, would it be worth overriding
         :meth:`bidict.frozenbidict.__hash__` too to include the type?
 
       - Only point would be to reduce collisions when multiple instances of different
-        :class:`~bidict.frozenbidict` subclasses contained the same items
+        types contained the same items
         and were going to be inserted into the same :class:`dict` or :class:`set`
         (since they'd now be unequal but would hash to the same value otherwise).
         Seems rare, probably not worth it.

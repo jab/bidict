@@ -31,14 +31,13 @@
 from collections import MutableMapping
 
 from ._dup import OVERWRITE, RAISE, _OnDup
-from ._frozen import frozenbidict
+from ._frozen import BidictBase
 from ._miss import _MISS
 
 
 # Extend MutableMapping explicitly because it doesn't implement __subclasshook__, as well as to
-# inherit method implementations it provides that bidict can reuse (namely `setdefault`)
-class bidict(frozenbidict, MutableMapping):  # noqa: N801; pylint: disable=invalid-name
-    """Mutable bidirectional map type."""
+# inherit method implementations it provides that bidict can reuse (namely `setdefault`).
+class _MutableBidict(BidictBase, MutableMapping):
 
     __slots__ = ()
 
@@ -170,6 +169,12 @@ class bidict(frozenbidict, MutableMapping):  # noqa: N801; pylint: disable=inval
         if items:
             on_dup = self._get_on_dup((on_dup_key, on_dup_val, on_dup_kv))
             self._update(False, on_dup, items)
+
+
+class bidict(_MutableBidict):  # noqa: N801; pylint: disable=invalid-name
+    """Mutable bidirectional map type."""
+
+    __slots__ = ()
 
 
 #                             * Code review nav *

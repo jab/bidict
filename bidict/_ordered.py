@@ -31,7 +31,7 @@
 from collections import Mapping
 
 from ._bidict import bidict
-from ._frozen import frozenbidict, _WriteResult
+from ._frozen import _WriteResult, BidictBase, frozenbidict
 from ._marker import _Marker
 from ._miss import _MISS
 from .compat import iteritems, izip
@@ -43,11 +43,7 @@ _NXT = 2
 _END = _Marker('END')
 
 
-class FrozenOrderedBidict(frozenbidict):  # lgtm [py/missing-equals]
-    """Frozen (i.e. hashable, immutable) ordered bidict.
-
-    Also the base class for :class:`OrderedBidict`, which adds mutable behavior.
-    """
+class OrderedBidictBase(BidictBase):
 
     __slots__ = ('_sntl',)
 
@@ -74,19 +70,19 @@ class FrozenOrderedBidict(frozenbidict):  # lgtm [py/missing-equals]
         # they map key→node and val→node (respectively),
         # where the node is the same when key and val are associated with one another.
         # To effect this difference, _write_item and _undo_write are overridden.
-        # But much of the rest of frozenbidict's implementation,
-        # including frozenbidict.__init__ and frozenbidict._update,
+        # But much of the rest of BidictBase's implementation,
+        # including BidictBase.__init__ and BidictBase._update,
         # are inherited and reused without modification. Code reuse ftw.
-        super(FrozenOrderedBidict, self).__init__(*args, **kw)
+        super(OrderedBidictBase, self).__init__(*args, **kw)
 
     def _init_inv(self):
-        super(FrozenOrderedBidict, self)._init_inv()
+        super(OrderedBidictBase, self)._init_inv()
         self.inv._sntl = self._sntl  # pylint: disable=protected-access
 
-    # Can't reuse frozenbidict.copy since we have different internal structure.
+    # Can't reuse BidictBase.copy since ordered bidicts have different internal structure.
     def copy(self):
         """A shallow copy of this ordered bidict."""
-        # Fast copy implementation bypassing __init__. See comments in :meth:`frozenbidict.copy`.
+        # Fast copy implementation bypassing __init__. See comments in :meth:`BidictBase.copy`.
         copy = object.__new__(self.__class__)
         sntl = _make_sentinel()
         fwdm = {}
@@ -247,17 +243,31 @@ class FrozenOrderedBidict(frozenbidict):  # lgtm [py/missing-equals]
         return all(i == j for (i, j) in izip(iteritems(self), iteritems(other)))
 
     def __repr_delegate__(self):
-        """See :meth:`bidict.frozenbidict.__repr_delegate__`."""
+        """See :meth:`bidict.BidictBase.__repr_delegate__`."""
         return list(iteritems(self))
+
+
+# FrozenOrderedBidict intentionally does not subclass frozenbidict because it only complicates the
+# inheritance hierarchy without providing any actual code reuse: The only thing from frozenbidict
+# that FrozenOrderedBidict uses is frozenbidict.__hash__(), but Python specifically prevents
+# __hash__ from being inherited; it must instead always be set explicitly as below. Users seeking
+# some `is_frozenbidict(..)` test that succeeds for both frozenbidicts and FrozenOrderedBidicts
+# should therefore not use isinstance(foo, frozenbidict), but should instead use the appropriate
+# ABCs, e.g. `isinstance(foo, BidirectionalMapping) and not isinstance(foo, MutableMapping)`.
+class FrozenOrderedBidict(OrderedBidictBase):  # lgtm [py/missing-equals]
+    """Frozen (i.e. hashable, immutable) ordered bidict."""
+
+    __slots__ = ()
 
     # frozenbidict.__hash__ is also correct for ordered bidicts:
     # The value is derived from all contained items and insensitive to their order.
     # If an ordered bidict "O" is equal to a mapping, its unordered counterpart "U" is too.
     # Since U1 == U2 => hash(U1) == hash(U2), then if O == U1, hash(O) must equal hash(U1).
+
     __hash__ = frozenbidict.__hash__  # Must set explicitly, __hash__ is never inherited.
 
 
-class OrderedBidict(FrozenOrderedBidict, bidict):
+class OrderedBidict(OrderedBidictBase, bidict):
     """Mutable bidict type that maintains items in insertion order."""
 
     __slots__ = ()

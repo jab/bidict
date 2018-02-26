@@ -15,7 +15,7 @@ bidict
     :show-inheritance:
     :undoc-members:
     :exclude-members: __abstractmethods__,__dict__,__module__,__weakref__
-..  :inherited-members:
+    :inherited-members:
 
 
 .. autodata:: bidict.RAISE

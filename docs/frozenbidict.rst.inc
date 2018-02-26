@@ -1,10 +1,15 @@
 :class:`~bidict.frozenbidict`
 -------------------------------------------
 
+The simplest bidict type that implements
+:class:`~bidict.BidirectionalMapping` is
+:class:`~bidict.frozenbidict`,
+which provides an immutable, hashable bidirectional mapping.
+
 As you would expect,
 attempting to mutate a
 :class:`~bidict.frozenbidict`
-after initializing it causes an error::
+causes an error::
 
     >>> from bidict import frozenbidict
     >>> f = frozenbidict({'H': 'hydrogen'})
