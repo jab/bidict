@@ -10,8 +10,11 @@ to check whether ``obj`` is a :class:`~collections.abc.Mapping`.
 However, this check is too specific, and will fail for many
 types that implement the :class:`~collections.abc.Mapping` interface::
 
-    >>> from collections import ChainMap
-    >>> issubclass(ChainMap, dict)
+    >>> try:
+    ...     from collections import ChainMap
+    ... except ImportError:  # not available in Python 2
+    ...     ChainMap = None  # Could try with a Python 2 ChainMap shim if in doubt.
+    >>> issubclass(ChainMap, dict) if ChainMap else False
     False
 
 The same is true for all the bidict types::
@@ -27,7 +30,7 @@ from the :mod:`collections` module
 that are provided for this purpose::
 
     >>> from collections import Mapping
-    >>> issubclass(ChainMap, Mapping)
+    >>> issubclass(ChainMap, Mapping) if ChainMap else True
     True
     >>> isinstance(bidict(), Mapping)
     True
@@ -63,27 +66,23 @@ but it does not subclass :class:`~bidict.frozenbidict`::
 
 Besides the above, there are several other collections ABCs
 whose interfaces are implemented by various bidict types.
+Have a look through the :mod:`collections.abc` documentation
+if you're interested.
 
-One that may be useful to know about is
-:class:`collections.abc.Hashable`::
-
-    >>> from collections import Hashable
-    >>> isinstance(frozenbidict(), Hashable)
-    True
-    >>> isinstance(FrozenOrderedBidict(), Hashable)
-    True
-
-And although there are no ``Ordered`` or ``OrderedMapping`` ABCs,
-Python 3.6 introduced the :class:`collections.abc.Reversible` ABC.
+One thing you might notice is that there is no
+``Ordered`` or ``OrderedMapping`` ABC.
+However, Python 3.6 introduced the :class:`collections.abc.Reversible` ABC.
 Since being reversible implies having an ordering,
-you could check for reversibility
-to generically detect whether a mapping is ordered::
+if you need to check for an ordered mapping,
+you could check for reversibility instead.
+For example::
 
     >>> def is_reversible(cls):
     ...     try:
     ...         from collections import Reversible
     ...     except ImportError:  # Python < 3.6
-    ...         # Better to use a shim of Python 3.6's Reversible, but this'll do for now:
+    ...         # Better to use a shim of Python 3.6's Reversible,
+    ...         # but this'll do for now:
     ...         return getattr(cls, '__reversed__', None) is not None
     ...     return issubclass(cls, Reversible)
 

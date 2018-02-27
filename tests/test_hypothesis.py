@@ -9,6 +9,7 @@
 
 import gc
 import pickle
+import re
 from collections import Hashable, Mapping, MutableMapping, OrderedDict
 from operator import eq, ne
 from os import getenv
@@ -17,25 +18,24 @@ from weakref import ref
 import pytest
 from hypothesis import assume, given, settings, strategies as strat
 from bidict import (
-    BidictException,
-    IGNORE, OVERWRITE, RAISE,
-    bidict, namedbidict, OrderedBidict,
-    frozenbidict, FrozenOrderedBidict)
-from bidict.compat import PY2, PYPY, iterkeys, itervalues, iteritems
+    BidictException, IGNORE, OVERWRITE, RAISE,
+    BidirectionalMapping, bidict, OrderedBidict, OrderedBidictBase,
+    frozenbidict, FrozenOrderedBidict, namedbidict, pairs, inverted)
+from bidict.compat import PY2, PYPY, iterkeys, itervalues, iteritems, izip
 
 
-settings.register_profile('default', settings(max_examples=200, deadline=None))
+settings.register_profile('default', settings(max_examples=500, deadline=None))
 settings.load_profile(getenv('HYPOTHESIS_PROFILE', 'default'))
 
 
-def inv_od(items):
+def inverse_odict(items):
     """An OrderedDict containing the inverse of each item in *items*."""
     return OrderedDict((v, k) for (k, v) in items)
 
 
 def ensure_no_dup(items):
     """Given some hypothesis-generated items, prune any with duplicated keys or values."""
-    pruned = list(iteritems(inv_od(iteritems(inv_od(items)))))
+    pruned = list(iteritems(inverse_odict(iteritems(inverse_odict(items)))))
     assume(len(pruned) >= len(items) // 2)
     return pruned
 
@@ -59,82 +59,96 @@ def ensure_dup(key=False, val=False):
     return _wrapped
 
 
-class OverwritingBidict(bidict):
-    """A :class:`~bidict.bidict` subclass with default OVERWRITE behavior."""
-    __slots__ = ()
-    on_dup_val = OVERWRITE
+class DummyBimap(dict):  # pylint: disable=too-few-public-methods
+    """Dummy type that implements the BidirectionalMapping interface
+    and is thus considered a virtual subclass.
+    (Not actually a working implementation, but doesn't need to be
+    just to verify that :meth:`BidirectionalMapping.__subclasshook__`
+    is working correctly.)
+    """
+    @property
+    def inv(self):
+        """Dummy .inv implementation."""
 
 
-class OverwritingOrderedBidict(OrderedBidict):
-    """An :class:`~bidict.OrderedBidict` subclass with a default OVERWRITE behavior."""
-    __slots__ = ()
-    on_dup_val = OVERWRITE
+class OldStyleClass:  # pylint: disable=old-style-class,no-init,too-few-public-methods
+    """In Python 2 this is an old-style class (not derived from object)."""
 
 
 MyNamedBidict = namedbidict('MyNamedBidict', 'key', 'val')
 MyNamedFrozenBidict = namedbidict('MyNamedBidict', 'key', 'val', base_type=frozenbidict)
+NAMEDBIDICT_VALID_NAME = re.compile('^[A-z][A-z0-9_]*$')
 MUTABLE_BIDICT_TYPES = (
-    bidict, OverwritingBidict, OrderedBidict, OverwritingOrderedBidict, MyNamedBidict)
+    bidict, OrderedBidict, MyNamedBidict)
 IMMUTABLE_BIDICT_TYPES = (frozenbidict, FrozenOrderedBidict, MyNamedFrozenBidict)
+ORDERED_BIDICT_TYPES = (OrderedBidict, FrozenOrderedBidict)
 BIDICT_TYPES = MUTABLE_BIDICT_TYPES + IMMUTABLE_BIDICT_TYPES
+BIMAP_TYPES = BIDICT_TYPES + (DummyBimap,)
 MAPPING_TYPES = BIDICT_TYPES + (dict, OrderedDict)
-HS_BIDICT_TYPES = strat.sampled_from(BIDICT_TYPES)
-HS_MUTABLE_BIDICT_TYPES = strat.sampled_from(MUTABLE_BIDICT_TYPES)
-HS_MAPPING_TYPES = strat.sampled_from(MAPPING_TYPES)
+NON_BIMAP_TYPES = (dict, OrderedDict, OldStyleClass, bool, int, float, str)
+H_BIDICT_TYPES = strat.sampled_from(BIDICT_TYPES)
+H_MUTABLE_BIDICT_TYPES = strat.sampled_from(MUTABLE_BIDICT_TYPES)
+H_IMMUTABLE_BIDICT_TYPES = strat.sampled_from(IMMUTABLE_BIDICT_TYPES)
+H_ORDERED_BIDICT_TYPES = strat.sampled_from(ORDERED_BIDICT_TYPES)
+H_MAPPING_TYPES = strat.sampled_from(MAPPING_TYPES)
+H_NAMES = strat.sampled_from(('valid1', 'valid2', 'valid3', 'in-valid'))
 
-HS_DUP_POLICIES = strat.sampled_from((IGNORE, OVERWRITE, RAISE))
-HS_BOOLEANS = strat.booleans()
-HS_IMMUTABLES = HS_BOOLEANS | strat.none() | strat.integers()
-HS_PAIRS = strat.tuples(HS_IMMUTABLES, HS_IMMUTABLES)
-HS_LISTS_PAIRS = strat.lists(HS_PAIRS)
-HS_LISTS_PAIRS_NODUP = HS_LISTS_PAIRS.map(ensure_no_dup)
-HS_LISTS_PAIRS_DUP = (
-    HS_LISTS_PAIRS.map(ensure_dup(key=True)) |
-    HS_LISTS_PAIRS.map(ensure_dup(val=True)) |
-    HS_LISTS_PAIRS.map(ensure_dup(key=True, val=True)))
-HS_METHOD_ARGS = strat.sampled_from((
+H_DUP_POLICIES = strat.sampled_from((IGNORE, OVERWRITE, RAISE))
+H_BOOLEANS = strat.booleans()
+H_TEXT = strat.text()
+H_NONE = strat.none()
+H_IMMUTABLES = H_BOOLEANS | H_TEXT | H_NONE | strat.integers() | strat.floats(allow_nan=False)
+H_NON_MAPPINGS = H_NONE
+H_PAIRS = strat.tuples(H_IMMUTABLES, H_IMMUTABLES)
+H_LISTS_PAIRS = strat.lists(H_PAIRS)
+H_LISTS_PAIRS_NODUP = H_LISTS_PAIRS.map(ensure_no_dup)
+H_LISTS_PAIRS_DUP = (
+    H_LISTS_PAIRS.map(ensure_dup(key=True)) |
+    H_LISTS_PAIRS.map(ensure_dup(val=True)) |
+    H_LISTS_PAIRS.map(ensure_dup(key=True, val=True)))
+H_TEXT_PAIRS = strat.tuples(H_TEXT, H_TEXT)
+H_LISTS_TEXT_PAIRS_NODUP = strat.lists(H_TEXT_PAIRS).map(ensure_no_dup)
+H_METHOD_ARGS = strat.sampled_from((
     # 0-arity
     ('clear', ()),
     ('popitem', ()),
     # 1-arity
-    ('__delitem__', (HS_IMMUTABLES,)),
-    ('pop', (HS_IMMUTABLES,)),
-    ('setdefault', (HS_IMMUTABLES,)),
-    ('move_to_end', (HS_IMMUTABLES,)),
-    ('update', (HS_LISTS_PAIRS,)),
-    ('forceupdate', (HS_LISTS_PAIRS,)),
+    ('__delitem__', (H_IMMUTABLES,)),
+    ('pop', (H_IMMUTABLES,)),
+    ('setdefault', (H_IMMUTABLES,)),
+    ('move_to_end', (H_IMMUTABLES,)),
+    ('update', (H_LISTS_PAIRS,)),
+    ('forceupdate', (H_LISTS_PAIRS,)),
     # 2-arity
-    ('pop', (HS_IMMUTABLES, HS_IMMUTABLES)),
-    ('setdefault', (HS_IMMUTABLES, HS_IMMUTABLES)),
-    ('move_to_end', (HS_IMMUTABLES, HS_BOOLEANS)),
-    ('__setitem__', (HS_IMMUTABLES, HS_IMMUTABLES)),
-    ('put', (HS_IMMUTABLES, HS_IMMUTABLES)),
-    ('forceput', (HS_IMMUTABLES, HS_IMMUTABLES)),
+    ('pop', (H_IMMUTABLES, H_IMMUTABLES)),
+    ('setdefault', (H_IMMUTABLES, H_IMMUTABLES)),
+    ('move_to_end', (H_IMMUTABLES, H_BOOLEANS)),
+    ('__setitem__', (H_IMMUTABLES, H_IMMUTABLES)),
+    ('put', (H_IMMUTABLES, H_IMMUTABLES)),
+    ('forceput', (H_IMMUTABLES, H_IMMUTABLES)),
 ))
 
 
-def assert_items_match(map1, map2, assertmsg=None, relation=eq):
+def items_match(map1, map2, relation=eq):
     """Ensure map1 and map2 contain the same items (and in the same order, if they're ordered)."""
-    if assertmsg is None:
-        assertmsg = repr((map1, map2))
-    both_ordered = all(isinstance(m, (OrderedDict, FrozenOrderedBidict)) for m in (map1, map2))
-    canon = list if both_ordered else set
+    both_ordered_bidicts = all(isinstance(m, OrderedBidictBase) for m in (map1, map2))
+    canon = list if both_ordered_bidicts else set
     canon_map1 = canon(iteritems(map1))
     canon_map2 = canon(iteritems(map2))
-    assert relation(canon_map1, canon_map2), assertmsg
+    return relation(canon_map1, canon_map2)
 
 
-@given(data=strat.data())
-def test_eq_ne_hash(data):
+@given(bi_cls=H_BIDICT_TYPES, other_cls=H_MAPPING_TYPES, not_a_mapping=H_NON_MAPPINGS,
+       init_items=H_LISTS_PAIRS_NODUP, init_unequal=H_LISTS_PAIRS_NODUP)
+def test_eq_ne_hash(bi_cls, other_cls, init_items, init_unequal, not_a_mapping):
     """Test various equality comparisons and hashes between bidicts and other objects."""
-    bi_cls = data.draw(HS_BIDICT_TYPES)
-    init = data.draw(HS_LISTS_PAIRS_NODUP)
-    some_bidict = bi_cls(init)
-    other_cls = data.draw(HS_MAPPING_TYPES)
-    other_equal = other_cls(init)
-    other_equal_inv = inv_od(iteritems(other_equal))
-    assert_items_match(some_bidict, other_equal)
-    assert_items_match(some_bidict.inv, other_equal_inv)
+    assume(init_items != init_unequal)
+
+    some_bidict = bi_cls(init_items)
+    other_equal = other_cls(init_items)
+    other_equal_inv = inverse_odict(iteritems(other_equal))
+    assert items_match(some_bidict, other_equal)
+    assert items_match(some_bidict.inv, other_equal_inv)
     assert some_bidict == other_equal
     assert not some_bidict != other_equal
     assert some_bidict.inv == other_equal_inv
@@ -148,12 +162,10 @@ def test_eq_ne_hash(data):
     if both_hashable:
         assert hash(some_bidict) == hash(other_equal)
 
-    unequal_init = data.draw(HS_LISTS_PAIRS_NODUP)
-    assume(unequal_init != init)
-    other_unequal = other_cls(unequal_init)
-    other_unequal_inv = inv_od(iteritems(other_unequal))
-    assert_items_match(some_bidict, other_unequal, relation=ne)
-    assert_items_match(some_bidict.inv, other_unequal_inv, relation=ne)
+    other_unequal = other_cls(init_unequal)
+    other_unequal_inv = inverse_odict(iteritems(other_unequal))
+    assert items_match(some_bidict, other_unequal, relation=ne)
+    assert items_match(some_bidict.inv, other_unequal_inv, relation=ne)
     assert some_bidict != other_unequal
     assert not some_bidict == other_unequal
     assert some_bidict.inv != other_unequal_inv
@@ -162,7 +174,6 @@ def test_eq_ne_hash(data):
         assert not some_bidict.equals_order_sensitive(other_unequal)
         assert not some_bidict.inv.equals_order_sensitive(other_unequal_inv)
 
-    not_a_mapping = 'not a mapping'
     assert not some_bidict == not_a_mapping
     assert not some_bidict.inv == not_a_mapping
     assert some_bidict != not_a_mapping
@@ -172,10 +183,10 @@ def test_eq_ne_hash(data):
         assert not some_bidict.inv.equals_order_sensitive(not_a_mapping)
 
 
-@given(bi_cls=HS_BIDICT_TYPES, init=HS_LISTS_PAIRS_NODUP)
-def test_bijectivity(bi_cls, init):
+@given(bi_cls=H_BIDICT_TYPES, init_items=H_LISTS_PAIRS_NODUP)
+def test_bijectivity(bi_cls, init_items):
     """*b[k] == v  <==>  b.inv[v] == k*"""
-    some_bidict = bi_cls(init)
+    some_bidict = bi_cls(init_items)
     ordered = getattr(bi_cls, '__reversed__', None)
     canon = list if ordered else set
     keys = canon(iterkeys(some_bidict))
@@ -193,9 +204,9 @@ def test_bijectivity(bi_cls, init):
     assert inv_vals == inv_fwd_by_keys
 
 
-@given(bi_cls=HS_MUTABLE_BIDICT_TYPES, init=HS_LISTS_PAIRS_NODUP,
-       method_args=HS_METHOD_ARGS, data=strat.data())
-def test_consistency_after_mutation(bi_cls, init, method_args, data):
+@given(bi_cls=H_MUTABLE_BIDICT_TYPES, init_items=H_LISTS_PAIRS_NODUP,
+       method_args=H_METHOD_ARGS, data=strat.data())
+def test_consistency_after_mutation(bi_cls, init_items, method_args, data):
     """Call every mutating method on every bidict that implements it,
     and ensure the bidict is left in a consistent state afterward.
     """
@@ -204,58 +215,125 @@ def test_consistency_after_mutation(bi_cls, init, method_args, data):
     if not method:
         return
     args = tuple(data.draw(i) for i in hs_args)
-    bi_init = bi_cls(init)
+    bi_init = bi_cls(init_items)
     bi_clone = bi_init.copy()
-    assert_items_match(bi_init, bi_clone)
+    assert items_match(bi_init, bi_clone)
     try:
         method(bi_clone, *args)
     except (KeyError, BidictException) as exc:
         # Call should fail clean, i.e. bi_clone should be in the same state it was before the call.
         assertmsg = '%r did not fail clean: %r' % (method, exc)
-        assert_items_match(bi_clone, bi_init, assertmsg)
-        assert_items_match(bi_clone.inv, bi_init.inv, assertmsg)
+        assert items_match(bi_clone, bi_init), assertmsg
+        assert items_match(bi_clone.inv, bi_init.inv), assertmsg
     # Whether the call failed or succeeded, bi_clone should pass consistency checks.
     assert len(bi_clone) == sum(1 for _ in iteritems(bi_clone))
     assert len(bi_clone) == sum(1 for _ in iteritems(bi_clone.inv))
-    assert_items_match(bi_clone, dict(bi_clone))
-    assert_items_match(bi_clone.inv, dict(bi_clone.inv))
-    assert_items_match(bi_clone, inv_od(iteritems(bi_clone.inv)))
-    assert_items_match(bi_clone.inv, inv_od(iteritems(bi_clone)))
+    assert items_match(bi_clone, dict(bi_clone))
+    assert items_match(bi_clone.inv, dict(bi_clone.inv))
+    assert items_match(bi_clone, inverse_odict(iteritems(bi_clone.inv)))
+    assert items_match(bi_clone.inv, inverse_odict(iteritems(bi_clone)))
 
 
-@given(bi_cls=HS_MUTABLE_BIDICT_TYPES, init=HS_LISTS_PAIRS_NODUP, items=HS_LISTS_PAIRS_DUP,
-       on_dup_key=HS_DUP_POLICIES, on_dup_val=HS_DUP_POLICIES, on_dup_kv=HS_DUP_POLICIES)
-def test_dup_policies_bulk(bi_cls, init, items, on_dup_key, on_dup_val, on_dup_kv):
-    """Attempting a bulk update with *items* should yield the same result as
+@given(bi_cls=H_MUTABLE_BIDICT_TYPES,
+       init_items=H_LISTS_PAIRS_NODUP,
+       update_items=H_LISTS_PAIRS_DUP,
+       on_dup_key=H_DUP_POLICIES, on_dup_val=H_DUP_POLICIES, on_dup_kv=H_DUP_POLICIES)
+def test_dup_policies_bulk(bi_cls, init_items, update_items, on_dup_key, on_dup_val, on_dup_kv):
+    """Attempting a bulk update with *update_items* should yield the same result as
     attempting to set each of the items sequentially
     while respecting the duplication policies that are in effect.
     """
-    bi_init = bi_cls(init)
+    dup_policies = dict(on_dup_key=on_dup_key, on_dup_val=on_dup_val, on_dup_kv=on_dup_kv)
+    bi_init = bi_cls(init_items)
     expect = bi_init.copy()
     expectexc = None
-    for (key, val) in items:
+    for (key, val) in update_items:
         try:
-            expect.put(key, val, on_dup_key=on_dup_key, on_dup_val=on_dup_val, on_dup_kv=on_dup_kv)
+            expect.put(key, val, **dup_policies)
         except BidictException as exc:
-            expectexc = exc
+            expectexc = type(exc)
             expect = bi_init  # bulk updates fail clean
             break
     check = bi_init.copy()
     checkexc = None
     try:
-        check.putall(items, on_dup_key=on_dup_key, on_dup_val=on_dup_val, on_dup_kv=on_dup_kv)
+        check.putall(update_items, **dup_policies)
     except BidictException as exc:
-        checkexc = exc
-    assert type(checkexc) == type(expectexc)  # pylint: disable=unidiomatic-typecheck
-    assert_items_match(check, expect)
-    assert_items_match(check.inv, expect.inv)
+        checkexc = type(exc)
+    assert checkexc == expectexc
+    assert items_match(check, expect)
+    assert items_match(check.inv, expect.inv)
+
+
+@given(bi_cls=H_BIDICT_TYPES, init_items=H_LISTS_PAIRS_NODUP)
+def test_bidict_iter(bi_cls, init_items):
+    """Ensure :meth:`bidict.BidictBase.__iter__` works correctly."""
+    some_bidict = bi_cls(init_items)
+    assert set(some_bidict) == set(iterkeys(some_bidict))
+
+
+@given(bi_cls=H_ORDERED_BIDICT_TYPES, init_items=H_LISTS_PAIRS_NODUP)
+def test_orderedbidict_iter(bi_cls, init_items):
+    """Ensure :meth:`bidict.OrderedBidictBase.__iter__` works correctly."""
+    some_bidict = bi_cls(init_items)
+    assert all(i == j for (i, j) in izip(some_bidict, iterkeys(some_bidict)))
+
+
+@given(bi_cls=H_ORDERED_BIDICT_TYPES, init_items=H_LISTS_PAIRS_NODUP)
+def test_orderedbidict_reversed(bi_cls, init_items):
+    """Ensure :meth:`bidict.OrderedBidictBase.__reversed__` works correctly."""
+    some_bidict = bi_cls(init_items)
+    assert all(i == j for (i, j) in izip(reversed(some_bidict), list(iterkeys(some_bidict))[::-1]))
+
+
+@given(bi_cls=H_IMMUTABLE_BIDICT_TYPES)
+def test_frozenbidicts_hashable(bi_cls):
+    """Test that immutable bidicts can be hashed and inserted into sets and mappings."""
+    some_bidict = bi_cls()
+    hash(some_bidict)  # pylint: disable=pointless-statement
+    {some_bidict}  # pylint: disable=pointless-statement
+    {some_bidict: some_bidict}  # pylint: disable=pointless-statement
+
+
+@given(base_type=H_MAPPING_TYPES, init_items=H_LISTS_PAIRS_NODUP, data=strat.data())
+def test_namedbidict(base_type, init_items, data):
+    """Test the :func:`bidict.namedbidict` factory and custom accessors."""
+    names = typename, keyname, valname = [data.draw(H_NAMES) for _ in range(3)]
+    try:
+        nbcls = namedbidict(typename, keyname, valname, base_type=base_type)
+    except ValueError:
+        # Either one of the names was invalid, or the keyname and valname were not distinct.
+        assert not all(map(NAMEDBIDICT_VALID_NAME.match, names)) or keyname == valname
+        return
+    except TypeError:
+        # The base type must not have been a BidirectionalMapping.
+        assert not issubclass(base_type, BidirectionalMapping)
+        return
+    assume(init_items)
+    instance = nbcls(init_items)
+    valfor = getattr(instance, valname + '_for')
+    keyfor = getattr(instance, keyname + '_for')
+    assert all(valfor[key] == val for (key, val) in iteritems(instance))
+    assert all(keyfor[val] == key for (key, val) in iteritems(instance))
+    # The same custom accessors should work on the inverse.
+    inv = instance.inv
+    valfor = getattr(inv, valname + '_for')
+    keyfor = getattr(inv, keyname + '_for')
+    assert all(valfor[key] == val for (key, val) in iteritems(instance))
+    assert all(keyfor[val] == key for (key, val) in iteritems(instance))
+
+
+@given(cls=strat.sampled_from(BIMAP_TYPES + NON_BIMAP_TYPES))
+def test_bimap_subclasshook(cls):
+    """Test that issubclass(cls, BidirectionalMapping) works correctly."""
+    assert issubclass(cls, BidirectionalMapping) == (cls in BIMAP_TYPES)
 
 
 # Skip this test on PyPy where reference counting isn't used to free objects immediately. See:
 # http://doc.pypy.org/en/latest/cpython_differences.html#differences-related-to-garbage-collection-strategies
 # "It also means that weak references may stay alive for a bit longer than expected."
 @pytest.mark.skipif(PYPY, reason='objects with 0 refcount not freed immediately on PyPy')
-@given(bi_cls=HS_BIDICT_TYPES)
+@given(bi_cls=H_BIDICT_TYPES)
 def test_no_reference_cycles(bi_cls):
     """When you delete your last strong reference to a bidict,
     there are no remaining strong references to it
@@ -271,7 +349,7 @@ def test_no_reference_cycles(bi_cls):
     gc.enable()
 
 
-@given(bi_cls=HS_BIDICT_TYPES)
+@given(bi_cls=H_BIDICT_TYPES)
 def test_slots(bi_cls):
     """See https://docs.python.org/3/reference/datamodel.html#notes-on-using-slots."""
     stop_at = {object}
@@ -289,14 +367,40 @@ def test_slots(bi_cls):
             cls_by_slot[slot] = cls
 
 
-@given(bi_cls=HS_BIDICT_TYPES, init=HS_LISTS_PAIRS_NODUP)
-def test_pickle_roundtrips(bi_cls, init):
+@given(bi_cls=H_BIDICT_TYPES, init_items=H_LISTS_PAIRS_NODUP)
+def test_pickle_roundtrips(bi_cls, init_items):
     """A bidict should equal the result of unpickling its pickle."""
-    some_bidict = bi_cls(init)
+    some_bidict = bi_cls(init_items)
     dumps_args = {}
     # Pickling ordered bidicts in Python 2 requires a higher (non-default) protocol version.
-    if PY2 and issubclass(bi_cls, (OrderedBidict, FrozenOrderedBidict)):
+    if PY2 and issubclass(bi_cls, OrderedBidictBase):
         dumps_args['protocol'] = 2
     pickled = pickle.dumps(some_bidict, **dumps_args)
     roundtripped = pickle.loads(pickled)
     assert roundtripped == some_bidict
+
+
+@given(items=H_LISTS_PAIRS, kwitems=H_LISTS_TEXT_PAIRS_NODUP)
+def test_pairs(items, kwitems):
+    """Test that :func:`bidict.pairs` works correctly."""
+    assert list(pairs(items)) == list(items)
+    assert list(pairs(OrderedDict(kwitems))) == list(kwitems)
+    kwdict = dict(kwitems)
+    pairs_it = pairs(items, **kwdict)
+    assert all(i == j for (i, j) in izip(items, pairs_it))
+    assert set(iteritems(kwdict)) == {i for i in pairs_it}
+    with pytest.raises(TypeError):
+        pairs('too', 'many', 'args')
+
+
+@given(bi_cls=H_BIDICT_TYPES, items=H_LISTS_PAIRS_NODUP)
+def test_inverted(bi_cls, items):
+    """Test that :func:`bidict.inverted` works correctly."""
+    inv_items = [(v, k) for (k, v) in items]
+    assert list(inverted(items)) == inv_items
+    assert list(inverted(inverted(items))) == items
+    some_bidict = bi_cls(items)
+    inv_bidict = bi_cls(inv_items)
+    assert some_bidict.inv == inv_bidict
+    assert set(inverted(some_bidict)) == set(inv_items)
+    assert bi_cls(inverted(inv_bidict)) == some_bidict

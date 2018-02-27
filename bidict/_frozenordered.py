@@ -29,13 +29,14 @@
 
 from ._frozen import frozenbidict
 from ._orderedbase import OrderedBidictBase
+from .compat import PY2
 
 
 # FrozenOrderedBidict intentionally does not subclass frozenbidict because it only complicates the
 # inheritance hierarchy without providing any actual code reuse: The only thing from frozenbidict
 # that FrozenOrderedBidict uses is frozenbidict.__hash__(), but Python specifically prevents
-# __hash__ from being inherited; it must instead always be set explicitly as below. Users seeking
-# some `is_frozenbidict(..)` test that succeeds for both frozenbidicts and FrozenOrderedBidicts
+# __hash__ from being inherited; it must instead always be defined explicitly as below. Users who
+# need an `is_frozenbidict(..)` test that succeeds for both frozenbidicts and FrozenOrderedBidicts
 # should therefore not use isinstance(foo, frozenbidict), but should instead use the appropriate
 # ABCs, e.g. `isinstance(foo, BidirectionalMapping) and not isinstance(foo, MutableMapping)`.
 class FrozenOrderedBidict(OrderedBidictBase):  # lgtm [py/missing-equals]
@@ -43,12 +44,14 @@ class FrozenOrderedBidict(OrderedBidictBase):  # lgtm [py/missing-equals]
 
     __slots__ = ()
 
-    # frozenbidict.__hash__ is also correct for ordered bidicts:
-    # The value is derived from all contained items and insensitive to their order.
-    # If an ordered bidict "O" is equal to a mapping, its unordered counterpart "U" is too.
-    # Since U1 == U2 => hash(U1) == hash(U2), then if O == U1, hash(O) must equal hash(U1).
-
-    __hash__ = frozenbidict.__hash__  # Must set explicitly, __hash__ is never inherited.
+    # frozenbidict.__hash__ can be resued for FrozenOrderedBidict:
+    # FrozenOrderedBidict inherits BidictBase.__eq__ which is order-insensitive,
+    # and frozenbidict.__hash__ is consistent with BidictBase.__eq__.
+    __hash__ = frozenbidict.__hash__  # Must define __hash__ explicitly, Python prevents inheriting
+    if PY2:
+        # Must grab the __func__ attribute off the method in Python 2, or else get "TypeError:
+        # unbound method __hash__() must be called with frozenbidict instance as first argument"
+        __hash__ = __hash__.__func__
 
 
 #                             * Code review nav *

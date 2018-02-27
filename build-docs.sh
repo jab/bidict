@@ -1,6 +1,6 @@
 #!/bin/bash
 
-GRAPH_SRC="type-hierarchy.txt"
+GRAPH_SRC="bidict-types-diagram.txt"
 MODIFIED_GRAPH_SRC="$(git ls-files -m | grep ${GRAPH_SRC})"
 
 if [[ -n "${MODIFIED_GRAPH_SRC}" ]]; then

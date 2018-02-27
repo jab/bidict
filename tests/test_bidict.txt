@@ -219,8 +219,10 @@ inserting existing items is a no-op (i.e. it doesn't raise)::
     >>> b.putall([('three', 3), ('one', 1)],
     ...          on_dup_key=RAISE, on_dup_val=RAISE) is not 'an error'
     True
-    >>> sorted(b.items(), key=lambda x: x[1])
-    [('one', 1), ('two', 2), ('three', 3)]
+    >>> b0 = b.copy()
+    >>> b.putall([])  # no-op
+    >>> b == b0
+    True
 
 Python 2 dict view APIs are supported::
 

@@ -39,6 +39,14 @@ Speedups and memory usage improvements
 Minor Bugfix
 ++++++++++++
 
+- :func:`~bidict.namedbidict` now verifies that the provided
+  ``keyname`` and ``valname`` are distinct,
+  raising :class:`ValueError` if they are equal.
+
+- :func:`~bidict.namedbidict` now raises :class:`TypeError`
+  if the provided ``base_type``
+  is not a :class:`~bidict.BidirectionalMapping`.
+
 - If you create a custom bidict subclass whose ``_fwdm_cls``
   differs from its ``_invm_cls``
   (as in the ``FwdKeySortedBidict`` example
@@ -77,7 +85,9 @@ The following breaking changes are expected to affect few if any users.
   from :class:`~bidict.FrozenOrderedBidict`,
   reverting the merging of these in 0.14.0.
   Having e.g. ``issubclass(bidict, frozenbidict) == True`` was confusing,
-  so this change makes that no longer the case.
+  so this change restores ``issubclass(bidict, frozenbidict) == False``.
+
+  See the updated :ref:`bidict-types-diagram`.
 
 - Rename:
  
@@ -102,10 +112,6 @@ The following breaking changes are expected to affect few if any users.
   which was the canonical way to refer to them anyway.
   It is now no longer possible to create an infinite chain like
   ``DuplicationPolicy.RAISE.RAISE.RAISE...``
-
-- :func:`~bidict.namedbidict` now raises :class:`TypeError` if the provided
-  ``base_type`` is not a :class:`~bidict.BidirectionalMapping`
-  with the required attributes.
 
 - Pickling ordered bidicts now requires
   at least version 2 of the pickle protocol.
@@ -222,7 +228,7 @@ This release includes multiple API simplifications and improvements.
 
 - Merge :class:`~bidict.frozenbidict` and ``FrozenBidictBase``
   together and remove ``FrozenBidictBase``.
-  See the updated :ref:`bidicts-type-diagram`.
+  See the updated :ref:`bidict-types-diagram`.
 
 - Merge ``frozenorderedbidict`` and ``OrderedBidictBase`` together
   into a single :class:`~bidict.FrozenOrderedBidict`
@@ -230,7 +236,7 @@ This release includes multiple API simplifications and improvements.
   :class:`~bidict.OrderedBidict` now extends
   :class:`~bidict.FrozenOrderedBidict`
   to add mutable behavior.
-  See the updated :ref:`bidicts-type-diagram`.
+  See the updated :ref:`bidict-types-diagram`.
 
 - Make :meth:`~bidict.OrderedBidictBase.__eq__`
   always perform an order-insensitive equality test,

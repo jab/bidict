@@ -12,7 +12,7 @@ let's look at the remaining bidict types.
 ``bidict`` Types Diagram
 ------------------------
 
-.. image:: _static/type-hierarchy.png
+.. image:: _static/bidict-types-diagram.png
     :alt: bidict types diagram
 
 The most abstract type that bidict provides is

@@ -22,11 +22,6 @@ def pairs(*args, **kw):
     its pairs are yielded before those of any keyword arguments.
     The positional argument may be a mapping or an iterable of pairs.
 
-    >>> list(pairs({'a': 1}, b=2))
-    [('a', 1), ('b', 2)]
-    >>> list(pairs([('a', 1), ('b', 2)], b=3))
-    [('a', 1), ('b', 2), ('b', 3)]
-
     :raises TypeError: if more than one positional arg is given.
     """
     argsiter = None

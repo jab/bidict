@@ -21,8 +21,7 @@ Python's data model
 - Using :meth:`object.__new__` to bypass default object initialization,
   e.g. for better :meth:`~bidict.bidict.copy` performance
 
-  - See `how bidict does this
-    <https://github.com/jab/bidict/blob/958ca85/bidict/_frozen.py>`_
+  - See ``_base.py`` for an example
 
 - Overriding :meth:`object.__getattribute__` for custom attribute lookup
 
@@ -133,8 +132,7 @@ Other interesting things discovered in the standard library
 :func:`~collections.namedtuple`-style dynamic class generation
 ==============================================================
 
-- See `namedbidict's implementation
-  <https://github.com/jab/bidict/blob/958ca85/bidict/_named.py>`_
+- See ``_named.py`` for an example
 
 
 How to efficiently implement an ordered mapping
@@ -144,8 +142,7 @@ How to efficiently implement an ordered mapping
   `provides a good example
   <https://github.com/python/cpython/blob/a0374d/Lib/collections/__init__.py#L71>`_
 
-- See `OrderedBidict's implementation
-  <https://github.com/jab/bidict/blob/958ca85/bidict/_ordered.py>`_
+- See ``_orderedbase.py`` for an example
 
 
 API Design
@@ -179,14 +176,12 @@ API Design
 
     - Can return the :obj:`NotImplemented` object
 
-  - See `how bidict.BidirectionalMapping does this
-    <https://github.com/jab/bidict/blob/958ca85/bidict/_abc.py>`_
+  - See ``_abc.py`` for an example
 
 - Notice we have :class:`collections.abc.Reversible`
   but no ``collections.abc.Ordered`` or ``collections.abc.OrderedMapping``
 
-  - Would have been useful for bidict's ``__repr__()`` implementation
-    (see `source <https://github.com/jab/bidict/blob/958ca85/bidict/_frozen.py#L165>`_),
+  - Would have been useful for bidict's ``__repr__()`` implementation (see ``_base.py``),
     and potentially for interop with other ordered mapping implementations
     such as `SortedDict <http://www.grantjenks.com/docs/sortedcontainers/sorteddict.html>`_
 
@@ -214,14 +209,26 @@ API Design
 Portability
 ===========
 
-- Python 2 vs. Python 3 (mostly :class:`dict` API changes)
+- Python 2 vs. Python 3
+  
+  - mostly :class:`dict` API changes,
+    but also functions like :func:`zip`, :func:`map`, :func:`filter`, etc.
+
+  - borrowing methods from other classes:
+
+    In Python 2, must grab the ``.im_func`` / ``__func__``
+    attribute off the borrowed method to avoid getting
+    ``TypeError: unbound method ...() must be called with ... instance as first argument``
+
+    See ``_frozenordered.py`` for an example.
 
 - CPython vs. PyPy
 
   - gc / weakref
 
     - http://doc.pypy.org/en/latest/cpython_differences.html#differences-related-to-garbage-collection-strategies
-    - hence https://github.com/jab/bidict/blob/958ca85/tests/test_hypothesis.py#L168
+    - hence ``test_no_reference_cycles`` (in ``test_hypothesis.py``)
+      is skipped on PyPy
 
   - primitives' identities, nan, etc.
 
@@ -233,8 +240,7 @@ Correctness, performance, code quality, etc.
 
 bidict provided a need to learn these fantastic tools,
 many of which have been indispensable
-(especially hypothesis – see
-`bidict's usage <https://github.com/jab/bidict/blob/958ca85/tests/test_hypothesis.py>`_):
+(especially hypothesis – see ``test_hypothesis.py``):
 
 -  `Pytest <https://docs.pytest.org/en/latest/>`_
 -  `Coverage <http://coverage.readthedocs.io/en/latest/>`_

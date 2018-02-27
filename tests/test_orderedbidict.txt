@@ -19,6 +19,7 @@ due to reliance on side effects in assert statements)::
     True
     >>> len(b.inv)
     1
+
     >>> exc = None
     >>> try:
     ...     b.putall([(2, 1), (2, 3)], on_dup_key=RAISE, on_dup_val=OVERWRITE)
@@ -28,16 +29,7 @@ due to reliance on side effects in assert statements)::
     True
     >>> len(b)
     1
+
     >>> b.forceupdate([(0, 1), (2, 3), (0, 3)])
     >>> b
     OrderedBidict([(0, 3)])
-
-Test iterating over an ordered bidict as well as reversing::
-
-    >>> b[4] = 5
-    >>> b
-    OrderedBidict([(0, 3), (4, 5)])
-    >>> list(iter(b))
-    [0, 4]
-    >>> list(reversed(b))
-    [4, 0]

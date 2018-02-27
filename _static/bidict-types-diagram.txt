@@ -11,7 +11,7 @@ node { font: Menlo; color: blue; }
 [ bidict.frozenbidict ] -> [ collections.abc.Hashable ] { fontsize: 0.7em; borderstyle: dashed; fill: #eeeeee; color: black; }
 [ bidict.FrozenOrderedBidict ] -> [ bidict._abc.BidirectionalMapping ]
 [ bidict.FrozenOrderedBidict ] -> [ collections.abc.Hashable ]
-[ bidict.FrozenOrderedBidict ] -> [ collections.abc.Reversible ] { fontsize: 0.7em; borderstyle: dashed; fill: #eeeeee; color: black; }
+# [ bidict.FrozenOrderedBidict ] -> [ collections.abc.Reversible ] { fontsize: 0.7em; borderstyle: dashed; fill: #eeeeee; color: black; }
 [ bidict.OrderedBidict ] -> [ bidict._abc.BidirectionalMapping ]
 [ bidict.OrderedBidict ] -> [ collections.abc.MutableMapping ]
-[ bidict.OrderedBidict ] -> [ collections.abc.Reversible ]
+# [ bidict.OrderedBidict ] -> [ collections.abc.Reversible ]

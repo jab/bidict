@@ -16,7 +16,8 @@ causes an error::
     >>> f['C'] = 'carbon'
     Traceback (most recent call last):
         ...
-    TypeError...
+    TypeError: ...
+
 
 :class:`~bidict.frozenbidict`
 also implements :class:`collections.abc.Hashable`,

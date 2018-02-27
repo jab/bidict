@@ -13,20 +13,7 @@ from ._abc import BidirectionalMapping
 from ._bidict import bidict
 
 
-_REQUIRED_ATTRS = ('inv', '_isinv', '__getstate__')
-_VALID_NAME_PAT = '^[A-z][A-z0-9_]*$'
-_VALID_NAME_RE = re.compile(_VALID_NAME_PAT)
-_valid_name = _VALID_NAME_RE.match  # pylint: disable=invalid-name; (lol)
-
-
-def _valid_base_type(base_type):
-    if not isinstance(base_type, type) or not issubclass(base_type, BidirectionalMapping):
-        return False
-    inst = base_type()
-    try:
-        return all(getattr(inst, attr) is not NotImplemented for attr in _REQUIRED_ATTRS)
-    except:  # noqa: E722; pylint: disable=bare-except
-        return False
+_VALID_NAME = re.compile('^[A-z][A-z0-9_]*$')
 
 
 def namedbidict(typename, keyname, valname, base_type=bidict):
@@ -34,10 +21,10 @@ def namedbidict(typename, keyname, valname, base_type=bidict):
 
     Analagous to :func:`collections.namedtuple`.
     """
-    invalid_name = next((i for i in (typename, keyname, valname) if not _valid_name(i)), None)
-    if invalid_name:
-        raise ValueError(invalid_name)
-    if not _valid_base_type(base_type):
+    names = (typename, keyname, valname)
+    if not all(map(_VALID_NAME.match, names)) or keyname == valname:
+        raise ValueError(names)
+    if not issubclass(base_type, BidirectionalMapping):
         raise TypeError(base_type)
 
     class _Named(base_type):
