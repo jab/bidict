@@ -26,7 +26,7 @@
 #==============================================================================
 
 
-"""Provides :class:`BidictBase`, the base class for all other bidict types."""
+"""Provides :class:`BidictBase`."""
 
 from collections import ItemsView, Mapping, namedtuple
 from weakref import ref

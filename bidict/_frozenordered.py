@@ -22,10 +22,10 @@
 
 #                             * Code review nav *
 #==============================================================================
-#  ← Prev: _ordered.py     Current: _frozenordered.py                   <FIN>
+#  ← Prev: _orderedbase.py  Current: _frozenordered.py    Next: _ordered.py →
 #==============================================================================
 
-"""Provides :class:`FrozenOrderedBidict`, an immutable, hashable, ordered bidict type."""
+"""Provides :class:`FrozenOrderedBidict`, an immutable, hashable, ordered bidict."""
 
 from ._frozen import frozenbidict
 from ._orderedbase import OrderedBidictBase
@@ -39,7 +39,7 @@ from ._orderedbase import OrderedBidictBase
 # should therefore not use isinstance(foo, frozenbidict), but should instead use the appropriate
 # ABCs, e.g. `isinstance(foo, BidirectionalMapping) and not isinstance(foo, MutableMapping)`.
 class FrozenOrderedBidict(OrderedBidictBase):  # lgtm [py/missing-equals]
-    """Frozen (i.e. hashable, immutable) ordered bidict."""
+    """Hashable, immutable, ordered bidict type."""
 
     __slots__ = ()
 
@@ -53,5 +53,5 @@ class FrozenOrderedBidict(OrderedBidictBase):  # lgtm [py/missing-equals]
 
 #                             * Code review nav *
 #==============================================================================
-#  ← Prev: _ordered.py     Current: _frozenordered.py                   <FIN>
+#  ← Prev: _orderedbase.py  Current: _frozenordered.py    Next: _ordered.py →
 #==============================================================================

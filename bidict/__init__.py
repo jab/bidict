@@ -52,7 +52,8 @@ from ._exc import (
 from ._frozen import frozenbidict
 from ._frozenordered import FrozenOrderedBidict
 from ._named import namedbidict
-from ._orderedbase import OrderedBidict, OrderedBidictBase
+from ._orderedbase import OrderedBidictBase
+from ._ordered import OrderedBidict
 from .metadata import (
     __author__, __maintainer__, __copyright__, __email__, __credits__,
     __license__, __status__, __description__, __version__)

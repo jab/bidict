@@ -26,7 +26,7 @@
 #==============================================================================
 
 
-"""Implements :class:`_MutableBidict`, a base class for mutable bidirectional mappings."""
+"""Provides :class:`_MutableBidict`."""
 
 from collections import MutableMapping
 
@@ -38,6 +38,7 @@ from ._miss import _MISS
 # Extend MutableMapping explicitly because it doesn't implement __subclasshook__, as well as to
 # inherit method implementations it provides that bidict can reuse (namely `setdefault`).
 class _MutableBidict(BidictBase, MutableMapping):
+    """Base class for mutable bidirectional mappings."""
 
     __slots__ = ()
 
