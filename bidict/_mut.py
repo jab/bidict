@@ -22,7 +22,7 @@
 
 #                             * Code review nav *
 #==============================================================================
-#  ← Prev: _base.py             Current: _mut.py          Next: _ordered.py →
+#  ← Prev: _frozen.py          Current: _mut.py           Next: _ordered.py →
 #==============================================================================
 
 
@@ -173,5 +173,5 @@ class _MutableBidict(BidictBase, MutableMapping):
 
 #                             * Code review nav *
 #==============================================================================
-#  ← Prev: _base.py             Current: _mut.py           Next: _bidict.py →
+#  ← Prev: _frozen.py          Current: _mut.py           Next: _ordered.py →
 #==============================================================================

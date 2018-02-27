@@ -22,11 +22,11 @@
 
 #                             * Code review nav *
 #==============================================================================
-#  ← Prev: _abc.py             Current: _base.py              Next: _mut.py →
+#  ← Prev: _abc.py             Current: _base.py           Next: _frozen.py →
 #==============================================================================
 
 
-"""Implements :class:`BidictBase`, the base class for all other bidict types."""
+"""Provides :class:`BidictBase`, the base class for all other bidict types."""
 
 from collections import ItemsView, Mapping, namedtuple
 from weakref import ref
@@ -438,19 +438,6 @@ class BidictBase(BidirectionalMapping):
             return not self == other  # Implement __ne__ in terms of __eq__.
 
 
-class frozenbidict(BidictBase):  # noqa: N801 (class names should use CapWords convention)
-    """Immutable, hashable bidict type."""
-
-    __slots__ = ()
-
-    def __hash__(self):  # lgtm [py/equals-hash-mismatch]
-        """The hash of this bidict as determined by its items."""
-        if getattr(self, '_hash', None) is None:
-            # pylint: disable=protected-access,attribute-defined-outside-init
-            self._hash = ItemsView(self)._hash()
-        return self._hash
-
-
 _DedupResult = namedtuple('_DedupResult', 'isdupkey isdupval invbyval fwdbykey')
 _WriteResult = namedtuple('_WriteResult', 'key val oldkey oldval')
 _NODUP = _DedupResult(False, False, _MISS, _MISS)
@@ -458,5 +445,5 @@ _NODUP = _DedupResult(False, False, _MISS, _MISS)
 
 #                             * Code review nav *
 #==============================================================================
-#  ← Prev: _abc.py             Current: _base.py              Next: _mut.py →
+#  ← Prev: _abc.py             Current: _base.py           Next: _frozen.py →
 #==============================================================================

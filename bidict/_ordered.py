@@ -22,15 +22,15 @@
 
 #                             * Code review nav *
 #==============================================================================
-#  ← Prev: _bidict.py         Current: _ordered.py                      <FIN>
+#  ← Prev: _bidict.py         Current: _ordered.py  Next: _frozenordered.py →
 #==============================================================================
 
 
-"""Implements :class:`bidict.OrderedBidict` and :class:`bidict.FrozenOrderedBidict`."""
+"""Provides :class:`OrderedBidictBase` and :class:`OrderedBidict`."""
 
 from collections import Mapping
 
-from ._base import _WriteResult, BidictBase, frozenbidict
+from ._base import _WriteResult, BidictBase
 from ._bidict import bidict
 from ._marker import _Marker
 from ._miss import _MISS
@@ -44,6 +44,7 @@ _END = _Marker('END')
 
 
 class OrderedBidictBase(BidictBase):
+    """Base class implementing an ordered bidirectional mapping."""
 
     __slots__ = ('_sntl',)
 
@@ -247,26 +248,6 @@ class OrderedBidictBase(BidictBase):
         return list(iteritems(self))
 
 
-# FrozenOrderedBidict intentionally does not subclass frozenbidict because it only complicates the
-# inheritance hierarchy without providing any actual code reuse: The only thing from frozenbidict
-# that FrozenOrderedBidict uses is frozenbidict.__hash__(), but Python specifically prevents
-# __hash__ from being inherited; it must instead always be set explicitly as below. Users seeking
-# some `is_frozenbidict(..)` test that succeeds for both frozenbidicts and FrozenOrderedBidicts
-# should therefore not use isinstance(foo, frozenbidict), but should instead use the appropriate
-# ABCs, e.g. `isinstance(foo, BidirectionalMapping) and not isinstance(foo, MutableMapping)`.
-class FrozenOrderedBidict(OrderedBidictBase):  # lgtm [py/missing-equals]
-    """Frozen (i.e. hashable, immutable) ordered bidict."""
-
-    __slots__ = ()
-
-    # frozenbidict.__hash__ is also correct for ordered bidicts:
-    # The value is derived from all contained items and insensitive to their order.
-    # If an ordered bidict "O" is equal to a mapping, its unordered counterpart "U" is too.
-    # Since U1 == U2 => hash(U1) == hash(U2), then if O == U1, hash(O) must equal hash(U1).
-
-    __hash__ = frozenbidict.__hash__  # Must set explicitly, __hash__ is never inherited.
-
-
 class OrderedBidict(OrderedBidictBase, bidict):
     """Mutable bidict type that maintains items in insertion order."""
 
@@ -334,5 +315,5 @@ def _get_other(nodedata, key_or_val):
 
 #                             * Code review nav *
 #==============================================================================
-#  ← Prev: _bidict.py         Current: _ordered.py                      <FIN>
+#  ← Prev: _bidict.py         Current: _ordered.py  Next: _frozenordered.py →
 #==============================================================================
