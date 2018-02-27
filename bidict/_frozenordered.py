@@ -28,7 +28,7 @@
 """Provides :class:`FrozenOrderedBidict`, an immutable, hashable, ordered bidict type."""
 
 from ._frozen import frozenbidict
-from ._ordered import OrderedBidictBase
+from ._orderedbase import OrderedBidictBase
 
 
 # FrozenOrderedBidict intentionally does not subclass frozenbidict because it only complicates the
