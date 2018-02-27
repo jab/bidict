@@ -10,17 +10,17 @@ Let's return to the example from the :ref:`intro`::
 
 As we saw, this behaves just like a dict,
 but maintains a special
-:attr:`~bidict.BidirectionalMapping.inv` attribute
-giving access to inverse mappings::
+:attr:`~bidict.BidictBase.inv` attribute
+giving access to inverse items::
 
     >>> element_by_symbol.inv['helium'] = 'He'
     >>> del element_by_symbol.inv['hydrogen']
     >>> element_by_symbol
     bidict({'He': 'helium'})
 
-The rest of the
-:class:`collections.abc.MutableMapping` ABC
-is also supported::
+:class:`bidict.bidict` supports the rest of the
+:class:`collections.abc.MutableMapping` interface
+as well::
 
     >>> 'C' in element_by_symbol
     False
@@ -38,7 +38,7 @@ is also supported::
     >>> element_by_symbol.inv.pop('mercury')
     'Hg'
 
-Because inverse mappings are maintained alongside forward mappings,
+Because inverse items are maintained alongside forward items,
 referencing a bidict's inverse
 is always a constant-time operation.
 

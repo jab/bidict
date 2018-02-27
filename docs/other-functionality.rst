@@ -3,8 +3,23 @@
 Other Functionality
 ===================
 
-``inverted()``
---------------
+:func:`bidict.pairs`
+--------------------
+
+:func:`bidict.pairs` has the same signature as ``dict.__init__()``.
+It yields the given (*k*, *v*) pairs
+in the same order they'd be processed
+if passed into ``dict.__init__()``.
+
+    >>> from bidict import pairs
+    >>> list(pairs({'a': 1}, b=2))
+    [('a', 1), ('b', 2)]
+    >>> list(pairs([('a', 1), ('b', 2)], b=3))
+    [('a', 1), ('b', 2), ('b', 3)]
+
+
+:func:`bidict.inverted`
+-----------------------
 
 bidict provides the :class:`~bidict.inverted` iterator
 to help you get inverse pairs from various types of objects.
@@ -34,11 +49,5 @@ can implement themselves::
     [(4, 2), (9, 3)]
 
 
-Extras
-------
-
-:func:`bidict.pairs`
-as well as the :mod:`bidict.compat` module
-are used internally,
-but are exported as well
-since they may also be of use externally.
+Perhaps you'd be interested in having a look at the
+:ref:`addendum` next.

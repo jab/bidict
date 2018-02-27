@@ -22,7 +22,7 @@
 
 #                             * Code review nav *
 #==============================================================================
-#  ← Prev: __init__.py         Current: _abc.py            Next: _frozen.py →
+#  ← Prev: __init__.py         Current: _abc.py              Next: _base.py →
 #==============================================================================
 
 
@@ -98,5 +98,5 @@ class BidirectionalMapping(Mapping):  # pylint: disable=abstract-method,no-init
 
 #                             * Code review nav *
 #==============================================================================
-#  ← Prev: __init__.py         Current: _abc.py            Next: _frozen.py →
+#  ← Prev: __init__.py         Current: _abc.py              Next: _base.py →
 #==============================================================================

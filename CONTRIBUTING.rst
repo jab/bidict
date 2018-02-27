@@ -132,8 +132,8 @@ Besides filing issues and pull requests, there are other ways to contribute.
 
 - If bidict has helped you accomplish your work,
   especially work you've been paid for,
-  please support bidict's continued maintenance and development
-  financially, and/or ask your organization to do the same:
+  please consider supporting bidict's continued maintenance and development
+  financially if possible, and/or ask your organization to do the same:
 
 .. image:: ./_static/support-on-gumroad.png
   :target: https://gumroad.com/l/bidict

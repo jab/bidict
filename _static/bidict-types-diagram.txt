@@ -1,0 +1,17 @@
+# type-hierarchy.png image is generated from this file by ../build-docs.sh
+
+graph { flow: up; }
+node { font: Menlo; color: blue; }
+
+[ collections.abc.MutableMapping ] -> [ collections.abc.Mapping ] { fontsize: 0.7em; borderstyle: dashed; fill: #eeeeee; color: black; }
+[ bidict._abc.BidirectionalMapping ] -> [ collections.abc.Mapping ]
+[ bidict.bidict ] -> [ bidict._abc.BidirectionalMapping ] { fontsize: 0.7em; borderstyle: dashed; fill: #eeeeee; }
+[ bidict.bidict ] -> [ collections.abc.MutableMapping ] { fontsize: 0.7em; borderstyle: dashed; fill: #eeeeee; color: black; }
+[ bidict.frozenbidict ] -> [ bidict._abc.BidirectionalMapping ]
+[ bidict.frozenbidict ] -> [ collections.abc.Hashable ] { fontsize: 0.7em; borderstyle: dashed; fill: #eeeeee; color: black; }
+[ bidict.FrozenOrderedBidict ] -> [ bidict._abc.BidirectionalMapping ]
+[ bidict.FrozenOrderedBidict ] -> [ collections.abc.Hashable ]
+# [ bidict.FrozenOrderedBidict ] -> [ collections.abc.Reversible ] { fontsize: 0.7em; borderstyle: dashed; fill: #eeeeee; color: black; }
+[ bidict.OrderedBidict ] -> [ bidict._abc.BidirectionalMapping ]
+[ bidict.OrderedBidict ] -> [ collections.abc.MutableMapping ]
+# [ bidict.OrderedBidict ] -> [ collections.abc.Reversible ]

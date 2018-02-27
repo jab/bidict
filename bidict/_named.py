@@ -5,30 +5,27 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-"""Implements :func:`bidict.namedbidict`."""
+"""Provides :func:`bidict.namedbidict`."""
 
 import re
 
-from ._frozen import frozenbidict
+from ._abc import BidirectionalMapping
 from ._bidict import bidict
 
 
-_LEGALNAMEPAT = '^[A-z][A-z0-9_]*$'
-_LEGALNAMERE = re.compile(_LEGALNAMEPAT)
+_VALID_NAME = re.compile('^[A-z][A-z0-9_]*$')
 
 
 def namedbidict(typename, keyname, valname, base_type=bidict):
-    """
-    Create a bidict type with custom accessors.
+    """Create a bidict type with custom accessors.
 
     Analagous to :func:`collections.namedtuple`.
     """
-    if not isinstance(base_type, type) or not issubclass(base_type, frozenbidict):
-        raise TypeError('base_type must be a subclass of frozenbidict')
-
-    for name in typename, keyname, valname:
-        if not _LEGALNAMERE.match(name):
-            raise ValueError('%r does not match pattern %s' % (name, _LEGALNAMEPAT))
+    names = (typename, keyname, valname)
+    if not all(map(_VALID_NAME.match, names)) or keyname == valname:
+        raise ValueError(names)
+    if not issubclass(base_type, BidirectionalMapping):
+        raise TypeError(base_type)
 
     class _Named(base_type):
 

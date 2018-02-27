@@ -6,18 +6,6 @@ Changelog
 .. include:: release-notifications.rst.inc
 
 
-Type Hierarchy Reminder
------------------------
-
-When reading the below,
-remember that :class:`bidict.bidict` extends :class:`bidict.frozenbidict`, and
-:class:`~bidict.OrderedBidict` extends :class:`~bidict.FrozenOrderedBidict`.
-So the changes to the frozen bidict types described below
-often apply to the non-frozen types as well.
-
-See also :ref:`bidict-type-hierarchy`.
-
-
 0.15.0 (not yet released)
 -------------------------
 
@@ -39,17 +27,25 @@ Speedups and memory usage improvements
   See the new :ref:`inv-avoids-reference-cycles` documentation.
   Fixes `#24 <https://github.com/jab/bidict/issues/20>`_.
 
-- Make :func:`bidict.frozenbidict.__eq__` significantly
+- Make :func:`bidict.BidictBase.__eq__` significantly
   more speed- and memory-efficient when comparing to
   a non-:class:`dict` :class:`~collections.abc.Mapping`.
   (``Mapping.__eq__()``\'s inefficient implementation will now never be used.)
   The implementation is now more reusable as well.
 
-- Make :func:`bidict.FrozenOrderedBidict.__iter__` as well as
+- Make :func:`bidict.OrderedBidictBase.__iter__` as well as
   equality comparison slightly faster for ordered bidicts.
 
 Minor Bugfix
 ++++++++++++
+
+- :func:`~bidict.namedbidict` now verifies that the provided
+  ``keyname`` and ``valname`` are distinct,
+  raising :class:`ValueError` if they are equal.
+
+- :func:`~bidict.namedbidict` now raises :class:`TypeError`
+  if the provided ``base_type``
+  is not a :class:`~bidict.BidirectionalMapping`.
 
 - If you create a custom bidict subclass whose ``_fwdm_cls``
   differs from its ``_invm_cls``
@@ -59,7 +55,7 @@ Minor Bugfix
   (with ``_fwdm_cls`` and ``_invm_cls`` swapped)
   is now correctly computed and used automatically
   for your custom bidict's
-  :attr:`~bidict.frozenbidict.inv` bidict.
+  :attr:`~bidict.BidictBase.inv` bidict.
 
 Miscellaneous
 +++++++++++++
@@ -73,9 +69,9 @@ Miscellaneous
   it now ensures it is :func:`callable`
   before returning the result of calling it.
 
-- :func:`~bidict.frozenbidict.__repr__` no longer checks for a ``__reversed__``
+- :func:`~bidict.BidictBase.__repr__` no longer checks for a ``__reversed__``
   method to determine whether to use an ordered or unordered-style repr.
-  It now calls the new :func:`~bidict.frozenbidict.__repr_delegate__` instead
+  It now calls the new :func:`~bidict.BidictBase.__repr_delegate__` instead
   (which may be overridden if needed), for better composability.
 
 Minor Breaking API Changes
@@ -83,13 +79,23 @@ Minor Breaking API Changes
 
 The following breaking changes are expected to affect few if any users.
 
+- Split back out the :class:`~bidict.BidictBase` class
+  from :class:`~bidict.frozenbidict`
+  and :class:`~bidict.OrderedBidictBase`
+  from :class:`~bidict.FrozenOrderedBidict`,
+  reverting the merging of these in 0.14.0.
+  Having e.g. ``issubclass(bidict, frozenbidict) == True`` was confusing,
+  so this change restores ``issubclass(bidict, frozenbidict) == False``.
+
+  See the updated :ref:`bidict-types-diagram`.
+
 - Rename:
  
-  - ``bidict.frozenbidict.fwdm`` → ``._fwdm``
-  - ``bidict.frozenbidict.invm`` → ``._invm``
-  - ``bidict.frozenbidict.fwd_cls`` → ``._fwdm_cls``
-  - ``bidict.frozenbidict.inv_cls`` → ``._invm_cls``
-  - ``bidict.frozenbidict.isinv`` → ``._isinv``
+  - ``bidict.BidictBase.fwdm`` → ``._fwdm``
+  - ``bidict.BidictBase.invm`` → ``._invm``
+  - ``bidict.BidictBase.fwd_cls`` → ``._fwdm_cls``
+  - ``bidict.BidictBase.inv_cls`` → ``._invm_cls``
+  - ``bidict.BidictBase.isinv`` → ``._isinv``
 
   Though overriding ``_fwdm_cls`` and ``_invm_cls`` remains supported
   (see :ref:`extending`),
@@ -106,9 +112,6 @@ The following breaking changes are expected to affect few if any users.
   which was the canonical way to refer to them anyway.
   It is now no longer possible to create an infinite chain like
   ``DuplicationPolicy.RAISE.RAISE.RAISE...``
-
-- :func:`~bidict.namedbidict` now raises :class:`TypeError` if the provided
-  ``base_type`` is not a subclass of :class:`~bidict.frozenbidict`.
 
 - Pickling ordered bidicts now requires
   at least version 2 of the pickle protocol.
@@ -148,8 +151,8 @@ The following breaking changes are expected to affect few if any users.
   (e.g. ``f = frozenbidict(); {f.inv: '...'}``)
   would cause an ``AttributeError``.
 
-- Fix a bug introduced in 0.14.0 for Python 2 users where calling
-  :meth:`~bidict.frozenbidict.viewitems`
+- Fix a bug introduced in 0.14.0 for Python 2 users
+  where attempting to call ``viewitems``
   would cause a ``TypeError``.
   Thanks Richard Sanger for
   `reporting <https://github.com/jab/bidict/issues/48>`_.
@@ -178,7 +181,7 @@ The following breaking changes are expected to affect few if any users.
   frozen bidict and some other immutable mapping that it compared equal to
   into the same set or mapping.
 
-- Add :meth:`~bidict.FrozenOrderedBidict.equals_order_sensitive`.
+- Add :meth:`~bidict.OrderedBidictBase.equals_order_sensitive`.
 
 - Reduce the memory usage of ordered bidicts.
 
@@ -221,11 +224,11 @@ This release includes multiple API simplifications and improvements.
   together and remove ``BidictBase``.
   :class:`~bidict.frozenbidict`
   is now the concrete base class that all other bidict types derive from.
-  See the updated :ref:`bidict-type-hierarchy`.
+  See the updated :ref:`bidict-types-diagram`.
 
 - Merge :class:`~bidict.frozenbidict` and ``FrozenBidictBase``
   together and remove ``FrozenBidictBase``.
-  See the updated :ref:`bidict-type-hierarchy`.
+  See the updated :ref:`bidict-types-diagram`.
 
 - Merge ``frozenorderedbidict`` and ``OrderedBidictBase`` together
   into a single :class:`~bidict.FrozenOrderedBidict`
@@ -233,18 +236,18 @@ This release includes multiple API simplifications and improvements.
   :class:`~bidict.OrderedBidict` now extends
   :class:`~bidict.FrozenOrderedBidict`
   to add mutable behavior.
-  See the updated :ref:`bidict-type-hierarchy`.
+  See the updated :ref:`bidict-types-diagram`.
 
-- Make :meth:`~bidict.FrozenOrderedBidict.__eq__`
+- Make :meth:`~bidict.OrderedBidictBase.__eq__`
   always perform an order-insensitive equality test,
   even if the other mapping is ordered.
 
   Previously,
-  :meth:`~bidict.FrozenOrderedBidict.__eq__`
+  :meth:`~bidict.OrderedBidictBase.__eq__`
   was only order-sensitive for other ``OrderedBidictBase`` subclasses,
   and order-insensitive otherwise.
 
-  Use the new :meth:`~bidict.FrozenOrderedBidict.equals_order_sensitive`
+  Use the new :meth:`~bidict.OrderedBidictBase.equals_order_sensitive`
   method for order-sensitive equality comparison.
 
 - ``orderedbidict._should_compare_order_sensitive()`` has been removed.
@@ -280,11 +283,11 @@ This release includes multiple API simplifications and improvements.
 
 - Rename:
 
-    - ``bidict.BidictBase._fwd_class`` → ``bidict.frozenbidict.fwd_cls``
-    - ``bidict.BidictBase._inv_class`` → ``bidict.frozenbidict.inv_cls``
-    - ``bidict.BidictBase._on_dup_key`` → :attr:`bidict.frozenbidict.on_dup_key`
-    - ``bidict.BidictBase._on_dup_val`` → :attr:`bidict.frozenbidict.on_dup_val`
-    - ``bidict.BidictBase._on_dup_kv`` → :attr:`bidict.frozenbidict.on_dup_kv`
+    - ``bidict.BidictBase._fwd_class`` → ``.fwd_cls``
+    - ``bidict.BidictBase._inv_class`` → ``.inv_cls``
+    - ``bidict.BidictBase._on_dup_key`` → :attr:`~bidict.BidictBase.on_dup_key`
+    - ``bidict.BidictBase._on_dup_val`` → :attr:`~bidict.BidictBase.on_dup_val`
+    - ``bidict.BidictBase._on_dup_kv`` → :attr:`~bidict.BidictBase.on_dup_kv`
 
 
 0.13.1 (2017-03-15)
@@ -350,8 +353,7 @@ This release includes multiple API simplifications and improvements.
   or suggestions for an alternative implementation,
   please `share your feedback <https://gitter.im/jab/bidict>`_.
 
-- Add :attr:`_fwd_class <bidict.frozenbidict.fwdm_cls>` and
-  :attr:`_inv_class <bidict.frozenbidict.invm_cls>` attributes
+- Add ``_fwd_class`` and ``_inv_class`` attributes
   representing the backing :class:`~collections.abc.Mapping` types
   used internally to store the forward and inverse dictionaries, respectively.
 
@@ -448,9 +450,9 @@ This release includes multiple API simplifications and improvements.
 - More efficient implementations of
   :func:`~bidict.util.pairs`,
   :func:`~bidict.util.inverted`, and
-  :func:`~bidict.frozenbidict.copy`.
+  :func:`~bidict.BidictBase.copy`.
 
-- Implement :func:`~bidict.frozenbidict.__copy__`
+- Implement :func:`~bidict.BidictBase.__copy__`
   for use with the :mod:`copy` module.
 
 - Fix issue preventing a client class from inheriting from ``loosebidict``
@@ -539,7 +541,7 @@ Breaking API Changes
 ++++++++++++++++++++
 
 - Remove ``bidict.__invert__``, and with it, support for the ``~b`` syntax.
-  Use :attr:`~bidict.frozenbidict.inv` instead.
+  Use :attr:`~bidict.BidictBase.inv` instead.
   `#19 <https://github.com/jab/bidict/issues/19>`_
 
 - Remove support for the slice syntax.
@@ -547,7 +549,7 @@ Breaking API Changes
   `#19 <https://github.com/jab/bidict/issues/19>`_
 
 - Remove ``bidict.invert``.
-  Use :attr:`~bidict.frozenbidict.inv`
+  Use :attr:`~bidict.BidictBase.inv`
   rather than inverting a bidict in place.
   `#20 <https://github.com/jab/bidict/issues/20>`_
 

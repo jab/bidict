@@ -122,8 +122,6 @@ Notice of Usage
 If you use bidict,
 and especially if your usage or your organization is significant in some way,
 please let me know.
-Hearing that people are using bidict is a powerful antidote
-to the loneliness of maintaining an open-source project by myself. 😅
 
 You can:
 
@@ -204,13 +202,13 @@ to help with your review,
 I would be happy to try to coordinate a screenshare.
 
 
-Becoming a sponsor
+Becoming a Sponsor
 ^^^^^^^^^^^^^^^^^^
 
 If bidict has helped you accomplish your work,
 especially work you've been paid for,
 please consider supporting bidict's continued maintenance and development
-and/or asking your organization to do the same.
+financially if possible, and/or ask your organization to do the same.
 
 .. image:: https://raw.githubusercontent.com/jab/bidict/master/_static/support-on-gumroad.png
     :target: https://gumroad.com/l/bidict

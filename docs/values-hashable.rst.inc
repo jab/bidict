@@ -6,13 +6,15 @@ values must also be hashable.
 
 Attempting to insert an unhashable value will result in an error::
 
+    >>> anagrams_by_alphagram = dict(opt=['opt', 'pot', 'top'])
     >>> from bidict import bidict
-    >>> anagrams_by_alphagram = bidict(opt=['opt', 'pot', 'top'])
+    >>> bidict(anagrams_by_alphagram)
     Traceback (most recent call last):
-        ...
-    TypeError...
+    ...
+    TypeError: ...
 
-In this example, using a tuple instead of a list does the trick::
+So in this example,
+using a tuple or a frozenset instead of a list would do the trick::
 
     >>> bidict(opt=('opt', 'pot', 'top'))
     bidict({'opt': ('opt', 'pot', 'top')})

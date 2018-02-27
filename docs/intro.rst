@@ -23,7 +23,7 @@ It implements the familiar API you're used to from dict::
     'hydrogen'
 
 But it also maintains the inverse bidict via the
-:attr:`~bidict.BidirectionalMapping.inv` attribute::
+:attr:`~bidict.BidictBase.inv` attribute::
 
     >>> element_by_symbol.inv
     bidict({'hydrogen': 'H'})
