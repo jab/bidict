@@ -32,6 +32,7 @@ from collections import ItemsView
 from ._base import BidictBase
 
 
+# lgtm [py/missing-equals]
 class frozenbidict(BidictBase):  # noqa: N801; pylint: disable=invalid-name
     """Immutable, hashable bidict type."""
 

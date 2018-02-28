@@ -42,7 +42,7 @@ _NXT = 2
 _END = _Marker('END')
 
 
-class OrderedBidictBase(BidictBase):
+class OrderedBidictBase(BidictBase):  # lgtm [py/missing-equals]
     """Base class implementing an ordered :class:`BidirectionalMapping`."""
 
     __slots__ = ('_sntl',)

@@ -39,7 +39,7 @@ from .compat import PY2
 # need an `is_frozenbidict(..)` test that succeeds for both frozenbidicts and FrozenOrderedBidicts
 # should therefore not use isinstance(foo, frozenbidict), but should instead use the appropriate
 # ABCs, e.g. `isinstance(foo, BidirectionalMapping) and not isinstance(foo, MutableMapping)`.
-class FrozenOrderedBidict(OrderedBidictBase):  # lgtm [py/missing-equals]
+class FrozenOrderedBidict(OrderedBidictBase):
     """Hashable, immutable, ordered bidict type."""
 
     __slots__ = ()
