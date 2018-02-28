@@ -51,7 +51,7 @@ from platform import python_implementation
 from sys import version_info
 from warnings import warn
 
-PY2 = version_info[0] == 2
+PY2 = version_info < (3,)
 PYPY = python_implementation() == 'PyPy'
 
 # Without the following, pylint gives lots of false positives like
