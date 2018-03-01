@@ -28,20 +28,21 @@
 
 """Provides the :class:`BidirectionalMapping` abstract base class."""
 
-from collections import Mapping
-
-from .compat import iteritems
+from .compat import Mapping, iteritems
 
 
 class BidirectionalMapping(Mapping):  # pylint: disable=abstract-method,no-init
     """Abstract base class (ABC) for bidirectional mapping types.
 
-    Extends :class:`collections.abc.Mapping` primarily by adding the :attr:`inv`
-    attribute, which holds a reference to the inverse mapping.
+    Extends :class:`collections.abc.Mapping` primarily by adding the
+    (:class:`NotImplemented`) :attr:`inv` attribute,
+    which implementors of :class:`BidirectionalMapping`
+    should implement to return a reference to the inverse
+    :class:`BidirectionalMapping` instance.
 
     Implements :attr:`__subclasshook__` such that any
-    :class:`~collections.abc.Mapping` that also provides an
-    :attr:`~BidirectionalMapping.inv` implementation
+    :class:`~collections.abc.Mapping` that also provides
+    :attr:`~BidirectionalMapping.inv`
     will be considered a (virtual) subclass of this ABC.
     """
 
@@ -50,7 +51,7 @@ class BidirectionalMapping(Mapping):  # pylint: disable=abstract-method,no-init
     #: The inverse bidirectional mapping.
     #: Defaults to :obj:`NotImplemented`,
     #: meant to be overridden by concrete subclasses.
-    #: See also :attr:`bidict.frozenbidict.inv`
+    #: See also :attr:`bidict.BidictBase.inv`
     inv = NotImplemented
 
     def __inverted__(self):
@@ -68,32 +69,24 @@ class BidirectionalMapping(Mapping):  # pylint: disable=abstract-method,no-init
         """
         return iteritems(self.inv)
 
-    #: The attributes that :attr:`__subclasshook__` checks for to determine
-    #: whether a class is a subclass of :class:`BidirectionalMapping`.
-    _subclsattrs = frozenset({
-        # (__inverted__ not included, as it's an optimization, not a requirement of the interface)
-        'inv',
-        # The following are all the methods provided by the `collections.abc.Mapping` interface.
-        # See "Mapping" in the table at
-        # https://docs.python.org/3/library/collections.abc.html#collections-abstract-base-classes
-        '__getitem__', '__iter__', '__len__',  # abstract methods
-        '__contains__', 'keys', 'items', 'values', 'get', '__eq__', '__ne__',  # mixin methods
-    })
-
     @classmethod
-    def __subclasshook__(cls, C):  # noqa: N803 "argument name should be lowercase" -
-        # "C" is the standard name for this arg in __subclasshook__ implementations, see e.g.
-        # https://github.com/python/cpython/blob/d505a2/Lib/_collections_abc.py#L93
-        """Check if *C* provides all the attributes in :attr:`_subclsattrs`.
-
-        Causes conforming classes to be virtual subclasses automatically.
+    def __subclasshook__(cls, C):
+        """Check if *C* is a :class:`~collections.abc.Mapping`
+        that also provides an ``inv`` attribute,
+        thus conforming to the :class:`BidirectionalMapping` interface,
+        in which case it will be considered a (virtual) C
+        even if it doesn't explicitly extend it.
         """
         if cls is not BidirectionalMapping:  # lgtm [py/comparison-using-is]
             return NotImplemented
-        mro = getattr(C, '__mro__', None)
-        if mro is None:
+        if not Mapping.__subclasshook__(C):
             return NotImplemented
-        return all(any(B.__dict__.get(i) for B in mro) for i in cls._subclsattrs)
+        mro = getattr(C, '__mro__', None)
+        if mro is None:  # Python 2 old-style class
+            return NotImplemented
+        if not any(B.__dict__.get('inv') for B in mro):
+            return NotImplemented
+        return True
 
 
 #                             * Code review nav *

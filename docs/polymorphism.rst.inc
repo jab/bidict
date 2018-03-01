@@ -10,11 +10,8 @@ to check whether ``obj`` is a :class:`~collections.abc.Mapping`.
 However, this check is too specific, and will fail for many
 types that implement the :class:`~collections.abc.Mapping` interface::
 
-    >>> try:
-    ...     from collections import ChainMap
-    ... except ImportError:  # not available in Python 2
-    ...     ChainMap = None  # Could try with a Python 2 ChainMap shim if in doubt.
-    >>> issubclass(ChainMap, dict) if ChainMap else False
+    >>> from collections import ChainMap  # (Python 3+) # doctest: +SKIP
+    >>> issubclass(ChainMap, dict)  # doctest: +SKIP
     False
 
 The same is true for all the bidict types::
@@ -29,10 +26,10 @@ is to use the abstract base classes (ABCs)
 from the :mod:`collections` module
 that are provided for this purpose::
 
-    >>> from collections import Mapping
-    >>> issubclass(ChainMap, Mapping) if ChainMap else True
+    >>> from collections import Mapping  # doctest: +SKIP
+    >>> issubclass(ChainMap, Mapping)  # doctest: +SKIP
     True
-    >>> isinstance(bidict(), Mapping)
+    >>> isinstance(bidict(), Mapping)  # doctest: +SKIP
     True
 
 Also note that the proper way to check whether an object
@@ -54,7 +51,7 @@ is an (im)mutable mapping is to use the
 
 Checking for ``isinstance(obj, frozenbidict)`` is too specific
 and could fail in some cases.
-Namely, :class:`~bidict.FrozenOrderedBidict` is an immutable mapping
+For example, :class:`~bidict.FrozenOrderedBidict` is an immutable mapping
 but it does not subclass :class:`~bidict.frozenbidict`::
 
     >>> from bidict import FrozenOrderedBidict
@@ -73,27 +70,18 @@ One thing you might notice is that there is no
 ``Ordered`` or ``OrderedMapping`` ABC.
 However, Python 3.6 introduced the :class:`collections.abc.Reversible` ABC.
 Since being reversible implies having an ordering,
-if you need to check for an ordered mapping,
 you could check for reversibility instead.
 For example::
 
-    >>> def is_reversible(cls):
-    ...     try:
-    ...         from collections import Reversible
-    ...     except ImportError:  # Python < 3.6
-    ...         # Better to use a shim of Python 3.6's Reversible,
-    ...         # but this'll do for now:
-    ...         return getattr(cls, '__reversed__', None) is not None
-    ...     return issubclass(cls, Reversible)
-
-    >>> def is_ordered_mapping(cls):
-    ...     return is_reversible(cls) and issubclass(cls, Mapping)
+    >>> from collections import Reversible  # doctest: +SKIP
+    >>> def is_reversible_mapping(cls):
+    ...     return issubclass(cls, Reversible) and issubclass(cls, Mapping)
     ...
 
     >>> from bidict import OrderedBidict
-    >>> is_ordered_mapping(OrderedBidict)
+    >>> is_reversible_mapping(OrderedBidict)  # doctest: +SKIP
     True
 
     >>> from collections import OrderedDict
-    >>> is_ordered_mapping(OrderedDict)
+    >>> is_ordered_mapping(OrderedDict)  # doctest: +SKIP
     True

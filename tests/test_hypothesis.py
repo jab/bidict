@@ -10,21 +10,25 @@
 import gc
 import pickle
 import re
-from collections import Hashable, Mapping, MutableMapping, OrderedDict
+from collections import OrderedDict
 from operator import eq, ne
 from os import getenv
 from weakref import ref
 
 import pytest
 from hypothesis import assume, given, settings, strategies as strat
+
 from bidict import (
     BidictException, IGNORE, OVERWRITE, RAISE,
     BidirectionalMapping, bidict, OrderedBidict, OrderedBidictBase,
     frozenbidict, FrozenOrderedBidict, namedbidict, pairs, inverted)
-from bidict.compat import PY2, PYPY, iterkeys, itervalues, iteritems, izip
+
+from bidict.compat import (
+    PY2, PYPY, iterkeys, itervalues, iteritems, izip,
+    Hashable, Mapping, MutableMapping)
 
 
-settings.register_profile('default', settings(max_examples=500, deadline=None))
+settings.register_profile('default', settings(max_examples=250, deadline=None))
 settings.load_profile(getenv('HYPOTHESIS_PROFILE', 'default'))
 
 
@@ -42,7 +46,8 @@ def ensure_no_dup(items):
 
 def ensure_dup(key=False, val=False):
     """Return a function that takes some hypothesis-generated items
-    and ensures they contain the specified type of duplication."""
+    and ensures they contain the specified type of duplication.
+    """
     assert key or val
     def _wrapped(items):  # noqa: E306 (expected 1 blank line before a nested definition)
         fwd = dict(items)
@@ -59,22 +64,6 @@ def ensure_dup(key=False, val=False):
     return _wrapped
 
 
-class DummyBimap(dict):  # pylint: disable=too-few-public-methods
-    """Dummy type that implements the BidirectionalMapping interface
-    and is thus considered a virtual subclass.
-    (Not actually a working implementation, but doesn't need to be
-    just to verify that :meth:`BidirectionalMapping.__subclasshook__`
-    is working correctly.)
-    """
-    @property
-    def inv(self):
-        """Dummy .inv implementation."""
-
-
-class OldStyleClass:  # pylint: disable=old-style-class,no-init,too-few-public-methods
-    """In Python 2 this is an old-style class (not derived from object)."""
-
-
 MyNamedBidict = namedbidict('MyNamedBidict', 'key', 'val')
 MyNamedFrozenBidict = namedbidict('MyNamedBidict', 'key', 'val', base_type=frozenbidict)
 NAMEDBIDICT_VALID_NAME = re.compile('^[A-z][A-z0-9_]*$')
@@ -83,9 +72,7 @@ MUTABLE_BIDICT_TYPES = (
 IMMUTABLE_BIDICT_TYPES = (frozenbidict, FrozenOrderedBidict, MyNamedFrozenBidict)
 ORDERED_BIDICT_TYPES = (OrderedBidict, FrozenOrderedBidict)
 BIDICT_TYPES = MUTABLE_BIDICT_TYPES + IMMUTABLE_BIDICT_TYPES
-BIMAP_TYPES = BIDICT_TYPES + (DummyBimap,)
 MAPPING_TYPES = BIDICT_TYPES + (dict, OrderedDict)
-NON_BIMAP_TYPES = (dict, OrderedDict, OldStyleClass, bool, int, float, str)
 H_BIDICT_TYPES = strat.sampled_from(BIDICT_TYPES)
 H_MUTABLE_BIDICT_TYPES = strat.sampled_from(MUTABLE_BIDICT_TYPES)
 H_IMMUTABLE_BIDICT_TYPES = strat.sampled_from(IMMUTABLE_BIDICT_TYPES)
@@ -321,12 +308,6 @@ def test_namedbidict(base_type, init_items, data):
     keyfor = getattr(inv, keyname + '_for')
     assert all(valfor[key] == val for (key, val) in iteritems(instance))
     assert all(keyfor[val] == key for (key, val) in iteritems(instance))
-
-
-@given(cls=strat.sampled_from(BIMAP_TYPES + NON_BIMAP_TYPES))
-def test_bimap_subclasshook(cls):
-    """Test that issubclass(cls, BidirectionalMapping) works correctly."""
-    assert issubclass(cls, BidirectionalMapping) == (cls in BIMAP_TYPES)
 
 
 # Skip this test on PyPy where reference counting isn't used to free objects immediately. See:

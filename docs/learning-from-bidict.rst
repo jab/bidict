@@ -210,7 +210,7 @@ Portability
 ===========
 
 - Python 2 vs. Python 3
-  
+
   - mostly :class:`dict` API changes,
     but also functions like :func:`zip`, :func:`map`, :func:`filter`, etc.
 

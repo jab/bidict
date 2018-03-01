@@ -70,6 +70,8 @@ if PY2:
     itervalues = methodcaller('itervalues')
     iteritems = methodcaller('iteritems')
     from itertools import izip  # pylint: disable=no-name-in-module,unused-import
+    # pylint: disable=unused-import
+    from collections import Mapping, MutableMapping, ItemsView, Hashable  # noqa: F401 (unused)
 
 else:
 
@@ -87,3 +89,5 @@ else:
     itervalues = _compose(iter, viewvalues)
     iteritems = _compose(iter, viewitems)
     izip = zip
+    # pylint: disable=unused-import
+    from collections.abc import Mapping, MutableMapping, ItemsView, Hashable  # noqa: F401 (unused)

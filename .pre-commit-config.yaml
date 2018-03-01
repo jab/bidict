@@ -15,6 +15,7 @@ repos:
   sha: v2.1.1
   hooks:
   - id: pydocstyle
+    exclude: bidict/_version.py
 
 - repo: git://github.com/Lucas-C/pre-commit-hooks
   sha: v1.1.4
