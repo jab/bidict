@@ -28,11 +28,10 @@
 
 """Provides :class:`_MutableBidict`."""
 
-from collections import MutableMapping
-
 from ._base import BidictBase
 from ._dup import OVERWRITE, RAISE, _OnDup
 from ._miss import _MISS
+from .compat import MutableMapping
 
 
 # Extend MutableMapping explicitly because it doesn't implement __subclasshook__, as well as to

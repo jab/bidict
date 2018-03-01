@@ -28,7 +28,7 @@
 
 """Provides :class:`BidictBase`."""
 
-from collections import ItemsView, Mapping, namedtuple
+from collections import namedtuple
 from weakref import ref
 
 from ._abc import BidirectionalMapping
@@ -37,8 +37,8 @@ from ._exc import (
     DuplicationError, KeyDuplicationError, ValueDuplicationError, KeyAndValueDuplicationError)
 from ._miss import _MISS
 from ._noop import _NOOP
-from .compat import PY2, iteritems
-from .util import pairs
+from ._util import pairs
+from .compat import PY2, iteritems, ItemsView, Mapping
 
 
 # Since BidirectionalMapping implements __subclasshook__, and BidictBase
@@ -426,7 +426,7 @@ class BidictBase(BidirectionalMapping):
         def viewvalues(self):  # noqa: D102; pylint: disable=missing-docstring
             return self.inv.viewkeys()
         viewvalues.__doc__ = values.__doc__
-        values.__doc__ = "A list of the contained values."
+        values.__doc__ = 'A list of the contained values.'
 
         def viewitems(self):
             """A set-like object providing a view on the contained items."""

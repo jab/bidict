@@ -28,12 +28,10 @@
 
 """Provides :class:`OrderedBidictBase`."""
 
-from collections import Mapping
-
 from ._base import _WriteResult, BidictBase
 from ._marker import _Marker
 from ._miss import _MISS
-from .compat import iteritems, izip
+from .compat import iteritems, izip, Mapping
 
 
 _DAT = 0

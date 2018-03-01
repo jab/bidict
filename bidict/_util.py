@@ -8,10 +8,9 @@
 
 """Useful functions for working with bidirectional mappings and related data."""
 
-from collections import Mapping
 from itertools import chain
 
-from .compat import iteritems
+from .compat import iteritems, Mapping
 
 
 def pairs(*args, **kw):

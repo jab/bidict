@@ -36,8 +36,8 @@ Speedups and memory usage improvements
 - Make :func:`bidict.OrderedBidictBase.__iter__` as well as
   equality comparison slightly faster for ordered bidicts.
 
-Minor Bugfix
-++++++++++++
+Minor Bugfixes
+++++++++++++++
 
 - :func:`~bidict.namedbidict` now verifies that the provided
   ``keyname`` and ``valname`` are distinct,
@@ -87,10 +87,11 @@ The following breaking changes are expected to affect few if any users.
   Having e.g. ``issubclass(bidict, frozenbidict) == True`` was confusing,
   so this change restores ``issubclass(bidict, frozenbidict) == False``.
 
-  See the updated :ref:`bidict-types-diagram`.
+  See the updated :ref:`bidict-types-diagram`
+  and :ref:`polymorphism` documentation.
 
 - Rename:
- 
+
   - ``bidict.BidictBase.fwdm`` → ``._fwdm``
   - ``bidict.BidictBase.invm`` → ``._invm``
   - ``bidict.BidictBase.fwd_cls`` → ``._fwdm_cls``
@@ -112,6 +113,11 @@ The following breaking changes are expected to affect few if any users.
   which was the canonical way to refer to them anyway.
   It is now no longer possible to create an infinite chain like
   ``DuplicationPolicy.RAISE.RAISE.RAISE...``
+
+- Make :func:`bidict.pairs` and :func:`bidict.inverted`
+  no longer importable from ``bidict.util``,
+  and now only importable from the top-level :mod:`bidict` module.
+  (``bidict.util`` was renamed ``bidict._util``.)
 
 - Pickling ordered bidicts now requires
   at least version 2 of the pickle protocol.
@@ -448,8 +454,8 @@ This release includes multiple API simplifications and improvements.
   compatibility helpers.
 
 - More efficient implementations of
-  :func:`~bidict.util.pairs`,
-  :func:`~bidict.util.inverted`, and
+  :func:`~bidict.pairs`,
+  :func:`~bidict.inverted`, and
   :func:`~bidict.BidictBase.copy`.
 
 - Implement :func:`~bidict.BidictBase.__copy__`
@@ -601,11 +607,11 @@ Breaking API Changes
   to new :mod:`bidict.compat` module.
 
 - Move :class:`bidict.inverted`
-  to new :mod:`bidict.util` module
+  to new ``bidict.util`` module
   (still available from top-level :mod:`bidict` module as well).
 
 - Move ``bidict.fancy_iteritems``
-  to :func:`bidict.util.pairs`
+  to :func:`bidict.pairs`
   (also available from top level as :func:`bidict.pairs`).
 
 - Rename :func:`bidict.namedbidict`\'s ``bidict_type`` argument ``base_type``.

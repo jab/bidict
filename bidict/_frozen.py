@@ -27,9 +27,8 @@
 
 """Provides :class:`frozenbidict`, an immutable, hashable bidirectional mapping type."""
 
-from collections import ItemsView
-
 from ._base import BidictBase
+from .compat import ItemsView
 
 
 # lgtm [py/missing-equals]
