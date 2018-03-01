@@ -108,3 +108,11 @@ def test_abstract_bimap_init_fails():
     """See the :class:`AbstractBimap` docstring above."""
     with pytest.raises(TypeError):
         AbstractBimap()  # pylint: disable=abstract-class-instantiated
+
+
+def test_bimap_inv_notimplemented():
+    """Ensure that calling .inv on a BidirectionalMapping raises :class:`NotImplementedError`."""
+    with pytest.raises(NotImplementedError):
+        # Can't instantiate a BidirectionalMapping that hasn't overridden the abstract methods of
+        # the interface, so only way to call this implementation is on the class.
+        BidirectionalMapping.inv.fget(bidict())  # pylint: disable=no-member

@@ -56,7 +56,12 @@ class BidirectionalMapping(Mapping):  # pylint: disable=abstract-method,no-init
 
         :raises NotImplementedError: Meant to be overridden in subclasses.
         """
-        raise NotImplementedError  # pragma: no cover
+        # The @abstractproperty decorator prevents BidirectionalMapping subclasses from being
+        # instantiated unless they override this method. So users shouldn't be able to get to the
+        # point where they can unintentionally call this implementation of .inv on something
+        # anyway. Could leave the method body empty, but raise NotImplementedError so it's extra
+        # clear there's no reason to call this implementation (e.g. via super() after overriding).
+        raise NotImplementedError
 
     def __inverted__(self):
         """Get an iterator over the items in :attr:`inv`.
