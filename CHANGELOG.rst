@@ -97,6 +97,7 @@ The following breaking changes are expected to affect few if any users.
   - ``bidict.BidictBase.fwd_cls`` → ``._fwdm_cls``
   - ``bidict.BidictBase.inv_cls`` → ``._invm_cls``
   - ``bidict.BidictBase.isinv`` → ``._isinv``
+  - ``bidict.compat.izip`` → ``.zip``
 
   Though overriding ``_fwdm_cls`` and ``_invm_cls`` remains supported
   (see :ref:`extending`),
@@ -445,7 +446,7 @@ This release includes multiple API simplifications and improvements.
   - :func:`bidict.compat.viewvalues`
   - :func:`bidict.compat.iterkeys`
   - :func:`bidict.compat.itervalues`
-  - :func:`bidict.compat.izip`
+  - ``bidict.compat.izip``
   - ``bidict.compat.izip_longest``
 
   to complement the existing

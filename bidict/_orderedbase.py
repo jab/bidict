@@ -31,7 +31,7 @@
 from ._base import _WriteResult, BidictBase
 from ._marker import _Marker
 from ._miss import _MISS
-from .compat import iteritems, izip, Mapping
+from .compat import iteritems, zip, Mapping  # pylint: disable=redefined-builtin
 
 
 _DAT = 0
@@ -238,7 +238,7 @@ class OrderedBidictBase(BidictBase):  # lgtm [py/missing-equals]
         """
         if not isinstance(other, Mapping) or len(self) != len(other):
             return False
-        return all(i == j for (i, j) in izip(iteritems(self), iteritems(other)))
+        return all(i == j for (i, j) in zip(iteritems(self), iteritems(other)))
 
     def __repr_delegate__(self):
         """See :meth:`bidict.BidictBase.__repr_delegate__`."""
