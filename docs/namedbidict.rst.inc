@@ -1,3 +1,5 @@
+.. _namedbidict:
+
 :func:`~bidict.namedbidict`
 ---------------------------
 

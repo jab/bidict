@@ -17,9 +17,25 @@ _VALID_NAME = re.compile('^[A-z][A-z0-9_]*$')
 
 
 def namedbidict(typename, keyname, valname, base_type=bidict):
-    """Create a bidict type with custom accessors.
+    """Create a new subclass of *base_type* with custom accessors.
 
     Analagous to :func:`collections.namedtuple`.
+
+    The new class's ``__name__`` will be set to *typename*.
+
+    Instances of it will provide access to their
+    :attr:`inverse <BidirectionalMapping.inv>`\\s
+    via the custom *keyname*\\_for property,
+    and access to themselves
+    via the custom *valname*\\_for property.
+
+    See also the :ref:`namedbidict usage documentation <namedbidict>`
+
+    :raises ValueError: if any of the *typename*, *keyname*, or *valname*
+        strings does not match ``%s``, or if *keyname == valname*.
+
+    :raises TypeError: if *base_type* is not a subclass of
+        :class:`BidirectionalMapping`.
     """
     names = (typename, keyname, valname)
     if not all(map(_VALID_NAME.match, names)) or keyname == valname:
@@ -51,6 +67,9 @@ def namedbidict(typename, keyname, valname, base_type=bidict):
 
     _Named.__name__ = typename
     return _Named
+
+
+namedbidict.__doc__ %= _VALID_NAME.pattern
 
 
 def _make_empty(typename, keyname, valname, base_type):
