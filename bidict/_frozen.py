@@ -31,8 +31,7 @@ from ._base import BidictBase
 from .compat import ItemsView
 
 
-# lgtm [py/missing-equals]
-class frozenbidict(BidictBase):  # noqa: N801; pylint: disable=invalid-name
+class frozenbidict(BidictBase):  # noqa: E501; (line too long) pylint: disable=invalid-name; lgtm [py/missing-equals]
     """Immutable, hashable bidict type."""
 
     __slots__ = ()
