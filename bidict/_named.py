@@ -17,17 +17,17 @@ _VALID_NAME = re.compile('^[A-z][A-z0-9_]*$')
 
 
 def namedbidict(typename, keyname, valname, base_type=bidict):
-    """Create a new subclass of *base_type* with custom accessors.
+    r"""Create a new subclass of *base_type* with custom accessors.
 
     Analagous to :func:`collections.namedtuple`.
 
     The new class's ``__name__`` will be set to *typename*.
 
     Instances of it will provide access to their
-    :attr:`inverse <BidirectionalMapping.inv>`\\s
-    via the custom *keyname*\\_for property,
+    :attr:`inverse <BidirectionalMapping.inv>`\s
+    via the custom *keyname*\_for property,
     and access to themselves
-    via the custom *valname*\\_for property.
+    via the custom *valname*\_for property.
 
     See also the :ref:`namedbidict usage documentation <namedbidict>`
 
@@ -69,7 +69,7 @@ def namedbidict(typename, keyname, valname, base_type=bidict):
     return _Named
 
 
-namedbidict.__doc__ %= _VALID_NAME.pattern
+namedbidict.__doc__ %= _VALID_NAME.pattern  # pylint: disable=no-member
 
 
 def _make_empty(typename, keyname, valname, base_type):

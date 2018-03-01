@@ -10,7 +10,7 @@ u"""Compatibility helpers.
 
 .. py:attribute:: PY2
 
-    True iff running on Python 2.
+    True iff running on Python < 3.
 
 .. py:attribute:: PYPY
 
@@ -40,7 +40,7 @@ u"""Compatibility helpers.
 
     ``iteritems(x) → x.iteritems() if PY2 else iter(x.items())``
 
-.. py:attribute:: izip
+.. py:attribute:: zip
 
     ``itertools.izip() if PY2 else zip``
 
@@ -51,7 +51,8 @@ from platform import python_implementation
 from sys import version_info
 from warnings import warn
 
-PY2 = version_info < (3,)
+PYMAJOR, PYMINOR = version_info[:2]
+PY2 = PYMAJOR < 3
 PYPY = python_implementation() == 'PyPy'
 
 # Without the following, pylint gives lots of false positives like
@@ -60,22 +61,32 @@ PYPY = python_implementation() == 'PyPy'
 
 if PY2:
 
-    if version_info[1] < 7:  # pragma: no cover
+    if PYMINOR < 7:  # pragma: no cover
         warn('Python < 2.7 is unsupported.')
 
     viewkeys = methodcaller('viewkeys')
     viewvalues = methodcaller('viewvalues')
     viewitems = methodcaller('viewitems')
+
     iterkeys = methodcaller('iterkeys')
     itervalues = methodcaller('itervalues')
     iteritems = methodcaller('iteritems')
-    from itertools import izip  # pylint: disable=no-name-in-module,unused-import
+
+    # In Python 3, the collections ABCs were moved into collections.abc, which does not exist in
+    # Python 2. Support for importing them directly from collections is dropped in Python 3.8.
     # pylint: disable=unused-import
     from collections import Mapping, MutableMapping, ItemsView, Hashable  # noqa: F401 (unused)
 
+    # abstractproperty deprecated in Python 3.3 in favor of using @property with @abstractmethod.
+    # Before 3.3, this silently fails to detect when an abstract property has not been overridden.
+    from abc import abstractproperty
+
+    # pylint: disable=unused-import,no-name-in-module,redefined-builtin
+    from itertools import izip as zip
+
 else:
 
-    if version_info[1] < 3:  # pragma: no cover
+    if PYMINOR < 3:  # pragma: no cover
         warn('Python3 < 3.3 is unsupported.')
 
     viewkeys = methodcaller('keys')
@@ -88,6 +99,12 @@ else:
     iterkeys = _compose(iter, viewkeys)
     itervalues = _compose(iter, viewvalues)
     iteritems = _compose(iter, viewitems)
-    izip = zip
-    # pylint: disable=unused-import
+
+    # pylint: disable=unused-import,ungrouped-imports
     from collections.abc import Mapping, MutableMapping, ItemsView, Hashable  # noqa: F401 (unused)
+
+    # pylint: disable=ungrouped-imports
+    from abc import abstractmethod
+    abstractproperty = _compose(property, abstractmethod)
+
+    zip = zip

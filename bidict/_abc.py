@@ -28,16 +28,16 @@
 
 """Provides the :class:`BidirectionalMapping` abstract base class."""
 
-from .compat import Mapping, iteritems
+from .compat import Mapping, abstractproperty, iteritems
 
 
 class BidirectionalMapping(Mapping):  # pylint: disable=abstract-method,no-init
     """Abstract base class (ABC) for bidirectional mapping types.
 
     Extends :class:`collections.abc.Mapping` primarily by adding the
-    (:class:`NotImplemented`) :attr:`inv` attribute,
+    (abstract) :attr:`inv` property,
     which implementors of :class:`BidirectionalMapping`
-    should implement to return a reference to the inverse
+    should override to return a reference to the inverse
     :class:`BidirectionalMapping` instance.
 
     Implements :attr:`__subclasshook__` such that any
@@ -48,11 +48,15 @@ class BidirectionalMapping(Mapping):  # pylint: disable=abstract-method,no-init
 
     __slots__ = ()
 
-    #: The inverse bidirectional mapping.
-    #: Defaults to :obj:`NotImplemented`,
-    #: meant to be overridden by concrete subclasses.
-    #: See also :attr:`bidict.BidictBase.inv`
-    inv = NotImplemented
+    @abstractproperty
+    def inv(self):
+        """The inverse of this bidirectional mapping instance.
+
+        See also :attr:`bidict.BidictBase.inv`
+
+        :raises NotImplementedError: Meant to be overridden in subclasses.
+        """
+        raise NotImplementedError  # pragma: no cover
 
     def __inverted__(self):
         """Get an iterator over the items in :attr:`inv`.

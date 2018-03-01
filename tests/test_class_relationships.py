@@ -17,7 +17,7 @@ class OldStyleClass:  # pylint: disable=old-style-class,no-init,too-few-public-m
     """In Python 2 this is an old-style class (not derived from object)."""
 
 
-class AbstractBimap(Mapping):  # pylint: disable=abstract-method
+class VirtualBimapSubclass(Mapping):  # pylint: disable=abstract-method
     """Dummy type that implements the BidirectionalMapping interface
     without explicitly extending it, and so should still be considered a
     (virtual) subclass if the BidirectionalMapping ABC is working correctly.
@@ -30,8 +30,23 @@ class AbstractBimap(Mapping):  # pylint: disable=abstract-method
     inv = NotImplemented
 
 
+class AbstractBimap(BidirectionalMapping):  # pylint: disable=abstract-method
+    """Dummy type that explicitly extends BidirectionalMapping
+    but fails to provide a concrete implementation for the
+    :attr:`BidirectionalMapping.inv` :func:`abc.abstractproperty`.
+
+    As a result, attempting to create an instance of this class
+    should result in ``TypeError: Can't instantiate abstract class
+    AbstractBimap with abstract methods inv``
+    """
+
+    __getitem__ = NotImplemented
+    __iter__ = NotImplemented
+    __len__ = NotImplemented
+
+
 BIDICT_TYPES = (bidict, frozenbidict, FrozenOrderedBidict, OrderedBidict)
-BIMAP_TYPES = BIDICT_TYPES + (AbstractBimap,)
+BIMAP_TYPES = BIDICT_TYPES + (VirtualBimapSubclass, AbstractBimap)
 NOT_BIMAP_TYPES = (dict, object, OldStyleClass)
 MUTABLE_BIDICT_TYPES = (bidict, OrderedBidict)
 HASHABLE_BIDICT_TYPES = (frozenbidict, FrozenOrderedBidict)
@@ -41,7 +56,7 @@ ORDERED_BIDICT_TYPES = (OrderedBidict, FrozenOrderedBidict)
 @pytest.mark.parametrize('cls', BIMAP_TYPES + NOT_BIMAP_TYPES)
 def test_issubclass_bimap(cls):
     """Ensure all bidict types are :class:`bidict.BidirectionalMapping`s,
-    as well as AbstractBimap (via __subclasshook__).
+    as well as VirtualBimapSubclass (via __subclasshook__).
     """
     is_bimap = issubclass(cls, BidirectionalMapping)
     assert cls in BIMAP_TYPES if is_bimap else NOT_BIMAP_TYPES
@@ -87,3 +102,9 @@ def test_issubclass_internal():
 
     assert not issubclass(FrozenOrderedBidict, frozenbidict)
     assert not issubclass(FrozenOrderedBidict, OrderedBidict)
+
+
+def test_abstract_bimap_init_fails():
+    """See the :class:`AbstractBimap` docstring above."""
+    with pytest.raises(TypeError):
+        AbstractBimap()  # pylint: disable=abstract-class-instantiated
