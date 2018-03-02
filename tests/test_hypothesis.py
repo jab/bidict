@@ -11,7 +11,7 @@ import gc
 import pickle
 import re
 from collections import OrderedDict
-from operator import eq, ne
+from operator import eq, ne, itemgetter
 from os import getenv
 from weakref import ref
 
@@ -64,6 +64,8 @@ def ensure_dup(key=False, val=False):
         return items
     return _wrapped
 
+
+KEY = itemgetter(0)
 
 MyNamedBidict = namedbidict('MyNamedBidict', 'key', 'val')
 MyNamedFrozenBidict = namedbidict('MyNamedBidict', 'key', 'val', base_type=frozenbidict)
@@ -118,7 +120,12 @@ H_METHOD_ARGS = strat.sampled_from((
 
 
 def items_match(map1, map2, relation=eq):
-    """Ensure map1 and map2 contain the same items (and in the same order, if they're ordered)."""
+    """Return whether the items of *map1* and *map2*
+    are related by *relation*.
+    If *map1* and *map2* are both ordered,
+    they will be compared as lists,
+    otherwise as sets.
+    """
     both_ordered_bidicts = all(isinstance(m, OrderedBidictBase) for m in (map1, map2))
     canon = list if both_ordered_bidicts else set
     canon_map1 = canon(iteritems(map1))
@@ -173,7 +180,7 @@ def test_eq_ne_hash(bi_cls, other_cls, init_items, init_unequal, not_a_mapping):
 
 @given(bi_cls=H_BIDICT_TYPES, init_items=H_LISTS_PAIRS_NODUP)
 def test_bijectivity(bi_cls, init_items):
-    """*b[k] == v  <==>  b.inv[v] == k*"""
+    """b[k] == v  <==>  b.inv[v] == k"""
     some_bidict = bi_cls(init_items)
     ordered = getattr(bi_cls, '__reversed__', None)
     canon = list if ordered else set
@@ -195,8 +202,8 @@ def test_bijectivity(bi_cls, init_items):
 @given(bi_cls=H_MUTABLE_BIDICT_TYPES, init_items=H_LISTS_PAIRS_NODUP,
        method_args=H_METHOD_ARGS, data=strat.data())
 def test_consistency_after_mutation(bi_cls, init_items, method_args, data):
-    """Call every mutating method on every bidict that implements it,
-    and ensure the bidict is left in a consistent state afterward.
+    """Every bidict should be left in a consistent state after calling
+    any mutating method on it that it implements, even if the call raises.
     """
     methodname, hs_args = method_args
     method = getattr(bi_cls, methodname, None)
@@ -255,29 +262,38 @@ def test_dup_policies_bulk(bi_cls, init_items, update_items, on_dup_key, on_dup_
 
 @given(bi_cls=H_BIDICT_TYPES, init_items=H_LISTS_PAIRS_NODUP)
 def test_bidict_iter(bi_cls, init_items):
-    """Ensure :meth:`bidict.BidictBase.__iter__` works correctly."""
+    """:meth:`bidict.BidictBase.__iter__` should yield all the keys in a bidict."""
     some_bidict = bi_cls(init_items)
-    assert set(some_bidict) == set(iterkeys(some_bidict))
+    assert set(some_bidict) == set(iterkeys(some_bidict)) == set(KEY(pair) for pair in init_items)
 
 
 @given(bi_cls=H_ORDERED_BIDICT_TYPES, init_items=H_LISTS_PAIRS_NODUP)
 def test_orderedbidict_iter(bi_cls, init_items):
-    """Ensure :meth:`bidict.OrderedBidictBase.__iter__` works correctly."""
+    """:meth:`bidict.OrderedBidictBase.__iter__` should yield all the keys
+    in an ordered bidict in the order they were inserted.
+    """
     some_bidict = bi_cls(init_items)
-    assert all(i == j for (i, j) in zip(some_bidict, iterkeys(some_bidict)))
+    assert all(i == j == k for (i, j, k) in
+               zip(some_bidict, iterkeys(some_bidict), (KEY(pair) for pair in init_items)))
 
 
 @given(bi_cls=H_ORDERED_BIDICT_TYPES, init_items=H_LISTS_PAIRS_NODUP)
 def test_orderedbidict_reversed(bi_cls, init_items):
-    """Ensure :meth:`bidict.OrderedBidictBase.__reversed__` works correctly."""
+    """:meth:`bidict.OrderedBidictBase.__reversed__` should yield all the keys
+    in an ordered bidict in the reverse-order they were inserted.
+    """
     some_bidict = bi_cls(init_items)
-    assert all(i == j for (i, j) in zip(reversed(some_bidict), list(iterkeys(some_bidict))[::-1]))
+    assert all(i == j == k for (i, j, k) in
+               zip(reversed(some_bidict),
+                   reversed(list(iterkeys(some_bidict))),
+                   reversed(list(KEY(pair) for pair in init_items))))
 
 
 @given(bi_cls=H_IMMUTABLE_BIDICT_TYPES)
 def test_frozenbidicts_hashable(bi_cls):
-    """Test that immutable bidicts can be hashed and inserted into sets and mappings."""
+    """Immutable bidicts can be hashed and inserted into sets and mappings."""
     some_bidict = bi_cls()
+    # Nothing to assert; making sure these calls don't raise TypeError is sufficient.
     hash(some_bidict)  # pylint: disable=pointless-statement
     {some_bidict}  # pylint: disable=pointless-statement
     {some_bidict: some_bidict}  # pylint: disable=pointless-statement
@@ -309,6 +325,17 @@ def test_namedbidict(base_type, init_items, data):
     keyfor = getattr(inv, keyname + '_for')
     assert all(valfor[key] == val for (key, val) in iteritems(instance))
     assert all(keyfor[val] == key for (key, val) in iteritems(instance))
+
+
+@given(bi_cls=H_BIDICT_TYPES)
+def test_bidict_isinv(bi_cls):
+    """All bidict types should provide ``_isinv`` and ``__getstate__``
+    (or else they won't fully work as a *base_type* for :func:`namedbidict`).
+    """
+    some_bidict = bi_cls()
+    # Nothing to assert; making sure these calls don't raise is sufficient.
+    some_bidict._isinv  # pylint: disable=pointless-statement,protected-access
+    some_bidict.__getstate__()  # pylint: disable=pointless-statement
 
 
 # Skip this test on PyPy where reference counting isn't used to free objects immediately. See:

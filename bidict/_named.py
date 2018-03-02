@@ -36,12 +36,22 @@ def namedbidict(typename, keyname, valname, base_type=bidict):
 
     :raises TypeError: if *base_type* is not a subclass of
         :class:`BidirectionalMapping`.
+        (This function requires slightly more of *base_type*,
+        e.g. the availability of an ``_isinv`` attribute,
+        but all the :ref:`concrete bidict types <bidict-types-diagram>`
+        that the :mod:`bidict` module provides can be passed in.
+        Check out the code if you actually need to pass in something else.)
     """
+    # Re the `base_type` docs above:
+    # The additional requirements (providing _isinv and __getstate__) do not belong in the
+    # BidirectionalMapping interface, and it's overkill to create additional interface(s) for this.
+    # On the other hand, it's overkill to require that base_type be a subclass of BidictBase, since
+    # that's too specific. The BidirectionalMapping check along with the docs above should suffice.
+    if not issubclass(base_type, BidirectionalMapping):
+        raise TypeError(base_type)
     names = (typename, keyname, valname)
     if not all(map(_VALID_NAME.match, names)) or keyname == valname:
         raise ValueError(names)
-    if not issubclass(base_type, BidirectionalMapping):
-        raise TypeError(base_type)
 
     class _Named(base_type):
 

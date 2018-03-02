@@ -10,7 +10,7 @@
 import pytest
 
 from bidict import bidict, frozenbidict, FrozenOrderedBidict, OrderedBidict, BidirectionalMapping
-from bidict.compat import Mapping, MutableMapping, Hashable
+from bidict.compat import Mapping, MutableMapping, Hashable, PY2
 
 
 class OldStyleClass:  # pylint: disable=old-style-class,no-init,too-few-public-methods
@@ -21,7 +21,7 @@ class VirtualBimapSubclass(Mapping):  # pylint: disable=abstract-method
     """Dummy type that implements the BidirectionalMapping interface
     without explicitly extending it, and so should still be considered a
     (virtual) subclass if the BidirectionalMapping ABC is working correctly.
-    (See :meth:`bidict.BidirectionalMapping.__subclasshook__`.)
+    (See :meth:`BidirectionalMapping.__subclasshook__`.)
 
     (Not actually a *working* BidirectionalMapping implementation,
     but doesn't need to be for the purposes of this test.)
@@ -53,36 +53,48 @@ HASHABLE_BIDICT_TYPES = (frozenbidict, FrozenOrderedBidict)
 ORDERED_BIDICT_TYPES = (OrderedBidict, FrozenOrderedBidict)
 
 
-@pytest.mark.parametrize('cls', BIMAP_TYPES + NOT_BIMAP_TYPES)
-def test_issubclass_bimap(cls):
-    """Ensure all bidict types are :class:`bidict.BidirectionalMapping`s,
-    as well as VirtualBimapSubclass (via __subclasshook__).
+@pytest.mark.parametrize('bi_cls', BIMAP_TYPES)
+def test_issubclass_bimap(bi_cls):
+    """All bidict types should subclass :class:`BidirectionalMapping`,
+    and any class conforming to the interface (e.g. VirtualBimapSubclass)
+    should be considered a (virtual) subclass too.
     """
-    is_bimap = issubclass(cls, BidirectionalMapping)
-    assert cls in BIMAP_TYPES if is_bimap else NOT_BIMAP_TYPES
+    assert issubclass(bi_cls, BidirectionalMapping)
+
+
+@pytest.mark.parametrize('not_bi_cls', NOT_BIMAP_TYPES)
+def test_not_issubclass_not_bimap(not_bi_cls):
+    """Classes that do not conform to :class:`BidirectionalMapping`
+    should not be considered subclasses.
+    """
+    assert not issubclass(not_bi_cls, BidirectionalMapping)
+    # Make sure one of the types tested is an old-style class on Python 2,
+    # i.e. that BidirectionalMapping.__subclasshook__ doesn't break for them.
+    if PY2:  # testing the tests ¯\_(ツ)_/¯
+        assert any(not issubclass(cls, object) for cls in NOT_BIMAP_TYPES)
 
 
 @pytest.mark.parametrize('bi_cls', BIDICT_TYPES)
 def test_issubclass_mapping(bi_cls):
-    """Ensure all bidict types are :class:`collections.abc.Mapping`s."""
+    """All bidict types should be :class:`collections.abc.Mapping`s."""
     assert issubclass(bi_cls, Mapping)
 
 
 @pytest.mark.parametrize('bi_cls', MUTABLE_BIDICT_TYPES)
 def test_issubclass_mutablemapping(bi_cls):
-    """Ensure all mutable bidict types are :class:`collections.abc.MutableMapping`s."""
+    """All mutable bidict types should be :class:`collections.abc.MutableMapping`s."""
     assert issubclass(bi_cls, MutableMapping)
 
 
 @pytest.mark.parametrize('bi_cls', HASHABLE_BIDICT_TYPES)
 def test_issubclass_hashable(bi_cls):
-    """Ensure all hashable bidict types implement :class:`collections.abc.Hashable`."""
+    """All hashable bidict types should implement :class:`collections.abc.Hashable`."""
     assert issubclass(bi_cls, Hashable)
 
 
 @pytest.mark.parametrize('bi_cls', ORDERED_BIDICT_TYPES)
 def test_ordered_reversible(bi_cls):
-    """Ensure all ordered bidict types are reversible."""
+    """All ordered bidict types should be reversible."""
     assert callable(bi_cls.__reversed__)
 
 
@@ -111,7 +123,7 @@ def test_abstract_bimap_init_fails():
 
 
 def test_bimap_inv_notimplemented():
-    """Ensure that calling .inv on a BidirectionalMapping raises :class:`NotImplementedError`."""
+    """Calling .inv on a BidirectionalMapping should raise :class:`NotImplementedError`."""
     with pytest.raises(NotImplementedError):
         # Can't instantiate a BidirectionalMapping that hasn't overridden the abstract methods of
         # the interface, so only way to call this implementation is on the class.
