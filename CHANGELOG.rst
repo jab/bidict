@@ -6,8 +6,8 @@ Changelog
 .. include:: release-notifications.rst.inc
 
 
-0.15.0 (not yet released)
--------------------------
+0.15.0rc1 (2018-03-02)
+----------------------
 
 Speedups and memory usage improvements
 ++++++++++++++++++++++++++++++++++++++
