@@ -6,6 +6,12 @@ Changelog
 .. include:: release-notifications.rst.inc
 
 
+0.15.0 (not yet released)
+-------------------------
+
+No changes since 0.15.0rc1.
+
+
 0.15.0rc1 (2018-03-02)
 ----------------------
 
