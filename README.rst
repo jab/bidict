@@ -156,16 +156,12 @@ to be notified when a new version of bidict is released.
 Learning from bidict
 --------------------
 
-One of the most rewarding things about working on bidict
-– and also the most surprising,
-especially in light of the small codebase –
-is how much fun, advanced Python
-has turned up in the process.
+One of the most rewarding things about bidict
+is the outsized amount of advanced Python
+it covers in light of its small codebase.
 
 Check out :doc:`learning-from-bidict` [#fn-learning]_
 if you're interested in learning more.
-(And if that piques your interest,
-perhaps you'd like to `become a reviewer <#reviewers-wanted>`_?)
 
 
 Contributing
@@ -177,29 +173,35 @@ with no other sponsorship.
 Your help would be most welcome!
 
 
+.. adding this label causes the warning
+..   home.rst:179: WARNING: duplicate label reviewers-wanted, other instance in index.rst
+.. but removing it breaks links to it from other docs (e.g. learning-from-bidict.rst)
+
+.. _reviewers-wanted:
+
 Reviewers Wanted!
 ^^^^^^^^^^^^^^^^^
 
-.. `this issue <...>`__ avoids "Duplicate explicit target name" Sphinx warning
-.. caused by other `this issue <...>`_ link above. See:
+One of the most valuable ways to contribute to bidict
+and to :doc:`explore some advanced Python <learning-from-bidict>`
+while you're at it
+is to review bidict's relatively small codebase.
+
+Please create an issue or pull request with any improvements you'd propose
+or any other results you found.
+(Submitting a "Nothing-to-merge" PR with feedback in inline code comments or a
+`Review results <https://github.com/jab/bidict/issues/new?title=Review+results>`_
+issue both work well.)
+
+.. The __ in `this issue <...>`__ below is to avoid the warning Sphinx emits
+.. ("Duplicate explicit target name")
+.. caused by the other `this issue <...>`_ link above. See:
 .. https://github.com/sphinx-doc/sphinx/issues/3921#issuecomment-315581557
 
-One of the most valuable ways to contribute is to become a reviewer.
-If you are interested in reviewing future changes,
-please +1 `this issue <https://github.com/jab/bidict/issues/63>`__.
-
-Doing a complete review of latest master would also be tremendously helpful.
-There are currently only about 650 lines of code,
-so a full review may not even take much time.
-
-If you see some code, tests, docs, or anything else that could use improvement,
-please open an issue or submit a pull request.
-(On the off chance you finish a review without spotting any issues,
-please let me know that too!)
-
-If you are interested in getting a guided tour of the codebase
-to help with your review,
-I would be happy to try to coordinate a screenshare.
+You can also
++1 `this issue <https://github.com/jab/bidict/issues/63>`__
+to sign up to give feedback on future proposed changes
+that are in need of a reviewer.
 
 
 Becoming a Sponsor

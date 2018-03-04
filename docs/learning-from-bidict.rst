@@ -6,7 +6,7 @@ I got to explore further
 thanks to working on bidict.
 
 If you are interested in learning more about any of the following,
-reading through or even contributing to bidict's code
+:ref:`reviewing the (small) codebase <reviewers-wanted>`
 could be a great way to get started.
 
 .. todo::
@@ -42,6 +42,20 @@ Python's data model
   i.e. insertable into :class:`dict`\s and :class:`set`\s
 
   - See :meth:`object.__hash__` and :meth:`object.__eq__` docs
+
+    - Interestingly, unlike other attributes, if a class implements
+      ``__hash__()``, any subclasses will not inherit it,
+      as if Python implicitly adds ``__hash__ = None`` to the body
+      of every class that doesn't define ``__hash__`` otherwise.
+      So if you do want a subclass to inherit a base class's ``__hash__()``
+      implementation, you have to set that manually
+      (e.g. by adding ``__hash__ = BaseClass.__hash__`` in the class body,
+      which is exactly what :class:`~bidict.FrozenOrderedBidict` does).
+
+    - This is consistent with the fact that
+      :class:`object` implements ``__hash__()``,
+      but subclasses of :class:`object`
+      are not hashable by default.
 
   - If overriding :meth:`object.__eq__`:
 
@@ -154,13 +168,13 @@ API Design
 
 - Thanks to :class:`~collections.abc.Hashable`
   implementing :meth:`abc.ABCMeta.__subclasshook__`,
-  implementing a class that implements all the required methods of the
+  any class that implements all the required methods of the
   :class:`~collections.abc.Hashable` interface
-  (that is, just :meth:`~collections.abc.Hashable.__hash__` in this case)
+  (namely, :meth:`~collections.abc.Hashable.__hash__`)
   makes it a virtual subclass already, no need to explicitly extend.
   I.e. As long as ``Foo`` implements a ``__hash__()`` method,
-  ``issubclass(Foo, Hashable)`` would always be True,
-  no need to explicitly subclass via ``class Foo(Hashable):``
+  ``issubclass(Foo, Hashable)`` will always be True,
+  no need to explicitly subclass via ``class Foo(Hashable): ...``
 
 - :class:`collections.abc.Mapping` and
   :class:`collections.abc.MutableMapping`
@@ -172,11 +186,15 @@ API Design
 
 - Providing a new open ABC like :class:`~bidict.BidirectionalMapping`
 
-  - Implement :meth:`abc.ABCMeta.__subclasshook__`
-
-    - Can return the :obj:`NotImplemented` object
+  - Just override :meth:`~abc.ABCMeta.__subclasshook__`!
 
   - See ``_abc.py`` for an example
+
+  - Interesting consequence of the ``__subclasshook__()`` design:
+    the "subclass" relation is now intransitive,
+    e.g. :class:`object` is a subclass of :class:`~collections.abc.Hashable`,
+    :class:`list` is a subclass of :class:`object`,
+    but :class:`list` is not a subclass of :class:`~collections.abc.Hashable`
 
 - Notice we have :class:`collections.abc.Reversible`
   but no ``collections.abc.Ordered`` or ``collections.abc.OrderedMapping``
