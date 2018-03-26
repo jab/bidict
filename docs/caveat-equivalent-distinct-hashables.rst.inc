@@ -1,3 +1,5 @@
+.. _equiv-but-distinct:
+
 Equivalent but distinct :class:`~collections.abc.Hashable`\s
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 

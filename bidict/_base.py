@@ -12,7 +12,7 @@
 
 # Doing a code review? You'll find a "Code review nav" comment like the one
 # below at the top and bottom of the most important source files. This provides
-# a suggested path through the source while you're still getting familiar.
+# a suggested initial path through the source when reviewing.
 #
 # Note: If you aren't reading this on https://github.com/jab/bidict, you may be
 # viewing an outdated version of the code. Please head to GitHub to review the
@@ -47,7 +47,7 @@ from .compat import PY2, iteritems, ItemsView, Mapping
 # it didn't subclass it explicitly. But subclassing BidirectionalMapping
 # explicitly allows BidictBase to inherit any useful methods that
 # BidirectionalMapping provides that aren't part of the required interface,
-# such as its optimized __inverted__ implementation.
+# such as its __inverted__ implementation.
 
 class BidictBase(BidirectionalMapping):
     """Base class implementing :class:`BidirectionalMapping`."""

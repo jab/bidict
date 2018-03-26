@@ -12,7 +12,7 @@
 
 # Doing a code review? You'll find a "Code review nav" comment like the one
 # below at the top and bottom of the most important source files. This provides
-# a suggested path through the source while you're still getting familiar.
+# a suggested initial path through the source when reviewing.
 #
 # Note: If you aren't reading this on https://github.com/jab/bidict, you may be
 # viewing an outdated version of the code. Please head to GitHub to review the
@@ -79,7 +79,7 @@ class BidirectionalMapping(Mapping):  # pylint: disable=abstract-method,no-init
         return iteritems(self.inv)
 
     @classmethod
-    def __subclasshook__(cls, C):
+    def __subclasshook__(cls, C):  # noqa: N803 (argument name should be lowercase)
         """Check if *C* is a :class:`~collections.abc.Mapping`
         that also provides an ``inv`` attribute,
         thus conforming to the :class:`BidirectionalMapping` interface,

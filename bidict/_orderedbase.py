@@ -12,7 +12,7 @@
 
 # Doing a code review? You'll find a "Code review nav" comment like the one
 # below at the top and bottom of the most important source files. This provides
-# a suggested path through the source while you're still getting familiar.
+# a suggested initial path through the source when reviewing.
 #
 # Note: If you aren't reading this on https://github.com/jab/bidict, you may be
 # viewing an outdated version of the code. Please head to GitHub to review the
@@ -31,7 +31,7 @@
 from ._base import _WriteResult, BidictBase
 from ._marker import _Marker
 from ._miss import _MISS
-from .compat import iteritems, zip, Mapping  # pylint: disable=redefined-builtin
+from .compat import iteritems, izip, Mapping
 
 
 _DAT = 0
@@ -238,7 +238,7 @@ class OrderedBidictBase(BidictBase):  # lgtm [py/missing-equals]
         """
         if not isinstance(other, Mapping) or len(self) != len(other):
             return False
-        return all(i == j for (i, j) in zip(iteritems(self), iteritems(other)))
+        return all(i == j for (i, j) in izip(iteritems(self), iteritems(other)))
 
     def __repr_delegate__(self):
         """See :meth:`bidict.BidictBase.__repr_delegate__`."""

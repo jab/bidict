@@ -109,7 +109,7 @@ matrix:
     - env: TASK=pylint
       before_install: travis_retry pip install .[test]
       install: travis_retry pip install pylint
-      script: pylint bidict tests setup.py
+      script: pylint bidict tests/*.py setup.py
     - env: TASK=test-with-optimization-flag  # make sure there are no relied-on side effects in assert statements
       before_install: echo "(no before_install needed)"
       install: echo "(no install needed)"

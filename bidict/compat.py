@@ -40,7 +40,7 @@ u"""Compatibility helpers.
 
     ``iteritems(x) → x.iteritems() if PY2 else iter(x.items())``
 
-.. py:attribute:: zip
+.. py:attribute:: izip
 
     ``itertools.izip() if PY2 else zip``
 
@@ -52,7 +52,7 @@ from sys import version_info
 from warnings import warn
 
 PYMAJOR, PYMINOR = version_info[:2]
-PY2 = PYMAJOR < 3
+PY2 = PYMAJOR == 2
 PYPY = python_implementation() == 'PyPy'
 
 # Without the following, pylint gives lots of false positives like
@@ -81,8 +81,7 @@ if PY2:
     # Before 3.3, this silently fails to detect when an abstract property has not been overridden.
     from abc import abstractproperty
 
-    # pylint: disable=unused-import,no-name-in-module,redefined-builtin
-    from itertools import izip as zip
+    from itertools import izip  # pylint: disable=unused-import,no-name-in-module
 
 else:
 
@@ -107,4 +106,4 @@ else:
     from abc import abstractmethod
     abstractproperty = _compose(property, abstractmethod)
 
-    zip = zip
+    izip = zip

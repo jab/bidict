@@ -9,12 +9,6 @@ Changelog
 0.15.0 (not yet released)
 -------------------------
 
-No changes since 0.15.0rc1.
-
-
-0.15.0rc1 (2018-03-02)
-----------------------
-
 Speedups and memory usage improvements
 ++++++++++++++++++++++++++++++++++++++
 
@@ -103,7 +97,6 @@ The following breaking changes are expected to affect few if any users.
   - ``bidict.BidictBase.fwd_cls`` → ``._fwdm_cls``
   - ``bidict.BidictBase.inv_cls`` → ``._invm_cls``
   - ``bidict.BidictBase.isinv`` → ``._isinv``
-  - ``bidict.compat.izip`` → ``.zip``
 
   Though overriding ``_fwdm_cls`` and ``_invm_cls`` remains supported
   (see :ref:`extending`),

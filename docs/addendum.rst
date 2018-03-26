@@ -36,6 +36,8 @@ Terminology
   rather than a non-set-like *dict_values* object.
 
 
+.. _missing-bidicts-in-stdlib:
+
 Missing bidicts in Stdlib!
 --------------------------
 

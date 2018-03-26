@@ -1,7 +1,8 @@
 Learning from bidict
 --------------------
 
-Below are some of the more fascinating Python corners
+Below is an outline of
+some of the more fascinating Python corners
 I got to explore further
 thanks to working on bidict.
 
@@ -9,123 +10,110 @@ If you are interested in learning more about any of the following,
 :ref:`reviewing the (small) codebase <reviewers-wanted>`
 could be a great way to get started.
 
-.. todo::
-
-   The following is just an outline.
-   Expand and provide more references and examples.
-
 
 Python's data model
 ===================
 
 - Using :meth:`object.__new__` to bypass default object initialization,
-  e.g. for better :meth:`~bidict.bidict.copy` performance
+  e.g. for better :meth:`~bidict.bidict.copy` performance.
+  See ``_base.py``.
 
-  - See ``_base.py`` for an example
-
-- Overriding :meth:`object.__getattribute__` for custom attribute lookup
-
-  - See :ref:`sorted-bidict-recipes` for example
+- Overriding :meth:`object.__getattribute__` for custom attribute lookup.
+  See :ref:`sorted-bidict-recipes`.
 
 - Using
   :meth:`object.__getstate__`,
   :meth:`object.__setstate__`, and
   :meth:`object.__reduce__` to make an object pickleable
   that otherwise wouldn't be,
-  due to e.g. using weakrefs (see below)
+  due to e.g. using weakrefs,
+  as bidicts do (covered further below).
 
-- Using :ref:`slots` to speed up attribute access and reduce memory usage
+- Using :ref:`slots` to speed up attribute access and reduce memory usage.
+  Must be careful with pickling and weakrefs.
+  See ``BidictBase.__getstate__()``.
 
-  - Must be careful with pickling and weakrefs, see ``BidictBase.__getstate__()``
+- What happens when you implement a custom :meth:`~object.__eq__`?
+  e.g. ``a == b`` vs. ``b == a`` when only ``a`` is an instance of your class?
+  Great write-up in https://eev.ee/blog/2012/03/24/python-faq-equality/
 
-- Making an immutable type hashable,
-  i.e. insertable into :class:`dict`\s and :class:`set`\s
+- Making an immutable type hashable
+  (so it can be inserted into :class:`dict`\s and :class:`set`\s):
+  Must implement :meth:`~object.__hash__` such that
+  ``a == b ⇒ hash(a) == hash(b)``.
+  See the :meth:`object.__hash__` and :meth:`object.__eq__` docs.
+  See :class:`bidict.frozenbidict`.
 
-  - See :meth:`object.__hash__` and :meth:`object.__eq__` docs
+  - Consider :class:`~bidict.FrozenOrderedBidict`:
+    its :meth:`~bidict.FrozenOrderedBidict.__eq__`
+    is :ref:`order-insensitive <eq-order-insensitive>`.
+    So all contained items must participate in the hash order-insensitively.
 
-    - Interestingly, unlike other attributes, if a class implements
-      ``__hash__()``, any subclasses will not inherit it,
-      as if Python implicitly adds ``__hash__ = None`` to the body
-      of every class that doesn't define ``__hash__`` otherwise.
-      So if you do want a subclass to inherit a base class's ``__hash__()``
-      implementation, you have to set that manually
-      (e.g. by adding ``__hash__ = BaseClass.__hash__`` in the class body,
-      which is exactly what :class:`~bidict.FrozenOrderedBidict` does).
+  - Can use `collections.abc.Set._hash <https://github.com/python/cpython/blob/a0374d/Lib/_collections_abc.py#L521>`_
+    which provides a pure Python implementation of the same hash algorithm
+    used to hash :class:`frozenset`\s.
+    (Since :class:`~collections.abc.ItemsView` extends
+    :class:`~collections.abc.Set`,
+    :meth:`bidict.frozenbidict.__hash__`
+    just calls ``ItemsView(self)._hash()``.)
 
-    - This is consistent with the fact that
-      :class:`object` implements ``__hash__()``,
-      but subclasses of :class:`object`
-      are not hashable by default.
+    - Does this argue for making :meth:`collections.abc.Set._hash` non-private?
 
-  - If overriding :meth:`object.__eq__`:
+    - Why isn't the C implementation of this algorithm directly exposed in
+      CPython? Only way to use it is to call ``hash(frozenset(self.items()))``,
+      which wastes memory allocating the ephemeral frozenset,
+      and time copying all the items into it before they're hashed.
 
-    - Don't forget to override
-      :meth:`object.__ne__` (automatic for Python 3, not Python 2)
+  - Unlike other attributes, if a class implements ``__hash__()``,
+    any subclasses of that class will not inherit it.
+    It's like Python implicitly adds ``__hash__ = None`` to the body
+    of every class that doesn't explicitly define ``__hash__``.
+    So if you do want a subclass to inherit a base class's ``__hash__()``
+    implementation, you have to set that manually,
+    e.g. by adding ``__hash__ = BaseClass.__hash__`` in the class body.
+    See :class:`~bidict.FrozenOrderedBidict`.
 
-    - See https://eev.ee/blog/2012/03/24/python-faq-equality/
-      ("When Python sees a == b, it tries the following...")
+    This is consistent with the fact that
+    :class:`object` implements ``__hash__()``,
+    but subclasses of :class:`object`
+    are not hashable by default.
 
-  - How this affects hashable ordered collections
-    like :class:`~bidict.FrozenOrderedBidict`
-    that have an order-insensitive
-    :meth:`~bidict.FrozenOrderedBidict.__eq__`
+- Surprising :class:`~collections.abc.Mapping` corner cases:
 
-    - All contained items must participate in the hash,
-      order-insensitively
+  - :ref:`nan-as-key`
 
-    - The `collections.abc.Set._hash <https://github.com/python/cpython/blob/a0374d/Lib/_collections_abc.py#L521>`_
-      method provides a pure Python implementation of the same hash algorithm
-      used to hash :class:`frozenset`\s.
+  - :ref:`equiv-but-distinct`
 
-      Since :class:`~collections.abc.ItemsView` extends
-      :class:`~collections.abc.Set`,
-      :meth:`bidict.frozenbidict.__hash__`
-      can just call ``ItemsView(self)._hash()``.
+  - `pywat#38 <https://github.com/cosmologicon/pywat/issues/38>`_
 
-        - Why is :meth:`collections.abc.Set._hash` private?
+    - "Intransitive equality
+      (of :class:`~collections.OrderedDict`)
+      was a mistake." –Raymond Hettinger
 
-        - Why isn't the C implementation of this algorithm directly exposed in
-          CPython? Only way to use it is to call ``hash(frozenset(self.items()))``,
-          which wastes memory allocating the ephemeral frozenset,
-          and time copying all the items into it before they're hashed.
+    - Hence :ref:`eq-order-insensitive` for ordered bidicts.
 
-- Resulting corner cases produce possibly surprising results:
+- If an instance of your custom mapping type
+  contains the same items as a mapping of another type,
+  should they compare equal?
+  What if one of the mappings is ordered and the other isn't?
+  What about returning the :obj:`NotImplemented` object?
 
-  - See :ref:`nan-as-key`
+  - bidict's ``__eq__()`` design
+    errs on the side of allowing more type polymorphism
+    on the grounds that this is what the majority of use cases expect,
+    and that it's more Pythonic.
 
-  - See
-    `pywat#38 <https://github.com/cosmologicon/pywat/issues/38>`_
-    for some surprising results when keys of
-    (related but) different types compare equal,
-    or when a hashable type's ``__eq__()`` is intransitive
-    (as in :class:`~collections.OrderedDict`):
+  - Any user who does need exact-type-matching equality can just override
+    :meth:`bidict’s __eq__() <bidict.BidictBase.__eq__>` method in a subclass.
 
-    - "Intransitive equality was a mistake." –Raymond Hettinger
+    - If this subclass were also hashable, would it be worth overriding
+      :meth:`bidict.frozenbidict.__hash__` too to include the type?
 
-    - Thus :ref:`eq-order-insensitive` for ordered bidicts
-
-  - If a :class:`~bidict.bidict` contains the same items as another
-    :class:`~collections.abc.Mapping` of a different subtype,
-    should the :class:`~bidict.bidict` compare equal to the other mapping?
-    Or should it at least compare unequal if the other instance is not
-    also a :class:`~bidict.BidirectionalMapping`?
-    Or should it return the :obj:`NotImplemented` object?
-
-    - bidict's ``__eq__()`` design errs on the side of allowing more type polymorphism,
-      on the grounds that this is probably what the majority of use cases expect and that this
-      is more Pythonic.
-
-    - Any user who does need exact-type-matching equality can just override
-      :meth:`bidict’s __eq__() <bidict.BidictBase.__eq__>` method in a subclass.
-
-      - If this subclass were also hashable, would it be worth overriding
-        :meth:`bidict.frozenbidict.__hash__` too to include the type?
-
-      - Only point would be to reduce collisions when multiple instances of different
-        types contained the same items
-        and were going to be inserted into the same :class:`dict` or :class:`set`
-        (since they'd now be unequal but would hash to the same value otherwise).
-        Seems rare, probably not worth it.
+    - Only point would be to reduce collisions when multiple instances of different
+      types contained the same items
+      and were going to be inserted into the same :class:`dict` or :class:`set`
+      (since they'd now be unequal but would hash to the same value otherwise).
+      Probably not worth it.
 
 
 Using :mod:`weakref`
@@ -134,29 +122,30 @@ Using :mod:`weakref`
 - See :ref:`inv-avoids-reference-cycles`
 
 
-Other interesting things discovered in the standard library
-===========================================================
+Other interesting stuff in the standard library
+===============================================
 
 - :mod:`reprlib` and :func:`reprlib.recursive_repr`
   (but not needed for bidict because there's no way to insert a bidict into itself)
 - :func:`operator.methodcaller`
 - :attr:`platform.python_implementation`
+- See :ref:`missing-bidicts-in-stdlib`
 
 
 :func:`~collections.namedtuple`-style dynamic class generation
 ==============================================================
 
-- See ``_named.py`` for an example
+- See ``_named.py``
 
 
 How to efficiently implement an ordered mapping
 ===============================================
 
-- Use a backing dict and doubly-linked list. :class:`~collections.OrderedDict`
-  `provides a good example
-  <https://github.com/python/cpython/blob/a0374d/Lib/collections/__init__.py#L71>`_
+- Use a backing dict and doubly-linked list.
 
-- See ``_orderedbase.py`` for an example
+- See ``_orderedbase.py``.
+  :class:`~collections.OrderedDict` provided a good
+  `reference <https://github.com/python/cpython/blob/a0374d/Lib/collections/__init__.py#L71>`_.
 
 
 API Design
@@ -186,9 +175,8 @@ API Design
 
 - Providing a new open ABC like :class:`~bidict.BidirectionalMapping`
 
-  - Just override :meth:`~abc.ABCMeta.__subclasshook__`!
-
-  - See ``_abc.py`` for an example
+  - Just override :meth:`~abc.ABCMeta.__subclasshook__`.
+    See ``_abc.py``.
 
   - Interesting consequence of the ``__subclasshook__()`` design:
     the "subclass" relation is now intransitive,
@@ -197,11 +185,11 @@ API Design
     but :class:`list` is not a subclass of :class:`~collections.abc.Hashable`
 
 - Notice we have :class:`collections.abc.Reversible`
-  but no ``collections.abc.Ordered`` or ``collections.abc.OrderedMapping``
-
-  - Would have been useful for bidict's ``__repr__()`` implementation (see ``_base.py``),
-    and potentially for interop with other ordered mapping implementations
-    such as `SortedDict <http://www.grantjenks.com/docs/sortedcontainers/sorteddict.html>`_
+  but no ``collections.abc.Ordered`` or ``collections.abc.OrderedMapping``.
+  Proposed in `bpo-28912 <https://bugs.python.org/issue28912>`_ but rejected.
+  Would have been useful for bidict's ``__repr__()`` implementation (see ``_base.py``),
+  and potentially for interop with other ordered mapping implementations
+  such as `SortedDict <http://www.grantjenks.com/docs/sortedcontainers/sorteddict.html>`_
 
 - Beyond :class:`collections.abc.Mapping`, bidicts implement additional APIs
   that :class:`dict` and :class:`~collections.OrderedDict` implement.
@@ -232,13 +220,23 @@ Portability
   - mostly :class:`dict` API changes,
     but also functions like :func:`zip`, :func:`map`, :func:`filter`, etc.
 
+  - If you define a custom :meth:`~object.__eq__` on a class,
+    it will *not* be used for ``!=`` comparisons on Python 2 automatically;
+    you must explicitly add an :meth:`~object.__ne__` implementation
+    that calls your :meth:`~object.__eq__` implementation.
+    If you don't, :meth:`object.__ne__` will be used instead,
+    which behaves like ``is not``.
+    GOTCHA alert!
+
+    Python 3 thankfully fixes this.
+
   - borrowing methods from other classes:
 
     In Python 2, must grab the ``.im_func`` / ``__func__``
     attribute off the borrowed method to avoid getting
     ``TypeError: unbound method ...() must be called with ... instance as first argument``
 
-    See ``_frozenordered.py`` for an example.
+    See ``_frozenordered.py``.
 
 - CPython vs. PyPy
 
@@ -251,6 +249,12 @@ Portability
   - primitives' identities, nan, etc.
 
     - http://doc.pypy.org/en/latest/cpython_differences.html#object-identity-of-primitive-values-is-and-id
+
+
+Python Syntax hacks
+===================
+
+- See `#19 <https://github.com/jab/bidict/issues/19>`_
 
 
 Correctness, performance, code quality, etc.

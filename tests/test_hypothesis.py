@@ -23,9 +23,8 @@ from bidict import (
     BidirectionalMapping, bidict, OrderedBidict, OrderedBidictBase,
     frozenbidict, FrozenOrderedBidict, namedbidict, pairs, inverted)
 
-# pylint: disable=redefined-builtin
 from bidict.compat import (
-    PY2, PYPY, iterkeys, itervalues, iteritems, zip,
+    PY2, PYPY, iterkeys, itervalues, iteritems, izip,
     Hashable, Mapping, MutableMapping)
 
 
@@ -273,8 +272,8 @@ def test_orderedbidict_iter(bi_cls, init_items):
     in an ordered bidict in the order they were inserted.
     """
     some_bidict = bi_cls(init_items)
-    assert all(i == j == k for (i, j, k) in
-               zip(some_bidict, iterkeys(some_bidict), (KEY(pair) for pair in init_items)))
+    key_iters = (some_bidict, iterkeys(some_bidict), (KEY(pair) for pair in init_items))
+    assert all(i == j == k for (i, j, k) in izip(*key_iters))
 
 
 @given(bi_cls=H_ORDERED_BIDICT_TYPES, init_items=H_LISTS_PAIRS_NODUP)
@@ -283,10 +282,9 @@ def test_orderedbidict_reversed(bi_cls, init_items):
     in an ordered bidict in the reverse-order they were inserted.
     """
     some_bidict = bi_cls(init_items)
-    assert all(i == j == k for (i, j, k) in
-               zip(reversed(some_bidict),
-                   reversed(list(iterkeys(some_bidict))),
-                   reversed(list(KEY(pair) for pair in init_items))))
+    key_iters = (some_bidict, iterkeys(some_bidict), (KEY(pair) for pair in init_items))
+    key_iters_rev = (reversed(list(i)) for i in key_iters)
+    assert all(i == j == k for (i, j, k) in izip(*key_iters_rev))
 
 
 @given(bi_cls=H_IMMUTABLE_BIDICT_TYPES)
@@ -396,7 +394,7 @@ def test_pairs(items, kwitems):
     assert list(pairs(OrderedDict(kwitems))) == list(kwitems)
     kwdict = dict(kwitems)
     pairs_it = pairs(items, **kwdict)
-    assert all(i == j for (i, j) in zip(items, pairs_it))
+    assert all(i == j for (i, j) in izip(items, pairs_it))
     assert set(iteritems(kwdict)) == {i for i in pairs_it}
     with pytest.raises(TypeError):
         pairs('too', 'many', 'args')
