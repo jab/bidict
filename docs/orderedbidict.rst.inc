@@ -1,10 +1,10 @@
 :class:`~bidict.OrderedBidict`
 ------------------------------
 
-For those times when your one-to-one mapping must also support
-remembering the order in which items were inserted
-(à la :class:`collections.OrderedDict`),
-:class:`bidict.OrderedBidict` has got your back::
+:class:`bidict.OrderedBidict`
+is a mutable :class:`~bidict.BidirectionalMapping`
+that preserves the order in which its items are inserted.
+It's like a bidirectional version of :class:`collections.OrderedDict`.
 
     >>> from bidict import OrderedBidict
     >>> element_by_symbol = OrderedBidict([
@@ -23,14 +23,16 @@ remembering the order in which items were inserted
     >>> last_item
     ('Be', 'beryllium')
 
-The additional methods of :class:`~collections.OrderedDict` are supported too::
+Additional functionality
+inspired by :class:`~collections.OrderedDict`
+is provided as well::
 
-    >>> element_by_symbol.popitem(last=True)  # Remove the last inserted item
+    >>> element_by_symbol.popitem(last=True)   # Remove the last item
     ('Be', 'beryllium')
-    >>> element_by_symbol.popitem(last=False) # Remove the first inserted item
+    >>> element_by_symbol.popitem(last=False)  # Remove the first item
     ('H', 'hydrogen')
 
-    >>> # Re-adding hydrogen after it's been removed moves it to the last item:
+    >>> # Re-adding hydrogen after it's been removed moves it to the end:
     >>> element_by_symbol['H'] = 'hydrogen'
     >>> element_by_symbol
     OrderedBidict([('He', 'helium'), ('Li', 'lithium'), ('H', 'hydrogen')])
@@ -51,7 +53,11 @@ updating an existing item preserves its position in the order::
     >>> element_by_symbol
     OrderedBidict([('H', 'hydrogen'), ('He', 'updated in place!'), ('Li', 'lithium')])
 
-When setting an item whose key duplicates that of an existing item
+Collapsing overwrites
+#####################
+
+When setting an item in an ordered bidict
+whose key duplicates that of an existing item,
 and whose value duplicates that of a *different* existing item,
 the existing item whose *value* is duplicated will be dropped,
 and the existing item whose *key* is duplicated
@@ -78,8 +84,7 @@ will have its value overwritten in place::
 To ensure that equality of bidicts is transitive
 (enabling conformance to the
 `Liskov substitution principle <https://en.wikipedia.org/wiki/Liskov_substitution_principle>`_),
-equality tests between an ordered bidict and other
-:class:`~collections.abc.Mapping`\s
+equality tests between an ordered bidict and other mappings
 are always order-insensitive::
 
     >>> from bidict import bidict
@@ -105,10 +110,6 @@ For order-sensitive equality tests, use
 
 Note that this differs from the behavior of
 :class:`collections.OrderedDict`\'s ``__eq__()``,
-by recommendation of Raymond Hettinger (the author) himself
-(who said that making OrderedDict's ``__eq__()``
-intransitive was a mistake).
-
-:class:`~bidict.OrderedBidict` also comes in a frozen flavor.
-See the :class:`~bidict.FrozenOrderedBidict`
-API documentation for more information.
+by recommendation of Raymond Hettinger (the author) himself.
+He later said that making OrderedDict's ``__eq__()``
+intransitive was a mistake.

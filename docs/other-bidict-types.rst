@@ -4,8 +4,8 @@ Other ``bidict`` Types
 ======================
 
 Now that we've covered
-:doc:`basic-usage`,
-let's look at the remaining bidict types.
+:doc:`basic-usage` with the :class:`bidict.bidict` type,
+let's look at some other bidirectional mapping types.
 
 .. _bidict-types-diagram:
 
@@ -15,21 +15,42 @@ let's look at the remaining bidict types.
 .. image:: _static/bidict-types-diagram.png
     :alt: bidict types diagram
 
-The most abstract type that bidict provides is
-:class:`bidict.BidirectionalMapping`.
-This extends the :class:`collections.abc.Mapping` ABC
+The most abstract class that :mod:`bidict` provides is
+the :class:`bidict.BidirectionalMapping` ABC.
+This extends :class:`collections.abc.Mapping`
 by adding the
 ":attr:`~bidict.BidirectionalMapping.inv`"
 :obj:`~abc.abstractproperty`.
-It also implements
-:meth:`~bidict.BidirectionalMapping.__subclasshook__`,
-so that any class providing a conforming API is considered a virtual subclass
-of :class:`~bidict.BidirectionalMapping` automatically,
-without needing to subclass :class:`~bidict.BidirectionalMapping` explicitly.
+
+All bidirectional mapping types that :mod:`bidict` provides
+are subclasses of :class:`bidict.BidirectionalMapping`.
+(In fact, any :class:`collections.abc.Mapping`
+that provides an ``inv`` attribute
+will be considered a virtual subclass of
+:class:`bidict.BidirectionalMapping`
+:meth:`automatically <bidict.BidirectionalMapping.__subclasshook__>`,
+enabling interoperability with external implementations.)
+
+As you may have noticed,
+:class:`bidict.bidict` is also
+a :class:`collections.abc.MutableMapping`.
+But :mod:`bidict` provides
+immutable bidirectional mapping types as well.
 
 .. include:: frozenbidict.rst.inc
 
 .. include:: orderedbidict.rst.inc
+
+
+:class:`~bidict.FrozenOrderedBidict`
+------------------------------------
+
+:class:`~bidict.FrozenOrderedBidict`
+is an immutable ordered bidict type.
+It's like an :class:`~bidict.OrderedBidict`
+without the mutating APIs,
+or equivalently like an order-preserving
+:class:`~bidict.frozenbidict`.
 
 .. include:: namedbidict.rst.inc
 

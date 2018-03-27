@@ -1,0 +1,33 @@
+// See ../build-docs.sh for how to generate an image from this file.
+
+digraph G {
+  rankdir=BT
+  dpi=300
+  node [fontsize="12", shape="box"]
+
+  subgraph ABCs {
+    node [fillcolor="#EFEFEF", color="#666666", fontcolor="#333333", style="filled", fontname="Script12 BT"]
+    Mapping [label="collections.abc.Mapping"]
+    MutableMapping [label="collections.abc.MutableMapping"]
+    Hashable [label="collections.abc.Hashable"]
+    MutableMapping -> Mapping
+    { rank=same Mapping MutableMapping Hashable }
+
+    BidirectionalMapping [label="bidict._abc.BidirectionalMapping", style="filled, bold", fontcolor="black", fontname="Cousine Bold Italic"]
+    BidirectionalMapping -> Mapping
+  }
+
+  subgraph {
+    node [style="bold", fontname="Fira Mono Bold"]
+
+    bidict [label="bidict.bidict"]
+    frozenbidict [label="bidict.frozenbidict"]
+    OrderedBidict [label="bidict.OrderedBidict"]
+    FrozenOrderedBidict [label="bidict.FrozenOrderedBidict"]
+
+    bidict -> { BidirectionalMapping, MutableMapping }
+    OrderedBidict -> { BidirectionalMapping, MutableMapping }
+    FrozenOrderedBidict -> { BidirectionalMapping, Hashable }
+    frozenbidict -> { BidirectionalMapping, Hashable }
+  }
+}

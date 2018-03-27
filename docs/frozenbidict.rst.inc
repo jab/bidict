@@ -1,10 +1,8 @@
 :class:`~bidict.frozenbidict`
--------------------------------------------
+-----------------------------
 
-The simplest bidict type that implements
-:class:`~bidict.BidirectionalMapping` is
-:class:`~bidict.frozenbidict`,
-which provides an immutable, hashable bidirectional mapping.
+:class:`~bidict.frozenbidict`
+is an immutable, hashable bidirectional mapping type.
 
 As you would expect,
 attempting to mutate a
@@ -23,10 +21,8 @@ causes an error::
 also implements :class:`collections.abc.Hashable`,
 so it's suitable for insertion into sets or other mappings::
 
-    >>> {f} is not 'an error'
-    True
-    >>> {f: 1} is not 'an error'
-    True
+    >>> my_set = {f}      # not an error
+    >>> my_dict = {f: 1}  # also not an error
 
 See the :class:`~bidict.frozenbidict`
 API documentation for more information.
