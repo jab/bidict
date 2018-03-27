@@ -92,15 +92,15 @@ matrix:
 
     # One-off jobs. Override "install", "before_install", and "script" to do each of these instead.
     - env: TASK=pydocstyle
-      before_install: echo "(no before_install needed)"
+      before_install: skip
       install: travis_retry pip install pydocstyle
       script: pydocstyle bidict
     - env: TASK=build-docs
-      before_install: echo "(no before_install needed)"
+      before_install: skip
       install: travis_retry pip install Sphinx
       script: travis_retry ./build-docs.sh linkcheck
     - env: TASK=flake8
-      before_install: echo "(no before_install needed)"
+      before_install: skip
       install: travis_retry pip install flake8
       script: flake8 bidict tests/*.py
     - env: TASK=pylint
@@ -108,9 +108,22 @@ matrix:
       install: travis_retry pip install pylint
       script: pylint bidict tests/*.py setup.py
     - env: TASK=test-with-optimization-flag  # make sure there are no relied-on side effects in assert statements
-      before_install: echo "(no before_install needed)"
-      install: echo "(no install needed)"
+      before_install: skip
+      install: skip
       script: python -O -m doctest -o IGNORE_EXCEPTION_DETAIL -o ELLIPSIS tests/*.txt
+
+    - stage: deploy-if-tag
+      env: TASK=deploy-if-tag
+      before_install: skip
+      install: skip
+      script: skip
+      deploy:
+        - provider: pypi
+          user: jab
+          password:
+            secure: B9LLgXkTbtjeC/IbH4wh9PEBzvKEAuYo3EBNW5f1xuLqVqtsysIyxJa5ar/FQ4qwUCBwZPFAXFurN3lLzRhb2Tc04YQ0GYVv6f8lkzwrjoWau4iB9Qt/nnvdRa7KryEJvtenHCAnwoEUaADCjkZjwo6fIA0hEOLB6/AYfhfgXYA=
+          on:
+            tags: true
 
 
 before_cache:
@@ -129,19 +142,3 @@ notifications:
       - https://webhooks.gitter.im/e/bf64fb45a633c0935b9b
   email:
     recipients: jab@math.brown.edu
-
-
-deploy:
-  - provider: pypi
-    user: jab
-    password:
-      secure: B9LLgXkTbtjeC/IbH4wh9PEBzvKEAuYo3EBNW5f1xuLqVqtsysIyxJa5ar/FQ4qwUCBwZPFAXFurN3lLzRhb2Tc04YQ0GYVv6f8lkzwrjoWau4iB9Qt/nnvdRa7KryEJvtenHCAnwoEUaADCjkZjwo6fIA0hEOLB6/AYfhfgXYA=
-    on:
-      tags: true
-
-  # https://docs.travis-ci.com/user/deployment/releases/
-  - provider: releases
-    api_key:
-      secure: 02GCTV4ja1dWQqzIznOdvVdJfEcIIougCv2OsQapDr6KjtgzpcBvDC4Z57eDsZX2JwharKdz3CmYJaRLCIDkVCYiyBxovO6v8o4Kww21v/4KMkpBmoGQmn9WiR1NYiK+dxlQb59+9t/DTYT39Wq6ZD+3sCETRdRZgraMNZWr8sA=
-    on:
-      tags: true
