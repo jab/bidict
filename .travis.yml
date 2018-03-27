@@ -16,11 +16,8 @@ before_install:
       echo "TRAVIS_COMMIT: $TRAVIS_COMMIT"
       git --no-pager log -n2
       echo
-      # Work around this error, seen only with Python 3.7-dev on Travis:
-      #   pkg_resources.DistributionNotFound: The 'setuptools_scm>=1.15.0' distribution was not found and is required by the application
-      travis_retry pip install --no-binary=all setuptools_scm
       # Travis does a shallow (--depth=50) clone by default.
-      # Clone the full history as desired by setuptools_scm.
+      # Clone the full history as requested by setuptools_scm.
       git fetch --unshallow
 
 
