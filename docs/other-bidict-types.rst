@@ -24,12 +24,12 @@ by adding the
 :obj:`~abc.abstractproperty`. [#fn-subclasshook]_
 
 .. [#fn-subclasshook]
-    (In fact, any :class:`collections.abc.Mapping`
+    In fact, any :class:`collections.abc.Mapping`
     that provides an ``inv`` attribute
     will be considered a virtual subclass of
     :class:`bidict.BidirectionalMapping`
     :meth:`automatically <bidict.BidirectionalMapping.__subclasshook__>`,
-    enabling interoperability with external implementations.)
+    enabling interoperability with external implementations.
 
 As you may have noticed,
 :class:`bidict.bidict` is also

@@ -137,10 +137,10 @@ Subclassing :func:`~collections.namedtuple` classes
 
 To get the performance benefits, intrinsic sortability, etc.
 of :func:`~collections.namedtuple`
-but customize behavior, state, API, etc.,
-you can subclass a :func:`~collections.namedtuple`-created class.
-Just make sure to include ``__slots__ = ()``
-or you'll lose some of the performance benefits.
+while customizing behavior, state, API, etc.,
+you can subclass a :func:`~collections.namedtuple` class.
+Just make sure to include ``__slots__ = ()``,
+or you'll lose a lot of the performance benefits.
 
 ``_marker.py`` contains a small example.
 Here's a larger one:
