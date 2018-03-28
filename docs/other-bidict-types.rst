@@ -15,21 +15,21 @@ let's look at some other bidirectional mapping types.
 .. image:: _static/bidict-types-diagram.png
     :alt: bidict types diagram
 
-The most abstract class that :mod:`bidict` provides is
-the :class:`bidict.BidirectionalMapping` ABC.
-This extends :class:`collections.abc.Mapping`
-by adding the
-":attr:`~bidict.BidirectionalMapping.inv`"
-:obj:`~abc.abstractproperty`.
-
 All bidirectional mapping types that :mod:`bidict` provides
 are subclasses of :class:`bidict.BidirectionalMapping`.
-(In fact, any :class:`collections.abc.Mapping`
-that provides an ``inv`` attribute
-will be considered a virtual subclass of
-:class:`bidict.BidirectionalMapping`
-:meth:`automatically <bidict.BidirectionalMapping.__subclasshook__>`,
-enabling interoperability with external implementations.)
+This abstract base class
+extends :class:`collections.abc.Mapping`
+by adding the
+":attr:`~bidict.BidirectionalMapping.inv`"
+:obj:`~abc.abstractproperty`. [#fn-subclasshook]_
+
+.. [#fn-subclasshook]
+    (In fact, any :class:`collections.abc.Mapping`
+    that provides an ``inv`` attribute
+    will be considered a virtual subclass of
+    :class:`bidict.BidirectionalMapping`
+    :meth:`automatically <bidict.BidirectionalMapping.__subclasshook__>`,
+    enabling interoperability with external implementations.)
 
 As you may have noticed,
 :class:`bidict.bidict` is also

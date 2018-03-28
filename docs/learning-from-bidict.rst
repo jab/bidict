@@ -119,7 +119,7 @@ Python's data model
 Using :mod:`weakref`
 ====================
 
-- See :ref:`inv-avoids-reference-cycles`
+See :ref:`inv-avoids-reference-cycles`.
 
 
 Other interesting stuff in the standard library
@@ -132,10 +132,54 @@ Other interesting stuff in the standard library
 - See :ref:`missing-bidicts-in-stdlib`
 
 
+Subclassing :func:`~collections.namedtuple` classes
+===================================================
+
+To get the performance benefits, intrinsic sortability, etc.
+of :func:`~collections.namedtuple`
+but customize behavior, state, API, etc.,
+you can subclass a :func:`~collections.namedtuple`-created class.
+Just make sure to include ``__slots__ = ()``
+or you'll lose some of the performance benefits.
+
+``_marker.py`` contains a small example.
+Here's a larger one:
+
+    >>> from collections import namedtuple
+    >>> from itertools import count
+
+    >>> class Node(namedtuple('_Node', 'cost tiebreaker data parent')):
+    ...     """Represent nodes in a graph traversal. Suitable for use with e.g. heapq."""
+    ...
+    ...     __slots__ = ()
+    ...     _counter = count()  # break ties between equal-cost nodes, avoid comparing data
+    ...
+    ...     # Give call sites a cleaner API for creating new Nodes
+    ...     def __new__(cls, cost, data, parent=None):
+    ...         tiebreaker = next(cls._counter)
+    ...         return super(Node, cls).__new__(cls, cost, tiebreaker, data, parent)
+    ...
+    ...     @property
+    ...     def depth(self):
+    ...         return self.parent.depth + 1 if self.parent else 0
+    ...
+    ...     def __repr__(self):
+    ...         return 'Node(cost={cost}, data={data!r})'.format(**self._asdict())
+
+    >>> start = Node(cost=0, data='foo')
+    >>> child = Node(cost=5, data='bar', parent=start)
+    >>> child
+    Node(cost=5, data='bar')
+    >>> child.parent
+    Node(cost=0, data='foo')
+    >>> child.depth
+    1
+
+
 :func:`~collections.namedtuple`-style dynamic class generation
 ==============================================================
 
-- See ``_named.py``
+See ``_named.py``.
 
 
 How to efficiently implement an ordered mapping
@@ -254,7 +298,14 @@ Portability
 Python Syntax hacks
 ===================
 
-- See `#19 <https://github.com/jab/bidict/issues/19>`_
+:class:`~bidict.bidict` used to support
+`slice syntax <http://bidict.readthedocs.io/en/v0.9.0.post1/intro.html#bidict-bidict>`_
+for looking up keys by value.
+
+See `this <https://github.com/jab/bidict/blob/356dbe3/bidict/_bidict.py#L25>`_
+for an example of how it was implemented.
+
+See `#19 <https://github.com/jab/bidict/issues/19>`_ for why it was dropped.
 
 
 Correctness, performance, code quality, etc.

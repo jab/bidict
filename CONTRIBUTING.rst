@@ -38,7 +38,7 @@ Making Changes
   ``pip install -e .[dev]``
 
   We use `EditorConfig <http://editorconfig.org/>`_
-  and `pre-commit <http://pre-commit.com/>`_
+  and `pre-commit <https://pre-commit.com/>`_
   to help achieve uniform style and quality standards
   across a diversity of development environments.
 
