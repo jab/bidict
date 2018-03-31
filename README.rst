@@ -144,13 +144,13 @@ for a history of notable changes to bidict.
 Release Notifications
 ---------------------
 
-.. image:: https://img.shields.io/badge/Sibbell-follow-40263B.svg
-    :target: https://sibbell.com/github/jab/bidict/releases/
-    :alt: Follow on Sibbell
+.. image:: https://img.shields.io/badge/libraries.io-subscribe-5BC0DF.svg
+    :target: https://libraries.io/pypi/bidict
+    :alt: Follow on libraries.io
 
 
-Tip: `Follow bidict on Sibbell <https://sibbell.com/github/jab/bidict/releases/>`_
-to be notified when a new version of bidict is released.
+Tip: `Subscribe to bidict releases <https://libraries.io/pypi/bidict>`_
+on libraries.io to be notified when new versions of bidict are released.
 
 
 Learning from bidict
