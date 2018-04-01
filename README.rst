@@ -61,7 +61,7 @@ Status
 Bidict:
 ^^^^^^^
 
-- is in use by several teams at Google, Venmo, Bank of America Merrill Lynch,
+- is in use by several teams at Google, Venmo, CERN, Bank of America Merrill Lynch,
   Two Sigma, and many others,
 - has carefully designed APIs for
   safety, simplicity, flexibility, and ergonomics,
@@ -81,6 +81,8 @@ Installation
 
 Quick Start
 -----------
+
+.. code:: python
 
     >>> from bidict import bidict
     >>> element_by_symbol = bidict({'H': 'hydrogen'})
