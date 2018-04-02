@@ -282,9 +282,9 @@ def test_orderedbidict_reversed(bi_cls, init_items):
     in an ordered bidict in the reverse-order they were inserted.
     """
     some_bidict = bi_cls(init_items)
-    key_iters = (some_bidict, iterkeys(some_bidict), (KEY(pair) for pair in init_items))
-    key_iters_rev = (reversed(list(i)) for i in key_iters)
-    assert all(i == j == k for (i, j, k) in izip(*key_iters_rev))
+    key_seqs = (some_bidict, list(iterkeys(some_bidict)), [KEY(pair) for pair in init_items])
+    key_seqs_rev = (reversed(i) for i in key_seqs)
+    assert all(i == j == k for (i, j, k) in izip(*key_seqs_rev))
 
 
 @given(bi_cls=H_IMMUTABLE_BIDICT_TYPES)
