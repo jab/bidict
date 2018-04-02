@@ -1,5 +1,3 @@
-.. _intro:
-
 Introduction
 ============
 
@@ -13,22 +11,26 @@ bidict.bidict
 
 :class:`bidict.bidict`
 is the main bidirectional map data structure provided.
-It implements the familiar API you're used to from dict::
+It implements the familiar API you're used to from dict:
 
-    >>> from bidict import bidict
-    >>> element_by_symbol = bidict({'H': 'hydrogen'})
-    >>> element_by_symbol
-    bidict({'H': 'hydrogen'})
-    >>> element_by_symbol['H']
-    'hydrogen'
+.. code:: python
+
+   >>> from bidict import bidict
+   >>> element_by_symbol = bidict({'H': 'hydrogen'})
+   >>> element_by_symbol
+   bidict({'H': 'hydrogen'})
+   >>> element_by_symbol['H']
+   'hydrogen'
 
 But it also maintains the inverse bidict via the
-:attr:`~bidict.BidictBase.inv` attribute::
+:attr:`~bidict.BidictBase.inv` attribute:
 
-    >>> element_by_symbol.inv
-    bidict({'hydrogen': 'H'})
-    >>> element_by_symbol.inv['hydrogen']
-    'H'
+.. code:: python
+
+   >>> element_by_symbol.inv
+   bidict({'hydrogen': 'H'})
+   >>> element_by_symbol.inv['hydrogen']
+   'H'
 
 Concise, efficient, Pythonic.
 
@@ -49,15 +51,19 @@ For one, you don't have to manually update the mapping *b* → *a*
 whenever the mapping *a* → *b* changes.
 With the skeptic's method,
 if *a* → *b* needs to change to *a* → *c*,
-you have to write::
+you have to write:
 
-    >>> d[a] = c  # doctest: +SKIP
-    >>> d[c] = a  # doctest: +SKIP
-    >>> del d[b]  # doctest: +SKIP
+.. code:: python
 
-With bidicit, you can instead just write::
+   >>> d[a] = c  # doctest: +SKIP
+   >>> d[c] = a  # doctest: +SKIP
+   >>> del d[b]  # doctest: +SKIP
 
-    >>> d[a] = c  # doctest: +SKIP
+With bidicit, you can instead just write:
+
+.. code:: python
+
+   >>> d[a] = c  # doctest: +SKIP
 
 and the rest is taken care of for you.
 
@@ -95,14 +101,14 @@ Besides the standard :class:`bidict.bidict` class,
 the :mod:`bidict` package provides other bidirectional map variants,
 as well as some utilities for working with them and related objects:
 
-- :class:`bidict.BidirectionalMapping`
-- :func:`bidict.namedbidict`
-- :class:`bidict.frozenbidict`
-- :class:`bidict.OrderedBidict`
-- :class:`bidict.FrozenOrderedBidict`
+- :class:`~bidict.frozenbidict`
+- :class:`~bidict.OrderedBidict`
+- :class:`~bidict.FrozenOrderedBidict`
+- :func:`~bidict.namedbidict` – custom bidict type factory function
+- :class:`bidict.BidirectionalMapping` – ABC for all bidirectional mappings
 - :class:`bidict.inverted`
 - :class:`bidict.pairs`
 
 These and other provided functionality are covered in later sections.
 
-But first let's proceed to :ref:`basic-usage`.
+But first let's proceed to :doc:`basic-usage`.

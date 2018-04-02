@@ -20,7 +20,7 @@ _OnDup = namedtuple('_OnDup', 'key val kv')
 class DuplicationPolicy(_Marker):
     """Provides bidict's duplication policies.
 
-    See also :ref:`values-must-be-unique`
+    See also :ref:`basic-usage:Values Must Be Unique`.
     """
 
     __slots__ = ()

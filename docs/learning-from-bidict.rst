@@ -7,7 +7,7 @@ I got to explore further
 thanks to working on bidict.
 
 If you are interested in learning more about any of the following,
-:ref:`reviewing the (small) codebase <reviewers-wanted>`
+:ref:`reviewing the (small) codebase <home:Reviewers Wanted!>`
 could be a great way to get started.
 
 
@@ -19,7 +19,7 @@ Python's data model
   See ``_base.py``.
 
 - Overriding :meth:`object.__getattribute__` for custom attribute lookup.
-  See :ref:`sorted-bidict-recipes`.
+  See :ref:`extending:Sorted Bidict Recipes`.
 
 - Using
   :meth:`object.__getstate__`,
@@ -80,9 +80,9 @@ Python's data model
 
 - Surprising :class:`~collections.abc.Mapping` corner cases:
 
-  - :ref:`nan-as-key`
+  - :ref:`addendum:nan as key`
 
-  - :ref:`equiv-but-distinct`
+  - :ref:`addendum:Equivalent but distinct \:class\:\`~collections.abc.Hashable\`\\s`
 
   - `pywat#38 <https://github.com/cosmologicon/pywat/issues/38>`_
 
@@ -90,7 +90,8 @@ Python's data model
       (of :class:`~collections.OrderedDict`)
       was a mistake." –Raymond Hettinger
 
-    - Hence :ref:`eq-order-insensitive` for ordered bidicts.
+    - Hence :ref:`eq-order-insensitive`
+      for ordered bidicts.
 
 - If an instance of your custom mapping type
   contains the same items as a mapping of another type,
@@ -119,7 +120,7 @@ Python's data model
 Using :mod:`weakref`
 ====================
 
-See :ref:`inv-avoids-reference-cycles`.
+See :ref:`addendum:\:attr\:\`~bidict.BidictBase.inv\` Avoids Reference Cycles`.
 
 
 Other interesting stuff in the standard library
@@ -129,7 +130,7 @@ Other interesting stuff in the standard library
   (but not needed for bidict because there's no way to insert a bidict into itself)
 - :func:`operator.methodcaller`
 - :attr:`platform.python_implementation`
-- See :ref:`missing-bidicts-in-stdlib`
+- See :ref:`addendum:Missing bidicts in Stdlib!`
 
 
 Subclassing :func:`~collections.namedtuple` classes
@@ -145,35 +146,37 @@ or you'll lose a lot of the performance benefits.
 ``_marker.py`` contains a small example.
 Here's a larger one:
 
-    >>> from collections import namedtuple
-    >>> from itertools import count
+.. code:: python
 
-    >>> class Node(namedtuple('_Node', 'cost tiebreaker data parent')):
-    ...     """Represent nodes in a graph traversal. Suitable for use with e.g. heapq."""
-    ...
-    ...     __slots__ = ()
-    ...     _counter = count()  # break ties between equal-cost nodes, avoid comparing data
-    ...
-    ...     # Give call sites a cleaner API for creating new Nodes
-    ...     def __new__(cls, cost, data, parent=None):
-    ...         tiebreaker = next(cls._counter)
-    ...         return super(Node, cls).__new__(cls, cost, tiebreaker, data, parent)
-    ...
-    ...     @property
-    ...     def depth(self):
-    ...         return self.parent.depth + 1 if self.parent else 0
-    ...
-    ...     def __repr__(self):
-    ...         return 'Node(cost={cost}, data={data!r})'.format(**self._asdict())
+   >>> from collections import namedtuple
+   >>> from itertools import count
 
-    >>> start = Node(cost=0, data='foo')
-    >>> child = Node(cost=5, data='bar', parent=start)
-    >>> child
-    Node(cost=5, data='bar')
-    >>> child.parent
-    Node(cost=0, data='foo')
-    >>> child.depth
-    1
+   >>> class Node(namedtuple('_Node', 'cost tiebreaker data parent')):
+   ...     """Represent nodes in a graph traversal. Suitable for use with e.g. heapq."""
+   ...
+   ...     __slots__ = ()
+   ...     _counter = count()  # break ties between equal-cost nodes, avoid comparing data
+   ...
+   ...     # Give call sites a cleaner API for creating new Nodes
+   ...     def __new__(cls, cost, data, parent=None):
+   ...         tiebreaker = next(cls._counter)
+   ...         return super(Node, cls).__new__(cls, cost, tiebreaker, data, parent)
+   ...
+   ...     @property
+   ...     def depth(self):
+   ...         return self.parent.depth + 1 if self.parent else 0
+   ...
+   ...     def __repr__(self):
+   ...         return 'Node(cost={cost}, data={data!r})'.format(**self._asdict())
+
+   >>> start = Node(cost=0, data='foo')
+   >>> child = Node(cost=5, data='bar', parent=start)
+   >>> child
+   Node(cost=5, data='bar')
+   >>> child.parent
+   Node(cost=0, data='foo')
+   >>> child.depth
+   1
 
 
 :func:`~collections.namedtuple`-style dynamic class generation

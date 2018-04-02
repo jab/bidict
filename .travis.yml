@@ -98,7 +98,10 @@ matrix:
     - env: TASK=build-docs
       before_install: skip
       install: travis_retry pip install Sphinx
-      script: travis_retry ./build-docs.sh linkcheck
+      script:
+        - ./build-docs.sh
+        - cd docs
+        - travis_retry make linkcheck
     - env: TASK=flake8
       before_install: skip
       install: travis_retry pip install flake8

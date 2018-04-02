@@ -1,8 +1,10 @@
 #!/bin/bash
 
+LAST_EXIT="0"
+
+# Generate a new types diagram image from the source file if it's been modified
 GRAPH_SRC="bidict-types-diagram.dot"
 MODIFIED_GRAPH_SRC="$(git ls-files -m | grep ${GRAPH_SRC})"
-LAST_EXIT="0"
 
 if [[ -n "${MODIFIED_GRAPH_SRC}" ]]; then
   MODIFIED_GRAPH_DST="${MODIFIED_GRAPH_SRC%.*}.png"
@@ -27,5 +29,7 @@ if [[ -n "${MODIFIED_GRAPH_SRC}" ]]; then
   fi
 fi
 
+
+# Build the docs.
 cd docs
-make clean html $@
+make clean html

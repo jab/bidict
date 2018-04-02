@@ -30,7 +30,7 @@ __maintainer__ = u'Joshua Bronson'
 __copyright__ = u'Copyright 2018 Joshua Bronson'
 __email__ = u'jab@math.brown.edu'
 
-# see ../docs/thanks.rst.inc
+# Populated from ../docs/thanks.rst
 __credits__ = [i.strip() for i in u"""
 Joshua Bronson, Michael Arntzenius, Francis Carr, Gregory Ewing, Raymond Hettinger, Jozef Knaperek,
 Daniel Pope, Terry Reedy, David Turner, Tom Viner

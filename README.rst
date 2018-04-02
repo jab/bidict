@@ -4,58 +4,56 @@ bidict
 Efficient, Pythonic bidirectional map implementation and related functionality.
 
 .. image:: ./_static/logo.png
-    :target: https://bidict.readthedocs.io/
-    :alt: bidict logo
+   :target: https://bidict.readthedocs.io/
+   :alt: bidict logo
 
 
 Status
 ------
 
 .. Hide until https://github.com/badges/shields/issues/716 is fixed
-.. .. image:: https://img.shields.io/pypi/dm/bidict.svg
-..     :target: https://pypi.python.org/pypi/bidict
-..     :alt: Downloads per month
+   .. image:: https://img.shields.io/pypi/dm/bidict.svg
+      :target: https://pypi.python.org/pypi/bidict
+      :alt: Downloads per month
 
 .. image:: https://img.shields.io/pypi/v/bidict.svg
-    :target: https://pypi.python.org/pypi/bidict
-    :alt: Latest release
+   :target: https://pypi.python.org/pypi/bidict
+   :alt: Latest release
 
 .. image:: https://img.shields.io/readthedocs/bidict/master.svg
-    :target: https://bidict.readthedocs.io/en/master/
-    :alt: Documentation
+   :target: https://bidict.readthedocs.io/en/master/
+   :alt: Documentation
 
 .. image:: https://api.travis-ci.org/jab/bidict.svg?branch=master
-    :target: https://travis-ci.org/jab/bidict
-    :alt: Travis-CI build status
+   :target: https://travis-ci.org/jab/bidict
+   :alt: Travis-CI build status
 
 .. image:: https://ci.appveyor.com/api/projects/status/gk133415udncwto3/branch/master?svg=true
-    :target: https://ci.appveyor.com/project/jab/bidict
-    :alt: AppVeyor (Windows) build status
+   :target: https://ci.appveyor.com/project/jab/bidict
+   :alt: AppVeyor (Windows) build status
 
 .. image:: https://codecov.io/gh/jab/bidict/branch/master/graph/badge.svg
-    :target: https://codecov.io/gh/jab/bidict
-    :alt: Test coverage
+   :target: https://codecov.io/gh/jab/bidict
+   :alt: Test coverage
 
 .. image:: https://api.codacy.com/project/badge/Grade/6628756a73254cd895656348236833b8
-    :target: https://www.codacy.com/app/jab/bidict
-    :alt: Codacy grade
+   :target: https://www.codacy.com/app/jab/bidict
+   :alt: Codacy grade
 
 .. Hide to reduce clutter
-.. .. image:: https://img.shields.io/pypi/pyversions/bidict.svg
-..     :target: https://pypi.python.org/pypi/bidict
-..     :alt: Supported Python versions
-..
-.. .. image:: https://img.shields.io/pypi/implementation/bidict.svg
-..     :target: https://pypi.python.org/pypi/bidict
-..     :alt: Supported Python implementations
-..
-.. .. image:: https://img.shields.io/badge/lgtm-👍-blue.svg
-..     :target: https://lgtm.com/projects/g/jab/bidict/
-..     :alt: LGTM
+   .. image:: https://img.shields.io/pypi/pyversions/bidict.svg
+      :target: https://pypi.python.org/pypi/bidict
+      :alt: Supported Python versions
+   .. image:: https://img.shields.io/pypi/implementation/bidict.svg
+      :target: https://pypi.python.org/pypi/bidict
+      :alt: Supported Python implementations
+   .. image:: https://img.shields.io/badge/lgtm-👍-blue.svg
+      :target: https://lgtm.com/projects/g/jab/bidict/
+      :alt: LGTM
 
 .. image:: https://img.shields.io/pypi/l/bidict.svg
-    :target: https://raw.githubusercontent.com/jab/bidict/master/LICENSE
-    :alt: License
+   :target: https://raw.githubusercontent.com/jab/bidict/master/LICENSE
+   :alt: License
 
 
 Bidict:
@@ -84,12 +82,12 @@ Quick Start
 
 .. code:: python
 
-    >>> from bidict import bidict
-    >>> element_by_symbol = bidict({'H': 'hydrogen'})
-    >>> element_by_symbol['H']
-    'hydrogen'
-    >>> element_by_symbol.inv['hydrogen']
-    'H'
+   >>> from bidict import bidict
+   >>> element_by_symbol = bidict({'H': 'hydrogen'})
+   >>> element_by_symbol['H']
+   'hydrogen'
+   >>> element_by_symbol.inv['hydrogen']
+   'H'
 
 
 For more usage documentation,
@@ -101,8 +99,8 @@ Community and Support
 ---------------------
 
 .. image:: https://img.shields.io/badge/chat-on%20gitter-5AB999.svg?logo=gitter-white
-    :target: https://gitter.im/jab/bidict
-    :alt: Chat
+   :target: https://gitter.im/jab/bidict
+   :alt: Chat
 
 If you are thinking of using bidict in your work,
 or if you have any questions, comments, or suggestions,
@@ -140,16 +138,15 @@ See the :doc:`changelog` [#fn-changelog]_
 for a history of notable changes to bidict.
 
 
-.. .. include:: release-notifications.rst.inc
-.. duplicate rather than `include` release-notifications so it renders on GitHub:
-
 Release Notifications
 ---------------------
 
-.. image:: https://img.shields.io/badge/libraries.io-subscribe-5BC0DF.svg
-    :target: https://libraries.io/pypi/bidict
-    :alt: Follow on libraries.io
+.. duplicated in CHANGELOG.rst:
+   (would use `.. include::` but GitHub doesn't understand it)
 
+.. image:: https://img.shields.io/badge/libraries.io-subscribe-5BC0DF.svg
+   :target: https://libraries.io/pypi/bidict
+   :alt: Follow on libraries.io
 
 Tip: `Subscribe to bidict releases <https://libraries.io/pypi/bidict>`_
 on libraries.io to be notified when new versions of bidict are released.
@@ -175,12 +172,6 @@ with no other sponsorship.
 Your help would be most welcome!
 
 
-.. adding this label causes the warning
-..   home.rst:179: WARNING: duplicate label reviewers-wanted, other instance in index.rst
-.. but removing it breaks links to it from other docs (e.g. learning-from-bidict.rst)
-
-.. _reviewers-wanted:
-
 Reviewers Wanted!
 ^^^^^^^^^^^^^^^^^
 
@@ -196,9 +187,9 @@ or any other results you found.
 issue both work well.)
 
 .. The __ in `this issue <...>`__ below is to avoid the warning Sphinx emits
-.. ("Duplicate explicit target name")
-.. caused by the other `this issue <...>`_ link above. See:
-.. https://github.com/sphinx-doc/sphinx/issues/3921#issuecomment-315581557
+   ("Duplicate explicit target name")
+   caused by the other `this issue <...>`_ link above. See:
+   https://github.com/sphinx-doc/sphinx/issues/3921#issuecomment-315581557
 
 You can also
 +1 `this issue <https://github.com/jab/bidict/issues/63>`__
@@ -206,17 +197,22 @@ to sign up to give feedback on future proposed changes
 that are in need of a reviewer.
 
 
-Becoming a Sponsor
-^^^^^^^^^^^^^^^^^^
+Funding
+^^^^^^^
+
+.. duplicated in CONTRIBUTING.rst
+   (would use `.. include::` but GitHub doesn't understand it)
 
 If bidict has helped you accomplish your work,
 especially work you've been paid for,
-please consider supporting bidict's continued maintenance and development
-financially if possible, and/or ask your organization to do the same.
+please consider chipping in toward the costs
+of bidict's maintenance and development
+and/or ask your organization to do the same.
+Any amount contributed is gratefully received.
 
 .. image:: https://raw.githubusercontent.com/jab/bidict/master/_static/support-on-gumroad.png
-    :target: https://gumroad.com/l/bidict
-    :alt: Support bidict
+   :target: https://gumroad.com/l/bidict
+   :alt: Support bidict
 
 
 Finding Documentation
@@ -238,3 +234,8 @@ try these alternate links instead:
 .. [#fn-changelog] `<CHANGELOG.rst>`_ | `<https://bidict.readthedocs.io/changelog.html>`_
 
 .. [#fn-learning] `<docs/learning-from-bidict.rst>`_ | `<https://bidict.readthedocs.io/learning-from-bidict.html>`_
+
+
+----
+
+Next: :doc:`intro`

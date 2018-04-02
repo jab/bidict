@@ -44,13 +44,14 @@ suppress_warnings = ['image.nonlocal_uri']
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
-    'sphinx.ext.autodoc',
-    'sphinx.ext.doctest',
-    'sphinx.ext.coverage',
-    'sphinx.ext.viewcode',
-    'sphinx.ext.intersphinx',
-    'sphinx.ext.todo',
     'alabaster',
+    'sphinx.ext.autodoc',
+    'sphinx.ext.autosectionlabel',
+    'sphinx.ext.coverage',
+    'sphinx.ext.doctest',
+    'sphinx.ext.intersphinx',
+    'sphinx.ext.viewcode',
+    'sphinx.ext.todo',
 ]
 
 intersphinx_mapping = {'python': ('https://docs.python.org/3', None)}
@@ -307,3 +308,6 @@ htmlhelp_basename = 'bidictdoc'
 linkcheck_ignore = [
 ]
 linkcheck_timeout = 30  # 5s default too low
+
+# http://www.sphinx-doc.org/en/stable/ext/autosectionlabel.html#configuration
+autosectionlabel_prefix_document = True
