@@ -21,7 +21,7 @@ from hypothesis import assume, given, settings, strategies as strat
 from bidict import (
     BidictException, IGNORE, OVERWRITE, RAISE,
     BidirectionalMapping, bidict, OrderedBidict, OrderedBidictBase,
-    frozenbidict, FrozenOrderedBidict, namedbidict, pairs, inverted)
+    frozenbidict, FrozenOrderedBidict, namedbidict, items, inverted)
 
 from bidict.compat import (
     PY2, PYPY, iterkeys, itervalues, iteritems, izip,
@@ -32,15 +32,15 @@ settings.register_profile('default', settings(max_examples=250, deadline=None))
 settings.load_profile(getenv('HYPOTHESIS_PROFILE', 'default'))
 
 
-def inverse_odict(items):
+def inverse_odict(items_):
     """An OrderedDict containing the inverse of each item in *items*."""
-    return OrderedDict((v, k) for (k, v) in items)
+    return OrderedDict((v, k) for (k, v) in items_)
 
 
-def ensure_no_dup(items):
+def ensure_no_dup(items_):
     """Given some hypothesis-generated items, prune any with duplicated keys or values."""
-    pruned = list(iteritems(inverse_odict(iteritems(inverse_odict(items)))))
-    assume(len(pruned) >= len(items) // 2)
+    pruned = list(iteritems(inverse_odict(iteritems(inverse_odict(items_)))))
+    assume(len(pruned) >= len(items_) // 2)
     return pruned
 
 
@@ -49,18 +49,18 @@ def ensure_dup(key=False, val=False):
     and ensures they contain the specified type of duplication.
     """
     assert key or val
-    def _wrapped(items):  # noqa: E306 (expected 1 blank line before a nested definition)
-        fwd = dict(items)
+    def _wrapped(items_):  # noqa: E306 (expected 1 blank line before a nested definition)
+        fwd = dict(items_)
         if key:
-            assume(len(fwd) < len(items))
+            assume(len(fwd) < len(items_))
         if val:
-            inv = dict((v, k) for (k, v) in items)
-            assume(len(inv) < len(items))
+            inv = dict((v, k) for (k, v) in items_)
+            assume(len(inv) < len(items_))
         if key and val:
             invinv = dict((v, k) for (k, v) in iteritems(inv))
             # If an item has a duplicate key and val, they must duplicate two other distinct items.
             assume(len(invinv) < len(fwd))
-        return items
+        return items_
     return _wrapped
 
 
@@ -387,26 +387,31 @@ def test_pickle_roundtrips(bi_cls, init_items):
     assert roundtripped == some_bidict
 
 
-@given(items=H_LISTS_PAIRS, kwitems=H_LISTS_TEXT_PAIRS_NODUP)
-def test_pairs(items, kwitems):
-    """Test that :func:`bidict.pairs` works correctly."""
-    assert list(pairs(items)) == list(items)
-    assert list(pairs(OrderedDict(kwitems))) == list(kwitems)
-    kwdict = dict(kwitems)
-    pairs_it = pairs(items, **kwdict)
-    assert all(i == j for (i, j) in izip(items, pairs_it))
-    assert set(iteritems(kwdict)) == {i for i in pairs_it}
+@given(arg0_pairs=H_LISTS_PAIRS, kw_pairs=H_LISTS_TEXT_PAIRS_NODUP)
+def test_items(arg0_pairs, kw_pairs):
+    """Test that :func:`bidict.items` works correctly."""
     with pytest.raises(TypeError):
-        pairs('too', 'many', 'args')
+        items('too', 'many', 'args')
+    assert list(items(arg0_pairs)) == list(arg0_pairs)
+    assert list(items(OrderedDict(kw_pairs))) == list(kw_pairs)
+    kwdict = dict(kw_pairs)
+    # Create an iterator over both arg0_pairs and kw_pairs.
+    arg0_kw_items = items(arg0_pairs, **kwdict)
+    # Consume the initial (arg0) pairs of the iterator, checking they match arg0.
+    assert all(check == expect for (check, expect) in izip(arg0_kw_items, arg0_pairs))
+    # Consume the remaining (kw) pairs of the iterator, checking they match kw.
+    assert all(kwdict[k] == v for (k, v) in arg0_kw_items)
+    with pytest.raises(StopIteration):
+        next(arg0_kw_items)
 
 
-@given(bi_cls=H_BIDICT_TYPES, items=H_LISTS_PAIRS_NODUP)
-def test_inverted(bi_cls, items):
+@given(bi_cls=H_BIDICT_TYPES, init_items=H_LISTS_PAIRS_NODUP)
+def test_inverted(bi_cls, init_items):
     """Test that :func:`bidict.inverted` works correctly."""
-    inv_items = [(v, k) for (k, v) in items]
-    assert list(inverted(items)) == inv_items
-    assert list(inverted(inverted(items))) == items
-    some_bidict = bi_cls(items)
+    inv_items = [(v, k) for (k, v) in init_items]
+    assert list(inverted(init_items)) == inv_items
+    assert list(inverted(inverted(init_items))) == init_items
+    some_bidict = bi_cls(init_items)
     inv_bidict = bi_cls(inv_items)
     assert some_bidict.inv == inv_bidict
     assert set(inverted(some_bidict)) == set(inv_items)

@@ -37,7 +37,7 @@ from ._exc import (
     DuplicationError, KeyDuplicationError, ValueDuplicationError, KeyAndValueDuplicationError)
 from ._miss import _MISS
 from ._noop import _NOOP
-from ._util import pairs
+from ._util import items
 from .compat import PY2, iteritems, ItemsView, Mapping
 
 
@@ -339,7 +339,7 @@ class BidictBase(BidirectionalMapping):
             self._update_with_rollback(on_dup, *args, **kw)
             return
         _put = self._put
-        for (key, val) in pairs(*args, **kw):
+        for (key, val) in items(*args, **kw):
             _put(key, val, on_dup)
 
     def _update_with_rollback(self, on_dup, *args, **kw):
@@ -348,7 +348,7 @@ class BidictBase(BidirectionalMapping):
         appendlog = writelog.append
         dedup_item = self._dedup_item
         write_item = self._write_item
-        for (key, val) in pairs(*args, **kw):
+        for (key, val) in items(*args, **kw):
             try:
                 dedup_result = dedup_item(key, val, on_dup)
             except DuplicationError:

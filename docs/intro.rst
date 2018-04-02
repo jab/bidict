@@ -107,7 +107,7 @@ as well as some utilities for working with them and related objects:
 - :func:`~bidict.namedbidict` – custom bidict type factory function
 - :class:`bidict.BidirectionalMapping` – ABC for all bidirectional mappings
 - :class:`bidict.inverted`
-- :class:`bidict.pairs`
+- :class:`bidict.items`
 
 These and other provided functionality are covered in later sections.
 

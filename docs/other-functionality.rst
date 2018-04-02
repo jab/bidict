@@ -1,20 +1,20 @@
 Other Functionality
 ===================
 
-:func:`bidict.pairs`
+:func:`bidict.items`
 --------------------
 
-:func:`bidict.pairs` has the same signature as ``dict.__init__()``.
-It yields the given (*k*, *v*) pairs
+:func:`bidict.items` has the same signature as ``dict.__init__()``.
+It yields the given (*k*, *v*) items
 in the same order they'd be processed
 if passed into ``dict.__init__()``.
 
 .. code:: python
 
-   >>> from bidict import pairs
-   >>> list(pairs({'a': 1}, b=2))
+   >>> from bidict import items
+   >>> list(items({'a': 1}, b=2))
    [('a', 1), ('b', 2)]
-   >>> list(pairs([('a', 1), ('b', 2)], b=3))
+   >>> list(items([('a', 1), ('b', 2)], b=3))
    [('a', 1), ('b', 2), ('b', 3)]
 
 
@@ -22,7 +22,7 @@ if passed into ``dict.__init__()``.
 -----------------------
 
 bidict provides the :class:`~bidict.inverted` iterator
-to help you get inverse pairs from various types of objects.
+to help you get inverse items from various types of objects.
 
 Pass in a mapping to get the inverse mapping:
 

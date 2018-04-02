@@ -15,6 +15,17 @@ Tip: `Subscribe to bidict releases <https://libraries.io/pypi/bidict>`_
 on libraries.io to be notified when new versions of bidict are released.
 
 
+0.16.0 (not yet released)
+-------------------------
+
+Minor Breaking API Changes
+++++++++++++++++++++++++++
+
+The following breaking changes are expected to affect few if any users.
+
+- Rename ``bidict.pairs()`` → :func:`bidict.items`
+
+
 0.15.0 (2018-03-29)
 -------------------
 

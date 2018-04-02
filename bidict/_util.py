@@ -13,12 +13,12 @@ from itertools import chain
 from .compat import iteritems, Mapping
 
 
-def pairs(*args, **kw):
+def items(*args, **kw):
     """
-    Yield the (k, v) pairs provided, as they'd be processed if passed to :class:`dict`.
+    Yield the (k, v) items provided, as they'd be processed if passed to :class:`dict`.
 
     If a positional argument is provided,
-    its pairs are yielded before those of any keyword arguments.
+    its items are yielded before those of any keyword arguments.
     The positional argument may be a mapping or an iterable of pairs.
 
     :raises TypeError: if more than one positional arg is given.
@@ -58,6 +58,6 @@ def inverted(obj):
 
 
 def _inverted_on_the_fly(iterable):
-    # This is faster than `return imap(tuple, imap(reversed, pairs(iterable)))`:
-    for (key, val) in pairs(iterable):
+    # This is faster than `return imap(tuple, imap(reversed, items(iterable)))`:
+    for (key, val) in items(iterable):
         yield (val, key)

@@ -49,7 +49,7 @@ from ._dup import DuplicationPolicy, IGNORE, OVERWRITE, RAISE
 from ._exc import (
     BidictException, DuplicationError,
     KeyDuplicationError, ValueDuplicationError, KeyAndValueDuplicationError)
-from ._util import pairs, inverted
+from ._util import items, inverted
 from ._frozen import frozenbidict
 from ._frozenordered import FrozenOrderedBidict
 from ._named import namedbidict
@@ -87,7 +87,7 @@ __all__ = (
     'FrozenOrderedBidict',
     'OrderedBidictBase',
     'OrderedBidict',
-    'pairs',
+    'items',
     'inverted',
 )
 
