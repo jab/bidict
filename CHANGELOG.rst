@@ -15,8 +15,8 @@ Tip: `Subscribe to bidict releases <https://libraries.io/pypi/bidict>`__
 on libraries.io to be notified when new versions of bidict are released.
 
 
-0.16.0 (not yet released)
--------------------------
+0.16.0 (2018-04-06)
+-------------------
 
 Minor code and efficiency improvements to
 :func:`~bidict.inverted` and
