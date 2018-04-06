@@ -1,5 +1,3 @@
-.. _contributors-guide:
-
 Contributors' Guide
 ===================
 
@@ -11,14 +9,14 @@ Below are a few guidelines contributors should follow to facilitate the process.
 Getting Started
 ---------------
 
-- `Create a GitHub account <https://github.com/join>`_ if you don't have one
+- `Create a GitHub account <https://github.com/join>`__ if you don't have one
   already.
 
-- Search through the `issue tracker <https://github.com/jab/bidict/issues>`_
+- Search through the `issue tracker <https://github.com/jab/bidict/issues>`__
   to see if an issue or pull request has already been created for what you're interested in.
   If so, feel free to add comments to it or just hit the "subscribe" button to follow progress.
-  If not, you can `join the chat room <https://gitter.im/jab/bidict>`_ to discuss there,
-  or go ahead and `create a new issue <https://github.com/jab/bidict/issues/new>`_:
+  If not, you can `join the chat room <https://gitter.im/jab/bidict>`__ to discuss there,
+  or go ahead and `create a new issue <https://github.com/jab/bidict/issues/new>`__:
 
   - Clearly describe the issue giving as much relevant context as possible.
 
@@ -27,7 +25,7 @@ Getting Started
     and ideally a failing test case.
 
 - If you would like to contribute a patch,
-  make sure you've `created your own fork <https://github.com/jab/bidict/fork>`_
+  make sure you've `created your own fork <https://github.com/jab/bidict/fork>`__
   and have cloned it to your computer.
 
 
@@ -37,8 +35,8 @@ Making Changes
 - Before making changes, please install the extra packages required for development:
   ``pip install -e .[dev]``
 
-  We use `EditorConfig <http://editorconfig.org/>`_
-  and `pre-commit <https://pre-commit.com/>`_
+  We use `EditorConfig <http://editorconfig.org/>`__
+  and `pre-commit <https://pre-commit.com/>`__
   to help achieve uniform style and quality standards
   across a diversity of development environments.
 
@@ -60,28 +58,28 @@ Making Changes
   If you're adding a feature, include accompanying tests and documentation
   demonstrating its correctness and usage.
 
-- Run the tests locally with `tox <https://tox.readthedocs.io>`_
+- Run the tests locally with `tox <https://tox.readthedocs.io>`__
   to make sure they pass for all supported Python versions
   (see ``envlist`` in ``tox.ini`` for the complete list).
   If you do not have all the referenced Python versions available locally,
   you can also push the changes on your branch to GitHub
-  to automatically trigger a new `Travis-CI <https://travis-ci.org>`_ build,
+  to automatically trigger a new `Travis-CI <https://travis-ci.org>`__ build,
   which should run the tests for all supported Python versions.
   You should be able to see the results at ``travis-ci.org/<user>/bidict``,
   where ``<user>`` is the GitHub username you used to fork bidict.
 
 - Create a concise but comprehensive commit message in the following style::
 
-      Include an example commit message in CONTRIBUTING guide #9999
+    Include an example commit message in CONTRIBUTING guide #9999
 
-      Without this patch the CONTRIBUTING guide would contain no examples of
-      a model commit message. This is a problem because the contributor is left
-      to imagine what the commit message should look like and may not get it
-      right. This patch fixes the problem by providing a concrete example.
+    Without this patch the CONTRIBUTING guide would contain no examples of
+    a model commit message. This is a problem because the contributor is left
+    to imagine what the commit message should look like and may not get it
+    right. This patch fixes the problem by providing a concrete example.
 
-      The first line is an imperative statement summarizing the changes with an
-      issue number from the tracker. The body describes the behavior without
-      the patch, why it's a problem, and how the patch fixes the problem.
+    The first line is an imperative statement summarizing the changes with an
+    issue number from the tracker. The body describes the behavior without
+    the patch, why it's a problem, and how the patch fixes the problem.
 
 
 Submitting Changes
@@ -107,22 +105,35 @@ Submitting Changes
 Other Ways to Contribute
 ------------------------
 
-Besides filing issues and pull requests, there are other ways to contribute.
-
-.. image:: https://img.shields.io/badge/Chip%20in%20via-Gumroad-orange.svg
+.. image:: https://img.shields.io/badge/Gumroad-Chip%20in-orange.svg
   :target: https://gumroad.com/l/bidict
   :alt: Chip in via Gumroad
 
-.. image:: https://img.shields.io/badge/Chip%20in%20via-Bountysource-brightgreen.svg
+.. image:: https://img.shields.io/badge/Bountysource-Chip%20in-brightgreen.svg
   :target: https://www.bountysource.com/teams/bidict
   :alt: Chip in via Bountysource
 
-.. image:: https://img.shields.io/badge/Chip%20in%20via-PayPal-blue.svg
+.. image:: https://img.shields.io/badge/PayPal-Chip%20in-blue.svg
   :target: https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=jab%40math%2ebrown%2eedu&lc=US&item_name=Support%20bidict&button_subtype=services&currency_code=USD&bn=PP%2dBuyNowBF%3aPaypal%2dBuy%2520a%2520Drink%2dblue%2esvg%3aNonHosted
   :alt: Chip in via PayPal
 
+.. duplicated in README.rst
+   (would use `.. include::` but GitHub doesn't understand it)
+
+If bidict has helped you accomplish your work,
+especially work you've been paid for,
+please consider chipping in toward the costs
+of bidict's maintenance and development
+and/or ask your organization to do the same.
+Any amount contributed is gratefully received.
+
+Besides chipping in financially,
+filing issues,
+and submitting pull requests,
+there are other ways to contribute.
+
 - If you read the code and learned something new,
-  please let me know.
+  please :ref:`let me know <home:Notice of Usage>` [#fn-let-me-know]_.
 
 - If you're using bidict in a project you work on,
   please post about your experience and send me a link.
@@ -130,10 +141,8 @@ Besides filing issues and pull requests, there are other ways to contribute.
 - If you come across other people who could find bidict useful,
   please spread the word.
 
-- If bidict has helped you accomplish your work,
-  especially work you've been paid for,
-  please consider supporting bidict's continued maintenance and development
-  financially if possible, and/or ask your organization to do the same:
+
+**Please support bidict:**
 
 .. image:: ./_static/support-on-gumroad.png
   :target: https://gumroad.com/l/bidict
@@ -148,4 +157,5 @@ All participation in this project should respect the
 
 By participating, you are expected to honor this code.
 
-.. [#fn-coc] `<CODE_OF_CONDUCT.rst>`_ | `<https://bidict.readthedocs.io/code-of-conduct.html>`_
+.. [#fn-let-me-know] `<https://bidict.readthedocs.io/#notice-of-usage>`__
+.. [#fn-coc] `<CODE_OF_CONDUCT.rst>`_ | `<https://bidict.readthedocs.io/code-of-conduct.html>`__

@@ -8,56 +8,54 @@
 
 """Useful functions for working with bidirectional mappings and related data."""
 
-from itertools import chain
+from itertools import chain, repeat
 
 from .compat import iteritems, Mapping
 
 
-def pairs(*args, **kw):
+_NULL_IT = repeat(None, 0)  # repeat 0 times -> raise StopIteration from the start
+
+
+def _iteritems_mapping_or_iterable(arg):
+    """Yield the items in *arg*.
+
+    If *arg* is a :class:`~collections.abc.Mapping`, return an iterator over its items.
+    Otherwise return an iterator over *arg* itself.
     """
-    Yield the (k, v) pairs provided, as they'd be processed if passed to :class:`dict`.
+    return iteritems(arg) if isinstance(arg, Mapping) else iter(arg)
 
-    If a positional argument is provided,
-    its pairs are yielded before those of any keyword arguments.
-    The positional argument may be a mapping or an iterable of pairs.
 
-    :raises TypeError: if more than one positional arg is given.
+def _iteritems_args_kw(*args, **kw):
+    """Yield the items from the positional argument (if given) and then any from *kw*.
+
+    :raises TypeError: if more than one positional argument is given.
     """
-    argsiter = None
-    if args:
-        arg = _arg0(args)
-        if arg:
-            argsiter = iteritems(arg) if isinstance(arg, Mapping) else iter(arg)
-    if kw:
-        kwiter = iteritems(kw)
-        argsiter = chain(argsiter, kwiter) if argsiter else kwiter
-    return argsiter or iter(())
-
-
-def _arg0(args):
     args_len = len(args)
-    if args_len != 1:
+    if args_len > 1:
         raise TypeError('Expected at most 1 positional argument, got %d' % args_len)
-    return args[0]
+    itemchain = None
+    if args:
+        arg = args[0]
+        if arg:
+            itemchain = _iteritems_mapping_or_iterable(arg)
+    if kw:
+        iterkw = iteritems(kw)
+        itemchain = chain(itemchain, iterkw) if itemchain else iterkw
+    return itemchain or _NULL_IT
 
 
-def inverted(obj):
-    """
-    Yield the inverse items of the provided object.
+def inverted(arg):
+    """Yield the inverse items of the provided object.
 
-    If `obj` has a :func:`callable` ``__inverted__`` attribute
-    (such as :attr:`bidict.BidirectionalMapping.__inverted__`),
-    just return the result of calling the ``__inverted__`` attribute.
+    If *arg* has a :func:`callable` ``__inverted__`` attribute,
+    return the result of calling it.
 
-    Otherwise, return an iterator that iterates over the items in `obj`,
+    Otherwise, return an iterator over the items in `arg`,
     inverting each item on the fly.
+
     See also :attr:`bidict.BidirectionalMapping.__inverted__`
     """
-    inv = getattr(obj, '__inverted__', None)
-    return inv() if callable(inv) else _inverted_on_the_fly(obj)
-
-
-def _inverted_on_the_fly(iterable):
-    # This is faster than `return imap(tuple, imap(reversed, pairs(iterable)))`:
-    for (key, val) in pairs(iterable):
-        yield (val, key)
+    inv = getattr(arg, '__inverted__', None)
+    if callable(inv):
+        return inv()
+    return ((val, key) for (key, val) in _iteritems_mapping_or_iterable(arg))

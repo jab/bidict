@@ -1,11 +1,59 @@
-.. _addendum:
-
 Addendum
 ========
 
-.. include:: performance.rst.inc
+Performance
+-----------
 
-.. include:: inv-avoids-reference-cycles.rst.inc
+bidict strives to be as performant as possible
+while being faithful to its purpose.
+The need for speed
+is balanced with the responsibility
+to protect users from shooting themselves in the foot.
+
+In general,
+accomplishing some task using bidict
+should have about the same performance
+as keeping two inverse dicts in sync manually.
+The test suite includes benchmarks for common workloads
+to catch any performance regressions.
+
+If you spot a case where bidict's performance could be improved,
+please don't hesitate to
+:doc:`file an issue or submit a pull request <contributors-guide>`.
+
+
+:attr:`~bidict.BidictBase.inv` Avoids Reference Cycles
+------------------------------------------------------
+
+A careful reader might notice the following...
+
+.. code:: python
+
+   >>> from bidict import bidict
+   >>> fwd = bidict(one=1)
+   >>> inv = fwd.inv
+   >>> inv.inv is fwd
+   True
+
+...and become concerned that a bidict and its inverse create a reference cycle.
+If this were true, in CPython this would mean that the memory for a bidict
+could not be immediately reclaimed when you retained no more references to it,
+but rather would have to wait for the next gargage collection to kick in
+before it could be reclaimed.
+
+However, under the hood bidict uses a :class:`weakref.ref`
+to store the inverse reference in one direction,
+avoiding the strong reference cycle.
+As a result, when you no longer retain any references to a bidict you create,
+you can be sure that its refcount in CPython drops to zero,
+and that its memory will therefore be reclaimed immediately.
+
+.. note::
+
+   In PyPy this is not an issue, as PyPy doesn't use reference counts.
+   The memory for unreferenced objects in PyPy is only reclaimed
+   when GC kicks in, which is unpredictable.
+
 
 Terminology
 -----------
@@ -35,8 +83,6 @@ Terminology
   ``viewvalues()`` (Python 2.7),
   rather than a non-set-like *dict_values* object.
 
-
-.. _missing-bidicts-in-stdlib:
 
 Missing bidicts in Stdlib!
 --------------------------
@@ -72,13 +118,99 @@ where bidicts could be used for fun and profit
 Caveats
 -------
 
-.. include:: caveat-mutation.rst.inc
+Non-atomic Mutation
+^^^^^^^^^^^^^^^^^^^
 
-.. include:: caveat-equivalent-distinct-hashables.rst.inc
+As with built-in dicts, mutating operations on a bidict are not atomic.
+If you need to mutate the same bidict from different threads,
+use a
+`synchronization primitive <https://docs.python.org/3/library/threading.html#lock-objects>`__
+to coordinate access. [#]_
 
-.. include:: caveat-nan-as-key.rst.inc
+.. [#] *See also:* `[2] <https://twitter.com/teozaurus/status/518071391959388160>`__
 
-Thanks
-------
 
-.. include:: thanks.rst.inc
+Equivalent but distinct :class:`~collections.abc.Hashable`\s
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Consider the following:
+
+.. code:: python
+
+   >>> d = {1: int, 1.0: float}
+
+How many items do you expect *d* to contain?
+The actual result might surprise you:
+
+.. code:: python
+
+   >>> len(d)
+   1
+
+And similarly,
+
+.. code:: python
+
+   >>> dict([(1, int), (1.0, float), (1+0j, complex), (True, bool)])
+   {1: <... 'bool'>}
+   >>> 1.0 in {True}
+   True
+
+(Note that ``1 == 1.0 == 1+0j == True``.)
+
+This illustrates that a mapping cannot contain two items
+with equivalent but distinct keys
+(and likewise a set cannot contain two equivalent but distinct elements).
+If an object that is being looked up in a set or mapping
+is equal to a contained object,
+the contained object will be found,
+even if it is distinct.
+
+With bidict,
+since values function as keys in the inverse mapping,
+this behavior occurs in the inverse direction too:
+
+.. code:: python
+
+   >>> from bidict import bidict
+   >>> b = bidict({1: 1.0})
+   >>> b.inv[True]
+   1
+   >>> b[2] = True
+   Traceback (most recent call last):
+      ...
+   ValueDuplicationError: 1.0
+
+
+nan as key
+^^^^^^^^^^
+
+`In CPython <http://doc.pypy.org/en/latest/cpython_differences.html>`__,
+nan is especially tricky when used as a dictionary key:
+
+.. code:: python
+
+   >>> d = {float('nan'): 'nan'}
+   >>> d
+   {nan: 'nan'}
+   >>> d[float('nan')]  # doctest: +SKIP
+   Traceback (most recent call last):
+       ...
+   KeyError: nan
+   >>> d[float('nan')] = 'not overwritten'
+   >>> d  # doctest: +SKIP
+   {nan: 'nan', nan: 'not overwritten'}
+
+In other Python implementations such as PyPy,
+nan behaves just like any other dictionary key.
+But in CPython, beware of this unexpected behavior,
+which applies to bidicts too.
+bidict contains no special-case logic
+for dealing with nan as a key,
+so the behavior will match dict's in the host environment.
+
+
+----
+
+For more info in this vein,
+check out :doc:`learning-from-bidict`.

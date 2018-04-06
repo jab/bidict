@@ -1,10 +1,8 @@
-.. _intro:
-
 Introduction
 ============
 
 The :mod:`bidict` package provides a Pythonic
-`bidirectional map <https://en.wikipedia.org/wiki/Bidirectional_map>`_
+`bidirectional map <https://en.wikipedia.org/wiki/Bidirectional_map>`__
 implementation
 and related functionality to work with one-to-one mappings in Python.
 
@@ -13,22 +11,26 @@ bidict.bidict
 
 :class:`bidict.bidict`
 is the main bidirectional map data structure provided.
-It implements the familiar API you're used to from dict::
+It implements the familiar API you're used to from dict:
 
-    >>> from bidict import bidict
-    >>> element_by_symbol = bidict({'H': 'hydrogen'})
-    >>> element_by_symbol
-    bidict({'H': 'hydrogen'})
-    >>> element_by_symbol['H']
-    'hydrogen'
+.. code:: python
+
+   >>> from bidict import bidict
+   >>> element_by_symbol = bidict({'H': 'hydrogen'})
+   >>> element_by_symbol
+   bidict({'H': 'hydrogen'})
+   >>> element_by_symbol['H']
+   'hydrogen'
 
 But it also maintains the inverse bidict via the
-:attr:`~bidict.BidictBase.inv` attribute::
+:attr:`~bidict.BidictBase.inv` attribute:
 
-    >>> element_by_symbol.inv
-    bidict({'hydrogen': 'H'})
-    >>> element_by_symbol.inv['hydrogen']
-    'H'
+.. code:: python
+
+   >>> element_by_symbol.inv
+   bidict({'hydrogen': 'H'})
+   >>> element_by_symbol.inv['hydrogen']
+   'H'
 
 Concise, efficient, Pythonic.
 
@@ -49,15 +51,19 @@ For one, you don't have to manually update the mapping *b* → *a*
 whenever the mapping *a* → *b* changes.
 With the skeptic's method,
 if *a* → *b* needs to change to *a* → *c*,
-you have to write::
+you have to write:
 
-    >>> d[a] = c  # doctest: +SKIP
-    >>> d[c] = a  # doctest: +SKIP
-    >>> del d[b]  # doctest: +SKIP
+.. code:: python
 
-With bidicit, you can instead just write::
+   >>> d[a] = c  # doctest: +SKIP
+   >>> d[c] = a  # doctest: +SKIP
+   >>> del d[b]  # doctest: +SKIP
 
-    >>> d[a] = c  # doctest: +SKIP
+With bidicit, you can instead just write:
+
+.. code:: python
+
+   >>> d[a] = c  # doctest: +SKIP
 
 and the rest is taken care of for you.
 
@@ -88,21 +94,18 @@ to help you handle the enforcement of the one-to-one constraint
 (for example, when attempting to set a new key to an existing value)
 exactly as you intend.
 
+
 Additional Functionality
 ------------------------
 
-Besides the standard :class:`bidict.bidict` class,
-the :mod:`bidict` package provides other bidirectional map variants,
-as well as some utilities for working with them and related objects:
+Besides the standard :class:`bidict.bidict` type,
+the :mod:`bidict` module provides other bidirectional map variants:
 
-- :class:`bidict.BidirectionalMapping`
-- :func:`bidict.namedbidict`
-- :class:`bidict.frozenbidict`
-- :class:`bidict.OrderedBidict`
-- :class:`bidict.FrozenOrderedBidict`
-- :class:`bidict.inverted`
-- :class:`bidict.pairs`
+- :class:`~bidict.frozenbidict`
+- :class:`~bidict.OrderedBidict`
+- :class:`~bidict.FrozenOrderedBidict`
+- :func:`~bidict.namedbidict` – custom bidict type factory function
 
-These and other provided functionality are covered in later sections.
+Additional functionality is covered in later sections.
 
-But first let's proceed to :ref:`basic-usage`.
+But first let's proceed to :doc:`basic-usage`.

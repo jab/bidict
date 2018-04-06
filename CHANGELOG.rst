@@ -1,9 +1,35 @@
-.. _changelog:
-
 Changelog
 =========
 
-.. include:: release-notifications.rst.inc
+Release Notifications
+---------------------
+
+.. duplicated in README.rst
+   (would use `.. include::` but GitHub doesn't understand it)
+
+.. image:: https://img.shields.io/badge/libraries.io-subscribe-5BC0DF.svg
+   :target: https://libraries.io/pypi/bidict
+   :alt: Follow on libraries.io
+
+Tip: `Subscribe to bidict releases <https://libraries.io/pypi/bidict>`__
+on libraries.io to be notified when new versions of bidict are released.
+
+
+0.16.0 (not yet released)
+-------------------------
+
+Minor code and efficiency improvements to
+:func:`~bidict.inverted` and
+:func:`~bidict._util._iteritems_args_kw`
+(formerly ``bidict.pairs()``).
+
+
+Minor Breaking API Changes
+++++++++++++++++++++++++++
+
+The following breaking changes are expected to affect few if any users.
+
+- Rename ``bidict.pairs()`` → :func:`bidict._util._iteritems_args_kw`.
 
 
 0.15.0 (2018-03-29)
@@ -18,14 +44,16 @@ Speedups and memory usage improvements
   that it used before,
   and on Python 2 only ~33% the amount of memory that it used before,
   in a simple but representative
-  `benchmark <https://github.com/jab/bidict/pull/56#issuecomment-368203591>`_.
+  `benchmark <https://github.com/jab/bidict/pull/56#issuecomment-368203591>`__.
 
 - Use weakrefs to refer to a bidict's inverse internally,
   no longer creating a strong reference cycle.
   Memory for a bidict that you create can now be reclaimed
   in CPython as soon as you no longer hold any references to it.
-  See the new :ref:`inv-avoids-reference-cycles` documentation.
-  Fixes `#24 <https://github.com/jab/bidict/issues/20>`_.
+  See the new
+  :ref:`addendum:\:attr\:\`~bidict.BidictBase.inv\` Avoids Reference Cycles`
+  documentation.
+  Fixes `#24 <https://github.com/jab/bidict/issues/20>`__.
 
 - Make :func:`bidict.BidictBase.__eq__` significantly
   more speed- and memory-efficient when comparing to
@@ -50,7 +78,7 @@ Minor Bugfixes
 - If you create a custom bidict subclass whose ``_fwdm_cls``
   differs from its ``_invm_cls``
   (as in the ``FwdKeySortedBidict`` example
-  from the :ref:`sorted-bidict-recipes`),
+  from the :ref:`extending:Sorted Bidict Recipes`),
   the inverse bidirectional mapping type
   (with ``_fwdm_cls`` and ``_invm_cls`` swapped)
   is now correctly computed and used automatically
@@ -87,8 +115,8 @@ The following breaking changes are expected to affect few if any users.
   Having e.g. ``issubclass(bidict, frozenbidict) == True`` was confusing,
   so this change restores ``issubclass(bidict, frozenbidict) == False``.
 
-  See the updated :ref:`bidict-types-diagram`
-  and :ref:`polymorphism` documentation.
+  See the updated :ref:`other-bidict-types:Bidict Types Diagram`
+  and :ref:`other-bidict-types:Polymorphism` documentation.
 
 - Rename:
 
@@ -99,7 +127,7 @@ The following breaking changes are expected to affect few if any users.
   - ``bidict.BidictBase.isinv`` → ``._isinv``
 
   Though overriding ``_fwdm_cls`` and ``_invm_cls`` remains supported
-  (see :ref:`extending`),
+  (see :doc:`extending`),
   this is not a common enough use case to warrant public names.
   Most users do not need to know or care about any of these.
 
@@ -114,7 +142,7 @@ The following breaking changes are expected to affect few if any users.
   It is now no longer possible to create an infinite chain like
   ``DuplicationPolicy.RAISE.RAISE.RAISE...``
 
-- Make :func:`bidict.pairs` and :func:`bidict.inverted`
+- Make ``bidict.pairs()`` and :func:`bidict.inverted`
   no longer importable from ``bidict.util``,
   and now only importable from the top-level :mod:`bidict` module.
   (``bidict.util`` was renamed ``bidict._util``.)
@@ -158,10 +186,10 @@ The following breaking changes are expected to affect few if any users.
   would cause an ``AttributeError``.
 
 - Fix a bug introduced in 0.14.0 for Python 2 users
-  where attempting to call ``viewitems``
+  where attempting to call ``viewitems()``
   would cause a ``TypeError``.
   Thanks Richard Sanger for
-  `reporting <https://github.com/jab/bidict/issues/48>`_.
+  `reporting <https://github.com/jab/bidict/issues/48>`__.
 
 
 0.14.0 (2017-11-20)
@@ -170,7 +198,7 @@ The following breaking changes are expected to affect few if any users.
 - Fix a bug where :class:`~bidict.bidict`\’s
   default *on_dup_kv* policy was set to :attr:`~bidict.RAISE`,
   rather than matching whatever *on_dup_val* policy was in effect
-  as was :ref:`documented <key-and-value-duplication>`.
+  as was :ref:`documented <basic-usage:Key and Value Duplication>`.
 
 - Fix a bug that could happen when using Python's optimization (``-O``) flag
   that could leave an ordered bidict in an inconsistent state
@@ -209,8 +237,8 @@ This release includes multiple API simplifications and improvements.
 
 - Rename:
 
-    - ``orderedbidict`` → :class:`~bidict.OrderedBidict`
-    - ``frozenorderedbidict`` → :class:`~bidict.FrozenOrderedBidict`
+  - ``orderedbidict`` → :class:`~bidict.OrderedBidict`
+  - ``frozenorderedbidict`` → :class:`~bidict.FrozenOrderedBidict`
 
   so that these now match the case of :class:`collections.OrderedDict`.
 
@@ -230,11 +258,11 @@ This release includes multiple API simplifications and improvements.
   together and remove ``BidictBase``.
   :class:`~bidict.frozenbidict`
   is now the concrete base class that all other bidict types derive from.
-  See the updated :ref:`bidict-types-diagram`.
+  See the updated :ref:`other-bidict-types:Bidict Types Diagram`.
 
 - Merge :class:`~bidict.frozenbidict` and ``FrozenBidictBase``
   together and remove ``FrozenBidictBase``.
-  See the updated :ref:`bidict-types-diagram`.
+  See the updated :ref:`other-bidict-types:Bidict Types Diagram`.
 
 - Merge ``frozenorderedbidict`` and ``OrderedBidictBase`` together
   into a single :class:`~bidict.FrozenOrderedBidict`
@@ -242,7 +270,7 @@ This release includes multiple API simplifications and improvements.
   :class:`~bidict.OrderedBidict` now extends
   :class:`~bidict.FrozenOrderedBidict`
   to add mutable behavior.
-  See the updated :ref:`bidict-types-diagram`.
+  See the updated :ref:`other-bidict-types:Bidict Types Diagram`.
 
 - Make :meth:`~bidict.OrderedBidictBase.__eq__`
   always perform an order-insensitive equality test,
@@ -278,8 +306,8 @@ This release includes multiple API simplifications and improvements.
   rather than the pure Python ``ItemsView._hash()`` routine.
 
 - ``loosebidict`` and ``looseorderedbidict`` have been removed.
-  Simple recipes to implement them yourself are now given in
-  :ref:`overwritingbidict`.
+  A simple recipe to implement equivalents yourself is now given in
+  :ref:`extending:OverwritingBidict Recipe`.
 
 - Rename ``FrozenBidictBase._compute_hash()`` →
   ``frozenbidict.compute_hash()``.
@@ -289,11 +317,11 @@ This release includes multiple API simplifications and improvements.
 
 - Rename:
 
-    - ``bidict.BidictBase._fwd_class`` → ``.fwd_cls``
-    - ``bidict.BidictBase._inv_class`` → ``.inv_cls``
-    - ``bidict.BidictBase._on_dup_key`` → :attr:`~bidict.BidictBase.on_dup_key`
-    - ``bidict.BidictBase._on_dup_val`` → :attr:`~bidict.BidictBase.on_dup_val`
-    - ``bidict.BidictBase._on_dup_kv`` → :attr:`~bidict.BidictBase.on_dup_kv`
+  - ``bidict.BidictBase._fwd_class`` → ``.fwd_cls``
+  - ``bidict.BidictBase._inv_class`` → ``.inv_cls``
+  - ``bidict.BidictBase._on_dup_key`` → :attr:`~bidict.BidictBase.on_dup_key`
+  - ``bidict.BidictBase._on_dup_val`` → :attr:`~bidict.BidictBase.on_dup_val`
+  - ``bidict.BidictBase._on_dup_kv`` → :attr:`~bidict.BidictBase.on_dup_kv`
 
 
 0.13.1 (2017-03-15)
@@ -305,7 +333,7 @@ This release includes multiple API simplifications and improvements.
   ``issubclass(OldStyleClass, BidirectionalMapping)`` once again
   works with old-style classes,
   returning ``False`` rather than raising :class:`AttributeError`
-  (`thanks, @knaperek <https://github.com/jab/bidict/pull/41>`_).
+  (`thanks, @knaperek <https://github.com/jab/bidict/pull/41>`__).
 
 
 0.13.0 (2017-01-19)
@@ -357,7 +385,7 @@ This release includes multiple API simplifications and improvements.
   attributes.
   If you have an interesting use case that requires overriding these,
   or suggestions for an alternative implementation,
-  please `share your feedback <https://gitter.im/jab/bidict>`_.
+  please `share your feedback <https://gitter.im/jab/bidict>`__.
 
 - Add ``_fwd_class`` and ``_inv_class`` attributes
   representing the backing :class:`~collections.abc.Mapping` types
@@ -366,7 +394,7 @@ This release includes multiple API simplifications and improvements.
   This allows creating custom bidict types with extended functionality
   simply by overriding these attributes in a subclass.
 
-  See the new :ref:`extending` documentation for examples.
+  See the new :doc:`extending` documentation for examples.
 
 - Pass any parameters passed to :meth:`~bidict.bidict.popitem`
   through to ``_fwd.popitem`` for greater extensibility.
@@ -454,7 +482,7 @@ This release includes multiple API simplifications and improvements.
   compatibility helpers.
 
 - More efficient implementations of
-  :func:`~bidict.pairs`,
+  ``bidict.pairs()``,
   :func:`~bidict.inverted`, and
   :func:`~bidict.BidictBase.copy`.
 
@@ -462,7 +490,7 @@ This release includes multiple API simplifications and improvements.
   for use with the :mod:`copy` module.
 
 - Fix issue preventing a client class from inheriting from ``loosebidict``
-  (see `#34 <https://github.com/jab/bidict/issues/34>`_).
+  (see `#34 <https://github.com/jab/bidict/issues/34>`__).
 
 - Add benchmarking to tests.
 
@@ -487,21 +515,27 @@ Breaking API Changes
   and the existing item whose key is duplicated
   still gets its value overwritten in place, as before.)
 
-  For example::
+  For example:
 
-      >>> from bidict import orderedbidict  # doctest: +SKIP
-      >>> o = orderedbidict([(0, 1), (2, 3)])  # doctest: +SKIP
-      >>> o.forceput(4, 1)  # doctest: +SKIP
+  .. code:: python
 
-  previously would have resulted in::
+     >>> from bidict import orderedbidict  # doctest: +SKIP
+     >>> o = orderedbidict([(0, 1), (2, 3)])  # doctest: +SKIP
+     >>> o.forceput(4, 1)  # doctest: +SKIP
 
-      >>> o  # doctest: +SKIP
-      orderedbidict([(2, 3), (4, 1)])
+  previously would have resulted in:
 
-  but now results in::
+  .. code:: python
 
-      >>> o  # doctest: +SKIP
-      orderedbidict([(4, 1), (2, 3)])
+     >>> o  # doctest: +SKIP
+     orderedbidict([(2, 3), (4, 1)])
+
+  but now results in:
+
+  .. code:: python
+
+     >>> o  # doctest: +SKIP
+     orderedbidict([(4, 1), (2, 3)])
 
 
 0.11.0 (2016-02-05)
@@ -533,7 +567,7 @@ Breaking API Changes
 - In the interest of protecting data safety more proactively, by default
   bidict now raises an error on attempting to insert a non-unique value,
   rather than allowing its associated key to be silently overwritten.
-  See discussion in `#21 <https://github.com/jab/bidict/issues/21>`_.
+  See discussion in `#21 <https://github.com/jab/bidict/issues/21>`__.
 
 - New :meth:`~bidict.bidict.forceupdate` method
   provides a bulk :meth:`~bidict.bidict.forceput` operation.
@@ -548,30 +582,30 @@ Breaking API Changes
 
 - Remove ``bidict.__invert__``, and with it, support for the ``~b`` syntax.
   Use :attr:`~bidict.BidictBase.inv` instead.
-  `#19 <https://github.com/jab/bidict/issues/19>`_
+  `#19 <https://github.com/jab/bidict/issues/19>`__
 
 - Remove support for the slice syntax.
   Use ``b.inv[val]`` rather than ``b[:val]``.
-  `#19 <https://github.com/jab/bidict/issues/19>`_
+  `#19 <https://github.com/jab/bidict/issues/19>`__
 
 - Remove ``bidict.invert``.
   Use :attr:`~bidict.BidictBase.inv`
   rather than inverting a bidict in place.
-  `#20 <https://github.com/jab/bidict/issues/20>`_
+  `#20 <https://github.com/jab/bidict/issues/20>`__
 
 - Raise ``ValueExistsException``
   when attempting to insert a mapping with a non-unique key.
-  `#21 <https://github.com/jab/bidict/issues/21>`_
+  `#21 <https://github.com/jab/bidict/issues/21>`__
 
 - Rename ``collapsingbidict`` → ``loosebidict``
   now that it suppresses
   ``ValueExistsException``
   rather than the less general ``CollapseException``.
-  `#21 <https://github.com/jab/bidict/issues/21>`_
+  `#21 <https://github.com/jab/bidict/issues/21>`__
 
 - ``CollapseException`` has been subsumed by
   ``ValueExistsException``.
-  `#21 <https://github.com/jab/bidict/issues/21>`_
+  `#21 <https://github.com/jab/bidict/issues/21>`__
 
 - :meth:`~bidict.bidict.put` now raises ``KeyExistsException``
   when attempting to insert an already-existing
@@ -589,29 +623,28 @@ Breaking API Changes
 ---------------------
 
 - Add this changelog,
-  `Contributors' Guide <https://github.com/jab/bidict/blob/master/CONTRIBUTING.rst>`_,
-  `Gitter chat room <https://gitter.im/jab/bidict>`_,
+  `Contributors' Guide <https://github.com/jab/bidict/blob/master/CONTRIBUTING.rst>`__,
+  `Gitter chat room <https://gitter.im/jab/bidict>`__,
   and other community-oriented improvements.
 
 - Adopt Pytest (thanks Tom Viner and Adopt Pytest Month).
 
 - Add property-based tests via
-  `hypothesis <https://hypothesis.readthedocs.io>`_.
+  `hypothesis <https://hypothesis.readthedocs.io>`__.
 
 - Other code, tests, and docs improvements.
 
 Breaking API Changes
 ++++++++++++++++++++
 
-- Move ``bidict.iteritems`` and ``bidict.viewitems``
+- Move ``bidict.iteritems()`` and ``bidict.viewitems()``
   to new :mod:`bidict.compat` module.
 
 - Move :class:`bidict.inverted`
   to new ``bidict.util`` module
   (still available from top-level :mod:`bidict` module as well).
 
-- Move ``bidict.fancy_iteritems``
-  to :func:`bidict.pairs`
-  (also available from top level as :func:`bidict.pairs`).
+- Move ``bidict.fancy_iteritems()`` → ``bidict.util.pairs()``
+  (also available from top level as ``bidict.pairs()``).
 
-- Rename :func:`bidict.namedbidict`\'s ``bidict_type`` argument ``base_type``.
+- Rename :func:`bidict.namedbidict`\'s ``bidict_type`` argument → ``base_type``.

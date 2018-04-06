@@ -5,3 +5,4 @@
 .tox
 bidict/_version.py
 coverage.xml
+htmlcov

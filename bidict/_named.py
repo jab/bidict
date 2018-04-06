@@ -29,7 +29,8 @@ def namedbidict(typename, keyname, valname, base_type=bidict):
     and access to themselves
     via the custom *valname*\_for property.
 
-    See also the :ref:`namedbidict usage documentation <namedbidict>`
+    See also the :ref:`namedbidict usage documentation
+    <other-bidict-types:\:func\:\`~bidict.namedbidict\`>`
 
     :raises ValueError: if any of the *typename*, *keyname*, or *valname*
         strings does not match ``%s``, or if *keyname == valname*.
@@ -38,7 +39,8 @@ def namedbidict(typename, keyname, valname, base_type=bidict):
         :class:`BidirectionalMapping`.
         (This function requires slightly more of *base_type*,
         e.g. the availability of an ``_isinv`` attribute,
-        but all the :ref:`concrete bidict types <bidict-types-diagram>`
+        but all the :ref:`concrete bidict types
+        <other-bidict-types:Bidict Types Diagram>`
         that the :mod:`bidict` module provides can be passed in.
         Check out the code if you actually need to pass in something else.)
     """

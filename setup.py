@@ -48,7 +48,7 @@ COVERAGE_REQS = [
 DEV_REQ = SETUP_REQS + TEST_REQS + COVERAGE_REQS + [
     'Sphinx<2',
     'pre-commit<2',
-    'tox<3',
+    'tox<4',
     # Peg to more specific versions of the following dependencies since they'd
     # have a higher chance of breaking CI otherwise. Upgrade to newer versions
     # manually to have a chance to fix any resulting breakage.

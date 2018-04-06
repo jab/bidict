@@ -21,11 +21,13 @@ from hypothesis import assume, given, settings, strategies as strat
 from bidict import (
     BidictException, IGNORE, OVERWRITE, RAISE,
     BidirectionalMapping, bidict, OrderedBidict, OrderedBidictBase,
-    frozenbidict, FrozenOrderedBidict, namedbidict, pairs, inverted)
+    frozenbidict, FrozenOrderedBidict, namedbidict, inverted)
 
 from bidict.compat import (
     PY2, PYPY, iterkeys, itervalues, iteritems, izip,
     Hashable, Mapping, MutableMapping)
+
+from bidict._util import _iteritems_args_kw
 
 
 settings.register_profile('default', settings(max_examples=250, deadline=None))
@@ -282,9 +284,9 @@ def test_orderedbidict_reversed(bi_cls, init_items):
     in an ordered bidict in the reverse-order they were inserted.
     """
     some_bidict = bi_cls(init_items)
-    key_iters = (some_bidict, iterkeys(some_bidict), (KEY(pair) for pair in init_items))
-    key_iters_rev = (reversed(list(i)) for i in key_iters)
-    assert all(i == j == k for (i, j, k) in izip(*key_iters_rev))
+    key_seqs = (some_bidict, list(iterkeys(some_bidict)), [KEY(pair) for pair in init_items])
+    key_seqs_rev = (reversed(i) for i in key_seqs)
+    assert all(i == j == k for (i, j, k) in izip(*key_seqs_rev))
 
 
 @given(bi_cls=H_IMMUTABLE_BIDICT_TYPES)
@@ -387,26 +389,31 @@ def test_pickle_roundtrips(bi_cls, init_items):
     assert roundtripped == some_bidict
 
 
-@given(items=H_LISTS_PAIRS, kwitems=H_LISTS_TEXT_PAIRS_NODUP)
-def test_pairs(items, kwitems):
-    """Test that :func:`bidict.pairs` works correctly."""
-    assert list(pairs(items)) == list(items)
-    assert list(pairs(OrderedDict(kwitems))) == list(kwitems)
-    kwdict = dict(kwitems)
-    pairs_it = pairs(items, **kwdict)
-    assert all(i == j for (i, j) in izip(items, pairs_it))
-    assert set(iteritems(kwdict)) == {i for i in pairs_it}
+@given(arg0_pairs=H_LISTS_PAIRS, kw_pairs=H_LISTS_TEXT_PAIRS_NODUP)
+def test_iter_items_arg_kw(arg0_pairs, kw_pairs):
+    """Test that :func:`bidict.items` works correctly."""
     with pytest.raises(TypeError):
-        pairs('too', 'many', 'args')
+        _iteritems_args_kw('too', 'many', 'args')
+    assert list(_iteritems_args_kw(arg0_pairs)) == list(arg0_pairs)
+    assert list(_iteritems_args_kw(OrderedDict(kw_pairs))) == list(kw_pairs)
+    kwdict = dict(kw_pairs)
+    # Create an iterator over both arg0_pairs and kw_pairs.
+    arg0_kw_items = _iteritems_args_kw(arg0_pairs, **kwdict)
+    # Consume the initial (arg0) pairs of the iterator, checking they match arg0.
+    assert all(check == expect for (check, expect) in izip(arg0_kw_items, arg0_pairs))
+    # Consume the remaining (kw) pairs of the iterator, checking they match kw.
+    assert all(kwdict[k] == v for (k, v) in arg0_kw_items)
+    with pytest.raises(StopIteration):
+        next(arg0_kw_items)
 
 
-@given(bi_cls=H_BIDICT_TYPES, items=H_LISTS_PAIRS_NODUP)
-def test_inverted(bi_cls, items):
+@given(bi_cls=H_BIDICT_TYPES, init_items=H_LISTS_PAIRS_NODUP)
+def test_inverted(bi_cls, init_items):
     """Test that :func:`bidict.inverted` works correctly."""
-    inv_items = [(v, k) for (k, v) in items]
-    assert list(inverted(items)) == inv_items
-    assert list(inverted(inverted(items))) == items
-    some_bidict = bi_cls(items)
+    inv_items = [(v, k) for (k, v) in init_items]
+    assert list(inverted(init_items)) == inv_items
+    assert list(inverted(inverted(init_items))) == init_items
+    some_bidict = bi_cls(init_items)
     inv_bidict = bi_cls(inv_items)
     assert some_bidict.inv == inv_bidict
     assert set(inverted(some_bidict)) == set(inv_items)

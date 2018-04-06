@@ -84,8 +84,8 @@ if PY2:
     from itertools import izip  # pylint: disable=unused-import,no-name-in-module
 
 else:
-
-    if PYMINOR < 3:  # pragma: no cover
+    # Assume Python 3 when not PY2, but explicitly check before showing this warning.
+    if PYMAJOR == 3 and PYMINOR < 3:  # pragma: no cover
         warn('Python3 < 3.3 is unsupported.')
 
     viewkeys = methodcaller('keys')

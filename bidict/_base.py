@@ -37,7 +37,7 @@ from ._exc import (
     DuplicationError, KeyDuplicationError, ValueDuplicationError, KeyAndValueDuplicationError)
 from ._miss import _MISS
 from ._noop import _NOOP
-from ._util import pairs
+from ._util import _iteritems_args_kw
 from .compat import PY2, iteritems, ItemsView, Mapping
 
 
@@ -65,7 +65,7 @@ class BidictBase(BidirectionalMapping):
     #: :meth:`~bidict.bidict.update`).
     #: Defaults to :attr:`~bidict.OVERWRITE`
     #: to match :class:`dict`'s behavior.
-    #: See also :ref:`extending`
+    #: See also :doc:`extending`
     on_dup_key = OVERWRITE
 
     #: The default :class:`DuplicationPolicy` used in the event that an item
@@ -76,7 +76,7 @@ class BidictBase(BidirectionalMapping):
     #: :meth:`~bidict.bidict.update`).
     #: Defaults to :attr:`~bidict.RAISE`
     #: to prevent unintended overwrite of another item.
-    #: See also :ref:`extending`
+    #: See also :doc:`extending`
     on_dup_val = RAISE
 
     #: The default :class:`DuplicationPolicy` used in the event that an item
@@ -87,7 +87,7 @@ class BidictBase(BidirectionalMapping):
     #: :meth:`~bidict.bidict.update`).
     #: Defaults to ``None``, which causes the *on_dup_kv* policy to match
     #: whatever *on_dup_val* policy is in effect.
-    #: See also :ref:`extending`
+    #: See also :doc:`extending`
     on_dup_kv = None
 
     _fwdm_cls = dict
@@ -121,7 +121,8 @@ class BidictBase(BidirectionalMapping):
         inv._fwdm = self._invm  # pylint: disable=protected-access
         inv._invm = self._fwdm  # pylint: disable=protected-access
         # Only give the inverse a weak reference to this bidict to avoid creating a reference cycle,
-        # stored in the _invweak attribute. See also the :ref:`inv-avoids-reference-cycles` docs.
+        # stored in the _invweak attribute. See also the docs in
+        # :ref:`addendum:\:attr\:\`~bidict.BidictBase.inv\` Avoids Reference Cycles`
         inv._inv = None  # pylint: disable=protected-access
         inv._invweak = ref(self)  # pylint: disable=protected-access
         # Since this bidict has a strong reference to its inverse already, set its _invweak to None.
@@ -207,9 +208,11 @@ class BidictBase(BidirectionalMapping):
         Equivalent to *dict(x.items()) == dict(other.items())*
         but more efficient.
 
-        Note this implementation of :meth:`__eq__` is inherited by subclasses
-        of this class, in particular by the ordered bidict subclasses, so ==
-        comparison is always order-insensitive.
+        Note that :meth:`bidict's __eq__() <bidict.bidict.__eq__>` implementation
+        is inherited by subclasses,
+        in particular by the ordered bidict subclasses,
+        so even with ordered bidicts,
+        :ref:`== comparison is order-insensitive <eq-order-insensitive>`.
 
         See also :meth:`bidict.FrozenOrderedBidict.equals_order_sensitive`
         """
@@ -336,7 +339,7 @@ class BidictBase(BidirectionalMapping):
             self._update_with_rollback(on_dup, *args, **kw)
             return
         _put = self._put
-        for (key, val) in pairs(*args, **kw):
+        for (key, val) in _iteritems_args_kw(*args, **kw):
             _put(key, val, on_dup)
 
     def _update_with_rollback(self, on_dup, *args, **kw):
@@ -345,7 +348,7 @@ class BidictBase(BidirectionalMapping):
         appendlog = writelog.append
         dedup_item = self._dedup_item
         write_item = self._write_item
-        for (key, val) in pairs(*args, **kw):
+        for (key, val) in _iteritems_args_kw(*args, **kw):
             try:
                 dedup_result = dedup_item(key, val, on_dup)
             except DuplicationError:

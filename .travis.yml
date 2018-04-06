@@ -19,6 +19,10 @@ before_install:
       # Travis does a shallow (--depth=50) clone by default.
       # Clone the full history as requested by setuptools_scm.
       git fetch --unshallow
+      echo
+      # https://github.com/python-trio/trio/issues/487#issuecomment-377931587
+      echo Installing latest pip...
+      curl https://bootstrap.pypa.io/get-pip.py | python
 
 
 install:  # Install our test dependencies.
@@ -98,7 +102,10 @@ matrix:
     - env: TASK=build-docs
       before_install: skip
       install: travis_retry pip install Sphinx
-      script: travis_retry ./build-docs.sh linkcheck
+      script:
+        - ./build-docs.sh
+        - cd docs
+        - travis_retry make linkcheck
     - env: TASK=flake8
       before_install: skip
       install: travis_retry pip install flake8
