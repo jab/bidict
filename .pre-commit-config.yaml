@@ -1,6 +1,6 @@
 repos:
 - repo: git://github.com/pre-commit/pre-commit-hooks
-  sha: v1.1.1
+  sha: v1.2.3
   hooks:
   - id: trailing-whitespace
   - id: end-of-file-fixer
@@ -18,7 +18,7 @@ repos:
     exclude: bidict/_version.py
 
 - repo: git://github.com/Lucas-C/pre-commit-hooks
-  sha: v1.1.4
+  sha: v1.1.5
   hooks:
   - id: forbid-crlf
   - id: remove-crlf
@@ -27,15 +27,17 @@ repos:
   - id: insert-license
     files: \.py$
     args:
-    - --license-filepath
-    - LICENSE_HEADER
+    # Renamed LICENSE_HEADER -> .LICENSE_HEADER to avoid confusing licensee
+    # (https://github.com/benbalter/licensee - what GitHub uses to detect license)
+    - --license-filepath=.LICENSE_HEADER
 
-# TODO: get this working:
-#- repo: git://github.com/pre-commit/mirrors-pylint
-#  sha: v1.7.4
-#  hooks:
-#  - id: pylint
-#    args:
-#    - bidict
-#    - tests
-#    - setup.py
+- repo: git://github.com/pre-commit/mirrors-pylint
+  sha: v1.8.4
+  hooks:
+  - id: pylint
+    # Needed to avoid ImportErrors when linting tests:
+    additional_dependencies: [hypothesis,pytest]
+    args:
+    # http://pylint.pycqa.org/en/latest/user_guide/run.html#parallel-execution
+    # > If the provided number is 0, then the total number of CPUs will be used.
+    - --jobs=0

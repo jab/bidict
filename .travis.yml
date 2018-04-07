@@ -115,7 +115,7 @@ matrix:
     - env: TASK=pylint
       before_install: travis_retry pip install .[test]
       install: travis_retry pip install pylint
-      script: pylint $LINT_SRC
+      script: pylint --jobs=0 $LINT_SRC
     - env: TASK=test-with-optimization-flag  # make sure there are no relied-on side effects in assert statements
       before_install: skip
       install: skip
