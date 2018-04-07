@@ -8,6 +8,7 @@ sudo: false
 env:
   global:
     - VENV_ROOT="$HOME/venv"
+    - LINT_SRC="$(ls bidict/*.py tests/*.py setup.py)"
 
 
 before_install:
@@ -23,6 +24,7 @@ before_install:
       # https://github.com/python-trio/trio/issues/487#issuecomment-377931587
       echo Installing latest pip...
       curl https://bootstrap.pypa.io/get-pip.py | python
+      pip --version
 
 
 install:  # Install our test dependencies.
@@ -98,7 +100,7 @@ matrix:
     - env: TASK=pydocstyle
       before_install: skip
       install: travis_retry pip install pydocstyle
-      script: pydocstyle bidict
+      script: pydocstyle $LINT_SRC
     - env: TASK=build-docs
       before_install: skip
       install: travis_retry pip install Sphinx
@@ -109,11 +111,11 @@ matrix:
     - env: TASK=flake8
       before_install: skip
       install: travis_retry pip install flake8
-      script: flake8 bidict tests/*.py
+      script: flake8 $LINT_SRC
     - env: TASK=pylint
       before_install: travis_retry pip install .[test]
       install: travis_retry pip install pylint
-      script: pylint bidict tests/*.py setup.py
+      script: pylint $LINT_SRC
     - env: TASK=test-with-optimization-flag  # make sure there are no relied-on side effects in assert statements
       before_install: skip
       install: skip
