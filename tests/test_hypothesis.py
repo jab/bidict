@@ -31,6 +31,7 @@ from bidict._util import _iteritems_args_kw
 
 
 settings.register_profile('default', settings(max_examples=250, deadline=None))
+settings.register_profile('max_examples_5000', max_examples=5000)
 settings.load_profile(getenv('HYPOTHESIS_PROFILE', 'default'))
 
 
@@ -138,7 +139,7 @@ def items_match(map1, map2, relation=eq):
        init_items=H_LISTS_PAIRS_NODUP, init_unequal=H_LISTS_PAIRS_NODUP)
 def test_eq_ne_hash(bi_cls, other_cls, init_items, init_unequal, not_a_mapping):
     """Test various equality comparisons and hashes between bidicts and other objects."""
-    assume(init_items != init_unequal)
+    assume(set(init_items) != set(init_unequal))
 
     some_bidict = bi_cls(init_items)
     other_equal = other_cls(init_items)

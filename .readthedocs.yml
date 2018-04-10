@@ -1,0 +1,14 @@
+# http://docs.readthedocs.io/en/latest/yaml-config.html#requirements-file
+
+# Don't build any extra formats
+formats:
+  - none
+
+build:
+  image: latest
+
+python:
+  version: 3.6
+  pip_install: true
+  extra_requirements:
+    - docs

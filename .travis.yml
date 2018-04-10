@@ -9,22 +9,20 @@ env:
   global:
     - VENV_ROOT="$HOME/venv"
     - LINT_SRC="$(ls bidict/*.py tests/*.py setup.py)"
+    - HYPOTHESIS_PROFILE=$([[ $TRAVIS_EVENT_TYPE = cron ]] && echo max_examples_5000 || echo default)
 
 
 before_install:
-  - |
-      echo "TRAVIS_PULL_REQUEST_SHA: $TRAVIS_PULL_REQUEST_SHA"
-      echo "TRAVIS_COMMIT: $TRAVIS_COMMIT"
-      git --no-pager log -n2
-      echo
-      # Travis does a shallow (--depth=50) clone by default.
-      # Clone the full history as requested by setuptools_scm.
-      git fetch --unshallow
-      echo
-      # https://github.com/python-trio/trio/issues/487#issuecomment-377931587
-      echo Installing latest pip...
-      curl https://bootstrap.pypa.io/get-pip.py | python
-      pip --version
+  - echo 'TRAVIS_PULL_REQUEST_SHA:' $TRAVIS_PULL_REQUEST_SHA
+  - echo 'TRAVIS_COMMIT:' $TRAVIS_COMMIT
+  - git --no-pager log -n2
+  # Travis does a shallow (--depth=50) clone by default.
+  # Clone the full history as requested by setuptools_scm.
+  - travis_retry git fetch --unshallow
+  # https://github.com/python-trio/trio/issues/487#issuecomment-377931587
+  - echo 'Installing latest pip...'
+  - travis_retry curl https://bootstrap.pypa.io/get-pip.py | python
+  - pip --version
 
 
 install:  # Install our test dependencies.
@@ -49,9 +47,6 @@ after_script:
 
 
 matrix:
-  allow_failures:
-    - env: ALLOW_FAIL=1
-
   include:
     # Each job performs a single task, and sets a "TASK" var so it's evident in the build matrix.
 
@@ -60,29 +55,30 @@ matrix:
     # Also don't bother testing Python 3.4; if we work on 3.5+, we should work on 3.4 too.
 
     ## Linux
-    ### Enable coverage for the latest stable CPython 2 and 3 releases and PyPy on Linux.
-    #### Latest stable CPython 2. Enable coverage.
+    ### Enable coverage for the most recent available CPython 2 and 3 releases and PyPy 3.
+    #### Latest stable CPython 2 available -> enable coverage.
     - python: "2.7"
       env: TASK=test COVERAGE=1
       if: branch = master
-    #### Latest stable CPython 3. Enable coverage.
+    #### Latest stable CPython 3 available -> enable coverage.
     - python: "3.6"
       env: TASK=test COVERAGE=1
       if: branch = master
-    #### Test other CPython versions. No need for coverage.
-    ##### Previous stable CPython 3 version.
+    #### Other CPython versions -> no coverage.
+    ##### Previous stable release:
     - python: "3.5"
       env: TASK=test
       if: branch = master
-    #### Next (in-development) CPython 3 version.
-    - python: 3.7-dev
-      env: TASK=test ALLOW_FAIL=1
-      if: branch = master
-    #### Test latest stable PyPy 3. Enable coverage.
+    #### Next (in-development) version:
+    ##### Ditch while stuck on old 3.7-alpha pending https://github.com/travis-ci/travis-ci/issues/9069
+    #####- python: 3.7-dev
+    #####  env: TASK=test
+    #####  if: branch = master
+    #### Latest stable PyPy 3 available -> enable coverage.
     - python: pypy3
       env: TASK=test COVERAGE=1
       if: branch = master
-    #### Test latest stable PyPy 2. No need for coverage.
+    #### Latest stable PyPy 2 -> no coverage.
     - python: pypy
       env: TASK=test
       if: branch = master

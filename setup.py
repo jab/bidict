@@ -45,8 +45,11 @@ COVERAGE_REQS = [
     'pytest-cov<3',
 ]
 
-DEV_REQ = SETUP_REQS + TEST_REQS + COVERAGE_REQS + [
+DOCS_REQS = [
     'Sphinx<2',
+]
+
+DEV_REQ = SETUP_REQS + TEST_REQS + COVERAGE_REQS + DOCS_REQS + [
     'pre-commit<2',
     'tox<4',
     # Peg to more specific versions of the following dependencies since they'd
@@ -95,6 +98,7 @@ setup(
     extras_require=dict(
         test=TEST_REQS,
         coverage=COVERAGE_REQS,
+        docs=DOCS_REQS,
         dev=DEV_REQ,
     ),
 )
