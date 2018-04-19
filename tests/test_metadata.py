@@ -17,9 +17,12 @@ __copyright__
 __email__
 __credits__
 __description__
+__keywords__
 __license__
 __status__
+__url__
 __version__
+__version_info__
 """.split()
 
 

@@ -123,6 +123,15 @@ which advises,
 | *Errors should never pass silently.*
 | *Unless explicitly silenced.*
 
+So if you really just want to clobber any existing items,
+all you have to do is say so:
+
+.. code:: python
+
+   >>> b.forceput('two', 1)
+   >>> b
+   bidict({'two': 1})
+
 Similarly, initializations and :func:`~bidict.bidict.update` calls
 that would overwrite the key of an existing value
 raise an exception too:
@@ -175,8 +184,9 @@ This design naturally falls out of the behavior of Python's built-in dict,
 and protects against unexpected data loss.
 
 One set of alternatives to this behavior is provided by
-:func:`~bidict.bidict.forceput` and
-:func:`~bidict.bidict.forceupdate`,
+:func:`~bidict.bidict.forceput`
+(mentioned above)
+and :func:`~bidict.bidict.forceupdate`,
 which allow you to explicitly overwrite existing keys and values:
 
 .. code:: python
@@ -185,9 +195,10 @@ which allow you to explicitly overwrite existing keys and values:
    >>> b.forceput('two', 1)
    >>> b
    bidict({'two': 1})
-   >>> b.forceupdate({'three': 1})
+
+   >>> b.forceupdate([('three', 1), ('four', 1)])
    >>> b
-   bidict({'three': 1})
+   bidict({'four': 1})
 
 For even more control,
 you can use :func:`~bidict.bidict.put`
@@ -207,17 +218,25 @@ Three possible options are
 .. code:: python
 
    >>> from bidict import RAISE, OVERWRITE, IGNORE
+
    >>> b = bidict({2: 4})
    >>> b.put(2, 8, on_dup_key=RAISE)
    Traceback (most recent call last):
        ...
    KeyDuplicationError: 2
+   >>> b
+   bidict({2: 4})
+
    >>> b.putall([(3, 9), (2, 8)], on_dup_key=RAISE)
    Traceback (most recent call last):
        ...
    KeyDuplicationError: 2
-   >>> b  # Note that (3, 9) was not added because the call failed:
+
+   >>> # (2, 8) was the duplicative item, but note that
+   >>> # (3, 9) was not added either because the whole call failed:
+   >>> b
    bidict({2: 4})
+
    >>> b.putall([(3, 9), (1, 4)], on_dup_val=IGNORE)
    >>> sorted(b.items())  # Note (1, 4) was ignored as requested:
    [(2, 4), (3, 9)]

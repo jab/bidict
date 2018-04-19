@@ -1,3 +1,10 @@
+.. Forward declarations for all the custom interpreted text roles that
+   Sphinx defines and that are used below. This helps Sphinx-unaware tools
+   (e.g. rst2html, PyPI's and GitHub's renderers, etc.).
+.. role:: doc
+.. role:: ref
+
+
 Contributors' Guide
 ===================
 
@@ -144,7 +151,7 @@ there are other ways to contribute.
 
 **Please support bidict:**
 
-.. image:: ./_static/support-on-gumroad.png
+.. image:: https://raw.githubusercontent.com/jab/bidict/master/assets/support-on-gumroad.png
   :target: https://gumroad.com/l/bidict
   :alt: Support bidict
 

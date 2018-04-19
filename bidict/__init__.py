@@ -56,8 +56,8 @@ from ._named import namedbidict
 from ._orderedbase import OrderedBidictBase
 from ._ordered import OrderedBidict
 from .metadata import (
-    __author__, __maintainer__, __copyright__, __email__, __credits__,
-    __license__, __status__, __description__, __version__)
+    __author__, __maintainer__, __copyright__, __email__, __credits__, __url__,
+    __license__, __status__, __description__, __keywords__, __version__, __version_info__)
 
 
 __all__ = (
@@ -69,7 +69,10 @@ __all__ = (
     '__license__',
     '__status__',
     '__description__',
+    '__keywords__',
+    '__url__',
     '__version__',
+    '__version_info__',
     'BidirectionalMapping',
     'BidictException',
     'DuplicationPolicy',

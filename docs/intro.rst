@@ -40,66 +40,119 @@ Why can't I just use a dict?
 
 A skeptic writes:
 
-    If I want a mapping *a* ↔︎ *b*,
-    I would just create a dict ``{a: b, b: a}``.
-    What is the advantage of bidict
-    over the simplicity of the dict approach?
+    If I want a mapping associating *a* → *b* and *b* → *a*,
+    I can just create the dict ``{a: b, b: a}``.
+    Why bother using bidict?
 
-Glad you asked.
+One answer is better ergonomics
+for maintaining a correct representation.
+For example, consider what happens when we need
+to change an existing association:
 
-For one, you don't have to manually update the mapping *b* → *a*
-whenever the mapping *a* → *b* changes.
-With the skeptic's method,
-if *a* → *b* needs to change to *a* → *c*,
-you have to write:
-
-.. code:: python
-
-   >>> d[a] = c  # doctest: +SKIP
-   >>> d[c] = a  # doctest: +SKIP
-   >>> del d[b]  # doctest: +SKIP
-
-With bidicit, you can instead just write:
+If we want to create the assocation *a* ⟷ *b*,
+but might have already created the association *a* ⟷ *c*,
+with the skeptic's approach
+we would have to write:
 
 .. code:: python
 
-   >>> d[a] = c  # doctest: +SKIP
+   >>> # To represent an existing association a ⟷ c in a single dict d:
+   >>> d = {'a': 'c', 'c': 'a'}
 
-and the rest is taken care of for you.
+   >>> # Here is what we'd have to do to make sure a ⟷ b gets associated
+   >>> # regardless of what associations may be in d already:
+   >>> newkey = 'a'
+   >>> newval = 'b'
+   >>> _sentinel = object()
+   >>> oldval = d.pop(newkey, _sentinel)
+   >>> if oldval is not _sentinel:
+   ...     del d[oldval]
+   >>> oldkey = d.pop(newval, _sentinel)
+   >>> if oldkey is not _sentinel:
+   ...     del d[oldkey]
+   >>> d[newkey] = newval
+   >>> d[newval] = newkey
+   >>> d == {'a': 'b', 'b': 'a'}
+   True
 
-But even more important,
-since the dict approach
-inserts values as keys into the same one-directional map it inserts keys into,
-it's not a bidirectional map so much as
-the destructive merge of two one-directional maps into one.
 
-In other words,
-you lose information about which mappings are the forward mappings
-and which are the inverse.
-``d.keys()`` and ``d.values()`` would each give you
-the same 2x-too-big jumble of keys and values
-all mixed together,
-and ``d.items()`` would likewise be
-the 2x-too-big combination of forward and inverse mappings
-all mixed together.
+With bidict, we can instead just write:
+
+.. code:: python
+
+   >>> m = bidict({'a': 'c'})  # (match the previous initial setup)
+
+   >>> # Here is all we need to make sure a ⟷ b:
+   >>> m['a'] = 'b'
+
+and voilà, bidict takes care of all the fussy details,
+leaving us with just what we wanted:
+
+.. code:: python
+
+   >>> m
+   bidict({'a': 'b'})
+
+   >>> m.inv
+   bidict({'b': 'a'})
+
+
+Even more important...
+++++++++++++++++++++++
+
+Beyond this,
+consider what would happen if we needed to work with
+just the keys, values, or items that we have associated.
+
+Since the single-dict approach
+inserts values as keys into the same dict that it inserts keys into,
+we'd never be able to tell our keys and values apart.
+
+So iterating over the keys would also yield the values
+(and vice versa),
+with no way to tell which was which.
+
+Iterating over the items
+would yield twice as many as we wanted,
+with a *(v, k)* item that we'd have to ignore
+for each *(k, v)* item that we expect,
+and no way to tell which was which.
+
+.. code:: python
+
+   >>> # Compare:
+   >>> sorted(d.keys())    # gives both keys and values
+   ['a', 'b']
+   >>> sorted(d.values())  # gives both keys and values
+   ['a', 'b']
+
+   >>> # vs.
+   >>> sorted(m.keys())    # just the keys
+   ['a']
+   >>> sorted(m.values())  # just the values
+   ['b']
 
 In short,
-to model a bidirectional map,
-you need two separate one-directional maps
-that are kept in sync as the bidirectional map changes.
+to model a bidirectional mapping,
+we need two separate one-directional mappings,
+one for the forward associations and one for the inverse,
+that are kept in sync as the associations change.
+
 This is exactly what bidict does under the hood,
-abstracting this into a clean and simple interface.
-bidict also provides rich and powerful facilities
-to help you handle the enforcement of the one-to-one constraint
-(for example, when attempting to set a new key to an existing value)
-exactly as you intend.
+abstracting it into a clean, simple, Pythonic interface.
+
+bidict's APIs also provide power, flexibility, and safety,
+making sure the one-to-one invariant is maintained
+and inverse mappings are kept consistent,
+while also helping make sure you don't accidentally
+:ref:`shoot yourself in the foot <basic-usage:Values Must Be Unique>`.
 
 
 Additional Functionality
 ------------------------
 
 Besides the standard :class:`bidict.bidict` type,
-the :mod:`bidict` module provides other bidirectional map variants:
+the :mod:`bidict` module provides other bidirectional mapping variants:
 
 - :class:`~bidict.frozenbidict`
 - :class:`~bidict.OrderedBidict`

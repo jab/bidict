@@ -5,25 +5,41 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-"""setup.py"""
+"""A setuptools-based setup module.
 
-from io import open  # pylint: disable=redefined-builtin
+Ref: https://github.com/pypa/sampleproject/blob/master/setup.py
+"""
+
+from codecs import open as c_open
+from os.path import abspath, dirname, join
 
 from setuptools import setup
 
-# Fetch bidict's package metadata from bidict/metadata.py.
-# Must use exec(open(...)) because we haven't been installed yet.
-METADATA = dict(__name__=__name__)
-exec(open('bidict/metadata.py').read().encode('utf8'), METADATA)  # pylint: disable=exec-used
 
+CWD = abspath(dirname(__file__))
+
+# Get bidict's package metadata from ./bidict/metadata.py.
+METADATA_PATH = join(CWD, 'bidict', 'metadata.py')
 try:
-    LONG_DESCRIPTION = open('README.rst').read().replace(
-        ':doc:', ''  # :doc: breaks rendering on PyPI
-    ).replace(  # the _static content isn't available on PyPI
-        './_static/logo.png', 'https://github.com/jab/bidict/raw/master/_static/logo.png'
-    )
-except:  # noqa; pylint: disable=bare-except
-    LONG_DESCRIPTION = 'See https://bidict.readthedocs.io'
+    from importlib.util import module_from_spec, spec_from_file_location
+except ImportError:  # Python < 3.5
+    try:
+        from importlib.machinery import SourceFileLoader
+    except ImportError:  # Python < 3.3 - treat as Python 2 (otherwise unsupported).
+        from imp import load_source
+        METADATA = load_source('metadata', METADATA_PATH)
+    else:  # Python 3.3 or 3.4
+        LOADER = SourceFileLoader('metadata', METADATA_PATH)
+        METADATA = LOADER.load_module()  # pylint: disable=deprecated-method
+else:
+    SPEC = spec_from_file_location('metadata', METADATA_PATH)
+    METADATA = module_from_spec(SPEC)
+    SPEC.loader.exec_module(METADATA)
+
+
+with c_open(join(CWD, 'README.rst'), encoding='utf-8') as f:
+    LONG_DESCRIPTION = f.read()
+
 
 SETUP_REQS = [
     'pytest-runner',
@@ -67,15 +83,13 @@ setup(
         'local_scheme': 'dirty-tag',
         'write_to': 'bidict/_version.py',
     },
-    author=METADATA['__author__'],
-    author_email=METADATA['__email__'],
-    description=METADATA['__description__'],
+    author=METADATA.__author__,
+    author_email=METADATA.__email__,
+    description=METADATA.__description__,
     long_description=LONG_DESCRIPTION,
-    keywords='dict, dictionary, mapping, datastructure, '
-             'bimap, bijection, bijective, injective, inverse, reverse, '
-             'bidirectional, two-way, 2-way',
-    url='https://github.com/jab/bidict',
-    license=METADATA['__license__'],
+    keywords=METADATA.__keywords__,
+    url=METADATA.__url__,
+    license=METADATA.__license__,
     packages=['bidict'],
     zip_safe=False,  # Don't zip. (We're zip-safe but prefer not to.)
     classifiers=[

@@ -24,19 +24,26 @@ except (ImportError, ValueError, SystemError):  # pragma: no cover
         except pkg_resources.DistributionNotFound:
             pass
 
+try:
+    __version_info__ = tuple(int(p) if i < 3 else p for (i, p) in enumerate(__version__.split('.')))
+except:  # noqa: E722; pragma: no cover; pylint: disable=bare-except
+    __vesion_info__ = (0, 0, 0, 'PARSE FAILURE: __version__=%s' % __version__)
 
 __author__ = u'Joshua Bronson'
 __maintainer__ = u'Joshua Bronson'
 __copyright__ = u'Copyright 2018 Joshua Bronson'
 __email__ = u'jab@math.brown.edu'
 
-# Populated from ../docs/thanks.rst
+# See: ../docs/thanks.rst
 __credits__ = [i.strip() for i in u"""
 Joshua Bronson, Michael Arntzenius, Francis Carr, Gregory Ewing, Raymond Hettinger, Jozef Knaperek,
 Daniel Pope, Terry Reedy, David Turner, Tom Viner
 """.split(u',')]
 
 __description__ = u'Efficient, Pythonic bidirectional map implementation and related functionality'
+__keywords__ = 'dict dictionary mapping datastructure bimap bijection bijective ' \
+    'injective inverse reverse bidirectional two-way 2-way'
 
 __license__ = u'MPL 2.0'
 __status__ = u'Beta'
+__url__ = u'https://bidict.readthedocs.io'

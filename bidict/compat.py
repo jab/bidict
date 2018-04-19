@@ -55,9 +55,8 @@ PYMAJOR, PYMINOR = version_info[:2]
 PY2 = PYMAJOR == 2
 PYPY = python_implementation() == 'PyPy'
 
-# Without the following, pylint gives lots of false positives like
-# "Constant name "viewkeys" doesn't conform to UPPER_CASE naming style"
-# pylint: disable=invalid-name
+# Without the following, pylint gives lots of false positives.
+# pylint: disable=invalid-name,unused-import,ungrouped-imports
 
 if PY2:
 
@@ -74,14 +73,13 @@ if PY2:
 
     # In Python 3, the collections ABCs were moved into collections.abc, which does not exist in
     # Python 2. Support for importing them directly from collections is dropped in Python 3.8.
-    # pylint: disable=unused-import
     from collections import Mapping, MutableMapping, ItemsView, Hashable  # noqa: F401 (unused)
 
     # abstractproperty deprecated in Python 3.3 in favor of using @property with @abstractmethod.
     # Before 3.3, this silently fails to detect when an abstract property has not been overridden.
     from abc import abstractproperty
 
-    from itertools import izip  # pylint: disable=unused-import,no-name-in-module
+    from itertools import izip  # pylint: disable=no-name-in-module
 
 else:
     # Assume Python 3 when not PY2, but explicitly check before showing this warning.
@@ -99,10 +97,8 @@ else:
     itervalues = _compose(iter, viewvalues)
     iteritems = _compose(iter, viewitems)
 
-    # pylint: disable=unused-import,ungrouped-imports
     from collections.abc import Mapping, MutableMapping, ItemsView, Hashable  # noqa: F401 (unused)
 
-    # pylint: disable=ungrouped-imports
     from abc import abstractmethod
     abstractproperty = _compose(property, abstractmethod)
 

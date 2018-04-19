@@ -24,6 +24,15 @@ bidict
 .. autofunction:: bidict._util._iteritems_args_kw
 
 
+.. attribute:: __version__
+
+   The version of bidict represented as a string.
+
+.. attribute:: __version_info__
+
+   The version of bidict represented as a tuple.
+
+
 bidict.compat
 -------------
 

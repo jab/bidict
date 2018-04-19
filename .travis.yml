@@ -26,8 +26,10 @@ before_install:
 
 
 install:  # Install our test dependencies.
-  - if [[ -n $COVERAGE ]]; then EXTRAS="test,coverage"; else EXTRAS="test"; fi
+  - export EXTRAS="test"
+  - if [[ -n $COVERAGE ]]; then export EXTRAS="${EXTRAS},coverage"; fi
   - travis_retry pip install .[$EXTRAS]
+  - pip list
 
 
 script:  # Run our test suite.
@@ -41,8 +43,8 @@ after_script:
         echo "Installing codecov..."
         travis_retry pip install codecov || exit 1
         echo
-        echo "Uploading coverage report..."
-        codecov || exit 1
+        echo "Uploading coverage report to codecov..."
+        travis_retry codecov
       fi
 
 
@@ -65,8 +67,11 @@ matrix:
       env: TASK=test COVERAGE=1
       if: branch = master
     #### Other CPython versions -> no coverage.
-    ##### Previous stable release:
+    ##### Supported previous stable releases:
     - python: "3.5"
+      env: TASK=test
+      if: branch = master
+    - python: "3.4"
       env: TASK=test
       if: branch = master
     #### Next (in-development) version:

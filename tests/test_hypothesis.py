@@ -16,7 +16,7 @@ from os import getenv
 from weakref import ref
 
 import pytest
-from hypothesis import assume, given, settings, strategies as strat
+from hypothesis import HealthCheck, assume, given, settings, strategies as strat, unlimited
 
 from bidict import (
     BidictException, IGNORE, OVERWRITE, RAISE,
@@ -30,8 +30,10 @@ from bidict.compat import (
 from bidict._util import _iteritems_args_kw
 
 
-settings.register_profile('default', settings(max_examples=250, deadline=None))
-settings.register_profile('max_examples_5000', max_examples=5000)
+settings.register_profile('default', max_examples=500, deadline=None, timeout=unlimited)
+settings.register_profile('max_examples_5000', max_examples=5000, deadline=None, timeout=unlimited,
+                          suppress_health_check=[HealthCheck.hung_test])
+
 settings.load_profile(getenv('HYPOTHESIS_PROFILE', 'default'))
 
 
@@ -121,14 +123,19 @@ H_METHOD_ARGS = strat.sampled_from((
 ))
 
 
-def items_match(map1, map2, relation=eq):
+def both_ordered_bidict_types(bicls1, bicls2):
+    """Return whether both bicls1 and bicls2 are ordered bidict types."""
+    return all(issubclass(b, OrderedBidictBase) for b in (bicls1, bicls2))
+
+
+def items_relate(map1, map2, relation=eq):
     """Return whether the items of *map1* and *map2*
     are related by *relation*.
     If *map1* and *map2* are both ordered,
-    they will be compared as lists,
+    they will be passed to *relation* for comparison as lists,
     otherwise as sets.
     """
-    both_ordered_bidicts = all(isinstance(m, OrderedBidictBase) for m in (map1, map2))
+    both_ordered_bidicts = both_ordered_bidict_types(map1.__class__, map2.__class__)
     canon = list if both_ordered_bidicts else set
     canon_map1 = canon(iteritems(map1))
     canon_map2 = canon(iteritems(map2))
@@ -144,8 +151,8 @@ def test_eq_ne_hash(bi_cls, other_cls, init_items, init_unequal, not_a_mapping):
     some_bidict = bi_cls(init_items)
     other_equal = other_cls(init_items)
     other_equal_inv = inverse_odict(iteritems(other_equal))
-    assert items_match(some_bidict, other_equal)
-    assert items_match(some_bidict.inv, other_equal_inv)
+    assert items_relate(some_bidict, other_equal)
+    assert items_relate(some_bidict.inv, other_equal_inv)
     assert some_bidict == other_equal
     assert not some_bidict != other_equal
     assert some_bidict.inv == other_equal_inv
@@ -161,8 +168,8 @@ def test_eq_ne_hash(bi_cls, other_cls, init_items, init_unequal, not_a_mapping):
 
     other_unequal = other_cls(init_unequal)
     other_unequal_inv = inverse_odict(iteritems(other_unequal))
-    assert items_match(some_bidict, other_unequal, relation=ne)
-    assert items_match(some_bidict.inv, other_unequal_inv, relation=ne)
+    assert items_relate(some_bidict, other_unequal, relation=ne)
+    assert items_relate(some_bidict.inv, other_unequal_inv, relation=ne)
     assert some_bidict != other_unequal
     assert not some_bidict == other_unequal
     assert some_bidict.inv != other_unequal_inv
@@ -214,21 +221,21 @@ def test_consistency_after_mutation(bi_cls, init_items, method_args, data):
     args = tuple(data.draw(i) for i in hs_args)
     bi_init = bi_cls(init_items)
     bi_clone = bi_init.copy()
-    assert items_match(bi_init, bi_clone)
+    assert items_relate(bi_init, bi_clone)
     try:
         method(bi_clone, *args)
     except (KeyError, BidictException) as exc:
         # Call should fail clean, i.e. bi_clone should be in the same state it was before the call.
         assertmsg = '%r did not fail clean: %r' % (method, exc)
-        assert items_match(bi_clone, bi_init), assertmsg
-        assert items_match(bi_clone.inv, bi_init.inv), assertmsg
+        assert items_relate(bi_clone, bi_init), assertmsg
+        assert items_relate(bi_clone.inv, bi_init.inv), assertmsg
     # Whether the call failed or succeeded, bi_clone should pass consistency checks.
     assert len(bi_clone) == sum(1 for _ in iteritems(bi_clone))
     assert len(bi_clone) == sum(1 for _ in iteritems(bi_clone.inv))
-    assert items_match(bi_clone, dict(bi_clone))
-    assert items_match(bi_clone.inv, dict(bi_clone.inv))
-    assert items_match(bi_clone, inverse_odict(iteritems(bi_clone.inv)))
-    assert items_match(bi_clone.inv, inverse_odict(iteritems(bi_clone)))
+    assert items_relate(bi_clone, dict(bi_clone))
+    assert items_relate(bi_clone.inv, dict(bi_clone.inv))
+    assert items_relate(bi_clone, inverse_odict(iteritems(bi_clone.inv)))
+    assert items_relate(bi_clone.inv, inverse_odict(iteritems(bi_clone)))
 
 
 @given(bi_cls=H_MUTABLE_BIDICT_TYPES,
@@ -258,8 +265,8 @@ def test_dup_policies_bulk(bi_cls, init_items, update_items, on_dup_key, on_dup_
     except BidictException as exc:
         checkexc = type(exc)
     assert checkexc == expectexc
-    assert items_match(check, expect)
-    assert items_match(check.inv, expect.inv)
+    assert items_relate(check, expect)
+    assert items_relate(check.inv, expect.inv)
 
 
 @given(bi_cls=H_BIDICT_TYPES, init_items=H_LISTS_PAIRS_NODUP)

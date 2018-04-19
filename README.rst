@@ -1,9 +1,15 @@
+.. Forward declarations for all the custom interpreted text roles that
+   Sphinx defines and that are used below. This helps Sphinx-unaware tools
+   (e.g. rst2html, PyPI's and GitHub's renderers, etc.).
+.. role:: doc
+
+
 bidict
 ======
 
 Efficient, Pythonic bidirectional map implementation and related functionality.
 
-.. image:: ./_static/logo.png
+.. image:: https://raw.githubusercontent.com/jab/bidict/master/assets/logo.png
    :target: https://bidict.readthedocs.io/
    :alt: bidict logo
 
@@ -13,11 +19,11 @@ Status
 
 .. Hide until https://github.com/badges/shields/issues/716 is fixed
    .. image:: https://img.shields.io/pypi/dm/bidict.svg
-      :target: https://pypi.python.org/pypi/bidict
+      :target: https://pypi.org/project/bidict
       :alt: Downloads per month
 
 .. image:: https://img.shields.io/pypi/v/bidict.svg
-   :target: https://pypi.python.org/pypi/bidict
+   :target: https://pypi.org/project/bidict
    :alt: Latest release
 
 .. image:: https://img.shields.io/readthedocs/bidict/master.svg
@@ -42,10 +48,10 @@ Status
 
 .. Hide to reduce clutter
    .. image:: https://img.shields.io/pypi/pyversions/bidict.svg
-      :target: https://pypi.python.org/pypi/bidict
+      :target: https://pypi.org/project/bidict
       :alt: Supported Python versions
    .. image:: https://img.shields.io/pypi/implementation/bidict.svg
-      :target: https://pypi.python.org/pypi/bidict
+      :target: https://pypi.org/project/bidict
       :alt: Supported Python implementations
    .. image:: https://img.shields.io/badge/lgtm-👍-blue.svg
       :target: https://lgtm.com/projects/g/jab/bidict/
@@ -205,7 +211,7 @@ of bidict's maintenance and development
 and/or ask your organization to do the same.
 Any amount contributed is gratefully received.
 
-.. image:: https://raw.githubusercontent.com/jab/bidict/master/_static/support-on-gumroad.png
+.. image:: https://raw.githubusercontent.com/jab/bidict/master/assets/support-on-gumroad.png
    :target: https://gumroad.com/l/bidict
    :alt: Support bidict
 
@@ -233,4 +239,4 @@ try these alternate links instead:
 
 ----
 
-Next: :doc:`intro`
+Next: :doc:`intro` [#fn-intro]_

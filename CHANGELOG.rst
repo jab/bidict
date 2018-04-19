@@ -1,3 +1,10 @@
+.. Forward declarations for all the custom interpreted text roles that
+   Sphinx defines and that are used below. This helps Sphinx-unaware tools
+   (e.g. rst2html, PyPI's and GitHub's renderers, etc.).
+.. role:: doc
+.. role:: ref
+
+
 Changelog
 =========
 
@@ -13,6 +20,13 @@ Release Notifications
 
 Tip: `Subscribe to bidict releases <https://libraries.io/pypi/bidict>`__
 on libraries.io to be notified when new versions of bidict are released.
+
+
+0.16.1 (not yet released)
+-------------------------
+
+Add :attr:`bidict.__version_info__` attribute
+to complement :attr:`bidict.__version__`.
 
 
 0.16.0 (2018-04-06)
