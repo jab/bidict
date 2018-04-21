@@ -349,7 +349,7 @@ def test_bidict_isinv(bi_cls):
 # Skip this test on PyPy where reference counting isn't used to free objects immediately. See:
 # http://doc.pypy.org/en/latest/cpython_differences.html#differences-related-to-garbage-collection-strategies
 # "It also means that weak references may stay alive for a bit longer than expected."
-@pytest.mark.skipif(PYPY, reason='objects with 0 refcount not freed immediately on PyPy')
+@pytest.mark.skipif(PYPY, reason='objects with 0 refcount are not freed immediately on PyPy')
 @given(bi_cls=H_BIDICT_TYPES)
 def test_no_reference_cycles(bi_cls):
     """When you delete your last strong reference to a bidict,

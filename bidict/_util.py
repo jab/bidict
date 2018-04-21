@@ -53,7 +53,7 @@ def inverted(arg):
     Otherwise, return an iterator over the items in `arg`,
     inverting each item on the fly.
 
-    See also :attr:`bidict.BidirectionalMapping.__inverted__`
+    *See also* :attr:`bidict.BidirectionalMapping.__inverted__`
     """
     inv = getattr(arg, '__inverted__', None)
     if callable(inv):

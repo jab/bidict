@@ -28,16 +28,88 @@
 
 """Provides :class:`OrderedBidictBase`."""
 
+from weakref import ref
+
 from ._base import _WriteResult, BidictBase
-from ._marker import _Marker
 from ._miss import _MISS
-from .compat import iteritems, izip, Mapping
+from .compat import Mapping, iteritems, izip
 
 
-_DAT = 0
-_PRV = 1
-_NXT = 2
-_END = _Marker('END')
+class _Node(object):  # pylint: disable=too-few-public-methods
+    """A node in a circular doubly-linked list
+    that stores the items in an ordered bidict.
+
+    Only weak references to the next and previous nodes
+    are held to avoid creating strong reference cycles.
+    """
+
+    __slots__ = ('item', '_prv', '_nxt', '__weakref__')
+
+    def __init__(self, item, prv, nxt):
+        self.item = item
+        self._setprv(prv)
+        self._setnxt(nxt)
+
+    def __repr__(self):  # pragma: no cover - just useful for debugging
+        return '%s(%s, prv=%s, nxt=%s)' % (
+            self.__class__.__name__, self.item,
+            self.prv and self.prv.item,
+            self.nxt and self.nxt.item)
+
+    def _getprv(self):
+        return self._prv() if isinstance(self._prv, ref) else self._prv
+
+    def _setprv(self, prv):
+        self._prv = prv and ref(prv)
+
+    prv = property(_getprv, _setprv)
+
+    def _getnxt(self):
+        return self._nxt() if isinstance(self._nxt, ref) else self._nxt
+
+    def _setnxt(self, nxt):
+        self._nxt = nxt and ref(nxt)
+
+    nxt = property(_getnxt, _setnxt)
+
+    def __getstate__(self):
+        """Convert weakrefs to strong refs so that instances can be pickled.
+
+        *See also* :meth:`object.__getstate__`
+        """
+        item = self.item
+        _nxt = self._nxt
+        _prv = self._prv
+        return {'item': item, '_prv': _prv and _prv(), '_nxt': _nxt and _nxt()}
+
+    def __setstate__(self, state):
+        """Convert strong refs that were converted from weak during pickling
+        back to weakrefs upon unpickling to avoid creating reference cycles.
+        """
+        # pylint: disable=attribute-defined-outside-init
+        self.item = state['item']
+        self._prv = state['_prv'] and ref(state['_prv'])
+        self._nxt = state['_nxt'] and ref(state['_nxt'])
+
+
+def _make_sentinel():
+    """Create a special node that initially represents a new empty circular linked list,
+    i.e. its next and previous references point back to itself.
+    """
+    sntl = _Node(None, None, None)
+    sntl.nxt = sntl.prv = sntl
+    return sntl
+
+
+def _iter_nodes(sntl, reverse=False):
+    """Given a sentinel node of a linked list,
+    iterate over the remaining nodes in the order specified by *reverse*.
+    """
+    attr = 'prv' if reverse else 'nxt'
+    node = getattr(sntl, attr)
+    while node is not sntl:  # lgtm [py/comparison-using-is]
+        yield node
+        node = getattr(node, attr)
 
 
 class OrderedBidictBase(BidictBase):  # lgtm [py/missing-equals]
@@ -53,24 +125,17 @@ class OrderedBidictBase(BidictBase):  # lgtm [py/missing-equals]
         The order in which items are inserted is remembered,
         similar to :class:`collections.OrderedDict`.
         """
-        # Sentinel node for the backing linked list that stores the items in order.
-        # Implemented as a circular doubly-linked list.
-        # A linked list node (including the sentinel node) is represented
-        # via a 3-element list, `[data, prev_node, next_node]`, for efficiency
-        # (hence the constant `_PRV` and `_NXT` indices above).
-        # `data` is a pair containing the key and value of an item
-        # in an arbitrary order, i.e. (`key_or_val`, `val_or_key`).
         self._sntl = _make_sentinel()
 
         # Like unordered bidicts, ordered bidicts also store
         # two backing one-directional mappings `fwdm` and `invm`.
-        # But rather than mapping key→val and val→key (respectively),
-        # they map key→node and val→node (respectively),
-        # where the node is the same when key and val are associated with one another.
+        # But rather than mapping key to val and val to key (respectively),
+        # they map key to node and val to node (respectively),
+        # where `node` is the same when key and val are associated with one another.
         # To effect this difference, _write_item and _undo_write are overridden.
         # But much of the rest of BidictBase's implementation,
         # including BidictBase.__init__ and BidictBase._update,
-        # are inherited and reused without modification. Code reuse ftw.
+        # are inherited and able to be reused without modification.
         super(OrderedBidictBase, self).__init__(*args, **kw)
 
     def _init_inv(self):
@@ -81,17 +146,18 @@ class OrderedBidictBase(BidictBase):  # lgtm [py/missing-equals]
     def copy(self):
         """A shallow copy of this ordered bidict."""
         # Fast copy implementation bypassing __init__. See comments in :meth:`BidictBase.copy`.
-        copy = object.__new__(self.__class__)
+        copy = self.__class__.__new__(self.__class__)
         sntl = _make_sentinel()
-        fwdm = {}
-        invm = {}
+        fwdm = dict.fromkeys(self._fwdm)
+        invm = dict.fromkeys(self._invm)
         cur = sntl
-        nxt = sntl[_NXT]
-        for (key, val) in iteritems(self):
-            nxt = [(key, val), cur, sntl]
-            cur[_NXT] = fwdm[key] = invm[val] = nxt
+        nxt = sntl.nxt
+        for item in iteritems(self):
+            nxt = _Node(item, cur, sntl)
+            key, val = item
+            cur.nxt = fwdm[key] = invm[val] = nxt
             cur = nxt
-        sntl[_PRV] = nxt
+        sntl.prv = nxt
         copy._sntl = sntl  # pylint: disable=protected-access
         copy._fwdm = fwdm  # pylint: disable=protected-access
         copy._invm = invm  # pylint: disable=protected-access
@@ -100,57 +166,51 @@ class OrderedBidictBase(BidictBase):  # lgtm [py/missing-equals]
 
     def __getitem__(self, key):
         nodefwd = self._fwdm[key]
-        datafwd = nodefwd[_DAT]
-        val = _get_other(datafwd, key)
+        val = nodefwd.item[not self._isinv]
         nodeinv = self._invm[val]
         assert nodeinv is nodefwd
         return val
 
     def _pop(self, key):
         nodefwd = self._fwdm.pop(key)
-        datafwd, prv, nxt = nodefwd
-        val = _get_other(datafwd, key)
+        val = nodefwd.item[not self._isinv]
         nodeinv = self._invm.pop(val)
         assert nodeinv is nodefwd
-        prv[_NXT] = nxt
-        nxt[_PRV] = prv
-        del nodefwd[:]
+        nodefwd.prv.nxt = nodefwd.nxt
+        nodefwd.nxt.prv = nodefwd.prv
         return val
 
-    @staticmethod
-    def _isdupitem(key, val, dedup_result):
+    def _isdupitem(self, key, val, dedup_result):
         """Return whether (key, val) duplicates an existing item."""
         isdupkey, isdupval, nodeinv, nodefwd = dedup_result
         isdupitem = nodeinv is nodefwd
         if isdupitem:
             assert isdupkey
             assert isdupval
-            data = nodefwd[_DAT]
-            assert key in data
-            assert val in data
+            assert nodefwd.item == ((val, key) if self._isinv else (key, val))
         return isdupitem
 
     def _write_item(self, key, val, dedup_result):  # pylint: disable=too-many-locals
         fwdm = self._fwdm
         invm = self._invm
+        isinv = self._isinv
+        nodeitem = (val, key) if isinv else (key, val)
         isdupkey, isdupval, nodeinv, nodefwd = dedup_result
         if not isdupkey and not isdupval:
             sntl = self._sntl
-            last = sntl[_PRV]
-            node = [(key, val), last, sntl]
-            sntl[_PRV] = last[_NXT] = fwdm[key] = invm[val] = node
+            last = sntl.prv
+            node = _Node((key, val), last, sntl)
+            last.nxt = sntl.prv = fwdm[key] = invm[val] = node
             oldkey = oldval = _MISS
         elif isdupkey and isdupval:
-            datafwd = nodefwd[_DAT]
-            oldval = _get_other(datafwd, key)
-            datainv, invprv, invnxt = nodeinv
-            oldkey = _get_other(datainv, val)
+            oldval = (nodeinv if isinv else nodefwd).item[1]
+            oldkey = (nodefwd if isinv else nodeinv).item[0]
             assert oldkey != key
             assert oldval != val
             # We have to collapse nodefwd and nodeinv into a single node, i.e. drop one of them.
             # Drop nodeinv, so that the item with the same key is the one overwritten in place.
-            invprv[_NXT] = invnxt
-            invnxt[_PRV] = invprv
+            nodeinv.prv.nxt = nodeinv.nxt
+            nodeinv.nxt.prv = nodeinv.prv
             # Don't remove nodeinv's references to its neighbors since
             # if the update fails, we'll need them to undo this write.
             # Python's garbage collector should still be able to detect when
@@ -162,25 +222,23 @@ class OrderedBidictBase(BidictBase):  # lgtm [py/missing-equals]
             assert tmp is nodefwd
             fwdm[key] = invm[val] = nodefwd
             # Update nodefwd with new item.
-            nodefwd[_DAT] = (key, val)
+            nodefwd.item = nodeitem
         elif isdupkey:
-            datafwd = nodefwd[_DAT]
-            oldval = _get_other(datafwd, key)
+            oldval = (nodeinv if isinv else nodefwd).item[1]
             oldkey = _MISS
             oldnodeinv = invm.pop(oldval)
             assert oldnodeinv is nodefwd
             invm[val] = nodefwd
             node = nodefwd
         else:  # isdupval
-            datainv = nodeinv[_DAT]
-            oldkey = _get_other(datainv, val)
+            oldkey = (nodefwd if isinv else nodeinv).item[0]
             oldval = _MISS
             oldnodefwd = fwdm.pop(oldkey)
             assert oldnodefwd is nodeinv
             fwdm[key] = nodeinv
             node = nodeinv
         if isdupkey ^ isdupval:
-            node[_DAT] = (key, val)
+            node.item = nodeitem
         return _WriteResult(key, val, oldkey, oldval)
 
     def _undo_write(self, dedup_result, write_result):  # pylint: disable=too-many-locals
@@ -191,22 +249,21 @@ class OrderedBidictBase(BidictBase):  # lgtm [py/missing-equals]
         if not isdupkey and not isdupval:
             self._pop(key)
         elif isdupkey and isdupval:
-            # datainv was never changed so should still have the original item.
-            datainv, invprv, invnxt = nodeinv
-            assert datainv == (val, oldkey) or datainv == (oldkey, val)
+            # nodeinv.item was never changed, so it should still have its original item.
+            assert nodeinv.item == (oldkey, val)
             # Restore original items.
-            nodefwd[_DAT] = (key, oldval)
-            invprv[_NXT] = invnxt[_PRV] = nodeinv
+            nodefwd.item = (key, oldval)
+            nodeinv.prv.nxt = nodeinv.nxt.prv = nodeinv
             fwdm[oldkey] = invm[val] = nodeinv
             invm[oldval] = fwdm[key] = nodefwd
         elif isdupkey:
-            nodefwd[_DAT] = (key, oldval)
+            nodefwd.item = (key, oldval)
             tmp = invm.pop(val)
             assert tmp is nodefwd
             invm[oldval] = nodefwd
             assert fwdm[key] is nodefwd
         else:  # isdupval
-            nodeinv[_DAT] = (oldkey, val)
+            nodeinv.item = (oldkey, val)
             tmp = fwdm.pop(key)
             assert tmp is nodeinv
             fwdm[oldkey] = nodeinv
@@ -214,17 +271,9 @@ class OrderedBidictBase(BidictBase):  # lgtm [py/missing-equals]
 
     def __iter__(self, reverse=False):
         """An iterator over this bidict's items in order."""
-        fwdm = self._fwdm
-        sntl = self._sntl
-        nextidx = _PRV if reverse else _NXT
-        cur = sntl[nextidx]
-        while cur is not sntl:  # lgtm [py/comparison-using-is]
-            data = cur[_DAT]
-            korv = data[0]
-            node = fwdm.get(korv)
-            key = korv if node is cur else data[1]
-            yield key
-            cur = cur[nextidx]
+        idx = self._isinv
+        for node in _iter_nodes(self._sntl, reverse=reverse):
+            yield node.item[idx]
 
     def __reversed__(self):
         """An iterator over this bidict's items in reverse order."""
@@ -234,7 +283,7 @@ class OrderedBidictBase(BidictBase):  # lgtm [py/missing-equals]
     def equals_order_sensitive(self, other):
         """Order-sensitive equality check.
 
-        See also :ref:`eq-order-insensitive`
+        *See also* :ref:`eq-order-insensitive`
         """
         if not isinstance(other, Mapping) or len(self) != len(other):
             return False
@@ -243,20 +292,6 @@ class OrderedBidictBase(BidictBase):  # lgtm [py/missing-equals]
     def __repr_delegate__(self):
         """See :meth:`bidict.BidictBase.__repr_delegate__`."""
         return list(iteritems(self))
-
-
-def _make_sentinel():
-    sntl = []
-    sntl[:] = [_END, sntl, sntl]
-    return sntl
-
-
-def _get_other(nodedata, key_or_val):
-    first, second = nodedata
-    if key_or_val == first:
-        return second
-    assert key_or_val == second
-    return first
 
 
 #                             * Code review nav *

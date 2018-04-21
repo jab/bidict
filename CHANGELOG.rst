@@ -22,11 +22,30 @@ Tip: `Subscribe to bidict releases <https://libraries.io/pypi/bidict>`__
 on libraries.io to be notified when new versions of bidict are released.
 
 
-0.16.1 (not yet released)
+0.17.0 (not yet released)
 -------------------------
 
-Add :attr:`bidict.__version_info__` attribute
-to complement :attr:`bidict.__version__`.
+:class:`~bidict.OrderedBidict` Improvements
++++++++++++++++++++++++++++++++++++++++++++
+
+- Use weakrefs in the linked lists that back
+  :class:`~bidict.OrderedBidict`\s
+  to avoid creating strong reference cycles.
+
+  Memory for an ordered bidict that you create
+  can now be reclaimed in CPython
+  as soon as you no longer hold any references to it,
+  rather than having to wait until the next garbage collection.
+  `#71 <https://github.com/jab/bidict/pull/71>`__
+
+- Internal code improvements and optimizations.
+
+
+Misc
+++++
+
+- Add :attr:`bidict.__version_info__` attribute
+  to complement :attr:`bidict.__version__`.
 
 
 0.16.0 (2018-04-06)
@@ -63,7 +82,8 @@ Speedups and memory usage improvements
 - Use weakrefs to refer to a bidict's inverse internally,
   no longer creating a strong reference cycle.
   Memory for a bidict that you create can now be reclaimed
-  in CPython as soon as you no longer hold any references to it.
+  in CPython as soon as you no longer hold any references to it,
+  rather than having to wait for the next garbage collection.
   See the new
   :ref:`addendum:\:attr\:\`~bidict.BidictBase.inv\` Avoids Reference Cycles`
   documentation.

@@ -29,7 +29,7 @@ def namedbidict(typename, keyname, valname, base_type=bidict):
     and access to themselves
     via the custom *valname*\_for property.
 
-    See also the :ref:`namedbidict usage documentation
+    *See also* the :ref:`namedbidict usage documentation
     <other-bidict-types:\:func\:\`~bidict.namedbidict\`>`
 
     :raises ValueError: if any of the *typename*, *keyname*, or *valname*
