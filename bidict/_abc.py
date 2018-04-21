@@ -52,7 +52,7 @@ class BidirectionalMapping(Mapping):  # pylint: disable=abstract-method,no-init
     def inv(self):
         """The inverse of this bidirectional mapping instance.
 
-        See also :attr:`bidict.BidictBase.inv`
+        *See also* :attr:`bidict.BidictBase.inv`
 
         :raises NotImplementedError: Meant to be overridden in subclasses.
         """
@@ -74,7 +74,8 @@ class BidirectionalMapping(Mapping):  # pylint: disable=abstract-method,no-init
         Providing this default implementation enables external functions,
         particularly :func:`~bidict.inverted`, to use this optimized
         implementation when available, instead of having to invert on the fly.
-        See also :func:`bidict.inverted`
+
+        *See also* :func:`bidict.inverted`
         """
         return iteritems(self.inv)
 

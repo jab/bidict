@@ -57,37 +57,37 @@ class BidictBase(BidirectionalMapping):
     if not PY2:
         __slots__.append('__weakref__')
 
-    #: The default :class:`DuplicationPolicy` used in the event that an item
-    #: duplicates only the key of another item,
-    #: when a policy has not been specified explicitly
-    #: (e.g. the policy used by
-    #: :meth:`~bidict.bidict.__setitem__` and
-    #: :meth:`~bidict.bidict.update`).
+    #: The default :class:`DuplicationPolicy`
+    #: (in effect during e.g. :meth:`~bidict.bidict.__init__` calls)
+    #: that governs behavior when a provided item
+    #: duplicates only the key of another item.
+    #:
     #: Defaults to :attr:`~bidict.OVERWRITE`
     #: to match :class:`dict`'s behavior.
-    #: See also :doc:`extending`
+    #:
+    #: *See also* :ref:`basic-usage:Values Must Be Unique`, :doc:`extending`
     on_dup_key = OVERWRITE
 
-    #: The default :class:`DuplicationPolicy` used in the event that an item
-    #: duplicates only the value of another item,
-    #: when a policy has not been specified explicitly
-    #: (e.g. the policy used by
-    #: :meth:`~bidict.bidict.__setitem__` and
-    #: :meth:`~bidict.bidict.update`).
+    #: The default :class:`DuplicationPolicy`
+    #: (in effect during e.g. :meth:`~bidict.bidict.__init__` calls)
+    #: that governs behavior when a provided item
+    #: duplicates only the value of another item.
+    #:
     #: Defaults to :attr:`~bidict.RAISE`
     #: to prevent unintended overwrite of another item.
-    #: See also :doc:`extending`
+    #:
+    #: *See also* :ref:`basic-usage:Values Must Be Unique`, :doc:`extending`
     on_dup_val = RAISE
 
-    #: The default :class:`DuplicationPolicy` used in the event that an item
-    #: duplicates the key of another item and the value of yet another item,
-    #: when a policy has not been specified explicitly
-    #: (e.g. the policy used by
-    #: :meth:`~bidict.bidict.__setitem__` and
-    #: :meth:`~bidict.bidict.update`).
+    #: The default :class:`DuplicationPolicy`
+    #: (in effect during e.g. :meth:`~bidict.bidict.__init__` calls)
+    #: that governs behavior when a provided item
+    #: duplicates the key of another item and the value of a third item.
+    #:
     #: Defaults to ``None``, which causes the *on_dup_kv* policy to match
     #: whatever *on_dup_val* policy is in effect.
-    #: See also :doc:`extending`
+    #:
+    #: *See also* :ref:`basic-usage:Values Must Be Unique`, :doc:`extending`
     on_dup_kv = None
 
     _fwdm_cls = dict
@@ -98,7 +98,8 @@ class BidictBase(BidirectionalMapping):
         The signature is the same as that of regular dictionaries.
         Items passed in are added in the order they are passed,
         respecting the current duplication policies in the process.
-        See also :attr:`on_dup_key`, :attr:`on_dup_val`, :attr:`on_dup_kv`
+
+        *See also* :attr:`on_dup_key`, :attr:`on_dup_val`, :attr:`on_dup_kv`
         """
         #: The backing :class:`~collections.abc.Mapping`
         #: storing the forward mapping data (*key* → *value*).
@@ -114,10 +115,10 @@ class BidictBase(BidirectionalMapping):
         # Compute the type for this bidict's inverse bidict (will be different from this
         # bidict's type if _fwdm_cls and _invm_cls are different).
         inv_cls = self._inv_cls()
-        # Create the inverse bidict instance via object.__new__, bypassing its __init__ so that its
+        # Create the inverse bidict instance via __new__, bypassing its __init__ so that its
         # _fwdm and _invm can be assigned to this bidict's _invm and _fwdm. Store it in self._inv,
         # which holds a strong reference to a bidict's inverse, if one is available.
-        self._inv = inv = object.__new__(inv_cls)
+        self._inv = inv = inv_cls.__new__(inv_cls)
         inv._fwdm = self._invm  # pylint: disable=protected-access
         inv._invm = self._fwdm  # pylint: disable=protected-access
         # Only give the inverse a weak reference to this bidict to avoid creating a reference cycle,
@@ -162,17 +163,17 @@ class BidictBase(BidirectionalMapping):
         return self._inv
 
     def __getstate__(self):
-        """Implemented because use of :attr:`__slots__` would prevent pickling otherwise.
+        """Needed to enable pickling due to use of :attr:`__slots__` and weakrefs.
 
-        See also :meth:`object.__getstate__`.
+        *See also* :meth:`object.__getstate__`
         """
-        state = {}
+        state = dict.fromkeys(self.__slots__)
         for cls in self.__class__.__mro__:
             slots = getattr(cls, '__slots__', ())
             for slot in slots:
                 if hasattr(self, slot):
                     state[slot] = getattr(self, slot)
-        # weakrefs can't (and don't need to) be pickled.
+        # These weakrefs can't be pickled, and don't need to be anyway.
         state['__weakref__'] = None
         state['_invweak'] = None
         return state
@@ -180,7 +181,7 @@ class BidictBase(BidirectionalMapping):
     def __setstate__(self, state):
         """Implemented because use of :attr:`__slots__` would prevent unpickling otherwise.
 
-        See also :meth:`object.__setstate__`.
+        *See also* :meth:`object.__setstate__`
         """
         for slot, value in iteritems(state):
             # __weakref__ attribute is not writeable.
@@ -214,7 +215,7 @@ class BidictBase(BidirectionalMapping):
         so even with ordered bidicts,
         :ref:`== comparison is order-insensitive <eq-order-insensitive>`.
 
-        See also :meth:`bidict.FrozenOrderedBidict.equals_order_sensitive`
+        *See also* :meth:`bidict.FrozenOrderedBidict.equals_order_sensitive`
         """
         if not isinstance(other, Mapping) or len(self) != len(other):
             return False
@@ -382,11 +383,11 @@ class BidictBase(BidirectionalMapping):
     def copy(self):
         """A shallow copy."""
         # Could just ``return self.__class__(self)`` here instead, but the below is faster. It uses
-        # object.__new__ to create a copy instance while bypassing its __init__, which would result
+        # __new__ to create a copy instance while bypassing its __init__, which would result
         # in copying this bidict's items into the copy instance one at a time. Instead, make whole
         # copies of each of the backing mappings, and make them the backing mappings of the copy,
         # avoiding copying items one at a time.
-        copy = object.__new__(self.__class__)
+        copy = self.__class__.__new__(self.__class__)
         copy._fwdm = self._fwdm.copy()  # pylint: disable=protected-access
         copy._invm = self._invm.copy()  # pylint: disable=protected-access
         copy._init_inv()  # pylint: disable=protected-access
@@ -394,7 +395,8 @@ class BidictBase(BidirectionalMapping):
 
     def __copy__(self):
         """Used for the copy protocol.
-        See also the :mod:`copy` module.
+
+        *See also* the :mod:`copy` module
         """
         return self.copy()
 

@@ -29,7 +29,7 @@
 """Provides :class:`OrderedBidict`."""
 
 from ._bidict import bidict
-from ._orderedbase import _END, _NXT, _PRV, OrderedBidictBase
+from ._orderedbase import OrderedBidictBase
 
 
 class OrderedBidict(OrderedBidictBase, bidict):
@@ -43,7 +43,7 @@ class OrderedBidict(OrderedBidictBase, bidict):
         """Remove all items."""
         self._fwdm.clear()
         self._invm.clear()
-        self._sntl[:] = [_END, self._sntl, self._sntl]
+        self._sntl.nxt = self._sntl.prv = self._sntl
 
     def popitem(self, last=True):  # pylint: disable=arguments-differ
         u"""*x.popitem() → (k, v)*
@@ -67,20 +67,19 @@ class OrderedBidict(OrderedBidictBase, bidict):
         :raises KeyError: if the key does not exist
         """
         node = self._fwdm[key]
-        _, prv, nxt = node
-        prv[_NXT] = nxt
-        nxt[_PRV] = prv
+        node.prv.nxt = node.nxt
+        node.nxt.prv = node.prv
         sntl = self._sntl
         if last:
-            last = sntl[_PRV]
-            node[_PRV] = last
-            node[_NXT] = sntl
-            sntl[_PRV] = last[_NXT] = node
+            last = sntl.prv
+            node.prv = last
+            node.nxt = sntl
+            sntl.prv = last.nxt = node
         else:
-            frst = sntl[_NXT]
-            node[_PRV] = sntl
-            node[_NXT] = frst
-            sntl[_NXT] = frst[_PRV] = node
+            first = sntl.nxt
+            node.prv = sntl
+            node.nxt = first
+            sntl.nxt = first.prv = node
 
 
 #                             * Code review nav *
