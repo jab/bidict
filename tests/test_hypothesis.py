@@ -11,7 +11,7 @@ import gc
 import pickle
 import re
 from collections import OrderedDict
-from operator import eq, ne, itemgetter
+from operator import itemgetter
 from os import getenv
 from weakref import ref
 
@@ -25,7 +25,7 @@ from bidict import (
 
 from bidict.compat import (
     PY2, PYPY, iterkeys, itervalues, iteritems, izip,
-    Hashable, Mapping, MutableMapping)
+    Hashable, Iterable, Mapping, MutableMapping)
 
 from bidict._util import _iteritems_args_kw
 
@@ -37,14 +37,16 @@ settings.register_profile('max_examples_5000', max_examples=5000, deadline=None,
 settings.load_profile(getenv('HYPOTHESIS_PROFILE', 'default'))
 
 
-def inverse_odict(items):
-    """An OrderedDict containing the inverse of each item in *items*."""
-    return OrderedDict((v, k) for (k, v) in items)
-
-
-def ensure_no_dup(items):
-    """Given some hypothesis-generated items, prune any with duplicated keys or values."""
-    pruned = list(iteritems(inverse_odict(iteritems(inverse_odict(items)))))
+def prune_dup(items):
+    """Given some (hypothesis-generated) items, prune any with duplicated keys or values."""
+    seen_keys = set()
+    seen_vals = set()
+    pruned = []
+    for (key, val) in items:
+        if key not in seen_keys and val not in seen_vals:
+            pruned.append((key, val))
+        seen_keys.add(key)
+        seen_vals.add(val)
     assume(len(pruned) >= len(items) // 2)
     return pruned
 
@@ -95,13 +97,13 @@ H_IMMUTABLES = H_BOOLEANS | H_TEXT | H_NONE | strat.integers() | strat.floats(al
 H_NON_MAPPINGS = H_NONE
 H_PAIRS = strat.tuples(H_IMMUTABLES, H_IMMUTABLES)
 H_LISTS_PAIRS = strat.lists(H_PAIRS)
-H_LISTS_PAIRS_NODUP = H_LISTS_PAIRS.map(ensure_no_dup)
+H_LISTS_PAIRS_NODUP = H_LISTS_PAIRS.map(prune_dup)
 H_LISTS_PAIRS_DUP = (
     H_LISTS_PAIRS.map(ensure_dup(key=True)) |
     H_LISTS_PAIRS.map(ensure_dup(val=True)) |
     H_LISTS_PAIRS.map(ensure_dup(key=True, val=True)))
 H_TEXT_PAIRS = strat.tuples(H_TEXT, H_TEXT)
-H_LISTS_TEXT_PAIRS_NODUP = strat.lists(H_TEXT_PAIRS).map(ensure_no_dup)
+H_LISTS_TEXT_PAIRS_NODUP = strat.lists(H_TEXT_PAIRS).map(prune_dup)
 H_METHOD_ARGS = strat.sampled_from((
     # 0-arity
     ('clear', ()),
@@ -120,63 +122,75 @@ H_METHOD_ARGS = strat.sampled_from((
     ('__setitem__', (H_IMMUTABLES, H_IMMUTABLES)),
     ('put', (H_IMMUTABLES, H_IMMUTABLES)),
     ('forceput', (H_IMMUTABLES, H_IMMUTABLES)),
+    # non-mutating
+    ('__contains__', (H_IMMUTABLES,)),
+    ('__copy__', ()),
+    ('__getitem__', (H_IMMUTABLES,)),
+    ('__iter__', ()),
+    ('__len__', ()),
+    ('copy', ()),
+    ('get', (H_IMMUTABLES,)),
+    ('keys', ()),
+    ('items', ()),
+    ('values', ()),
+    ('iterkeys', ()),
+    ('iteritems', ()),
+    ('itervalues', ()),
+    ('viewkeys', ()),
+    ('viewitems', ()),
+    ('viewvalues', ()),
 ))
-
-
-def both_ordered_bidict_types(bicls1, bicls2):
-    """Return whether both bicls1 and bicls2 are ordered bidict types."""
-    return all(issubclass(b, OrderedBidictBase) for b in (bicls1, bicls2))
-
-
-def items_relate(map1, map2, relation=eq):
-    """Return whether the items of *map1* and *map2*
-    are related by *relation*.
-    If *map1* and *map2* are both ordered,
-    they will be passed to *relation* for comparison as lists,
-    otherwise as sets.
-    """
-    both_ordered_bidicts = both_ordered_bidict_types(map1.__class__, map2.__class__)
-    canon = list if both_ordered_bidicts else set
-    canon_map1 = canon(iteritems(map1))
-    canon_map2 = canon(iteritems(map2))
-    return relation(canon_map1, canon_map2)
 
 
 @given(bi_cls=H_BIDICT_TYPES, other_cls=H_MAPPING_TYPES, not_a_mapping=H_NON_MAPPINGS,
        init_items=H_LISTS_PAIRS_NODUP, init_unequal=H_LISTS_PAIRS_NODUP)
 def test_eq_ne_hash(bi_cls, other_cls, init_items, init_unequal, not_a_mapping):
     """Test various equality comparisons and hashes between bidicts and other objects."""
-    assume(set(init_items) != set(init_unequal))
-
+    # pylint: disable=too-many-locals
     some_bidict = bi_cls(init_items)
     other_equal = other_cls(init_items)
-    other_equal_inv = inverse_odict(iteritems(other_equal))
-    assert items_relate(some_bidict, other_equal)
-    assert items_relate(some_bidict.inv, other_equal_inv)
+    other_equal_inv = getattr(other_equal, 'inv',
+                              OrderedDict((v, k) for (k, v) in iteritems(other_equal)))
     assert some_bidict == other_equal
     assert not some_bidict != other_equal
     assert some_bidict.inv == other_equal_inv
     assert not some_bidict.inv != other_equal_inv
+
+    bidict_is_ordered = isinstance(some_bidict, OrderedBidictBase)
+    other_cls_is_ordered = issubclass(other_cls, (OrderedBidictBase, OrderedDict))
+    collection = list if bidict_is_ordered and other_cls_is_ordered else set
+    assert collection(iteritems(some_bidict)) == collection(iteritems(other_equal))
+    assert collection(iteritems(some_bidict.inv)) == collection(iteritems(other_equal_inv))
+
+    both_hashable = all(isinstance(i, Hashable) for i in (some_bidict, other_equal))
+    if both_hashable:
+        assert hash(some_bidict) == hash(other_equal)
+
     has_eq_order_sens = getattr(bi_cls, 'equals_order_sensitive', None)
     other_is_ordered = getattr(other_cls, '__reversed__', None)
     if has_eq_order_sens and other_is_ordered:
         assert some_bidict.equals_order_sensitive(other_equal)
         assert some_bidict.inv.equals_order_sensitive(other_equal_inv)
-    both_hashable = all(issubclass(cls, Hashable) for cls in (bi_cls, other_cls))
-    if both_hashable:
-        assert hash(some_bidict) == hash(other_equal)
+
+        assume(init_items != init_unequal)
+        other_unequal = other_cls(init_unequal)
+        assert not some_bidict.equals_order_sensitive(other_unequal)
+        other_unequal_inv = getattr(other_unequal, 'inv',
+                                    OrderedDict((v, k) for (k, v) in iteritems(other_unequal)))
+        assert not some_bidict.inv.equals_order_sensitive(other_unequal_inv)
+
+    assume(set(init_items) != set(init_unequal))
 
     other_unequal = other_cls(init_unequal)
-    other_unequal_inv = inverse_odict(iteritems(other_unequal))
-    assert items_relate(some_bidict, other_unequal, relation=ne)
-    assert items_relate(some_bidict.inv, other_unequal_inv, relation=ne)
+    other_unequal_inv = getattr(other_unequal, 'inv',
+                                OrderedDict((v, k) for (k, v) in iteritems(other_unequal)))
     assert some_bidict != other_unequal
     assert not some_bidict == other_unequal
     assert some_bidict.inv != other_unequal_inv
     assert not some_bidict.inv == other_unequal_inv
-    if has_eq_order_sens:
-        assert not some_bidict.equals_order_sensitive(other_unequal)
-        assert not some_bidict.inv.equals_order_sensitive(other_unequal_inv)
+
+    assert collection(iteritems(some_bidict)) != collection(iteritems(other_unequal))
+    assert collection(iteritems(some_bidict.inv)) != collection(iteritems(other_unequal_inv))
 
     assert not some_bidict == not_a_mapping
     assert not some_bidict.inv == not_a_mapping
@@ -191,51 +205,63 @@ def test_eq_ne_hash(bi_cls, other_cls, init_items, init_unequal, not_a_mapping):
 def test_bijectivity(bi_cls, init_items):
     """b[k] == v  <==>  b.inv[v] == k"""
     some_bidict = bi_cls(init_items)
-    ordered = getattr(bi_cls, '__reversed__', None)
-    canon = list if ordered else set
-    keys = canon(iterkeys(some_bidict))
-    vals = canon(itervalues(some_bidict))
-    fwd_by_keys = canon(some_bidict[k] for k in iterkeys(some_bidict))
-    inv_by_vals = canon(some_bidict.inv[v] for v in itervalues(some_bidict))
+    ordered = isinstance(some_bidict, OrderedBidictBase)
+    collection = list if ordered else set
+    keys = collection(iterkeys(some_bidict))
+    vals = collection(itervalues(some_bidict))
+    fwd_by_keys = collection(some_bidict[k] for k in iterkeys(some_bidict))
+    inv_by_vals = collection(some_bidict.inv[v] for v in itervalues(some_bidict))
     assert keys == inv_by_vals
     assert vals == fwd_by_keys
     inv = some_bidict.inv
-    inv_keys = canon(iterkeys(inv))
-    inv_vals = canon(itervalues(inv))
-    inv_fwd_by_keys = canon(inv[k] for k in iterkeys(inv))
-    inv_inv_by_vals = canon(inv.inv[v] for v in itervalues(inv))
+    inv_keys = collection(iterkeys(inv))
+    inv_vals = collection(itervalues(inv))
+    inv_fwd_by_keys = collection(inv[k] for k in iterkeys(inv))
+    inv_inv_by_vals = collection(inv.inv[v] for v in itervalues(inv))
     assert inv_keys == inv_inv_by_vals
     assert inv_vals == inv_fwd_by_keys
 
 
-@given(bi_cls=H_MUTABLE_BIDICT_TYPES, init_items=H_LISTS_PAIRS_NODUP,
+@given(bi_cls=H_BIDICT_TYPES, init_items=H_LISTS_PAIRS_NODUP,
        method_args=H_METHOD_ARGS, data=strat.data())
-def test_consistency_after_mutation(bi_cls, init_items, method_args, data):
+def test_consistency(bi_cls, init_items, method_args, data):
     """Every bidict should be left in a consistent state after calling
-    any mutating method on it that it implements, even if the call raises.
+    any method on it that it provides, even if the call raises.
     """
+    # pylint: disable=too-many-locals
     methodname, hs_args = method_args
     method = getattr(bi_cls, methodname, None)
     if not method:
         return
     args = tuple(data.draw(i) for i in hs_args)
-    bi_init = bi_cls(init_items)
-    bi_clone = bi_init.copy()
-    assert items_relate(bi_init, bi_clone)
+    bi_pristine = bi_cls(init_items)
+    bi_called = bi_cls(init_items)
     try:
-        method(bi_clone, *args)
+        bi_result = method(bi_called, *args)
     except (KeyError, BidictException) as exc:
-        # Call should fail clean, i.e. bi_clone should be in the same state it was before the call.
+        # Call should fail clean, i.e. bi_called should be in the same state it was before the call.
         assertmsg = '%r did not fail clean: %r' % (method, exc)
-        assert items_relate(bi_clone, bi_init), assertmsg
-        assert items_relate(bi_clone.inv, bi_init.inv), assertmsg
-    # Whether the call failed or succeeded, bi_clone should pass consistency checks.
-    assert len(bi_clone) == sum(1 for _ in iteritems(bi_clone))
-    assert len(bi_clone) == sum(1 for _ in iteritems(bi_clone.inv))
-    assert items_relate(bi_clone, dict(bi_clone))
-    assert items_relate(bi_clone.inv, dict(bi_clone.inv))
-    assert items_relate(bi_clone, inverse_odict(iteritems(bi_clone.inv)))
-    assert items_relate(bi_clone.inv, inverse_odict(iteritems(bi_clone)))
+        assert bi_called == bi_pristine, assertmsg
+        assert bi_called.inv == bi_pristine.inv, assertmsg
+    else:
+        ordered = issubclass(bi_cls, OrderedBidictBase)
+        dict_cls = OrderedDict if ordered else dict
+        dict_meth = getattr(dict_cls, methodname, None)
+        if dict_meth:
+            dict_called = dict_cls(init_items)
+            dict_result = dict_meth(dict_called, *args)
+            if isinstance(dict_result, Iterable):
+                collection = list if ordered else set
+                bi_result = collection(bi_result)
+                dict_result = collection(dict_result)
+            assert bi_result == dict_result
+    # Whether the call failed or succeeded, bi_called should pass consistency checks.
+    assert len(bi_called) == sum(1 for _ in iteritems(bi_called))
+    assert len(bi_called) == sum(1 for _ in iteritems(bi_called.inv))
+    assert bi_called == dict(bi_called)
+    assert bi_called.inv == dict(bi_called.inv)
+    assert bi_called == OrderedDict((k, v) for (v, k) in iteritems(bi_called.inv))
+    assert bi_called.inv == OrderedDict((v, k) for (k, v) in iteritems(bi_called))
 
 
 @given(bi_cls=H_MUTABLE_BIDICT_TYPES,
@@ -265,8 +291,8 @@ def test_dup_policies_bulk(bi_cls, init_items, update_items, on_dup_key, on_dup_
     except BidictException as exc:
         checkexc = type(exc)
     assert checkexc == expectexc
-    assert items_relate(check, expect)
-    assert items_relate(check.inv, expect.inv)
+    assert check == expect
+    assert check.inv == expect.inv
 
 
 @given(bi_cls=H_BIDICT_TYPES, init_items=H_LISTS_PAIRS_NODUP)
@@ -276,35 +302,47 @@ def test_bidict_iter(bi_cls, init_items):
     assert set(some_bidict) == set(iterkeys(some_bidict)) == set(KEY(pair) for pair in init_items)
 
 
-@given(bi_cls=H_ORDERED_BIDICT_TYPES, init_items=H_LISTS_PAIRS_NODUP)
-def test_orderedbidict_iter(bi_cls, init_items):
+@given(ob_cls=H_ORDERED_BIDICT_TYPES, init_items=H_LISTS_PAIRS_NODUP)
+def test_orderedbidict_iter(ob_cls, init_items):
     """:meth:`bidict.OrderedBidictBase.__iter__` should yield all the keys
     in an ordered bidict in the order they were inserted.
     """
-    some_bidict = bi_cls(init_items)
+    some_bidict = ob_cls(init_items)
     key_iters = (some_bidict, iterkeys(some_bidict), (KEY(pair) for pair in init_items))
     assert all(i == j == k for (i, j, k) in izip(*key_iters))
 
 
-@given(bi_cls=H_ORDERED_BIDICT_TYPES, init_items=H_LISTS_PAIRS_NODUP)
-def test_orderedbidict_reversed(bi_cls, init_items):
+@given(ob_cls=H_ORDERED_BIDICT_TYPES, init_items=H_LISTS_PAIRS_NODUP)
+def test_orderedbidict_reversed(ob_cls, init_items):
     """:meth:`bidict.OrderedBidictBase.__reversed__` should yield all the keys
     in an ordered bidict in the reverse-order they were inserted.
     """
-    some_bidict = bi_cls(init_items)
+    some_bidict = ob_cls(init_items)
     key_seqs = (some_bidict, list(iterkeys(some_bidict)), [KEY(pair) for pair in init_items])
     key_seqs_rev = (reversed(i) for i in key_seqs)
     assert all(i == j == k for (i, j, k) in izip(*key_seqs_rev))
 
 
-@given(bi_cls=H_IMMUTABLE_BIDICT_TYPES)
-def test_frozenbidicts_hashable(bi_cls):
+@given(fb_cls=H_IMMUTABLE_BIDICT_TYPES)
+def test_frozenbidicts_hashable(fb_cls):
     """Immutable bidicts can be hashed and inserted into sets and mappings."""
-    some_bidict = bi_cls()
+    some_bidict = fb_cls()
     # Nothing to assert; making sure these calls don't raise TypeError is sufficient.
     hash(some_bidict)  # pylint: disable=pointless-statement
     {some_bidict}  # pylint: disable=pointless-statement
     {some_bidict: some_bidict}  # pylint: disable=pointless-statement
+
+
+@pytest.mark.skipif(not PY2, reason='iter* methods only defined on Python 2')
+@given(fb_cls=H_IMMUTABLE_BIDICT_TYPES)
+def test_frozenbidict_iter_methods(fb_cls):
+    """Frozen bidicts' iter* methods work as expected."""
+    some_bidict = fb_cls()
+    ordered = issubclass(fb_cls, OrderedBidictBase)
+    collection = list if ordered else set
+    assert collection(some_bidict.iterkeys()) == collection(some_bidict.keys())
+    assert collection(some_bidict.itervalues()) == collection(some_bidict.values())
+    assert collection(some_bidict.iteritems()) == collection(some_bidict.items())
 
 
 @given(base_type=H_MAPPING_TYPES, init_items=H_LISTS_PAIRS_NODUP, data=strat.data())
@@ -351,19 +389,46 @@ def test_bidict_isinv(bi_cls):
 # "It also means that weak references may stay alive for a bit longer than expected."
 @pytest.mark.skipif(PYPY, reason='objects with 0 refcount are not freed immediately on PyPy')
 @given(bi_cls=H_BIDICT_TYPES)
-def test_no_reference_cycles(bi_cls):
-    """When you delete your last strong reference to a bidict,
+def test_refcycle_bidict_inverse(bi_cls):
+    """When you release your last strong reference to a bidict,
     there are no remaining strong references to it
     (e.g. no reference cycle was created between it and its inverse)
-    so its memory can be reclaimed immediately.
+    allowing the memory to be reclaimed immediately.
     """
     gc.disable()
-    some_bidict = bi_cls()
-    weak = ref(some_bidict)
-    assert weak() is not None
-    del some_bidict
-    assert weak() is None
-    gc.enable()
+    try:
+        some_bidict = bi_cls()
+        weak = ref(some_bidict)
+        assert weak() is not None
+        del some_bidict
+        assert weak() is None
+    finally:
+        gc.enable()
+
+
+# See comment about skipping `test_refcycle_bidict_inverse` above.
+@pytest.mark.skipif(PYPY, reason='objects with 0 refcount are not freed immediately on PyPy')
+@given(ob_cls=H_ORDERED_BIDICT_TYPES, init_items=H_LISTS_PAIRS_NODUP)
+def test_refcycle_obidict_nodes(ob_cls, init_items):
+    """When you release your last strong reference to an ordered bidict,
+    the refcount of each of its internal nodes drops to 0
+    allowing the memory to be reclaimed immediately.
+    """
+    assume(init_items)
+    gc.disable()
+    try:
+        some_ordered_bidict = ob_cls(init_items)
+        # pylint: disable=protected-access
+        node_weakrefs = [ref(node) for node in some_ordered_bidict._fwdm.values()]
+        if PY2:
+            # On Python 2, list comprehension references leak to the enclosing scope,
+            # so this reference must be released for the refcount to drop to 0.
+            del node  # pylint: disable=undefined-variable
+        assert all(ref() is not None for ref in node_weakrefs)
+        del some_ordered_bidict
+        assert all(ref() is None for ref in node_weakrefs)
+    finally:
+        gc.enable()
 
 
 @given(bi_cls=H_BIDICT_TYPES)

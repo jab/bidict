@@ -102,10 +102,11 @@ def test_issubclass_internal():
     """The docs specifically recommend using ABCs
     over concrete classes when checking whether an interface is provided
     (see :ref:`polymorphism`).
+
     The relationships tested here are not guaranteed to hold in the future,
     but are still tested so that any unintentional changes won't go unnoticed.
     """
-    assert issubclass(OrderedBidict, bidict)
+    assert not issubclass(OrderedBidict, bidict)
     assert not issubclass(frozenbidict, bidict)
     assert not issubclass(FrozenOrderedBidict, bidict)
 

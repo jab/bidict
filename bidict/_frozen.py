@@ -28,10 +28,11 @@
 """Provides :class:`frozenbidict`, an immutable, hashable bidirectional mapping type."""
 
 from ._base import BidictBase
+from ._proxied import _ProxiedKeysValsItems
 from .compat import ItemsView
 
 
-class frozenbidict(BidictBase):  # noqa: E501,N801; pylint: disable=invalid-name; lgtm [py/missing-equals]
+class frozenbidict(_ProxiedKeysValsItems, BidictBase):  # noqa: N801; pylint: disable=invalid-name
     """Immutable, hashable bidict type."""
 
     __slots__ = ()

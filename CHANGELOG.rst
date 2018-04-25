@@ -25,8 +25,19 @@ on libraries.io to be notified when new versions of bidict are released.
 0.17.0 (not yet released)
 -------------------------
 
-:class:`~bidict.OrderedBidict` Improvements
-+++++++++++++++++++++++++++++++++++++++++++
+Speedups and memory usage improvements
+++++++++++++++++++++++++++++++++++++++
+
+- Pass
+  :meth:`~bidict.bidict.keys`,
+  :meth:`~bidict.bidict.values`, and
+  :meth:`~bidict.bidict.items` calls
+  (as well as their ``iter*`` and ``view*`` counterparts on Python 2)
+  through to the backing ``_fwdm`` and ``_invm`` dicts
+  so that they run as fast as possible
+  (i.e. at C speed on CPython),
+  rather than using the slower implementations
+  inherited from :class:`collections.abc.Mapping`.
 
 - Use weakrefs in the linked lists that back
   :class:`~bidict.OrderedBidict`\s
@@ -37,8 +48,6 @@ on libraries.io to be notified when new versions of bidict are released.
   as soon as you no longer hold any references to it,
   rather than having to wait until the next garbage collection.
   `#71 <https://github.com/jab/bidict/pull/71>`__
-
-- Internal code improvements and optimizations.
 
 
 Misc

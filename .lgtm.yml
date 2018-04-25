@@ -1,0 +1,3 @@
+queries:
+  - exclude: py/missing-equals
+  - exclude: py/conflicting-attributes

@@ -224,7 +224,7 @@ inserting existing items is a no-op (i.e. it doesn't raise)::
     >>> b == b0
     True
 
-Python 2 dict view APIs are supported::
+Python 2 dict "view*" APIs are supported::
 
     >>> from bidict.compat import PY2
     >>> sorted(b.viewkeys()) == sorted(b.keys()) if PY2 else True
@@ -234,7 +234,7 @@ Python 2 dict view APIs are supported::
     >>> sorted(b.viewitems()) == sorted(b.items()) if PY2 else True
     True
 
-Check if copy.copy ends up calling frozenbidict.__copy__
+Make sure copy.copy ends up calling BidictBase.__copy__
 (should show up in the coverage report)::
 
     >>> from copy import copy

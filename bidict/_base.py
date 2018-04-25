@@ -38,7 +38,7 @@ from ._exc import (
 from ._miss import _MISS
 from ._noop import _NOOP
 from ._util import _iteritems_args_kw
-from .compat import PY2, iteritems, ItemsView, Mapping
+from .compat import PY2, iteritems, Mapping
 
 
 # Since BidirectionalMapping implements __subclasshook__, and BidictBase
@@ -409,31 +409,7 @@ class BidictBase(BidirectionalMapping):
         u"""*x.__getitem__(key)　⟺　x[key]*"""
         return self._fwdm[key]
 
-    def values(self):
-        """A set-like object providing a view on the contained values.
-
-        Note that because the values of a :class:`~bidict.BidirectionalMapping`
-        are the keys of its inverse,
-        this returns a :class:`~collections.abc.KeysView`
-        rather than a :class:`~collections.abc.ValuesView`,
-        which has the advantage of supporting set operations.
-        """
-        return self.inv.keys()
-
     if PY2:
-        def viewkeys(self):
-            """A set-like object providing a view on the contained keys."""
-            return self._fwdm.viewkeys()
-
-        def viewvalues(self):  # noqa: D102; pylint: disable=missing-docstring
-            return self.inv.viewkeys()
-        viewvalues.__doc__ = values.__doc__
-        values.__doc__ = 'A list of the contained values.'
-
-        def viewitems(self):
-            """A set-like object providing a view on the contained items."""
-            return ItemsView(self)
-
         # __ne__ added automatically in Python 3 when you implement __eq__, but not in Python 2.
         def __ne__(self, other):  # noqa: N802
             u"""*x.__ne__(other)　⟺　x != other*"""

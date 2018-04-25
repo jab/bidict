@@ -168,18 +168,20 @@ even if it is distinct.
 
 With bidict,
 since values function as keys in the inverse mapping,
-this behavior occurs in the inverse direction too:
+this behavior occurs in the inverse direction too,
+and means that a bidict can end up with a different
+but equivalent key from the corresponding value
+in its own inverse:
 
 .. code:: python
 
    >>> from bidict import bidict
-   >>> b = bidict({1: 1.0})
-   >>> b.inv[True]
-   1
-   >>> b[2] = True
-   Traceback (most recent call last):
-      ...
-   ValueDuplicationError: 1.0
+   >>> b = bidict({'false': 0})
+   >>> b.forceput('FALSE', False)
+   >>> b
+   bidict({'FALSE': False})
+   >>> b.inv
+   bidict({0: 'FALSE'})
 
 
 nan as key

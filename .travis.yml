@@ -53,7 +53,6 @@ matrix:
     # Each job performs a single task, and sets a "TASK" var so it's evident in the build matrix.
 
     # Run the test suite with various Python versions.
-    # Only run these tests for commits to master to save time waiting for Travis.
     # Also don't bother testing Python 3.4; if we work on 3.5+, we should work on 3.4 too.
 
     ## Linux
@@ -61,39 +60,31 @@ matrix:
     #### Latest stable CPython 2 available -> enable coverage.
     - python: "2.7"
       env: TASK=test COVERAGE=1
-      if: branch = master
     #### Latest stable CPython 3 available -> enable coverage.
     - python: "3.6"
       env: TASK=test COVERAGE=1
-      if: branch = master
+    #### Latest stable PyPy 3 available -> enable coverage.
+    - python: pypy3
+      env: TASK=test COVERAGE=1
+    #### Latest stable PyPy 2 -> enable coverage.
+    - python: pypy
+      env: TASK=test COVERAGE=1
     #### Other CPython versions -> no coverage.
     ##### Supported previous stable releases:
     - python: "3.5"
       env: TASK=test
-      if: branch = master
     - python: "3.4"
       env: TASK=test
-      if: branch = master
-    #### Next (in-development) version:
-    ##### Ditch while stuck on old 3.7-alpha pending https://github.com/travis-ci/travis-ci/issues/9069
+    #### Next (in-development) CPython version:
+    ##### Comment out while stuck on old 3.7-alpha pending https://github.com/travis-ci/travis-ci/issues/9069
     #####- python: 3.7-dev
     #####  env: TASK=test
-    #####  if: branch = master
-    #### Latest stable PyPy 3 available -> enable coverage.
-    - python: pypy3
-      env: TASK=test COVERAGE=1
-      if: branch = master
-    #### Latest stable PyPy 2 -> no coverage.
-    - python: pypy
-      env: TASK=test
-      if: branch = master
 
 
     ## macOS
     ### Commented out pending https://github.com/travis-ci/travis-ci/issues/2312
     ####- python: "2.7"
     ####  env: TASK=test
-    ####  if: branch = master
     ####  os: osx
     ####  osx_image: xcode9.2
 

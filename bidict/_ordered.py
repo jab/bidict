@@ -28,11 +28,11 @@
 
 """Provides :class:`OrderedBidict`."""
 
-from ._bidict import bidict
+from ._mut import _MutableBidict
 from ._orderedbase import OrderedBidictBase
 
 
-class OrderedBidict(OrderedBidictBase, bidict):
+class OrderedBidict(OrderedBidictBase, _MutableBidict):
     """Mutable bidict type that maintains items in insertion order."""
 
     __slots__ = ()

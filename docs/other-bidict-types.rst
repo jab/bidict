@@ -97,7 +97,7 @@ It's like a bidirectional version of :class:`collections.OrderedDict`.
    ('Be', 'beryllium')
 
 Additional functionality
-inspired by :class:`~collections.OrderedDict`
+modeled after :class:`~collections.OrderedDict`
 is provided as well:
 
 .. code:: python
@@ -162,7 +162,7 @@ will have its value overwritten in place:
 #########################################################
 
 To ensure that equality of bidicts is transitive
-(enabling conformance to the
+(and to uphold the
 `Liskov substitution principle <https://en.wikipedia.org/wiki/Liskov_substitution_principle>`__),
 equality tests between an ordered bidict and other mappings
 are always order-insensitive:
@@ -197,6 +197,56 @@ Note that this differs from the behavior of
 by recommendation of Raymond Hettinger (the author) himself.
 He later said that making OrderedDict's ``__eq__()``
 intransitive was a mistake.
+
+
+What if my Python version has order-preserving dicts?
+#####################################################
+
+In PyPy as well as CPython ≥ 3.6,
+:class:`dict` preserves insertion order.
+If you are using one of these versions of Python,
+you may wonder whether you can get away with
+using a regular :class:`bidict.bidict`
+in places where you need
+an insertion order-preserving bidirectional mapping.
+
+In general the answer is no,
+particularly if you need to be able to change existing associations
+in the bidirectional mapping while preserving order correctly.
+
+Consider this example using a regular :class:`~bidict.bidict`
+with an order-preserving :class:`dict` version of Python:
+
+.. code:: python
+
+    >>> from bidict import bidict
+    >>> b = bidict([(1, -1), (2, -2), (3, -3)])
+    >>> b[2] = 'UPDATED'
+    >>> b  # doctest: +SKIP
+    bidict({1: -1, 2: 'UPDATED', 3: -3})
+    >>> b.inv  # oops: # doctest: +SKIP
+    bidict({1: -1, 3: -3, 'UPDATED': 2})
+
+When the value associated with the key ``2`` was changed,
+the corresponding item stays in place in the forward mapping,
+but moves to the end of the inverse mapping.
+Since regular :class:`~bidict.bidict`\s
+provide no guarantees about order preservation
+(which allows for a more efficient implementation),
+non-order-preserving behavior
+(as in the example above)
+is exactly what you get.
+
+If you don't mutate a bidict
+and are using an order-preserving :class:`dict` version of Python,
+then you may observe that the order of the items
+in your bidict and its inverse happens to be preserved.
+However, you won't get the addtional order-specific APIs
+(such as :meth:`~bidict.OrderedBidict.move_to_end`
+and :meth:`~bidict.OrderedBidict.equals_order_sensitive`).
+
+If you need order-preserving behavior guaranteed,
+then :class:`~bidict.OrderedBidict` is your best choice.
 
 
 :class:`~bidict.FrozenOrderedBidict`
@@ -256,7 +306,7 @@ allowing the creation of e.g. a named frozenbidict type:
 Polymorphism
 ------------
 
-(Or: How I learned to love me some ABCs!)
+(Or: ABCs ftw!)
 
 You may be tempted to write something like ``isinstance(obj, dict)``
 to check whether ``obj`` is a :class:`~collections.abc.Mapping`.

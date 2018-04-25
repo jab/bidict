@@ -7,7 +7,7 @@ ignore = _version.py
 
 # Maximum number of parents for a class.
 # The default of 7 results in "too-many-ancestors" for all bidict classes.
-max-parents = 12
+max-parents = 13
 
 # Maximum number of arguments for a function.
 # The default of 5 only leaves room for 4 args besides self for methods.

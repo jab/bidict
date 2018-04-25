@@ -29,7 +29,8 @@
 
 from ._frozen import frozenbidict
 from ._orderedbase import OrderedBidictBase
-from .compat import PY2
+from ._proxied import _ProxiedKeysVals
+from .compat import DICTS_ORDERED, PY2, izip
 
 
 # FrozenOrderedBidict intentionally does not subclass frozenbidict because it only complicates the
@@ -52,6 +53,29 @@ class FrozenOrderedBidict(OrderedBidictBase):
         # Must grab the __func__ attribute off the method in Python 2, or else get "TypeError:
         # unbound method __hash__() must be called with frozenbidict instance as first argument"
         __hash__ = __hash__.__func__
+
+
+if DICTS_ORDERED:
+    # If the Python implementation's dict type is ordered (e.g. PyPy or CPython >= 3.6), then
+    # `FrozenOrderedBidict` can use the `_ProxiedKeysVals` mixin's more efficient implementations
+    # of `keys` and `values`, rather than the less efficient implementations inherited from
+    # `Mapping.keys` and `OrderedBidictBase.values`.
+    # Both the `_fwdm` and `_invm` backing dicts will always be initialized with the provided
+    # items in the correct order, and since `FrozenOrderedBidict` is immutable, their respective
+    # orders can't get out of sync after a mutation, like they can with a mutable `OrderedBidict`.
+    # (`FrozenOrderedBidict` can't use the more efficient `_ProxiedKeysValsItems.items`
+    # implementation because the values in `_fwdm.items()` are nodes, so inheriting the
+    # implementation from `Mapping.items` is the best we can do.)
+    FrozenOrderedBidict.__bases__ = (_ProxiedKeysVals,) + FrozenOrderedBidict.__bases__
+
+    if PY2:
+        # We can do better than the `iteritems` implementation inherited from `Mapping`;
+        # zipping together the keys from `_fwdm` and `_invm` runs faster (e.g. C speed on CPython).
+        def iteritems(self):
+            """An iterator over the contained items."""
+            return izip(self._fwdm, self._invm)  # pylint: disable=protected-access
+
+        FrozenOrderedBidict.iteritems = iteritems
 
 
 #                             * Code review nav *

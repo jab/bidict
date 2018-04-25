@@ -29,9 +29,10 @@
 """Provides :class:`bidict.bidict`, the mutable bidirectional map type."""
 
 from ._mut import _MutableBidict
+from ._proxied import _ProxiedKeysValsItems
 
 
-class bidict(_MutableBidict):  # noqa: N801; pylint: disable=invalid-name
+class bidict(_ProxiedKeysValsItems, _MutableBidict):  # noqa: N801; pylint: disable=invalid-name
     """Mutable bidirectional map type."""
 
     __slots__ = ()
