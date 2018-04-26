@@ -22,7 +22,7 @@
 
 #                             * Code review nav *
 #==============================================================================
-#  ← Prev: _abc.py             Current: _base.py           Next: _frozen.py →
+#  ← Prev: _abc.py             Current: _base.py     Next: _frozenbidict.py →
 #==============================================================================
 
 
@@ -423,5 +423,5 @@ _NODUP = _DedupResult(False, False, _MISS, _MISS)
 
 #                             * Code review nav *
 #==============================================================================
-#  ← Prev: _abc.py             Current: _base.py           Next: _frozen.py →
+#  ← Prev: _abc.py             Current: _base.py     Next: _frozenbidict.py →
 #==============================================================================

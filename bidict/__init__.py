@@ -50,11 +50,11 @@ from ._exc import (
     BidictException, DuplicationError,
     KeyDuplicationError, ValueDuplicationError, KeyAndValueDuplicationError)
 from ._util import inverted
-from ._frozen import frozenbidict
+from ._frozenbidict import frozenbidict
 from ._frozenordered import FrozenOrderedBidict
 from ._named import namedbidict
 from ._orderedbase import OrderedBidictBase
-from ._ordered import OrderedBidict
+from ._orderedbidict import OrderedBidict
 from .metadata import (
     __author__, __maintainer__, __copyright__, __email__, __credits__, __url__,
     __license__, __status__, __description__, __keywords__, __version__, __version_info__)

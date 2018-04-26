@@ -22,7 +22,7 @@
 
 #                             * Code review nav *
 #==============================================================================
-#  ← Prev: _frozenordered.py  Current: _ordered.py                      <FIN>
+#  ← Prev: _frozenordered.py  Current: _orderedbidict.py                <FIN>
 #==============================================================================
 
 
@@ -84,5 +84,5 @@ class OrderedBidict(OrderedBidictBase, _MutableBidict):
 
 #                             * Code review nav *
 #==============================================================================
-#  ← Prev: _frozenordered.py  Current: _ordered.py                      <FIN>
+#  ← Prev: _frozenordered.py  Current: _orderedbidict.py                <FIN>
 #==============================================================================

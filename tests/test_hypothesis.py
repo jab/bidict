@@ -334,11 +334,11 @@ def test_frozenbidicts_hashable(fb_cls):
 
 
 @pytest.mark.skipif(not PY2, reason='iter* methods only defined on Python 2')
-@given(fb_cls=H_IMMUTABLE_BIDICT_TYPES)
-def test_frozenbidict_iter_methods(fb_cls):
+@given(bi_cls=H_BIDICT_TYPES)
+def test_iterkeys_vals_items(bi_cls):
     """Frozen bidicts' iter* methods work as expected."""
-    some_bidict = fb_cls()
-    ordered = issubclass(fb_cls, OrderedBidictBase)
+    some_bidict = bi_cls()
+    ordered = issubclass(bi_cls, OrderedBidictBase)
     collection = list if ordered else set
     assert collection(some_bidict.iterkeys()) == collection(some_bidict.keys())
     assert collection(some_bidict.itervalues()) == collection(some_bidict.values())

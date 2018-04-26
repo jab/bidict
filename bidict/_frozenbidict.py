@@ -22,7 +22,7 @@
 
 #                             * Code review nav *
 #==============================================================================
-#  ← Prev: _base.py           Current: _frozen.py             Next: _mut.py →
+#  ← Prev: _base.py        Current: _frozenbidict.py          Next: _mut.py →
 #==============================================================================
 
 """Provides :class:`frozenbidict`, an immutable, hashable bidirectional mapping type."""
@@ -47,5 +47,5 @@ class frozenbidict(_ProxiedKeysValsItems, BidictBase):  # noqa: N801; pylint: di
 
 #                             * Code review nav *
 #==============================================================================
-#  ← Prev: _base.py           Current: _frozen.py             Next: _mut.py →
+#  ← Prev: _base.py        Current: _frozenbidict.py          Next: _mut.py →
 #==============================================================================

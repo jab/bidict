@@ -22,12 +22,12 @@
 
 #                             * Code review nav *
 #==============================================================================
-#  ← Prev: _orderedbase.py  Current: _frozenordered.py    Next: _ordered.py →
+#← Prev: _orderedbase.py  Current: _frozenordered.py  Next: _orderedbidict.py →
 #==============================================================================
 
 """Provides :class:`FrozenOrderedBidict`, an immutable, hashable, ordered bidict."""
 
-from ._frozen import frozenbidict
+from ._frozenbidict import frozenbidict
 from ._orderedbase import OrderedBidictBase
 from ._proxied import _ProxiedKeysVals
 from .compat import DICTS_ORDERED, PY2, izip
@@ -80,5 +80,5 @@ if DICTS_ORDERED:
 
 #                             * Code review nav *
 #==============================================================================
-#  ← Prev: _orderedbase.py  Current: _frozenordered.py    Next: _ordered.py →
+#← Prev: _orderedbase.py  Current: _frozenordered.py  Next: _orderedbidict.py →
 #==============================================================================
