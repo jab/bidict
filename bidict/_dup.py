@@ -18,7 +18,7 @@ _OnDup = namedtuple('_OnDup', 'key val kv')
 
 
 class DuplicationPolicy(_Marker):
-    """Provides bidict's duplication policies.
+    """Base class for bidict's duplication policies.
 
     *See also* :ref:`basic-usage:Values Must Be Unique`
     """
