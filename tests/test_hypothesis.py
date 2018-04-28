@@ -10,7 +10,7 @@
 import gc
 import pickle
 import re
-from collections import OrderedDict
+from collections import Hashable, Iterable, Mapping, MutableMapping, OrderedDict
 from operator import itemgetter
 from os import getenv
 from weakref import ref
@@ -24,8 +24,7 @@ from bidict import (
     frozenbidict, FrozenOrderedBidict, namedbidict, inverted)
 
 from bidict.compat import (
-    PY2, PYPY, iterkeys, itervalues, iteritems, izip,
-    Hashable, Iterable, Mapping, MutableMapping)
+    PY2, PYPY, iterkeys, itervalues, iteritems, izip)
 
 from bidict._util import _iteritems_args_kw
 
@@ -151,23 +150,29 @@ def test_eq_ne_hash(bi_cls, other_cls, init_items, init_unequal, not_a_mapping):
     other_equal = other_cls(init_items)
     other_equal_inv = getattr(other_equal, 'inv',
                               OrderedDict((v, k) for (k, v) in iteritems(other_equal)))
+
+    bidict_is_ordered = isinstance(some_bidict, OrderedBidictBase)
+    other_is_ordered = issubclass(other_cls, (OrderedBidictBase, OrderedDict))
+    collection = list if bidict_is_ordered and other_is_ordered else set
+
+    both_hashable = all(isinstance(i, Hashable) for i in (some_bidict, other_equal))
+    has_eq_order_sens = getattr(bi_cls, 'equals_order_sensitive', None)
+
+    other_unequal = other_cls(init_unequal)
+    other_unequal_inv = getattr(other_unequal, 'inv',
+                                OrderedDict((v, k) for (k, v) in iteritems(other_unequal)))
+
     assert some_bidict == other_equal
     assert not some_bidict != other_equal
     assert some_bidict.inv == other_equal_inv
     assert not some_bidict.inv != other_equal_inv
 
-    bidict_is_ordered = isinstance(some_bidict, OrderedBidictBase)
-    other_cls_is_ordered = issubclass(other_cls, (OrderedBidictBase, OrderedDict))
-    collection = list if bidict_is_ordered and other_cls_is_ordered else set
     assert collection(iteritems(some_bidict)) == collection(iteritems(other_equal))
     assert collection(iteritems(some_bidict.inv)) == collection(iteritems(other_equal_inv))
 
-    both_hashable = all(isinstance(i, Hashable) for i in (some_bidict, other_equal))
     if both_hashable:
         assert hash(some_bidict) == hash(other_equal)
 
-    has_eq_order_sens = getattr(bi_cls, 'equals_order_sensitive', None)
-    other_is_ordered = getattr(other_cls, '__reversed__', None)
     if has_eq_order_sens and other_is_ordered:
         assert some_bidict.equals_order_sensitive(other_equal)
         assert some_bidict.inv.equals_order_sensitive(other_equal_inv)
@@ -181,9 +186,6 @@ def test_eq_ne_hash(bi_cls, other_cls, init_items, init_unequal, not_a_mapping):
 
     assume(set(init_items) != set(init_unequal))
 
-    other_unequal = other_cls(init_unequal)
-    other_unequal_inv = getattr(other_unequal, 'inv',
-                                OrderedDict((v, k) for (k, v) in iteritems(other_unequal)))
     assert some_bidict != other_unequal
     assert not some_bidict == other_unequal
     assert some_bidict.inv != other_unequal_inv
@@ -223,8 +225,8 @@ def test_bijectivity(bi_cls, init_items):
 
 
 @given(bi_cls=H_BIDICT_TYPES, init_items=H_LISTS_PAIRS_NODUP,
-       method_args=H_METHOD_ARGS, data=strat.data())
-def test_consistency(bi_cls, init_items, method_args, data):
+       setinv=H_BOOLEANS, method_args=H_METHOD_ARGS, data=strat.data())
+def test_consistency(bi_cls, init_items, setinv, method_args, data):
     """Every bidict should be left in a consistent state after calling
     any method on it that it provides, even if the call raises.
     """
@@ -234,10 +236,14 @@ def test_consistency(bi_cls, init_items, method_args, data):
     if not method:
         return
     args = tuple(data.draw(i) for i in hs_args)
-    bi_pristine = bi_cls(init_items)
     bi_called = bi_cls(init_items)
+    bi_pristine = bi_cls(init_items)
+    if setinv:
+        bi_called = bi_called.inv
+        bi_pristine = bi_pristine.inv
+        init_items = [(v, k) for (k, v) in init_items]
     try:
-        bi_result = method(bi_called, *args)
+        result = method(bi_called, *args)
     except (KeyError, BidictException) as exc:
         # Call should fail clean, i.e. bi_called should be in the same state it was before the call.
         assertmsg = '%r did not fail clean: %r' % (method, exc)
@@ -248,16 +254,16 @@ def test_consistency(bi_cls, init_items, method_args, data):
         dict_cls = OrderedDict if ordered else dict
         dict_meth = getattr(dict_cls, methodname, None)
         if dict_meth:
-            dict_called = dict_cls(init_items)
-            dict_result = dict_meth(dict_called, *args)
+            compare_dict = dict_cls(init_items)
+            dict_result = dict_meth(compare_dict, *args)
             if isinstance(dict_result, Iterable):
                 collection = list if ordered else set
-                bi_result = collection(bi_result)
+                result = collection(result)
                 dict_result = collection(dict_result)
-            assert bi_result == dict_result
+            assert result == dict_result
     # Whether the call failed or succeeded, bi_called should pass consistency checks.
     assert len(bi_called) == sum(1 for _ in iteritems(bi_called))
-    assert len(bi_called) == sum(1 for _ in iteritems(bi_called.inv))
+    assert len(bi_called.inv) == sum(1 for _ in iteritems(bi_called.inv))
     assert bi_called == dict(bi_called)
     assert bi_called.inv == dict(bi_called.inv)
     assert bi_called == OrderedDict((k, v) for (v, k) in iteritems(bi_called.inv))

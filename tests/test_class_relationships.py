@@ -7,10 +7,12 @@
 
 """Test various issubclass checks."""
 
+from collections import Hashable
+
 import pytest
 
 from bidict import bidict, frozenbidict, FrozenOrderedBidict, OrderedBidict, BidirectionalMapping
-from bidict.compat import Mapping, MutableMapping, Hashable, PY2
+from bidict.compat import Mapping, MutableMapping, PY2
 
 
 class OldStyleClass:  # pylint: disable=old-style-class,no-init,too-few-public-methods

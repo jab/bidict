@@ -22,6 +22,17 @@ Tip: `Subscribe to bidict releases <https://libraries.io/pypi/bidict>`__
 on libraries.io to be notified when new versions of bidict are released.
 
 
+0.17.1 (not yet released)
+-------------------------
+
+Bugfix Release
+++++++++++++++
+
+Fix a regression in 0.17.0 that could cause erroneous behavior
+when updating items of an :class:`~bidict.Orderedbidict`'s inverse,
+e.g. ``some_ordered_bidict.inv[foo] = bar``.
+
+
 0.17.0 (2018-04-25)
 -------------------
 

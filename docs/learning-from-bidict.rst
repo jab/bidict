@@ -14,7 +14,7 @@ could be a great way to get started.
 Python's data model
 ===================
 
-- Using :meth:`object.__new__` to bypass default object initialization,
+- Using :meth:`~object.__new__` to bypass default object initialization,
   e.g. for better :meth:`~bidict.bidict.copy` performance.
   See ``_base.py``.
 
@@ -121,6 +121,8 @@ Using :mod:`weakref`
 ====================
 
 See :ref:`addendum:\:attr\:\`~bidict.BidictBase.inv\` Avoids Reference Cycles`.
+The doubly-linked lists that back ordered bidicts also use weakrefs
+to avoid creating strong reference cycles.
 
 
 Other interesting stuff in the standard library

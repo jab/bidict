@@ -83,7 +83,7 @@ if PY2:
     # In Python 3, the collections ABCs were moved into collections.abc, which does not exist in
     # Python 2. Support for importing them directly from collections is dropped in Python 3.8.
     from collections import (  # noqa: F401 (imported but unused)
-        Mapping, MutableMapping, KeysView, ItemsView, Iterable, Hashable)
+        Mapping, MutableMapping, KeysView, ItemsView)
 
 else:
     # Assume Python 3 when not PY2, but explicitly check before showing this warning.
@@ -107,4 +107,4 @@ else:
     izip = zip
 
     from collections.abc import (  # noqa: F401 (imported but unused)
-        Mapping, MutableMapping, KeysView, ItemsView, Iterable, Hashable)
+        Mapping, MutableMapping, KeysView, ItemsView)
