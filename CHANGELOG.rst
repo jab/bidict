@@ -22,6 +22,18 @@ Tip: `Subscribe to bidict releases <https://libraries.io/pypi/bidict>`__
 on libraries.io to be notified when new versions of bidict are released.
 
 
+0.17.2 (2018-04-30)
+-------------------
+
+Memory usage improvements
++++++++++++++++++++++++++
+
+- Use less memory in the linked lists that back
+  :class:`~bidict.OrderedBidict`\s
+  by storing node data unpacked
+  rather than in (key, value) tuple objects.
+
+
 0.17.1 (2018-04-28)
 -------------------
 
