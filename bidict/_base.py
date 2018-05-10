@@ -401,7 +401,7 @@ class BidictBase(BidirectionalMapping):
         """The number of contained items."""
         return len(self._fwdm)
 
-    def __iter__(self):
+    def __iter__(self):  # lgtm [py/inheritance/incorrect-overridden-signature]
         """Iterator over the contained items."""
         return iter(self._fwdm)
 
