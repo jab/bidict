@@ -59,7 +59,7 @@ PYPY = PYIMPL == 'PyPy'
 DICTS_ORDERED = PYPY or (CPY and (PYMAJOR, PYMINOR) >= (3, 6))
 
 # Without the following, pylint gives lots of false positives.
-# pylint: disable=invalid-name,unused-import,ungrouped-imports
+# pylint: disable=invalid-name,unused-import,ungrouped-imports,no-name-in-module
 
 if PY2:
 
@@ -78,11 +78,11 @@ if PY2:
     # Before 3.3, this silently fails to detect when an abstract property has not been overridden.
     from abc import abstractproperty
 
-    from itertools import izip  # pylint: disable=no-name-in-module
+    from itertools import izip
 
     # In Python 3, the collections ABCs were moved into collections.abc, which does not exist in
     # Python 2. Support for importing them directly from collections is dropped in Python 3.8.
-    from collections import (  # pylint: disable=no-name-in-module; noqa: F401 (imported but unused)
+    from collections import (  # lgtm [py/unused-import]; noqa: F401 (imported but unused)
         Mapping, MutableMapping, KeysView, ItemsView)
 
 else:
@@ -106,5 +106,5 @@ else:
 
     izip = zip
 
-    from collections.abc import (  # noqa: F401 (imported but unused)
+    from collections.abc import (  # noqa: F401; lgtm [py/unused-import]
         Mapping, MutableMapping, KeysView, ItemsView)
