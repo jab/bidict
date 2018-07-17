@@ -114,7 +114,7 @@ class _Node(object):  # pylint: disable=too-few-public-methods
         vork = self._vork
         if key_or_val == korv:
             return vork
-        elif key_or_val == vork:
+        if key_or_val == vork:
             return korv
         raise KeyError(key_or_val)
 

@@ -7,7 +7,10 @@
 
 """Test various issubclass checks."""
 
-from collections import Hashable
+try:
+    from collections import Hashable
+except ImportError:  # Python >= 3.7
+    from collections.abc import Hashable
 
 import pytest
 

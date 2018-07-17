@@ -102,11 +102,11 @@ matrix:
         - travis_retry make linkcheck
     - env: TASK=flake8
       before_install: skip
-      install: travis_retry pip install flake8
+      install: travis_retry pip install 'flake8<3.6'  # keep in sync with the pin in setup.py
       script: flake8 $LINT_SRC
     - env: TASK=pylint
-      before_install: travis_retry pip install .[test]
-      install: travis_retry pip install pylint
+      before_install: skip
+      install: travis_retry pip install 'pylint<2.1' 'hypothesis<4' 'pytest<4'  # keep in sync with the pins in setup.py
       script: pylint --jobs=0 $LINT_SRC
     - env: TASK=test-with-optimization-flag  # make sure there are no relied-on side effects in assert statements
       before_install: skip

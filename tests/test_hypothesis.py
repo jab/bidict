@@ -10,10 +10,13 @@
 import gc
 import pickle
 import re
-from collections import Hashable, Iterable, Mapping, MutableMapping, OrderedDict
 from operator import itemgetter
 from os import getenv
 from weakref import ref
+try:
+    from collections import Hashable, Iterable, Mapping, MutableMapping, OrderedDict
+except ImportError:  # Python >= 3.7
+    from collections.abc import Hashable, Iterable, Mapping, MutableMapping, OrderedDict
 
 import pytest
 from hypothesis import HealthCheck, assume, given, settings, strategies as strat, unlimited

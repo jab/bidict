@@ -68,12 +68,12 @@ DOCS_REQS = [
 DEV_REQ = SETUP_REQS + TEST_REQS + COVERAGE_REQS + DOCS_REQS + [
     'pre-commit<2',
     'tox<4',
-    # Peg to more specific versions of the following dependencies since they'd
-    # have a higher chance of breaking CI otherwise. Upgrade to newer versions
-    # manually to have a chance to fix any resulting breakage.
+    # The following dependencies have a higher chance of suddenly causing CI to fail after updating
+    # even between minor versions so pin to currently-working minor versions. Upgrade to newer
+    # minor versions manually to have a chance to fix any resulting breakage before it hits CI.
     'flake8<3.6',
     'pydocstyle<2.2',
-    'pylint<1.9',
+    'pylint<2.1',
 ]
 
 setup(
