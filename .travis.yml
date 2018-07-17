@@ -60,7 +60,7 @@ matrix:
     #### Latest stable CPython 2 available -> enable coverage.
     - python: "2.7"
       env: TASK=test COVERAGE=1
-    #### Latest stable CPython 3 available -> enable coverage.
+    #### Latest mature and stable CPython 3 available -> enable coverage.
     - python: "3.6"
       env: TASK=test COVERAGE=1
     #### Latest stable PyPy 3 available -> enable coverage.
@@ -75,10 +75,16 @@ matrix:
       env: TASK=test
     - python: "3.4"
       env: TASK=test
+    ##### 3.7 is so new it requires special setup on Travis (dist and sudo):
+    - python: "3.7"
+      env: TASK=test
+      dist: xenial
+      sudo: required
     #### Next (in-development) CPython version:
-    ##### Comment out while stuck on old 3.7-alpha pending https://github.com/travis-ci/travis-ci/issues/9069
-    #####- python: 3.7-dev
-    #####  env: TASK=test
+    - python: "3.8-dev"
+      env: TASK=test
+      dist: xenial
+      sudo: required
 
 
     ## macOS
