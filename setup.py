@@ -30,7 +30,7 @@ except ImportError:  # Python < 3.5
         METADATA = load_source('metadata', METADATA_PATH)
     else:  # Python 3.3 or 3.4
         LOADER = SourceFileLoader('metadata', METADATA_PATH)
-        METADATA = LOADER.load_module()  # pylint: disable=deprecated-method
+        METADATA = LOADER.load_module('metadata')  # pylint: disable=deprecated-method
 else:
     SPEC = spec_from_file_location('metadata', METADATA_PATH)
     METADATA = module_from_spec(SPEC)
