@@ -82,7 +82,7 @@ if PY2:
 
     # In Python 3, the collections ABCs were moved into collections.abc, which does not exist in
     # Python 2. Support for importing them directly from collections is dropped in Python 3.8.
-    from collections import (  # lgtm [py/unused-import]; noqa: F401 (imported but unused)
+    from collections import (  # noqa: F401 (imported but unused)
         Mapping, MutableMapping, KeysView, ItemsView)
 
 else:
@@ -106,5 +106,5 @@ else:
 
     izip = zip
 
-    from collections.abc import (  # noqa: F401; lgtm [py/unused-import]
+    from collections.abc import (  # noqa: F401 (imported but unused)
         Mapping, MutableMapping, KeysView, ItemsView)
