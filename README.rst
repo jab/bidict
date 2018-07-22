@@ -42,6 +42,10 @@ Status
    :target: https://codecov.io/gh/jab/bidict
    :alt: Test coverage
 
+.. image:: https://img.shields.io/lgtm/alerts/g/jab/bidict.svg
+  :target: https://lgtm.com/projects/g/jab/bidict/
+  :alt: LGTM alerts
+
 .. image:: https://api.codacy.com/project/badge/Grade/6628756a73254cd895656348236833b8
    :target: https://www.codacy.com/app/jab/bidict
    :alt: Codacy grade
@@ -53,9 +57,6 @@ Status
    .. image:: https://img.shields.io/pypi/implementation/bidict.svg
       :target: https://pypi.org/project/bidict
       :alt: Supported Python implementations
-   .. image:: https://img.shields.io/badge/lgtm-👍-blue.svg
-      :target: https://lgtm.com/projects/g/jab/bidict/
-      :alt: LGTM
 
 .. image:: https://img.shields.io/pypi/l/bidict.svg
    :target: https://raw.githubusercontent.com/jab/bidict/master/LICENSE
@@ -131,8 +132,8 @@ please let me know.
 
 You can:
 
-- quickly +1 `this issue <https://github.com/jab/bidict/issues/62>`__
-- create your own `dedicated issue <https://github.com/jab/bidict/issues/new?title=Notice+of+Usage&body=I+am+using+bidict+for...>`__
+- `star bidict on GitHub <https://github.com/jab/bidict>`__ (the "star" button is at the top-right)
+- `create an issue <https://github.com/jab/bidict/issues/new?title=Notice+of+Usage&body=I+am+using+bidict+for...>`__ (preferred)
 - leave a message in the `chat room <https://gitter.im/jab/bidict>`__
 - `email me <mailto:jab@math.brown.edu?subject=bidict&body=I%20am%20using%20bidict%20for...>`__
 
@@ -182,7 +183,7 @@ Reviewers Wanted!
 ^^^^^^^^^^^^^^^^^
 
 One of the most valuable ways to contribute to bidict
-and to :doc:`explore some advanced Python <learning-from-bidict>`
+and to explore some advanced Python [#fn-learning]_
 while you're at it
 is to review bidict's relatively small codebase.
 
