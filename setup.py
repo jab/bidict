@@ -73,7 +73,7 @@ DEV_REQ = SETUP_REQS + TEST_REQS + COVERAGE_REQS + DOCS_REQS + [
     # minor versions manually to have a chance to fix any resulting breakage before it hits CI.
     'flake8<3.6',
     'pydocstyle<2.2',
-    'pylint<2.1',
+    'pylint<2.2',
 ]
 
 setup(
