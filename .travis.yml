@@ -80,7 +80,7 @@ matrix:
       env: TASK=test
       dist: xenial
       sudo: required
-    #### Next (in-development) CPython version:
+    ##### Next (in-development) CPython version:
     - python: "3.8-dev"
       env: TASK=test
       dist: xenial
@@ -97,7 +97,7 @@ matrix:
     # One-off jobs. Override "install", "before_install", and "script" to do each of these instead.
     - env: TASK=pydocstyle
       before_install: skip
-      install: travis_retry pip install pydocstyle
+      install: travis_retry pip install 'pydocstyle<2.2'  # keep in sync with the version in setup.py
       script: pydocstyle $LINT_SRC
     - env: TASK=build-docs
       before_install: skip
@@ -108,11 +108,11 @@ matrix:
         - travis_retry make linkcheck
     - env: TASK=flake8
       before_install: skip
-      install: travis_retry pip install 'flake8<3.6'  # keep in sync with the pin in setup.py
+      install: travis_retry pip install 'flake8<3.6'  # keep in sync with the version in setup.py
       script: flake8 $LINT_SRC
     - env: TASK=pylint
       before_install: skip
-      install: travis_retry pip install 'pylint<2.1' 'hypothesis<4' 'pytest<4'  # keep in sync with the pins in setup.py
+      install: travis_retry pip install 'pylint<2.2' 'hypothesis<4' 'pytest<4'  # keep in sync with the versions in setup.py
       script: pylint --jobs=0 $LINT_SRC
     - env: TASK=test-with-optimization-flag  # make sure there are no relied-on side effects in assert statements
       before_install: skip

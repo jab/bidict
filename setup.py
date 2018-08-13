@@ -71,6 +71,7 @@ DEV_REQ = SETUP_REQS + TEST_REQS + COVERAGE_REQS + DOCS_REQS + [
     # The following dependencies have a higher chance of suddenly causing CI to fail after updating
     # even between minor versions so pin to currently-working minor versions. Upgrade to newer
     # minor versions manually to have a chance to fix any resulting breakage before it hits CI.
+    # *** Keep these in sync with the versions in .travis.yml and .pre-commit-config.yaml ***
     'flake8<3.6',
     'pydocstyle<2.2',
     'pylint<2.2',

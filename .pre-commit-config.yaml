@@ -1,6 +1,6 @@
 repos:
-- repo: git://github.com/pre-commit/pre-commit-hooks
-  sha: v1.2.3
+- repo: https://github.com/pre-commit/pre-commit-hooks
+  rev: v1.4.0
   hooks:
   - id: trailing-whitespace
   - id: end-of-file-fixer
@@ -8,17 +8,21 @@ repos:
   - id: double-quote-string-fixer
   - id: fix-encoding-pragma
   - id: check-yaml
+  # Keep in sync with flake8 version in setup.py and .travis.yml --
+  # check https://github.com/pre-commit/pre-commit-hooks/blob/master/setup.py
+  # for the version of flake8 that is included with this pre-commit repo.
   - id: flake8
     exclude: docs/conf.py
 
-- repo: git://github.com/chewse/pre-commit-mirrors-pydocstyle
-  sha: v2.1.1
+- repo: https://github.com/chewse/pre-commit-mirrors-pydocstyle
+  # Keep in sync with pydocstyle version in setup.py and .travis.yml
+  rev: v2.1.1
   hooks:
   - id: pydocstyle
     exclude: bidict/_version.py
 
-- repo: git://github.com/Lucas-C/pre-commit-hooks
-  sha: v1.1.5
+- repo: https://github.com/Lucas-C/pre-commit-hooks
+  rev: v1.1.5
   hooks:
   - id: forbid-crlf
   - id: remove-crlf
@@ -31,12 +35,13 @@ repos:
     # (https://github.com/benbalter/licensee - what GitHub uses to detect license)
     - --license-filepath=.LICENSE_HEADER
 
-- repo: git://github.com/pre-commit/mirrors-pylint
-  sha: v1.8.4
+- repo: https://github.com/pre-commit/mirrors-pylint
+  # Keep in sync with pylint version in setup.py and .travis.yml
+  rev: v2.1.1
   hooks:
   - id: pylint
-    # Needed to avoid ImportErrors when linting tests:
-    additional_dependencies: [hypothesis,pytest]
+    # Needed to avoid ImportErrors when linting tests (keep in sync with versions in setup.py):
+    additional_dependencies: ["hypothesis<4","pytest<4"]
     args:
     # http://pylint.pycqa.org/en/latest/user_guide/run.html#parallel-execution
     # > If the provided number is 0, then the total number of CPUs will be used.

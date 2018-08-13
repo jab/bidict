@@ -1,2 +1,21 @@
+# Tip: pip install check-manifest && check-manifest -uv
+
 include LICENSE
-include README.rst
+include *.rst
+include *.sh
+include *.yaml
+include *.yml
+include .editorconfig
+include .pylintrc
+include .LICENSE_HEADER
+include .coveragerc
+include pytest.ini
+include tox.ini
+include docs/_static/custom.css
+include docs/_static/bidict-types-diagram.dot
+recursive-include docs *.py
+recursive-include docs *.rst
+recursive-include docs Makefile
+recursive-include docs/_static *.png
+recursive-include tests *.py
+recursive-include tests *.txt
