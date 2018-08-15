@@ -17,11 +17,6 @@ Efficient, Pythonic bidirectional map implementation and related functionality.
 Status
 ------
 
-.. Hide until https://github.com/badges/shields/issues/716 is fixed
-   .. image:: https://img.shields.io/pypi/dm/bidict.svg
-      :target: https://pypi.org/project/bidict
-      :alt: Downloads per month
-
 .. image:: https://img.shields.io/pypi/v/bidict.svg
    :target: https://pypi.org/project/bidict
    :alt: Latest release
@@ -33,10 +28,6 @@ Status
 .. image:: https://api.travis-ci.org/jab/bidict.svg?branch=master
    :target: https://travis-ci.org/jab/bidict
    :alt: Travis-CI build status
-
-.. image:: https://ci.appveyor.com/api/projects/status/gk133415udncwto3/branch/master?svg=true
-   :target: https://ci.appveyor.com/project/jab/bidict
-   :alt: AppVeyor (Windows) build status
 
 .. image:: https://codecov.io/gh/jab/bidict/branch/master/graph/badge.svg
    :target: https://codecov.io/gh/jab/bidict
@@ -51,6 +42,9 @@ Status
    :alt: Codacy grade
 
 .. Hide to reduce clutter
+   .. image:: https://ci.appveyor.com/api/projects/status/gk133415udncwto3/branch/master?svg=true
+      :target: https://ci.appveyor.com/project/jab/bidict
+      :alt: AppVeyor (Windows) build status
    .. image:: https://img.shields.io/pypi/pyversions/bidict.svg
       :target: https://pypi.org/project/bidict
       :alt: Supported Python versions
@@ -61,6 +55,10 @@ Status
 .. image:: https://img.shields.io/pypi/l/bidict.svg
    :target: https://raw.githubusercontent.com/jab/bidict/master/LICENSE
    :alt: License
+
+.. image:: https://img.shields.io/badge/dynamic/json.svg?label=downloads&url=https%3A%2F%2Fpypistats.org%2Fapi%2Fpackages%2Fbidict%2Frecent%3Fperiod%3Dmonth&query=%24.data.last_month&colorB=blue&suffix=%2fmonth
+   :target: https://pypistats.org/packages/bidict
+   :alt: Downloads past month
 
 
 Bidict:
