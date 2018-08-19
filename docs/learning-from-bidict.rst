@@ -291,20 +291,19 @@ Portability
 
   - gc / weakref
 
-    - http://doc.pypy.org/en/latest/cpython_differences.html#differences-related-to-garbage-collection-strategies
-    - hence ``test_no_reference_cycles`` (in ``test_hypothesis.py``)
-      is skipped on PyPy
-
   - primitives' identities, nan, etc.
 
-    - http://doc.pypy.org/en/latest/cpython_differences.html#object-identity-of-primitive-values-is-and-id
+    - https://bitbucket.org/pypy/pypy/src/dafacc4/pypy/doc/cpython_differences.rst?mode=view
+
+    - hence ``test_no_reference_cycles`` (in ``test_hypothesis.py``)
+      is skipped on PyPy
 
 
 Python Syntax hacks
 ===================
 
 :class:`~bidict.bidict` used to support
-`slice syntax <http://bidict.readthedocs.io/en/v0.9.0.post1/intro.html#bidict-bidict>`__
+`slice syntax <https://bidict.readthedocs.io/en/v0.9.0.post1/intro.html#bidict-bidict>`__
 for looking up keys by value.
 
 See `this <https://github.com/jab/bidict/blob/356dbe3/bidict/_bidict.py#L25>`__

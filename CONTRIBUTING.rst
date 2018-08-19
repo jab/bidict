@@ -42,7 +42,7 @@ Making Changes
 - Before making changes, please install the extra packages required for development:
   ``pip install -e .[dev]``
 
-  We use `EditorConfig <http://editorconfig.org/>`__
+  We use `EditorConfig <https://editorconfig.org/>`__
   and `pre-commit <https://pre-commit.com/>`__
   to help achieve uniform style and quality standards
   across a diversity of development environments.
@@ -54,7 +54,7 @@ Making Changes
   EditorConfig allows us to provide a single ``.editorconfig`` file
   to configure settings like indentation consistently
   across a variety of suppored editors.
-  See http://editorconfig.org/#download to install the plugin for your editor.
+  See https://editorconfig.org/#download to install the plugin for your editor.
 
 - Create a topic branch off of master for your changes:
   ``git checkout -b <topic> master``

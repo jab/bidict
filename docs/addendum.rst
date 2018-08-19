@@ -187,8 +187,7 @@ in its own inverse:
 nan as key
 ^^^^^^^^^^
 
-`In CPython <http://doc.pypy.org/en/latest/cpython_differences.html>`__,
-nan is especially tricky when used as a dictionary key:
+In CPython, nan is especially tricky when used as a dictionary key:
 
 .. code:: python
 
@@ -211,6 +210,9 @@ bidict contains no special-case logic
 for dealing with nan as a key,
 so the behavior will match dict's in the host environment.
 
+See e.g. `these docs
+<https://bitbucket.org/pypy/pypy/src/dafacc4/pypy/doc/cpython_differences.rst?mode=view>`__
+for more info (search the page for "nan").
 
 ----
 
