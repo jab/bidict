@@ -32,11 +32,18 @@ from bidict.compat import (
 from bidict._util import _iteritems_args_kw
 
 
-settings.register_profile('default', max_examples=500, deadline=None, timeout=unlimited)
-settings.register_profile('max_examples_5000', max_examples=5000, deadline=None, timeout=unlimited,
-                          suppress_health_check=[HealthCheck.hung_test])
-
-settings.load_profile(getenv('HYPOTHESIS_PROFILE', 'default'))
+NOCHECK_SLOW = (HealthCheck.hung_test, HealthCheck.too_slow)
+PROFILE_DEFAULT = {
+    'max_examples': 200,
+    'deadline': None,
+    'timeout': unlimited,
+    # Enabling coverage slows down hypothesis.
+    'suppress_health_check': NOCHECK_SLOW if getenv('COVERAGE') else (),
+}
+PROFILE_MORE_EXAMPLES = dict(PROFILE_DEFAULT, max_examples=2000, suppress_health_check=NOCHECK_SLOW)
+settings.register_profile('DEFAULT', **PROFILE_DEFAULT)
+settings.register_profile('MORE_EXAMPLES', **PROFILE_MORE_EXAMPLES)
+settings.load_profile(getenv('HYPOTHESIS_PROFILE') or 'DEFAULT')
 
 
 def prune_dup(items):
