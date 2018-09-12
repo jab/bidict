@@ -40,12 +40,7 @@ else:
 with c_open(join(CWD, 'README.rst'), encoding='utf-8') as f:
     LONG_DESCRIPTION = f.read()
 
-
-SETUP_REQS = [
-    'pytest-runner',
-    'setuptools_scm',
-]
-
+SETUP_REQS = ['setuptools_scm']
 TEST_REQS = [
     'hypothesis<4',
     'hypothesis-pytest<1',
@@ -108,7 +103,8 @@ setup(
         'Programming Language :: Python :: Implementation :: PyPy',
         'Topic :: Software Development :: Libraries :: Python Modules',
     ],
-    setup_requires=SETUP_REQS,
+    setup_requires=SETUP_REQS,  # required so pip < 10 install works (no PEP-517/8 support)
+    # for more details see https://www.python.org/dev/peps/pep-0518/#rationale
     tests_require=TEST_REQS,
     extras_require=dict(
         test=TEST_REQS,
