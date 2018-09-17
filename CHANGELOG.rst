@@ -26,7 +26,8 @@ on libraries.io to be notified when new versions of bidict are released.
 -------------------------
 
 - Improve packaging by adding a pyproject.toml
-  and including more supporting files in the distribution.
+  (`thanks, @gaborbernat <https://github.com/jab/bidict/pull/81>`__)
+  and by including more supporting files in the distribution.
 
 
 0.17.2 (2018-04-30)

@@ -31,6 +31,8 @@ People
 
 - Jozef Knaperek for the bugfix.
 
+- Bernát Gábor for pyproject.toml support.
+
 - Muhammad Faisal for the
   `CC BY 3.0 <https://creativecommons.org/licenses/by/3.0/us/>`__
   `icon <https://thenounproject.com/term/book/1330481/>`__
