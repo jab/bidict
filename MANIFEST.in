@@ -1,6 +1,7 @@
 # Tip: pip install check-manifest && check-manifest -uv
 
 include LICENSE
+include pyproject.toml
 include *.rst
 include *.sh
 include *.yaml
