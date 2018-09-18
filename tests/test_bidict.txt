@@ -234,6 +234,15 @@ Python 2 dict "view*" APIs are supported::
     >>> sorted(b.viewitems()) == sorted(b.items()) if PY2 else True
     True
 
+    >>> from bidict import OrderedBidict
+    >>> ob = OrderedBidict(b)
+    >>> sorted(ob.viewkeys()) == sorted(ob.keys()) if PY2 else True
+    True
+    >>> sorted(ob.viewvalues()) == sorted(ob.values()) if PY2 else True
+    True
+    >>> sorted(ob.viewitems()) == sorted(ob.items()) if PY2 else True
+    True
+
 Make sure copy.copy ends up calling BidictBase.__copy__
 (should show up in the coverage report)::
 
