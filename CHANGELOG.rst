@@ -22,8 +22,8 @@ Tip: `Subscribe to bidict releases <https://libraries.io/pypi/bidict>`__
 on libraries.io to be notified when new versions of bidict are released.
 
 
-0.17.3 (not yet released)
--------------------------
+0.17.3 (2018-09-18)
+-------------------
 
 - Improve packaging by adding a pyproject.toml
   (`thanks, @gaborbernat <https://github.com/jab/bidict/pull/81>`__)
