@@ -78,8 +78,6 @@ matrix:
       env: TASK=test
     - python: "3.4"
       env: TASK=test
-      # python3.4 currently broken on xenial
-      dist: trusty
 
     ## macOS
     ### Commented out pending https://github.com/travis-ci/travis-ci/issues/2312
@@ -113,6 +111,7 @@ matrix:
       install: skip
       script: python -O -m doctest -o IGNORE_EXCEPTION_DETAIL -o ELLIPSIS tests/*.txt
 
+    # XXX This presumably deploys all tags to PyPI, not just tags for releases.
     - stage: deploy-if-tag
       env: TASK=deploy-if-tag
       before_install: skip

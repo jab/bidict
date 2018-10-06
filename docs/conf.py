@@ -142,6 +142,7 @@ html_theme_options = dict(
     github_user='jab',
     page_width='1000px',
     show_powered_by=False,
+    donate_url='https://gumroad.com/l/bidict',
 )
 
 # Add any paths that contain custom themes here, relative to this directory.
