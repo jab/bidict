@@ -127,6 +127,8 @@ Other Ways to Contribute
 .. duplicated in README.rst
    (would use `.. include::` but GitHub doesn't understand it)
 
+Bidict is the product of hundreds of hours of unpaid, voluntary work.
+
 If bidict has helped you accomplish your work,
 especially work you've been paid for,
 please consider chipping in toward the costs

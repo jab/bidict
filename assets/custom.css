@@ -6,13 +6,12 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
-/* override the inherited widths below so status badges fit on 1 line */
-div.document { width: inherit; }
-div.body { max-width: 900px; }
-
 h1, h2, h3, h4, h5 { font-weight: bold !important; }
 
 ul.simple li { margin-bottom: 8px; }
+
+/* Float the logo to the right of the status badges on the homepage */
+#bidict img[alt="bidict logo"] { float: right; }
 
 /* Can remove this when https://github.com/bitprophet/alabaster/pull/125 lands */
 a.image-reference:hover { border-bottom: 0 !important; }

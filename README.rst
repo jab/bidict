@@ -9,7 +9,7 @@ bidict
 
 Efficient, Pythonic bidirectional map implementation and related functionality.
 
-.. image:: https://raw.githubusercontent.com/jab/bidict/master/assets/logo.png
+.. image:: https://raw.githubusercontent.com/jab/bidict/master/assets/logo-sm.png
    :target: https://bidict.readthedocs.io/
    :alt: bidict logo
 
@@ -41,6 +41,10 @@ Status
    :target: https://www.codacy.com/app/jab/bidict
    :alt: Codacy grade
 
+.. image:: https://tidelift.com/badges/github/jab/bidict
+   :target: https://tidelift.com/subscription/pkg/pypi-bidict
+   :alt: Tidelift dependency badge
+
 .. Hide to reduce clutter
    .. image:: https://ci.appveyor.com/api/projects/status/gk133415udncwto3/branch/master?svg=true
       :target: https://ci.appveyor.com/project/jab/bidict
@@ -65,15 +69,16 @@ Bidict:
 ^^^^^^^
 
 - is in use by several teams at Google, Venmo, CERN, Bank of America Merrill Lynch,
-  Two Sigma, and many others,
+  Bloomberg, Two Sigma, and others,
 - has carefully designed APIs for
   safety, simplicity, flexibility, and ergonomics,
 - is CPython-, PyPy-, Python 2-, and Python 3-compatible,
-- has extensive `test coverage <https://codecov.io/gh/jab/bidict>`__,
-  including property-based tests and benchmarks,
-  which are run continuously on all supported Python versions and OSes,
-- integrates with Python’s collections interfaces and abstract base classes,
-- has mature, well-factored, well-documented code.
+- has extensive test coverage
+  (including property-based tests and benchmarks)
+  run continuously on all supported Python versions and OSes,
+- integrates natively with Python’s collections interfaces,
+- is implemented in concise, well-factored, well-documented pure Python
+  that leverages a number of advanced language features [#fn-learning]_
 
 
 Installation
@@ -100,8 +105,8 @@ head to the :doc:`intro` [#fn-intro]_
 and proceed from there.
 
 
-Community and Support
----------------------
+Community and Voluntary Support
+-------------------------------
 
 .. image:: https://img.shields.io/badge/chat-on%20gitter-5AB999.svg?logo=gitter-white
    :target: https://gitter.im/jab/bidict
@@ -119,6 +124,18 @@ You can search through
 `existing issues <https://github.com/jab/bidict/issues>`__
 before creating a new one
 in case your questions or concerns have been adressed there already.
+
+
+Paid Support via Tidelift
+-------------------------
+
+.. image:: https://img.shields.io/badge/tidelift-pro%20support-EF914C.svg
+   :target: https://tidelift.com/subscription/pkg/pypi-bidict
+   :alt: Support via Tidelift
+
+If your use case requires a greater level of support,
+contractual support for bidict can be obtained through the
+`Tidelift subscription <https://tidelift.com/subscription/pkg/pypi-bidict>`__.
 
 
 Notice of Usage
@@ -197,18 +214,19 @@ to sign up to give feedback on future proposed changes
 that are in need of a reviewer.
 
 
-Funding
-^^^^^^^
+Giving Back
+^^^^^^^^^^^
 
 .. duplicated in CONTRIBUTING.rst
    (would use `.. include::` but GitHub doesn't understand it)
+
+Bidict is the product of hundreds of hours of unpaid, voluntary work.
 
 If bidict has helped you accomplish your work,
 especially work you've been paid for,
 please consider chipping in toward the costs
 of bidict's maintenance and development
 and/or ask your organization to do the same.
-Any amount contributed is gratefully received.
 
 .. image:: https://raw.githubusercontent.com/jab/bidict/master/assets/support-on-gumroad.png
    :target: https://gumroad.com/l/bidict
