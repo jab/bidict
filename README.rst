@@ -42,7 +42,7 @@ Status
    :alt: Codacy grade
 
 .. image:: https://tidelift.com/badges/github/jab/bidict
-   :target: https://tidelift.com/subscription/pkg/pypi-bidict
+   :target: https://tidelift.com/subscription/pkg/pypi-bidict?utm_source=pypi-bidict&utm_medium=referral&utm_campaign=docs
    :alt: Tidelift dependency badge
 
 .. Hide to reduce clutter
@@ -130,12 +130,12 @@ Paid Support via Tidelift
 -------------------------
 
 .. image:: https://img.shields.io/badge/tidelift-pro%20support-EF914C.svg
-   :target: https://tidelift.com/subscription/pkg/pypi-bidict
+   :target: https://tidelift.com/subscription/pkg/pypi-bidict?utm_source=pypi-bidict&utm_medium=referral&utm_campaign=readme
    :alt: Support via Tidelift
 
 If your use case requires a greater level of support,
 contractual support for bidict can be obtained through the
-`Tidelift subscription <https://tidelift.com/subscription/pkg/pypi-bidict>`__.
+`Tidelift subscription <https://tidelift.com/subscription/pkg/pypi-bidict?utm_source=pypi-bidict&utm_medium=referral&utm_campaign=readme>`__.
 
 
 Notice of Usage
