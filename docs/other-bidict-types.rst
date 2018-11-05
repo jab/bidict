@@ -5,6 +5,12 @@ Now that we've covered
 :doc:`basic-usage` with the :class:`bidict.bidict` type,
 let's look at some other bidirectional mapping types.
 
+.. testsetup::
+
+   from bidict import bidict
+   from bidict.compat import Mapping, MutableMapping
+
+
 Bidict Types Diagram
 --------------------
 
@@ -46,7 +52,7 @@ attempting to mutate a
 :class:`~bidict.frozenbidict`
 causes an error:
 
-.. code:: python
+.. doctest::
 
    >>> from bidict import frozenbidict
    >>> f = frozenbidict({'H': 'hydrogen'})
@@ -60,7 +66,7 @@ causes an error:
 also implements :class:`collections.abc.Hashable`,
 so it's suitable for insertion into sets or other mappings:
 
-.. code:: python
+.. doctest::
 
    >>> my_set = {f}      # not an error
    >>> my_dict = {f: 1}  # also not an error
@@ -77,7 +83,7 @@ is a mutable :class:`~bidict.BidirectionalMapping`
 that preserves the order in which its items are inserted.
 It's like a bidirectional version of :class:`collections.OrderedDict`.
 
-.. code:: python
+.. doctest::
 
    >>> from bidict import OrderedBidict
    >>> element_by_symbol = OrderedBidict([
@@ -100,7 +106,7 @@ Additional functionality
 modeled after :class:`~collections.OrderedDict`
 is provided as well:
 
-.. code:: python
+.. doctest::
 
    >>> element_by_symbol.popitem(last=True)   # Remove the last item
    ('Be', 'beryllium')
@@ -124,7 +130,7 @@ is provided as well:
 As with :class:`~collections.OrderedDict`,
 updating an existing item preserves its position in the order:
 
-.. code:: python
+.. doctest::
 
    >>> element_by_symbol['He'] = 'updated in place!'
    >>> element_by_symbol
@@ -141,7 +147,7 @@ the existing item whose *value* is duplicated will be dropped,
 and the existing item whose *key* is duplicated
 will have its value overwritten in place:
 
-.. code:: python
+.. doctest::
 
    >>> o = OrderedBidict([(1, 2), (3, 4), (5, 6), (7, 8)])
    >>> o.forceput(3, 8)  # item with duplicated value (7, 8) is dropped...
@@ -167,9 +173,8 @@ To ensure that equality of bidicts is transitive
 equality tests between an ordered bidict and other mappings
 are always order-insensitive:
 
-.. code:: python
+.. doctest::
 
-   >>> from bidict import bidict
    >>> b = bidict([('one', 1), ('two', 2)])
    >>> o1 = OrderedBidict([('one', 1), ('two', 2)])
    >>> o2 = OrderedBidict([('two', 2), ('one', 1)])
@@ -183,7 +188,7 @@ are always order-insensitive:
 For order-sensitive equality tests, use
 :meth:`~bidict.FrozenOrderedBidict.equals_order_sensitive`:
 
-.. code:: python
+.. doctest::
 
    >>> o1.equals_order_sensitive(o2)
    False
@@ -217,15 +222,15 @@ in the bidirectional mapping while preserving order correctly.
 Consider this example using a regular :class:`~bidict.bidict`
 with an order-preserving :class:`dict` version of Python:
 
-.. code:: python
+.. doctest::
+   :pyversion: >= 3.6
 
-    >>> from bidict import bidict
     >>> b = bidict([(1, -1), (2, -2), (3, -3)])
     >>> b[2] = 'UPDATED'
-    >>> b  # doctest: +SKIP
+    >>> b
     bidict({1: -1, 2: 'UPDATED', 3: -3})
-    >>> b.inv  # oops: # doctest: +SKIP
-    bidict({1: -1, 3: -3, 'UPDATED': 2})
+    >>> b.inv  # oops:
+    bidict({-1: 1, -3: 3, 'UPDATED': 2})
 
 When the value associated with the key ``2`` was changed,
 the corresponding item stays in place in the forward mapping,
@@ -237,13 +242,24 @@ non-order-preserving behavior
 (as in the example above)
 is exactly what you get.
 
-If you don't mutate a bidict
-and are using an order-preserving :class:`dict` version of Python,
-then you may observe that the order of the items
+If you never mutate a bidict
+(or are even using a :class:`~bidict.frozenbidict`)
+and you're running a version of Python
+with order-preserving :class:`dict`\s,
+then you'll find that the order of the items
 in your bidict and its inverse happens to be preserved.
-However, you won't get the addtional order-specific APIs
-(such as :meth:`~bidict.OrderedBidict.move_to_end`
-and :meth:`~bidict.OrderedBidict.equals_order_sensitive`).
+However, you won't get the additional order-specific APIs
+(such as
+:meth:`~bidict.OrderedBidict.move_to_end`,
+:meth:`~bidict.OrderedBidict.equals_order_sensitive`, and
+:meth:`~bidict.OrderedBidict.__reversed__` –
+indeed the lack of a ``dict.__reversed__`` API
+is what stops us from making
+:class:`~bidict.FrozenOrderedBidict` an alias of
+:class:`~bidict.frozenbidict` on dict-order-preserving Pythons,
+as this would mean
+:meth:`FrozenOrderedBidict.__reversed__() <bidict.FrozenOrderedBidict.__reversed__>`
+would have to be O(n) in space complexity).
 
 If you need order-preserving behavior guaranteed,
 then :class:`~bidict.OrderedBidict` is your best choice.
@@ -269,7 +285,7 @@ allows you to easily generate
 a new bidirectional mapping type
 with custom attribute-based access to forward and inverse mappings:
 
-.. code:: python
+.. doctest::
 
    >>> from bidict import namedbidict
    >>> ElementMap = namedbidict('ElementMap', 'symbol', 'name')
@@ -288,9 +304,8 @@ whose default value is :class:`bidict.bidict` –
 you can override the bidict type used as the base class,
 allowing the creation of e.g. a named frozenbidict type:
 
-.. code:: python
+.. doctest::
 
-   >>> from bidict import frozenbidict
    >>> ElMap = namedbidict('ElMap', 'symbol', 'name', base_type=frozenbidict)
    >>> noble = ElMap(He='helium')
    >>> noble.symbol_for['helium']
@@ -313,17 +328,17 @@ to check whether ``obj`` is a :class:`~collections.abc.Mapping`.
 However, this check is too specific, and will fail for many
 types that implement the :class:`~collections.abc.Mapping` interface:
 
-.. code:: python
+.. doctest::
+   :pyversion: >= 3.3
 
-   >>> from collections import ChainMap  # (Python 3+) # doctest: +SKIP
-   >>> issubclass(ChainMap, dict)  # doctest: +SKIP
+   >>> from collections import ChainMap
+   >>> issubclass(ChainMap, dict)
    False
 
 The same is true for all the bidict types:
 
-.. code:: python
+.. doctest::
 
-   >>> from bidict import bidict
    >>> issubclass(bidict, dict)
    False
 
@@ -333,22 +348,22 @@ is to use the abstract base classes (ABCs)
 from the :mod:`collections` module
 that are provided for this purpose:
 
-.. code:: python
+.. doctest::
+   :pyversion: >= 3.3
 
-   >>> from collections import Mapping  # doctest: +SKIP
-   >>> issubclass(ChainMap, Mapping)  # doctest: +SKIP
+   >>> issubclass(ChainMap, Mapping)
    True
-   >>> isinstance(bidict(), Mapping)  # doctest: +SKIP
+   >>> isinstance(bidict(), Mapping)
    True
 
 Also note that the proper way to check whether an object
 is an (im)mutable mapping is to use the
 :class:`~collections.abc.MutableMapping` ABC:
 
-.. code:: python
 
-   >>> from collections import MutableMapping
-   >>> from bidict import BidirectionalMapping, frozenbidict
+.. doctest::
+
+   >>> from bidict import BidirectionalMapping
 
    >>> def is_immutable_bimap(obj):
    ...     return (isinstance(obj, BidirectionalMapping)
@@ -365,7 +380,7 @@ and could fail in some cases.
 For example, :class:`~bidict.FrozenOrderedBidict` is an immutable mapping
 but it does not subclass :class:`~bidict.frozenbidict`:
 
-.. code:: python
+.. doctest::
 
    >>> from bidict import FrozenOrderedBidict
    >>> obj = FrozenOrderedBidict()
@@ -386,19 +401,19 @@ Since being reversible implies having an ordering,
 you could check for reversibility instead.
 For example:
 
-.. code:: python
+.. doctest::
+   :pyversion: >= 3.6
 
-   >>> from collections import Reversible  # doctest: +SKIP
+   >>> from collections.abc import Reversible
+
    >>> def is_reversible_mapping(cls):
    ...     return issubclass(cls, Reversible) and issubclass(cls, Mapping)
    ...
 
-   >>> from bidict import OrderedBidict
-   >>> is_reversible_mapping(OrderedBidict)  # doctest: +SKIP
+   >>> is_reversible_mapping(OrderedBidict)
    True
 
-   >>> from collections import OrderedDict
-   >>> is_reversible_mapping(OrderedDict)  # doctest: +SKIP
+   >>> is_reversible_mapping(OrderedDict)
    True
 
 

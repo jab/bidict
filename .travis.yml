@@ -37,7 +37,7 @@ install:  # Install our test dependencies.
 
 script:  # Run our test suite.
   - if [[ -n $COVERAGE ]]; then export PYTEST_ADDOPTS="--cov=bidict --cov-config=.coveragerc"; fi
-  - pytest
+  - ./run-tests.py
 
 
 after_script:

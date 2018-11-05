@@ -312,3 +312,7 @@ linkcheck_timeout = 30  # 5s default too low
 
 # http://www.sphinx-doc.org/en/stable/ext/autosectionlabel.html#configuration
 autosectionlabel_prefix_document = True
+
+# http://www.sphinx-doc.org/en/master/usage/extensions/doctest.html
+doctest_global_setup = """
+"""

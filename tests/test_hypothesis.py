@@ -10,15 +10,19 @@
 import gc
 import pickle
 import re
+
+from collections import OrderedDict
+try:
+    from collections.abc import Hashable, Iterable, Mapping, MutableMapping
+except ImportError:  # Python < 3
+    from collections import Hashable, Iterable, Mapping, MutableMapping
+
 from operator import itemgetter
 from os import getenv
 from weakref import ref
-try:
-    from collections import Hashable, Iterable, Mapping, MutableMapping, OrderedDict
-except ImportError:  # Python >= 3.7
-    from collections.abc import Hashable, Iterable, Mapping, MutableMapping, OrderedDict
 
 import pytest
+
 from hypothesis import HealthCheck, assume, given, settings, strategies as strat, unlimited
 
 from bidict import (
@@ -32,15 +36,21 @@ from bidict.compat import (
 from bidict._util import _iteritems_args_kw
 
 
+MAX_EXAMPLES_DEFAULT = 200
+MAX_EXAMPLES_MORE = MAX_EXAMPLES_DEFAULT * 10
 NOCHECK_SLOW = (HealthCheck.hung_test, HealthCheck.too_slow)
 PROFILE_DEFAULT = {
-    'max_examples': 200,
+    'max_examples': int(getenv('HYPOTHESIS_MAX_EXAMPLES') or MAX_EXAMPLES_DEFAULT),
     'deadline': None,
     'timeout': unlimited,
     # Enabling coverage slows down hypothesis.
     'suppress_health_check': NOCHECK_SLOW if getenv('COVERAGE') else (),
 }
-PROFILE_MORE_EXAMPLES = dict(PROFILE_DEFAULT, max_examples=2000, suppress_health_check=NOCHECK_SLOW)
+PROFILE_MORE_EXAMPLES = dict(
+    PROFILE_DEFAULT,
+    max_examples=int(getenv('HYPOTHESIS_MAX_EXAMPLES') or MAX_EXAMPLES_MORE),
+    suppress_health_check=NOCHECK_SLOW,
+)
 settings.register_profile('DEFAULT', **PROFILE_DEFAULT)
 settings.register_profile('MORE_EXAMPLES', **PROFILE_MORE_EXAMPLES)
 settings.load_profile(getenv('HYPOTHESIS_PROFILE') or 'DEFAULT')

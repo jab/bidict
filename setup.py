@@ -44,36 +44,40 @@ SETUP_REQS = [
     'setuptools_scm',
 ]
 
+SPHINX_REQ = 'Sphinx < 2'
+
+DOCS_REQS = [SPHINX_REQ]
+
 TEST_REQS = [
-    'hypothesis<4',
-    'hypothesis-pytest<1',
-    'py<2',
-    'pytest<4',
-    'pytest-benchmark<4',
-    'sortedcollections<1',
-    'sortedcontainers<2',
+    'hypothesis < 4',
+    'hypothesis-pytest < 1',
+    'py < 2',
+    'pytest < 4',
+    'pytest-benchmark < 4',
+    'sortedcollections < 2',
+    'sortedcontainers < 3',
+    # pytest's doctest support doesn't support Sphinx extensions
+    # (https://www.sphinx-doc.org/en/latest/usage/extensions/doctest.html)
+    # so †est the code in the Sphinx docs using Sphinx's own doctest support.
+    SPHINX_REQ,
 ]
 
 # Split out coverage from test requirements since it slows down the tests.
 COVERAGE_REQS = [
-    'coverage<5',
-    'pytest-cov<3',
-]
-
-DOCS_REQS = [
-    'Sphinx<2',
+    'coverage < 5',
+    'pytest-cov < 3',
 ]
 
 DEV_REQ = SETUP_REQS + TEST_REQS + COVERAGE_REQS + DOCS_REQS + [
-    'pre-commit<2',
-    'tox<4',
+    'pre-commit < 2',
+    'tox < 4',
     # The following dependencies have a higher chance of suddenly causing CI to fail after updating
     # even between minor versions so pin to currently-working minor versions. Upgrade to newer
     # minor versions manually to have a chance to fix any resulting breakage before it hits CI.
     # *** Keep these in sync with the versions in .travis.yml and .pre-commit-config.yaml ***
-    'flake8<3.6',
-    'pydocstyle<2.2',
-    'pylint<2.2',
+    'flake8 < 3.7',
+    'pydocstyle < 2.2',
+    'pylint < 2.2',
 ]
 
 setup(

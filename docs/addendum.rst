@@ -22,14 +22,17 @@ please don't hesitate to
 :doc:`file an issue or submit a pull request <contributors-guide>`.
 
 
-:attr:`~bidict.BidictBase.inv` Avoids Reference Cycles
-------------------------------------------------------
+Bidict Avoids Reference Cycles
+------------------------------
 
 A careful reader might notice the following...
 
-.. code:: python
+.. testsetup::
 
-   >>> from bidict import bidict
+   from bidict import bidict
+
+.. doctest::
+
    >>> fwd = bidict(one=1)
    >>> inv = fwd.inv
    >>> inv.inv is fwd
@@ -127,7 +130,9 @@ use a
 `synchronization primitive <https://docs.python.org/3/library/threading.html#lock-objects>`__
 to coordinate access. [#]_
 
-.. [#] *See also:* `[2] <https://twitter.com/teozaurus/status/518071391959388160>`__
+.. [#] *See also:*
+       [`2 <https://twitter.com/teozaurus/status/518071391959388160>`__],
+       [`3 <https://twitter.com/ph1/status/943240854419922945>`__]
 
 
 Equivalent but distinct :class:`~collections.abc.Hashable`\s
@@ -135,21 +140,21 @@ Equivalent but distinct :class:`~collections.abc.Hashable`\s
 
 Consider the following:
 
-.. code:: python
+.. doctest::
 
    >>> d = {1: int, 1.0: float}
 
 How many items do you expect *d* to contain?
 The actual result might surprise you:
 
-.. code:: python
+.. doctest::
 
    >>> len(d)
    1
 
 And similarly,
 
-.. code:: python
+.. doctest::
 
    >>> dict([(1, int), (1.0, float), (1+0j, complex), (True, bool)])
    {1: <... 'bool'>}
@@ -173,9 +178,8 @@ and means that a bidict can end up with a different
 but equivalent key from the corresponding value
 in its own inverse:
 
-.. code:: python
+.. doctest::
 
-   >>> from bidict import bidict
    >>> b = bidict({'false': 0})
    >>> b.forceput('FALSE', False)
    >>> b
@@ -189,7 +193,7 @@ nan as key
 
 In CPython, nan is especially tricky when used as a dictionary key:
 
-.. code:: python
+.. doctest::
 
    >>> d = {float('nan'): 'nan'}
    >>> d

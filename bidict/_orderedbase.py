@@ -32,7 +32,7 @@ from weakref import ref
 
 from ._base import _WriteResult, BidictBase
 from ._miss import _MISS
-from .compat import KeysView, ItemsView, Mapping, PY2, iteritems, izip
+from .compat import Mapping, PY2, iteritems, izip
 
 
 class _Node(object):  # pylint: disable=too-few-public-methods
@@ -178,6 +178,15 @@ class OrderedBidictBase(BidictBase):  # lgtm [py/missing-equals]
     """Base class implementing an ordered :class:`BidirectionalMapping`."""
 
     __slots__ = ('_sntl',)
+
+    #: Can't delegate to e.g. :attr:`_fwdm` for more efficient implementations
+    #: of methods like :meth:`keys` because it isn't ordered.
+    #: Set to None to opt out of optimized-method delegation and
+    #: use default implementations from :class:`Mapping` instead.
+    __delegate__ = None
+
+    #: The object used by :meth:`__repr__` for printing the contained items.
+    __repr_delegate__ = list
 
     def __init__(self, *args, **kw):
         """Make a new ordered bidirectional mapping.
@@ -351,39 +360,6 @@ class OrderedBidictBase(BidictBase):  # lgtm [py/missing-equals]
         if not isinstance(other, Mapping) or len(self) != len(other):
             return False
         return all(i == j for (i, j) in izip(iteritems(self), iteritems(other)))
-
-    def __repr_delegate__(self):
-        """See :meth:`bidict.BidictBase.__repr_delegate__`."""
-        return list(iteritems(self))
-
-    # Override the `values` implementation inherited from `Mapping`. Implemented in terms of
-    # self.inv.keys(), so that on Python 3 we end up returning a KeysView (dict_keys) object.
-    def values(self):
-        """A set-like object providing a view on the contained values.
-
-        Note that because the values of a :class:`~bidict.BidirectionalMapping`
-        are the keys of its inverse,
-        this returns a :class:`~collections.abc.KeysView`
-        rather than a :class:`~collections.abc.ValuesView`,
-        which has the advantages of constant-time containment checks
-        and supporting set operations.
-        """
-        return self.inv.keys()
-
-    if PY2:
-        def viewvalues(self):  # noqa: D102; pylint: disable=missing-docstring
-            return KeysView(self.inv)
-
-        viewvalues.__doc__ = values.__doc__
-        values.__doc__ = 'A list of the contained values.'
-
-        def viewitems(self):
-            """A set-like object providing a view on the contained items."""
-            return ItemsView(self)
-
-        def viewkeys(self):
-            """A set-like object providing a view on the contained keys."""
-            return KeysView(self)
 
 
 #                             * Code review nav *

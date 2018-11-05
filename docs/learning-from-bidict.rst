@@ -120,7 +120,7 @@ Python's data model
 Using :mod:`weakref`
 ====================
 
-See :ref:`addendum:\:attr\:\`~bidict.BidictBase.inv\` Avoids Reference Cycles`.
+See :ref:`addendum:Bidict Avoids Reference Cycles`.
 The doubly-linked lists that back ordered bidicts also use weakrefs
 to avoid creating strong reference cycles.
 
@@ -148,7 +148,7 @@ or you'll lose a lot of the performance benefits.
 ``_marker.py`` contains a small example.
 Here's a larger one:
 
-.. code:: python
+.. doctest::
 
    >>> from collections import namedtuple
    >>> from itertools import count

@@ -8,9 +8,9 @@
 """Test various issubclass checks."""
 
 try:
-    from collections import Hashable
-except ImportError:  # Python >= 3.7
     from collections.abc import Hashable
+except ImportError:  # Python < 3
+    from collections import Hashable
 
 import pytest
 
@@ -111,9 +111,10 @@ def test_issubclass_internal():
     The relationships tested here are not guaranteed to hold in the future,
     but are still tested so that any unintentional changes won't go unnoticed.
     """
-    assert not issubclass(OrderedBidict, bidict)
-    assert not issubclass(frozenbidict, bidict)
+    assert issubclass(OrderedBidict, bidict)
+
     assert not issubclass(FrozenOrderedBidict, bidict)
+    assert not issubclass(frozenbidict, bidict)
 
     assert not issubclass(bidict, frozenbidict)
     assert not issubclass(OrderedBidict, FrozenOrderedBidict)

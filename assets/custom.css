@@ -8,7 +8,7 @@
 
 h1, h2, h3, h4, h5 { font-weight: bold !important; }
 
-ul.simple li { margin-bottom: 8px; }
+ul li { margin-bottom: 8px; }
 
 /* Float the logo to the right of the status badges on the homepage */
 #bidict img[alt="bidict logo"] { float: right; }

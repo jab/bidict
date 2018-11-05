@@ -3,9 +3,12 @@ Basic Usage
 
 Let's return to the example from the :doc:`intro`:
 
-.. code:: python
+.. testsetup::
 
-   >>> from bidict import bidict
+   from bidict import bidict
+
+.. doctest::
+
    >>> element_by_symbol = bidict(H='hydrogen')
 
 As we saw, this behaves just like a dict,
@@ -13,7 +16,7 @@ but maintains a special
 :attr:`~bidict.BidictBase.inv` attribute
 giving access to inverse items:
 
-.. code:: python
+.. doctest::
 
    >>> element_by_symbol.inv['helium'] = 'He'
    >>> del element_by_symbol.inv['hydrogen']
@@ -24,7 +27,7 @@ giving access to inverse items:
 :class:`collections.abc.MutableMapping` interface
 as well:
 
-.. code:: python
+.. doctest::
 
    >>> 'C' in element_by_symbol
    False
@@ -55,10 +58,9 @@ values must also be hashable.
 
 Attempting to insert an unhashable value will result in an error:
 
-.. code:: python
+.. doctest::
 
    >>> anagrams_by_alphagram = dict(opt=['opt', 'pot', 'top'])
-   >>> from bidict import bidict
    >>> bidict(anagrams_by_alphagram)
    Traceback (most recent call last):
    ...
@@ -67,7 +69,7 @@ Attempting to insert an unhashable value will result in an error:
 So in this example,
 using a tuple or a frozenset instead of a list would do the trick:
 
-.. code:: python
+.. doctest::
 
    >>> bidict(opt=('opt', 'pot', 'top'))
    bidict({'opt': ('opt', 'pot', 'top')})
@@ -84,9 +86,8 @@ This has immediate implications for bidict's API.
 
 Consider the following:
 
-.. code:: python
+.. doctest::
 
-   >>> from bidict import bidict
    >>> b = bidict({'one': 1})
    >>> b['two'] = 1  # doctest: +SKIP
 
@@ -97,7 +98,7 @@ because of the uniqueness-of-values constraint,
 it would silently clobber the existing item,
 resulting in:
 
-.. code:: python
+.. doctest::
 
    >>> b  # doctest: +SKIP
    bidict({'two': 1})
@@ -109,7 +110,7 @@ Instead, bidict raises a
 so you have an opportunity to catch this early
 and resolve the conflict before it causes problems later on:
 
-.. code:: python
+.. doctest::
 
    >>> b['two'] = 1
    Traceback (most recent call last):
@@ -126,7 +127,7 @@ which advises,
 So if you really just want to clobber any existing items,
 all you have to do is say so:
 
-.. code:: python
+.. doctest::
 
    >>> b.forceput('two', 1)
    >>> b
@@ -136,7 +137,7 @@ Similarly, initializations and :func:`~bidict.bidict.update` calls
 that would overwrite the key of an existing value
 raise an exception too:
 
-.. code:: python
+.. doctest::
 
    >>> bidict({'one': 1, 'uno': 1})
    Traceback (most recent call last):
@@ -151,7 +152,7 @@ raise an exception too:
 If an :func:`~bidict.bidict.update` call raises,
 you can be sure that none of the supplied items were inserted:
 
-.. code:: python
+.. doctest::
 
    >>> b
    bidict({'one': 1})
@@ -162,7 +163,7 @@ and is considered an intentional overwrite
 of the value associated with the existing key,
 in keeping with dict's behavior:
 
-.. code:: python
+.. doctest::
 
    >>> b = bidict({'one': 1})
    >>> b['one'] = 2  # succeeds
@@ -189,7 +190,7 @@ One set of alternatives to this behavior is provided by
 and :func:`~bidict.bidict.forceupdate`,
 which allow you to explicitly overwrite existing keys and values:
 
-.. code:: python
+.. doctest::
 
    >>> b = bidict({'one': 1})
    >>> b.forceput('two', 1)
@@ -215,7 +216,7 @@ Three possible options are
 :attr:`~bidict.OVERWRITE`, and
 :attr:`~bidict.IGNORE`:
 
-.. code:: python
+.. doctest::
 
    >>> from bidict import RAISE, OVERWRITE, IGNORE
 
@@ -264,15 +265,16 @@ Note that it's possible for a given item to duplicate
 the key of one existing item,
 and the value of another existing item, as in:
 
-.. code:: python
+.. doctest::
+   :skipif: True
 
-   >>> b.putall([(4, 16), (5, 25), (4, 25)])  # doctest: +SKIP
+   >>> b.putall([(4, 16), (5, 25), (4, 25)])
 
 Because the *on_dup_key* and *on_dup_val* policies that are in effect may differ,
 *on_dup_kv* allows you to indicate how you want to handle this case
 without ambiguity:
 
-.. code:: python
+.. doctest::
 
    >>> b.putall([(4, 16), (5, 25), (4, 25)],
    ...          on_dup_key=IGNORE, on_dup_val=IGNORE, on_dup_kv=RAISE)
@@ -288,7 +290,7 @@ the duplicate item will just be ignored,
 no matter what the duplication policies are set to.
 The insertion of an entire duplicate item is construed as a no-op:
 
-.. code:: python
+.. doctest::
 
    >>> sorted(b.items())
    [(2, 4), (3, 9)]
@@ -316,9 +318,8 @@ is like inserting each of those items individually in sequence.
 Therefore, the order of the items provided to the bulk insert operation
 may affect the result:
 
-.. code:: python
+.. doctest::
 
-   >>> from bidict import bidict
    >>> b = bidict({0: 0, 1: 2})
    >>> b.forceupdate([(2, 0), (0, 1), (0, 0)])
 
@@ -356,16 +357,15 @@ Interop
 bidicts interoperate well with other types of mappings.
 For example, they support (efficient) polymorphic equality testing:
 
-.. code:: python
+.. doctest::
 
-   >>> from bidict import bidict
    >>> bidict(a=1) == dict(a=1)
    True
 
 And converting back and forth works as expected
 (modulo any value duplication, as discussed above):
 
-.. code:: python
+.. doctest::
 
    >>> dict(bidict(a=1))
    {'a': 1}

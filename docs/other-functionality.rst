@@ -9,7 +9,7 @@ to help you get inverse items from various types of objects.
 
 Pass in a mapping to get the inverse mapping:
 
-.. code:: python
+.. doctest::
 
    >>> from bidict import inverted
    >>> it = inverted({1: 'one'})
@@ -18,7 +18,7 @@ Pass in a mapping to get the inverse mapping:
 
 ...an iterable of pairs to get the pairs' inverses:
 
-.. code:: python
+.. doctest::
 
    >>> list(inverted([(1, 'one'), (2, 'two')]))
    [('one', 1), ('two', 2)]
@@ -29,9 +29,12 @@ Pass in a mapping to get the inverse mapping:
 which objects that already know their own inverses (such as bidicts)
 can implement themselves:
 
-.. code:: python
+.. testsetup::
 
-   >>> from bidict import bidict, OrderedBidict
+   from bidict import bidict, OrderedBidict
+
+.. doctest::
+
    >>> dict(inverted(bidict({1: 'one'})))
    {'one': 1}
    >>> list(inverted(OrderedBidict([(2, 4), (3, 9)])))

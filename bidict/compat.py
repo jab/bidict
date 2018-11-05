@@ -66,14 +66,6 @@ if PY2:
     if PYMINOR < 7:  # pragma: no cover
         warn('Python < 2.7 is unsupported.')
 
-    viewkeys = methodcaller('viewkeys')
-    viewvalues = methodcaller('viewvalues')
-    viewitems = methodcaller('viewitems')
-
-    iterkeys = methodcaller('iterkeys')
-    itervalues = methodcaller('itervalues')
-    iteritems = methodcaller('iteritems')
-
     # abstractproperty deprecated in Python 3.3 in favor of using @property with @abstractmethod.
     # Before 3.3, this silently fails to detect when an abstract property has not been overridden.
     from abc import abstractproperty
@@ -83,12 +75,23 @@ if PY2:
     # In Python 3, the collections ABCs were moved into collections.abc, which does not exist in
     # Python 2. Support for importing them directly from collections is dropped in Python 3.8.
     from collections import (  # noqa: F401 (imported but unused)
-        Mapping, MutableMapping, KeysView, ItemsView)
+        Mapping, MutableMapping, KeysView, ValuesView, ItemsView)
+
+    viewkeys = lambda m: m.viewkeys() if hasattr(m, 'viewkeys') else KeysView(m)
+    viewvalues = lambda m: m.viewvalues() if hasattr(m, 'viewvalues') else ValuesView(m)
+    viewitems = lambda m: m.viewitems() if hasattr(m, 'viewitems') else ItemsView(m)
+
+    iterkeys = lambda m: m.iterkeys() if hasattr(m, 'iterkeys') else iter(m.keys())
+    itervalues = lambda m: m.itervalues() if hasattr(m, 'itervalues') else iter(m.values())
+    iteritems = lambda m: m.iteritems() if hasattr(m, 'iteritems') else iter(m.items())
 
 else:
     # Assume Python 3 when not PY2, but explicitly check before showing this warning.
     if PYMAJOR == 3 and PYMINOR < 3:  # pragma: no cover
         warn('Python3 < 3.3 is unsupported.')
+
+    from collections.abc import (  # noqa: F401 (imported but unused)
+        Mapping, MutableMapping, KeysView, ValuesView, ItemsView)
 
     viewkeys = methodcaller('keys')
     viewvalues = methodcaller('values')
@@ -105,6 +108,3 @@ else:
     abstractproperty = _compose(property, abstractmethod)
 
     izip = zip
-
-    from collections.abc import (  # noqa: F401 (imported but unused)
-        Mapping, MutableMapping, KeysView, ItemsView)

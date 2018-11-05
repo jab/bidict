@@ -38,7 +38,7 @@ from ._exc import (
 from ._miss import _MISS
 from ._noop import _NOOP
 from ._util import _iteritems_args_kw
-from .compat import PY2, iteritems, Mapping
+from .compat import PY2, KeysView, ItemsView, iteritems, Mapping
 
 
 # Since BidirectionalMapping implements __subclasshook__, and BidictBase
@@ -92,6 +92,9 @@ class BidictBase(BidirectionalMapping):
 
     _fwdm_cls = dict
     _invm_cls = dict
+
+    #: The object used by :meth:`__repr__` for printing the contained items.
+    __repr_delegate__ = dict
 
     def __init__(self, *args, **kw):  # pylint: disable=super-init-not-called
         """Make a new bidirectional dictionary.
@@ -191,11 +194,7 @@ class BidictBase(BidirectionalMapping):
         clsname = self.__class__.__name__
         if not self:
             return '%s()' % clsname
-        return '%s(%r)' % (clsname, self.__repr_delegate__())
-
-    def __repr_delegate__(self):
-        """The object used by :meth:`__repr__` to represent the contained items."""
-        return self._fwdm
+        return '%s(%r)' % (clsname, self.__repr_delegate__(iteritems(self)))
 
     # The inherited Mapping.__eq__ implementation would work, but it's implemented in terms of an
     # inefficient ``dict(self.items()) == dict(other.items())`` comparison, so override it with a
@@ -401,15 +400,80 @@ class BidictBase(BidirectionalMapping):
         """The number of contained items."""
         return len(self._fwdm)
 
+    @property
+    def __delegate__(self):
+        """An object to delegate to for optimized implementations
+        of various operations (e.g. :meth:`keys`) if available.
+        Override or set e.g. ``__delegate__ = None`` in a subclass to disable.
+        """
+        return self._fwdm
+
     def __iter__(self):  # lgtm [py/inheritance/incorrect-overridden-signature]
         """Iterator over the contained items."""
-        return iter(self._fwdm)
+        delegate = getattr(self.__delegate__, '__iter__', lambda: iter(self.keys()))
+        return delegate()
 
     def __getitem__(self, key):
         u"""*x.__getitem__(key)　⟺　x[key]*"""
         return self._fwdm[key]
 
+    def keys(self):
+        """A set-like object providing a view on the contained keys."""
+        delegate = getattr(self.__delegate__, 'keys', super(BidictBase, self).keys)
+        return delegate()
+
+    def values(self):
+        """A set-like object providing a view on the contained values.
+
+        Note that because the values of a :class:`~bidict.BidirectionalMapping`
+        are the keys of its inverse,
+        this returns a :class:`~collections.abc.KeysView`
+        rather than a :class:`~collections.abc.ValuesView`,
+        which has the advantages of constant-time containment checks
+        and supporting set operations.
+        """
+        return self.inv.keys()
+
+    def items(self):
+        """A set-like object providing a view on the contained items."""
+        delegate = getattr(self.__delegate__, 'items', super(BidictBase, self).items)
+        return delegate()
+
     if PY2:
+        def viewkeys(self):  # noqa: D102; pylint: disable=missing-docstring
+            delegate = getattr(self.__delegate__, 'viewkeys', lambda: KeysView(self))
+            return delegate()
+
+        viewkeys.__doc__ = keys.__doc__
+        keys.__doc__ = 'A list of the contained keys.'
+
+        def viewvalues(self):  # noqa: D102; pylint: disable=missing-docstring
+            return self.inv.viewkeys()
+
+        viewvalues.__doc__ = values.__doc__
+        values.__doc__ = 'A list of the contained values.'
+
+        def viewitems(self):  # noqa: D102; pylint: disable=missing-docstring
+            delegate = getattr(self.__delegate__, 'viewitems', lambda: ItemsView(self))
+            return delegate()
+
+        viewitems.__doc__ = items.__doc__
+        items.__doc__ = 'A list of the contained items.'
+
+        def iterkeys(self):
+            """An iterator over the contained keys."""
+            delegate = getattr(self.__delegate__, 'iterkeys', super(BidictBase, self).iterkeys)
+            return delegate()
+
+        def itervalues(self):
+            """An iterator over the contained values."""
+            return self.inv.iterkeys()
+
+        def iteritems(self):
+            """An iterator over the contained items."""
+            delegate = getattr(self.__delegate__, 'iteritems', super(BidictBase, self).iteritems)
+            return delegate()
+
         # __ne__ added automatically in Python 3 when you implement __eq__, but not in Python 2.
         def __ne__(self, other):  # noqa: N802
             u"""*x.__ne__(other)　⟺　x != other*"""

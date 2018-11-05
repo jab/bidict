@@ -22,6 +22,46 @@ Tip: `Subscribe to bidict releases <https://libraries.io/pypi/bidict>`__
 on libraries.io to be notified when new versions of bidict are released.
 
 
+0.17.4 (not yet released)
+-------------------------
+
+Minor code, interop, and (semi-)private API improvements.
+
+- Refactor proxied- (i.e. delegated-) to-``_fwdm`` logic
+  for better composability and interoperability.
+
+  Drop the ``_Proxied*`` mixin classes
+  and instead move their methods
+  into :class:`~bidict.BidictBase`,
+  which now checks for an object defined by the
+  :attr:`~bidict.BidictBase.__delegate__` attribute.
+  The :attr:`~bidict.BidictBase.__delegate__` object
+  will be delegated to if the method is available on it,
+  otherwise a default implementation
+  (e.g. inherited from :class:`~collections.abc.Mapping`)
+  will be used otherwise.
+  Subclasses may set ``__delegate__ = None`` to opt out.
+
+  Consolidate ``_MutableBidict`` into :class:`bidict.bidict`
+  now that the dropped mixin classes make it unnecessary.
+
+- Change :attr:`~bidict.BidictBase.__repr_delegate__`
+  to take simply a type like :class:`dict` or :class:`list`.
+
+- Upgrade to latest major
+  `sortedcontainers <https://github.com/grantjenks/python-sortedcontainers>`__
+  version (from v1 to v2)
+  for the :ref:`extending:Sorted Bidict Recipes`.
+
+- ``bidict.compat.{view,iter}{keys,values,items}`` on Python2
+  no longer assumes the target object implements these methods,
+  as they're not actually part of the
+  :class:`~collections.abc.Mapping` interface,
+  and provides fallback implementations when the methods are unavailable.
+  This allows the :ref:`extending:Sorted Bidict Recipes`
+  to continue to work with sortedcontainers v2 on Python2.
+
+
 0.17.3 (2018-09-18)
 -------------------
 
@@ -128,7 +168,7 @@ Speedups and memory usage improvements
   in CPython as soon as you no longer hold any references to it,
   rather than having to wait for the next garbage collection.
   See the new
-  :ref:`addendum:\:attr\:\`~bidict.BidictBase.inv\` Avoids Reference Cycles`
+  :ref:`addendum:Bidict Avoids Reference Cycles`
   documentation.
   Fixes `#24 <https://github.com/jab/bidict/issues/20>`__.
 
@@ -176,7 +216,7 @@ Miscellaneous
 
 - :func:`~bidict.BidictBase.__repr__` no longer checks for a ``__reversed__``
   method to determine whether to use an ordered or unordered-style repr.
-  It now calls the new :func:`~bidict.BidictBase.__repr_delegate__` instead
+  It now calls the new :attr:`~bidict.BidictBase.__repr_delegate__` instead
   (which may be overridden if needed), for better composability.
 
 Minor Breaking API Changes

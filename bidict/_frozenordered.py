@@ -27,10 +27,10 @@
 
 """Provides :class:`FrozenOrderedBidict`, an immutable, hashable, ordered bidict."""
 
+from ._base import BidictBase
 from ._frozenbidict import frozenbidict
 from ._orderedbase import OrderedBidictBase
-from ._proxied import _ProxiedKeysVals
-from .compat import DICTS_ORDERED, PY2, izip
+from .compat import DICTS_ORDERED, ItemsView, PY2, izip
 
 
 # FrozenOrderedBidict intentionally does not subclass frozenbidict because it only complicates the
@@ -57,16 +57,18 @@ class FrozenOrderedBidict(OrderedBidictBase):
 
 if DICTS_ORDERED:
     # If the Python implementation's dict type is ordered (e.g. PyPy or CPython >= 3.6), then
-    # `FrozenOrderedBidict` can use the `_ProxiedKeysVals` mixin's more efficient implementations
-    # of `keys` and `values`, rather than the less efficient implementations inherited from
-    # `Mapping.keys` and `OrderedBidictBase.values`.
+    # `FrozenOrderedBidict` can set `__delegate__` to `_fwdm`, allowing the more efficient
+    # implementations of `keys` and `values`, rather than the less efficient implementations
+    # inherited from `Mapping.keys` and `OrderedBidictBase.values`.
     # Both the `_fwdm` and `_invm` backing dicts will always be initialized with the provided
     # items in the correct order, and since `FrozenOrderedBidict` is immutable, their respective
     # orders can't get out of sync after a mutation, like they can with a mutable `OrderedBidict`.
-    # (`FrozenOrderedBidict` can't use the more efficient `_ProxiedKeysValsItems.items`
-    # implementation because the values in `_fwdm.items()` are nodes, so inheriting the
-    # implementation from `Mapping.items` is the best we can do.)
-    FrozenOrderedBidict.__bases__ = (_ProxiedKeysVals,) + FrozenOrderedBidict.__bases__
+    FrozenOrderedBidict.__delegate__ = property(lambda self: self._fwdm)  # noqa: E501; pylint: disable=protected-access
+
+    # (`FrozenOrderedBidict` can't use the more efficient `_fwdm.items` and `_fwdm.viewitems`
+    # implementations because the values in `_fwdm` are nodes.
+    FrozenOrderedBidict.items = super(BidictBase, FrozenOrderedBidict).items
+    FrozenOrderedBidict.viewitems = lambda s: ItemsView(s)  # pylint: disable=unnecessary-lambda
 
     if PY2:
         # We can do better than the `iteritems` implementation inherited from `Mapping`;

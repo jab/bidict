@@ -22,17 +22,16 @@
 
 #                             * Code review nav *
 #==============================================================================
-#  ← Prev: _base.py        Current: _frozenbidict.py          Next: _mut.py →
+#  ← Prev: _base.py        Current: _frozenbidict.py       Next: _bidict.py →
 #==============================================================================
 
 """Provides :class:`frozenbidict`, an immutable, hashable bidirectional mapping type."""
 
 from ._base import BidictBase
-from ._proxied import _ProxiedKeysValsItems
 from .compat import ItemsView
 
 
-class frozenbidict(_ProxiedKeysValsItems, BidictBase):  # noqa: N801; pylint: disable=invalid-name
+class frozenbidict(BidictBase):  # noqa: N801; pylint: disable=invalid-name
     """Immutable, hashable bidict type."""
 
     __slots__ = ()
@@ -47,5 +46,5 @@ class frozenbidict(_ProxiedKeysValsItems, BidictBase):  # noqa: N801; pylint: di
 
 #                             * Code review nav *
 #==============================================================================
-#  ← Prev: _base.py        Current: _frozenbidict.py          Next: _mut.py →
+#  ← Prev: _base.py        Current: _frozenbidict.py       Next: _bidict.py →
 #==============================================================================

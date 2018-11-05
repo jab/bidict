@@ -22,7 +22,7 @@ rather than always having to use
 :func:`~bidict.bidict.forceupdate`,
 you can use the following recipe:
 
-.. code:: python
+.. doctest::
 
    >>> from bidict import bidict, OVERWRITE
 
@@ -58,7 +58,7 @@ With a default :attr:`~bidict.OVERWRITE` policy
 as in the ``OverwritingBidict`` recipe above,
 beware of the following potentially surprising behavior:
 
-.. code:: python
+.. doctest::
 
    >>> b = OverwritingBidict({'one': 1, 'two': 2})
    >>> b['one'] = 2
@@ -85,20 +85,18 @@ and
 attributes,
 creating a sorted bidict type is dead simple:
 
-.. code:: python
+.. doctest::
 
-   >>> import bidict, sortedcontainers
+   >>> import sortedcontainers
 
    >>> # a sorted bidict whose forward items stay sorted by their keys,
    >>> # and whose inverse items stay sorted by *their* keys (i.e. it and
    >>> # its inverse iterate over their items in different orders):
 
-   >>> class SortedBidict(bidict.bidict):
+   >>> class SortedBidict(bidict):
    ...     _fwdm_cls = sortedcontainers.SortedDict
    ...     _invm_cls = sortedcontainers.SortedDict
-   ...
-   ...     # Include this for nicer repr's:
-   ...     __repr_delegate__ = lambda x: list(x.items())
+   ...     __repr_delegate__ = list
 
    >>> b = SortedBidict({'Tokyo': 'Japan', 'Cairo': 'Egypt'})
    >>> b
@@ -121,12 +119,10 @@ creating a sorted bidict type is dead simple:
 
    >>> import sortedcollections
 
-   >>> class KeySortedBidict(bidict.bidict):
+   >>> class KeySortedBidict(bidict):
    ...     _fwdm_cls = sortedcontainers.SortedDict
    ...     _invm_cls = sortedcollections.ValueSortedDict
-   ...
-   ...     # Include this for nicer repr's:
-   ...     __repr_delegate__ = lambda x: list(x.items())
+   ...     __repr_delegate__ = list
 
    >>> element_by_atomic_number = KeySortedBidict({
    ...     3: 'lithium', 1: 'hydrogen', 2: 'helium'})

@@ -15,6 +15,4 @@ build_script:
   - "pip install -e .[test]"
 
 test_script:
-  # -u makes sure we get prompt output
-  # Duplicate args specified in pytest.ini with linux-style paths. TODO: DRY
-  - "python -u -m pytest --doctest-glob=tests\\*.txt --doctest-glob=docs\\*.rst --doctest-glob=docs\\*.rst.inc --ignore=docs\\conf.py"
+  - "python run-tests.py"

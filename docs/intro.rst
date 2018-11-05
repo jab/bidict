@@ -13,9 +13,12 @@ bidict.bidict
 is the main bidirectional map data structure provided.
 It implements the familiar API you're used to from dict:
 
-.. code:: python
+.. testsetup::
 
-   >>> from bidict import bidict
+   from bidict import bidict
+
+.. doctest::
+
    >>> element_by_symbol = bidict({'H': 'hydrogen'})
    >>> element_by_symbol
    bidict({'H': 'hydrogen'})
@@ -25,7 +28,7 @@ It implements the familiar API you're used to from dict:
 But it also maintains the inverse bidict via the
 :attr:`~bidict.BidictBase.inv` attribute:
 
-.. code:: python
+.. doctest::
 
    >>> element_by_symbol.inv
    bidict({'hydrogen': 'H'})
@@ -54,7 +57,7 @@ but might have already created the association *a* ⟷ *c*,
 with the skeptic's approach
 we would have to write:
 
-.. code:: python
+.. doctest::
 
    >>> # To represent an existing association a ⟷ c in a single dict d:
    >>> d = {'a': 'c', 'c': 'a'}
@@ -78,7 +81,7 @@ we would have to write:
 
 With bidict, we can instead just write:
 
-.. code:: python
+.. doctest::
 
    >>> m = bidict({'a': 'c'})  # (match the previous initial setup)
 
@@ -88,7 +91,7 @@ With bidict, we can instead just write:
 and voilà, bidict takes care of all the fussy details,
 leaving us with just what we wanted:
 
-.. code:: python
+.. doctest::
 
    >>> m
    bidict({'a': 'b'})
@@ -118,7 +121,7 @@ with a *(v, k)* item that we'd have to ignore
 for each *(k, v)* item that we expect,
 and no way to tell which was which.
 
-.. code:: python
+.. doctest::
 
    >>> # Compare:
    >>> sorted(d.keys())    # gives both keys and values

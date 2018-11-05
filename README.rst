@@ -69,14 +69,14 @@ Bidict:
 ^^^^^^^
 
 - is in use by several teams at Google, Venmo, CERN, Bank of America Merrill Lynch,
-  Bloomberg, Two Sigma, and others,
+  Bloomberg, Two Sigma, and others
 - has carefully designed APIs for
-  safety, simplicity, flexibility, and ergonomics,
-- is CPython-, PyPy-, Python 2-, and Python 3-compatible,
+  safety, simplicity, flexibility, and ergonomics
+- is CPython-, PyPy-, Python 2-, and Python 3-compatible
 - has extensive test coverage
   (including property-based tests and benchmarks)
-  run continuously on all supported Python versions and OSes,
-- integrates natively with Python’s collections interfaces,
+  run continuously on all supported Python versions and OSes
+- integrates natively with Python’s collections interfaces
 - is implemented in concise, well-factored, well-documented pure Python
   that leverages a number of advanced language features [#fn-learning]_
 
