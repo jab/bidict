@@ -74,3 +74,18 @@ Test for consistency updating an ordered bidict's inverse:
     OrderedBidict([('NEW KEY', 'SUCCESS!'), ('NEWER KEY', 'NEWER VAL')])
     >>> b.inv
     OrderedBidict([('SUCCESS!', 'NEW KEY'), ('NEWER VAL', 'NEWER KEY')])
+
+Test move_to_end here so it shows up in pytest's coverage report
+(its hypothesis tests may not always hit all code paths,
+and the doctests in the Sphinx docs don't get counted in the coverage report)::
+
+    >>> b.move_to_end('NEW KEY')
+    >>> b
+    OrderedBidict([('NEWER KEY', 'NEWER VAL'), ('NEW KEY', 'SUCCESS!')])
+    >>> b.move_to_end('NEW KEY', last=False)
+    >>> b
+    OrderedBidict([('NEW KEY', 'SUCCESS!'), ('NEWER KEY', 'NEWER VAL')])
+    >>> b.move_to_end('NOT FOUND')
+    Traceback (most recent call last):
+        ...
+    KeyError: 'NOT FOUND'

@@ -13,7 +13,7 @@ from ._abc import BidirectionalMapping
 from ._bidict import bidict
 
 
-_VALID_NAME = re.compile('^[A-z][A-z0-9_]*$')
+_VALID_NAME = re.compile('[A-z][A-z0-9_]*$')
 
 
 def namedbidict(typename, keyname, valname, base_type=bidict):

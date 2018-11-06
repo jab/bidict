@@ -27,6 +27,11 @@ on libraries.io to be notified when new versions of bidict are released.
 
 Minor code, interop, and (semi-)private API improvements.
 
+- :class:`~bidict.OrderedBidict` optimizations and code improvements.
+
+  Use ``bidict``\s for the backing ``_fwdm`` and ``_invm`` mappings,
+  obviating the need to store key and value data in linked list nodes.
+
 - Refactor proxied- (i.e. delegated-) to-``_fwdm`` logic
   for better composability and interoperability.
 

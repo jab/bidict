@@ -13,9 +13,9 @@ import re
 
 from collections import OrderedDict
 try:
-    from collections.abc import Hashable, Iterable, Mapping, MutableMapping
+    import collections.abc as c
 except ImportError:  # Python < 3
-    from collections import Hashable, Iterable, Mapping, MutableMapping
+    import collections as c
 
 from operator import itemgetter
 from os import getenv
@@ -56,6 +56,9 @@ settings.register_profile('MORE_EXAMPLES', **PROFILE_MORE_EXAMPLES)
 settings.load_profile(getenv('HYPOTHESIS_PROFILE') or 'DEFAULT')
 
 
+KEY = itemgetter(0)
+
+
 def prune_dup(items):
     """Given some (hypothesis-generated) items, prune any with duplicated keys or values."""
     seen_keys = set()
@@ -90,11 +93,9 @@ def ensure_dup(key=False, val=False):
     return _wrapped
 
 
-KEY = itemgetter(0)
-
 MyNamedBidict = namedbidict('MyNamedBidict', 'key', 'val')
 MyNamedFrozenBidict = namedbidict('MyNamedBidict', 'key', 'val', base_type=frozenbidict)
-NAMEDBIDICT_VALID_NAME = re.compile('^[A-z][A-z0-9_]*$')
+NAMEDBIDICT_VALID_NAME = re.compile('[A-z][A-z0-9_]*$')
 MUTABLE_BIDICT_TYPES = (
     bidict, OrderedBidict, MyNamedBidict)
 IMMUTABLE_BIDICT_TYPES = (frozenbidict, FrozenOrderedBidict, MyNamedFrozenBidict)
@@ -175,7 +176,7 @@ def test_eq_ne_hash(bi_cls, other_cls, init_items, init_unequal, not_a_mapping):
     other_is_ordered = issubclass(other_cls, (OrderedBidictBase, OrderedDict))
     collection = list if bidict_is_ordered and other_is_ordered else set
 
-    both_hashable = all(isinstance(i, Hashable) for i in (some_bidict, other_equal))
+    both_hashable = all(isinstance(i, c.Hashable) for i in (some_bidict, other_equal))
     has_eq_order_sens = getattr(bi_cls, 'equals_order_sensitive', None)
 
     other_unequal = other_cls(init_unequal)
@@ -276,7 +277,7 @@ def test_consistency(bi_cls, init_items, setinv, method_args, data):
         if dict_meth:
             compare_dict = dict_cls(init_items)
             dict_result = dict_meth(compare_dict, *args)
-            if isinstance(dict_result, Iterable):
+            if isinstance(dict_result, c.Iterable):
                 collection = list if ordered else set
                 result = collection(result)
                 dict_result = collection(dict_result)
@@ -462,7 +463,7 @@ def test_slots(bi_cls):
     """See https://docs.python.org/3/reference/datamodel.html#notes-on-using-slots."""
     stop_at = {object}
     if PY2:
-        stop_at.update({Mapping, MutableMapping})  # These don't define __slots__ in Python 2.
+        stop_at.update({c.Mapping, c.MutableMapping})  # These don't define __slots__ in Python 2.
     cls_by_slot = {}
     for cls in bi_cls.__mro__:
         if cls in stop_at:

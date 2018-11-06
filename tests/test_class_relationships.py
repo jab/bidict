@@ -113,8 +113,8 @@ def test_issubclass_internal():
     """
     assert issubclass(OrderedBidict, bidict)
 
-    assert not issubclass(FrozenOrderedBidict, bidict)
     assert not issubclass(frozenbidict, bidict)
+    assert not issubclass(FrozenOrderedBidict, bidict)
 
     assert not issubclass(bidict, frozenbidict)
     assert not issubclass(OrderedBidict, FrozenOrderedBidict)
