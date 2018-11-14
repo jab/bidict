@@ -38,3 +38,5 @@ bidict.compat
 
 .. automodule:: bidict.compat
    :members:
+   :member-order: bysource
+   :undoc-members:

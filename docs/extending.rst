@@ -166,10 +166,7 @@ creating a sorted bidict type is dead simple:
    ...     try:
    ...         return object.__getattribute__(self, name)
    ...     except AttributeError as e:
-   ...         try:
-   ...             return getattr(self._fwdm, name)
-   ...         except AttributeError:
-   ...             raise e
+   ...         return getattr(self._fwdm, name)
 
    >>> KeySortedBidict.__getattribute__ = __getattribute__
 

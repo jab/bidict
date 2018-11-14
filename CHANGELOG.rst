@@ -58,7 +58,7 @@ Minor code, interop, and (semi-)private API improvements.
   version (from v1 to v2)
   for the :ref:`extending:Sorted Bidict Recipes`.
 
-- ``bidict.compat.{view,iter}{keys,values,items}`` on Python2
+- ``bidict.compat.{view,iter}{keys,values,items}`` on Python 2
   no longer assumes the target object implements these methods,
   as they're not actually part of the
   :class:`~collections.abc.Mapping` interface,
