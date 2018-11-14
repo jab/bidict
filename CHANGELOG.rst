@@ -22,8 +22,8 @@ Tip: `Subscribe to bidict releases <https://libraries.io/pypi/bidict>`__
 on libraries.io to be notified when new versions of bidict are released.
 
 
-0.17.4 (not yet released)
--------------------------
+0.17.4 (2018-11-14)
+-------------------
 
 Minor code, interop, and (semi-)private API improvements.
 
