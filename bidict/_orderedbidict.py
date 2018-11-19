@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2018 Joshua Bronson. All Rights Reserved.
+# Copyright 2009-2018 Joshua Bronson. All Rights Reserved.
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -28,16 +28,14 @@
 
 """Provides :class:`OrderedBidict`."""
 
-from ._bidict import bidict
+from ._mut import MutableBidict
 from ._orderedbase import OrderedBidictBase
 
 
-# Inherit ordered behavior from OrderedBidict and mutable behavior from bidict.
-class OrderedBidict(OrderedBidictBase, bidict):
+class OrderedBidict(OrderedBidictBase, MutableBidict):
     """Mutable bidict type that maintains items in insertion order."""
 
     __slots__ = ()
-
     __hash__ = None  # since this class is mutable; explicit > implicit.
 
     def clear(self):

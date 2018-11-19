@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2018 Joshua Bronson. All Rights Reserved.
+# Copyright 2009-2018 Joshua Bronson. All Rights Reserved.
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -22,7 +22,7 @@
 
 #                             * Code review nav *
 #==============================================================================
-#  ← Prev: _bidict.py       Current: _orderedbase.py  Next: _frozenordered.py →
+# ← Prev: _bidict.py       Current: _orderedbase.py   Next: _frozenordered.py →
 #==============================================================================
 
 
@@ -138,14 +138,8 @@ class OrderedBidictBase(BidictBase):  # lgtm [py/missing-equals]
     _fwdm_cls = bidict
     _invm_cls = bidict
 
-    #: Can't delegate to e.g. :attr:`_fwdm` for more efficient implementations
-    #: of methods like :meth:`keys` because it isn't ordered.
-    #: Set to None to opt out of optimized-method delegation and
-    #: use default implementations from :class:`Mapping` instead.
-    __delegate__ = None
-
     #: The object used by :meth:`__repr__` for printing the contained items.
-    __repr_delegate__ = list
+    _repr_delegate = list
 
     def __init__(self, *args, **kw):
         """Make a new ordered bidirectional mapping.
@@ -303,5 +297,5 @@ class OrderedBidictBase(BidictBase):  # lgtm [py/missing-equals]
 
 #                             * Code review nav *
 #==============================================================================
-#  ← Prev: _bidict.py       Current: _orderedbase.py  Next: _frozenordered.py →
+# ← Prev: _bidict.py       Current: _orderedbase.py   Next: _frozenordered.py →
 #==============================================================================

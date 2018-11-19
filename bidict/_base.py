@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2018 Joshua Bronson. All Rights Reserved.
+# Copyright 2009-2018 Joshua Bronson. All Rights Reserved.
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -22,7 +22,7 @@
 
 #                             * Code review nav *
 #==============================================================================
-#  ← Prev: _abc.py             Current: _base.py     Next: _frozenbidict.py →
+# ← Prev: _abc.py             Current: _base.py   Next: _delegating_mixins.py →
 #==============================================================================
 
 
@@ -38,7 +38,7 @@ from ._exc import (
 from ._miss import _MISS
 from ._noop import _NOOP
 from ._util import _iteritems_args_kw
-from .compat import PY2, KeysView, ItemsView, iteritems, Mapping
+from .compat import PY2, KeysView, ItemsView, Mapping, iteritems
 
 
 # Since BidirectionalMapping implements __subclasshook__, and BidictBase
@@ -52,10 +52,7 @@ from .compat import PY2, KeysView, ItemsView, iteritems, Mapping
 class BidictBase(BidirectionalMapping):
     """Base class implementing :class:`BidirectionalMapping`."""
 
-    __slots__ = ['_fwdm', '_invm', '_inv', '_invweak', '_hash']
-
-    if not PY2:
-        __slots__.append('__weakref__')
+    __slots__ = ('_fwdm', '_invm', '_inv', '_invweak', '_hash') + (() if PY2 else ('__weakref__',))
 
     #: The default :class:`DuplicationPolicy`
     #: (in effect during e.g. :meth:`~bidict.bidict.__init__` calls)
@@ -94,7 +91,7 @@ class BidictBase(BidirectionalMapping):
     _invm_cls = dict
 
     #: The object used by :meth:`__repr__` for printing the contained items.
-    __repr_delegate__ = dict
+    _repr_delegate = dict
 
     def __init__(self, *args, **kw):  # pylint: disable=super-init-not-called
         """Make a new bidirectional dictionary.
@@ -194,7 +191,7 @@ class BidictBase(BidirectionalMapping):
         clsname = self.__class__.__name__
         if not self:
             return '%s()' % clsname
-        return '%s(%r)' % (clsname, self.__repr_delegate__(iteritems(self)))
+        return '%s(%r)' % (clsname, self._repr_delegate(iteritems(self)))
 
     # The inherited Mapping.__eq__ implementation would work, but it's implemented in terms of an
     # inefficient ``dict(self.items()) == dict(other.items())`` comparison, so override it with a
@@ -400,27 +397,15 @@ class BidictBase(BidirectionalMapping):
         """The number of contained items."""
         return len(self._fwdm)
 
-    @property
-    def __delegate__(self):
-        """An object to delegate to for optimized implementations
-        of various operations (e.g. :meth:`keys`) if available.
-        Override or set e.g. ``__delegate__ = None`` in a subclass to disable.
-        """
-        return self._fwdm
-
     def __iter__(self):  # lgtm [py/inheritance/incorrect-overridden-signature]
         """Iterator over the contained items."""
-        delegate = getattr(self.__delegate__, '__iter__', lambda: iter(self.keys()))
-        return delegate()
+        # No default implementation for __iter__ inherited from Mapping ->
+        # always delegate to _fwdm.
+        return iter(self._fwdm)
 
     def __getitem__(self, key):
         u"""*x.__getitem__(key)　⟺　x[key]*"""
         return self._fwdm[key]
-
-    def keys(self):
-        """A set-like object providing a view on the contained keys."""
-        delegate = getattr(self.__delegate__, 'keys', super(BidictBase, self).keys)
-        return delegate()
 
     def values(self):
         """A set-like object providing a view on the contained values.
@@ -434,18 +419,16 @@ class BidictBase(BidirectionalMapping):
         """
         return self.inv.keys()
 
-    def items(self):
-        """A set-like object providing a view on the contained items."""
-        delegate = getattr(self.__delegate__, 'items', super(BidictBase, self).items)
-        return delegate()
-
     if PY2:
-        def viewkeys(self):  # noqa: D102; pylint: disable=missing-docstring
-            delegate = getattr(self.__delegate__, 'viewkeys', lambda: KeysView(self))
-            return delegate()
+        # For iterkeys and iteritems, inheriting from Mapping already provides
+        # the best default implementations so no need to define here.
 
-        viewkeys.__doc__ = keys.__doc__
-        keys.__doc__ = 'A list of the contained keys.'
+        def itervalues(self):
+            """An iterator over the contained values."""
+            return self.inv.iterkeys()
+
+        def viewkeys(self):  # noqa: D102; pylint: disable=missing-docstring
+            return KeysView(self)
 
         def viewvalues(self):  # noqa: D102; pylint: disable=missing-docstring
             return self.inv.viewkeys()
@@ -454,25 +437,7 @@ class BidictBase(BidirectionalMapping):
         values.__doc__ = 'A list of the contained values.'
 
         def viewitems(self):  # noqa: D102; pylint: disable=missing-docstring
-            delegate = getattr(self.__delegate__, 'viewitems', lambda: ItemsView(self))
-            return delegate()
-
-        viewitems.__doc__ = items.__doc__
-        items.__doc__ = 'A list of the contained items.'
-
-        def iterkeys(self):
-            """An iterator over the contained keys."""
-            delegate = getattr(self.__delegate__, 'iterkeys', super(BidictBase, self).iterkeys)
-            return delegate()
-
-        def itervalues(self):
-            """An iterator over the contained values."""
-            return self.inv.iterkeys()
-
-        def iteritems(self):
-            """An iterator over the contained items."""
-            delegate = getattr(self.__delegate__, 'iteritems', super(BidictBase, self).iteritems)
-            return delegate()
+            return ItemsView(self)
 
         # __ne__ added automatically in Python 3 when you implement __eq__, but not in Python 2.
         def __ne__(self, other):  # noqa: N802
@@ -487,5 +452,5 @@ _NODUP = _DedupResult(False, False, _MISS, _MISS)
 
 #                             * Code review nav *
 #==============================================================================
-#  ← Prev: _abc.py             Current: _base.py     Next: _frozenbidict.py →
+# ← Prev: _abc.py             Current: _base.py   Next: _delegating_mixins.py →
 #==============================================================================

@@ -87,16 +87,23 @@ creating a sorted bidict type is dead simple:
 
 .. doctest::
 
+   >>> # As an optimization, bidict.bidict includes a mixin class that
+   >>> # we can't use here (namely bidict._delegating_mixins._DelegateKeysAndItemsToFwdm),
+   >>> # so extend the parent class, bidict.MutableBidict, instead.
+   >>> from bidict import MutableBidict
+
    >>> import sortedcontainers
 
-   >>> # a sorted bidict whose forward items stay sorted by their keys,
-   >>> # and whose inverse items stay sorted by *their* keys (i.e. it and
-   >>> # its inverse iterate over their items in different orders):
-
-   >>> class SortedBidict(bidict):
+   >>> class SortedBidict(MutableBidict):
+   ...     """A sorted bidict whose forward items stay sorted by their keys,
+   ...     and whose inverse items stay sorted by *their* keys.
+   ...     Note: As a result, an instance and its inverse yield their items
+   ...     in different orders.
+   ...     """
+   ...
    ...     _fwdm_cls = sortedcontainers.SortedDict
    ...     _invm_cls = sortedcontainers.SortedDict
-   ...     __repr_delegate__ = list
+   ...     _repr_delegate = list
 
    >>> b = SortedBidict({'Tokyo': 'Japan', 'Cairo': 'Egypt'})
    >>> b
@@ -108,21 +115,23 @@ creating a sorted bidict type is dead simple:
    >>> list(b.items())
    [('Cairo', 'Egypt'), ('Lima', 'Peru'), ('Tokyo', 'Japan')]
 
-   >>> # b.inv stays sorted by *its* keys (b's values!)
+   >>> # b.inv stays sorted by *its* keys (b's values)
    >>> list(b.inv.items())
    [('Egypt', 'Cairo'), ('Japan', 'Tokyo'), ('Peru', 'Lima')]
 
 
-   >>> # a sorted bidict whose forward items stay sorted by their keys,
-   >>> # and whose inverse items stay sorted by their values (i.e. it and
-   >>> # its inverse iterate over their items in the same order):
+Here's a recipe for a sorted bidict whose forward items stay sorted by their keys,
+and whose inverse items stay sorted by their values. i.e. An instance and its inverse
+will yield their items in *the same* order:
+
+.. doctest::
 
    >>> import sortedcollections
 
-   >>> class KeySortedBidict(bidict):
+   >>> class KeySortedBidict(MutableBidict):
    ...     _fwdm_cls = sortedcontainers.SortedDict
    ...     _invm_cls = sortedcollections.ValueSortedDict
-   ...     __repr_delegate__ = list
+   ...     _repr_delegate = list
 
    >>> element_by_atomic_number = KeySortedBidict({
    ...     3: 'lithium', 1: 'hydrogen', 2: 'helium'})

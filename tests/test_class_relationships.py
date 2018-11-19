@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2018 Joshua Bronson. All Rights Reserved.
+# Copyright 2009-2018 Joshua Bronson. All Rights Reserved.
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -111,16 +111,21 @@ def test_issubclass_internal():
     The relationships tested here are not guaranteed to hold in the future,
     but are still tested so that any unintentional changes won't go unnoticed.
     """
-    assert issubclass(OrderedBidict, bidict)
-
-    assert not issubclass(frozenbidict, bidict)
-    assert not issubclass(FrozenOrderedBidict, bidict)
-
+    assert not issubclass(bidict, FrozenOrderedBidict)
+    assert not issubclass(bidict, OrderedBidict)
     assert not issubclass(bidict, frozenbidict)
-    assert not issubclass(OrderedBidict, FrozenOrderedBidict)
 
-    assert not issubclass(FrozenOrderedBidict, frozenbidict)
     assert not issubclass(FrozenOrderedBidict, OrderedBidict)
+    assert not issubclass(FrozenOrderedBidict, bidict)
+    assert not issubclass(FrozenOrderedBidict, frozenbidict)
+
+    assert not issubclass(OrderedBidict, FrozenOrderedBidict)
+    assert not issubclass(OrderedBidict, bidict)
+    assert not issubclass(OrderedBidict, frozenbidict)
+
+    assert not issubclass(frozenbidict, FrozenOrderedBidict)
+    assert not issubclass(frozenbidict, OrderedBidict)
+    assert not issubclass(frozenbidict, bidict)
 
 
 def test_abstract_bimap_init_fails():

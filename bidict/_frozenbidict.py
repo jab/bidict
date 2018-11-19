@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2018 Joshua Bronson. All Rights Reserved.
+# Copyright 2009-2018 Joshua Bronson. All Rights Reserved.
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -22,16 +22,17 @@
 
 #                             * Code review nav *
 #==============================================================================
-#  ← Prev: _base.py        Current: _frozenbidict.py       Next: _bidict.py →
+# ← Prev: _delegating_mixins.py  Current: _frozenbidict.py      Next: _mut.py →
 #==============================================================================
 
 """Provides :class:`frozenbidict`, an immutable, hashable bidirectional mapping type."""
 
 from ._base import BidictBase
+from ._delegating_mixins import _DelegateKeysAndItemsToFwdm
 from .compat import ItemsView
 
 
-class frozenbidict(BidictBase):  # noqa: N801; pylint: disable=invalid-name
+class frozenbidict(_DelegateKeysAndItemsToFwdm, BidictBase):  # noqa: N801,E501; pylint: disable=invalid-name
     """Immutable, hashable bidict type."""
 
     __slots__ = ()
@@ -46,5 +47,5 @@ class frozenbidict(BidictBase):  # noqa: N801; pylint: disable=invalid-name
 
 #                             * Code review nav *
 #==============================================================================
-#  ← Prev: _base.py        Current: _frozenbidict.py       Next: _bidict.py →
+# ← Prev: _delegating_mixins.py  Current: _frozenbidict.py      Next: _mut.py →
 #==============================================================================

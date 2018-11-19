@@ -41,6 +41,10 @@ Status
    :target: https://www.codacy.com/app/jab/bidict
    :alt: Codacy grade
 
+.. image:: https://bestpractices.coreinfrastructure.org/projects/2354/badge
+   :target: https://bestpractices.coreinfrastructure.org/en/projects/2354
+   :alt: CII best practices badge
+
 .. image:: https://tidelift.com/badges/github/jab/bidict
    :target: https://tidelift.com/subscription/pkg/pypi-bidict?utm_source=pypi-bidict&utm_medium=referral&utm_campaign=docs
    :alt: Tidelift dependency badge

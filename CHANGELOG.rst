@@ -22,6 +22,26 @@ Tip: `Subscribe to bidict releases <https://libraries.io/pypi/bidict>`__
 on libraries.io to be notified when new versions of bidict are released.
 
 
+0.17.5 (2018-11-19)
+-------------------
+
+Improvements to performance and delegation logic,
+with minor breaking changes to semi-private APIs.
+
+- Remove the ``__delegate__`` instance attribute added in the previous release.
+  It was overly general and not worth the cost.
+
+  Instead of checking ``self.__delegate__`` and delegating accordingly
+  each time a possibly-delegating method is called,
+  revert back to using "delegated-to-fwdm" mixin classes
+  (now found in ``bidict._delegating_mixins``),
+  and resurrect a mutable bidict parent class that omits the mixins
+  as :class:`bidict.MutableBidict`.
+
+- Rename ``__repr_delegate__`` to
+  :class:`~bidict.BidictBase._repr_delegate`.
+
+
 0.17.4 (2018-11-14)
 -------------------
 
@@ -39,8 +59,8 @@ Minor code, interop, and (semi-)private API improvements.
   and instead move their methods
   into :class:`~bidict.BidictBase`,
   which now checks for an object defined by the
-  :attr:`~bidict.BidictBase.__delegate__` attribute.
-  The :attr:`~bidict.BidictBase.__delegate__` object
+  ``BidictBase.__delegate__`` attribute.
+  The ``BidictBase.__delegate__`` object
   will be delegated to if the method is available on it,
   otherwise a default implementation
   (e.g. inherited from :class:`~collections.abc.Mapping`)
@@ -50,8 +70,8 @@ Minor code, interop, and (semi-)private API improvements.
   Consolidate ``_MutableBidict`` into :class:`bidict.bidict`
   now that the dropped mixin classes make it unnecessary.
 
-- Change :attr:`~bidict.BidictBase.__repr_delegate__`
-  to take simply a type like :class:`dict` or :class:`list`.
+- Change ``__repr_delegate__``
+  to simply take a type like :class:`dict` or :class:`list`.
 
 - Upgrade to latest major
   `sortedcontainers <https://github.com/grantjenks/python-sortedcontainers>`__
@@ -64,7 +84,7 @@ Minor code, interop, and (semi-)private API improvements.
   :class:`~collections.abc.Mapping` interface,
   and provides fallback implementations when the methods are unavailable.
   This allows the :ref:`extending:Sorted Bidict Recipes`
-  to continue to work with sortedcontainers v2 on Python2.
+  to continue to work with sortedcontainers v2 on Python 2.
 
 
 0.17.3 (2018-09-18)
@@ -221,7 +241,7 @@ Miscellaneous
 
 - :func:`~bidict.BidictBase.__repr__` no longer checks for a ``__reversed__``
   method to determine whether to use an ordered or unordered-style repr.
-  It now calls the new :attr:`~bidict.BidictBase.__repr_delegate__` instead
+  It now calls the new ``__repr_delegate__`` instead
   (which may be overridden if needed), for better composability.
 
 Minor Breaking API Changes

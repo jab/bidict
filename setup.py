@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2018 Joshua Bronson. All Rights Reserved.
+# Copyright 2009-2018 Joshua Bronson. All Rights Reserved.
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -52,7 +52,7 @@ TEST_REQS = [
     'hypothesis < 4',
     'hypothesis-pytest < 1',
     'py < 2',
-    'pytest < 4',
+    'pytest < 5',
     'pytest-benchmark < 4',
     'sortedcollections < 2',
     'sortedcontainers < 3',

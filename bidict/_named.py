@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2018 Joshua Bronson. All Rights Reserved.
+# Copyright 2009-2018 Joshua Bronson. All Rights Reserved.
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -55,7 +55,7 @@ def namedbidict(typename, keyname, valname, base_type=bidict):
     if not all(map(_VALID_NAME.match, names)) or keyname == valname:
         raise ValueError(names)
 
-    class _Named(base_type):
+    class _Named(base_type):  # pylint: disable=too-many-ancestors
 
         __slots__ = ()
 

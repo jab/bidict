@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2018 Joshua Bronson. All Rights Reserved.
+# Copyright 2009-2018 Joshua Bronson. All Rights Reserved.
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -44,6 +44,7 @@ Efficient, Pythonic bidirectional map implementation and related functionality.
 
 from ._abc import BidirectionalMapping
 from ._base import BidictBase
+from ._mut import MutableBidict
 from ._bidict import bidict
 from ._dup import DuplicationPolicy, IGNORE, OVERWRITE, RAISE
 from ._exc import (
@@ -84,6 +85,7 @@ __all__ = (
     'ValueDuplicationError',
     'KeyAndValueDuplicationError',
     'BidictBase',
+    'MutableBidict',
     'frozenbidict',
     'bidict',
     'namedbidict',
