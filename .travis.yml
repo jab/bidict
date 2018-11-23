@@ -52,30 +52,40 @@ after_script:
 
 
 matrix:
+  allow_failures:
+    - env: TASK=docs-linkcheck
   include:
     # Each job below performs a single task. Setting a per-job "TASK" env var
-    # causes Travis to show it for each job in the web UI.
+    # causes Travis to clearly show each job's task in the web UI,
+    # and also enables the clear TASK-based allow_failures spelling above.
 
     ## "TEST" tasks: Run the test suite with various Python versions.
     ### Enable coverage for the most recent {CPython, PyPy} x {2, 3} releases.
     - python: "3.7"
       env: TASK=test COVERAGE=1
+
     - python: "2.7"
       env: TASK=test COVERAGE=1
+
     - python: pypy3
       env: TASK=test COVERAGE=1
       # pypy3 not currently available on xenial
       dist: trusty
+
     - python: pypy
       env: TASK=test COVERAGE=1
       # pypy not currently available on xenial
       dist: trusty
+
     - python: "3.8-dev"
       env: TASK=test
+
     - python: "3.6"
       env: TASK=test
+
     - python: "3.5"
       env: TASK=test
+
     - python: "3.4"
       env: TASK=test
 
@@ -91,27 +101,32 @@ matrix:
       before_install: skip
       install: travis_retry pip install 'pydocstyle<2.2'  # keep in sync with the version in setup.py
       script: pydocstyle $LINT_SRC
-    - env: TASK=build-docs
+
+    - env: TASK=docs-build
       before_install: skip
       install: travis_retry pip install Sphinx
-      script:
-        - ./build-docs.sh
-        - cd docs
-        - travis_retry make linkcheck
+      script: ./build-docs.sh
+
+    - env: TASK=docs-linkcheck
+      before_install: skip
+      install: travis_retry pip install Sphinx
+      script: cd docs; travis_retry make linkcheck
+
     - env: TASK=flake8
       before_install: skip
       install: travis_retry pip install 'flake8<3.6'  # keep in sync with the version in setup.py
       script: flake8 $LINT_SRC
+
     - env: TASK=pylint
       before_install: skip
       install: travis_retry pip install 'pylint<2.2' 'hypothesis<4' 'pytest<4'  # keep in sync with the versions in setup.py
       script: pylint --jobs=0 $LINT_SRC
+
     - env: TASK=test-with-optimization-flag  # make sure there are no relied-on side effects in assert statements
       before_install: skip
       install: skip
       script: python -O -m doctest -o IGNORE_EXCEPTION_DETAIL -o ELLIPSIS tests/*.txt
 
-    # XXX This presumably deploys all tags to PyPI, not just tags for releases.
     - stage: deploy-if-tag
       env: TASK=deploy-if-tag
       before_install: skip
@@ -124,6 +139,8 @@ matrix:
             secure: B9LLgXkTbtjeC/IbH4wh9PEBzvKEAuYo3EBNW5f1xuLqVqtsysIyxJa5ar/FQ4qwUCBwZPFAXFurN3lLzRhb2Tc04YQ0GYVv6f8lkzwrjoWau4iB9Qt/nnvdRa7KryEJvtenHCAnwoEUaADCjkZjwo6fIA0hEOLB6/AYfhfgXYA=
           on:
             tags: true
+            # Does this deploy all tags to PyPI, not just release tags?
+            # https://docs.travis-ci.com/user/deployment/pypi/ doesn't say.
           distributions: "sdist bdist_wheel"
 
 
