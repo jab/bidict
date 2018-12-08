@@ -76,6 +76,7 @@ Python's data model
     This is consistent with the fact that
     :class:`object` implements ``__hash__()``,
     but subclasses of :class:`object`
+    that override :meth:`~object.__eq__`
     are not hashable by default.
 
 - Surprising :class:`~collections.abc.Mapping` corner cases:
