@@ -40,8 +40,11 @@ else:
 with c_open(join(CWD, 'README.rst'), encoding='utf-8') as f:
     LONG_DESCRIPTION = f.read()
 
+
+# Manually keep these version pins in sync with those in .travis.yml and .pre-commit-config.yaml.
+
 SETUP_REQS = [
-    'setuptools_scm',
+    'setuptools_scm < 4',
 ]
 
 SPHINX_REQ = 'Sphinx < 2'
@@ -74,11 +77,9 @@ DEV_REQ = SETUP_REQS + TEST_REQS + COVERAGE_REQS + DOCS_REQS + [
     # The following dependencies have a higher chance of suddenly causing CI to fail after updating
     # even between minor versions so pin to currently-working minor versions. Upgrade to newer
     # minor versions manually to have a chance to fix any resulting breakage before it hits CI.
-    # *** Keep these in sync with the versions in .travis.yml and .pre-commit-config.yaml ***
     'flake8 < 3.7',
     'pydocstyle < 2.2',
-    # Pylint 2.2 drops Py2-specific checks: https://github.com/PyCQA/pylint/issues/1896
-    'pylint < 2.2',
+    'pylint < 2.3',
 ]
 
 setup(

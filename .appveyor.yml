@@ -15,4 +15,4 @@ build_script:
   - "pip install -e .[test]"
 
 test_script:
-  - "python run-tests.py"
+  - "python run_tests.py"
