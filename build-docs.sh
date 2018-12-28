@@ -6,37 +6,54 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
+set -euo pipefail
 
-LAST_EXIT="0"
+log() {
+  echo >&2 " *" "$@"
+}
 
-# Generate a new types diagram image from the source file if it's been modified
-GRAPH_SRC="bidict-types-diagram.dot"
-MODIFIED_GRAPH_SRC="$(git ls-files -m | grep ${GRAPH_SRC})"
+# Generate a new graph image from its source file if it's been modified.
+update_graph() {
+  local -r graph_src="bidict-types-diagram.dot"
+  local -r graph_dst="${graph_src%.*}.png"
 
-if [[ -n "${MODIFIED_GRAPH_SRC}" ]]; then
-  MODIFIED_GRAPH_DST="${MODIFIED_GRAPH_SRC%.*}.png"
-  if which dot &>/dev/null ; then
-    dot -v -Tpng -o "${MODIFIED_GRAPH_DST}" < "${MODIFIED_GRAPH_SRC}"
-    LAST_EXIT="$?"
-    if [[ "${LAST_EXIT}" -ne 0 ]]; then
-      echo -e "\033[0;31m* dot exited nonzero (${LAST_EXIT})\033[0m\0007"
-    else
-      if which optipng &>/dev/null ; then
-        optipng "${MODIFIED_GRAPH_DST}"
-        LAST_EXIT="$?"
-        if [[ "LAST_EXIT" -ne 0 ]]; then
-          echo -e "\033[0;31m* optipng exited nonzero (${LAST_EXIT})\033[0m\0007"
-        fi
-      else
-        echo -e "\033[0;31m* optipng not found, skipping. Hint: brew install optipng\033[0m\0007"
-      fi
-    fi
-  else
-    echo -e "\033[0;31m* dot not found, skipping. Hint: brew install graphviz\033[0m\0007"
+  if [[ ! "$(git diff --name-only -- "$graph_src")" ]] &&
+    [[ ! "$(git diff --name-only --cached -- "$graph_src")" ]]; then
+    log "$graph_src not modified -> skipping graph update."
+    return 0
   fi
-fi
 
+  if ! command -v dot &>/dev/null; then
+    log "'dot' not found -> skipping graph update. Hint: brew install graphviz"
+    return 1
+  fi
 
-# Build the docs.
-cd docs
-make clean html
+  if ! dot -v -Tpng -o "$graph_dst" <"$graph_src"; then
+    log "dot exited nonzero."
+    return 1
+  fi
+
+  # return 0 if any of the below fail because running dot succeeded, which is the main thing.
+  if ! command -v optipng &>/dev/null; then
+    log "'optipng' not found -> skipping png optimization. Hint: brew install optipng"
+    return 0
+  fi
+
+  if ! optipng "$graph_dst"; then
+    log "optipng exited nonzero."
+    return 0
+  fi
+}
+
+# Use parentheses instead of braces around body so it runs in a subshell -> cd doesn't leak.
+build_docs() (
+  cd docs
+  make clean html
+)
+
+main() {
+  update_graph
+  build_docs
+}
+
+main
