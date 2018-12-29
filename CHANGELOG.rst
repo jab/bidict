@@ -22,6 +22,12 @@ Tip: `Subscribe to bidict releases <https://libraries.io/pypi/bidict>`__
 on libraries.io to be notified when new versions of bidict are released.
 
 
+0.17.6 (not yet released)
+-------------------------
+
+- Add Python 2/3-compatible :attr:`bidict.compat.collections_abc` alias.
+
+
 0.17.5 (2018-11-19)
 -------------------
 

@@ -40,6 +40,7 @@ if PY2:
 
     # In Python 3, the collections ABCs were moved into collections.abc, which does not exist in
     # Python 2. Support for importing them directly from collections is dropped in Python 3.8.
+    import collections as collections_abc  # noqa: F401
     from collections import (  # noqa: F401 (imported but unused)
         Mapping, MutableMapping, KeysView, ValuesView, ItemsView)
 
@@ -56,6 +57,7 @@ else:
     if PYMAJOR == 3 and PYMINOR < 3:  # pragma: no cover
         warn('Python3 < 3.3 is unsupported.')
 
+    import collections.abc as collections_abc  # noqa: F401 (imported but unused)
     from collections.abc import (  # noqa: F401 (imported but unused)
         Mapping, MutableMapping, KeysView, ValuesView, ItemsView)
 

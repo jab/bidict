@@ -1,59 +1,77 @@
-language: python
+language: 'python'
 
 # Version used for jobs that don't override it (e.g. the one-off jobs):
-python: "3.7"
+python: '3.7'
 
 # Xenial is required for Python 3.7 and 3.8-dev. Just use it for all jobs.
 # Update to 18.04 when https://github.com/travis-ci/travis-ci/issues/5821 is fixed.
-dist: xenial
+dist: 'xenial'
 
 
 env:
   global:
-    - VENV_ROOT="$HOME/venv"
-    - LINT_SRC="$(ls bidict/*.py tests/*.py setup.py)"
-    - HYPOTHESIS_PROFILE=$([[ $TRAVIS_EVENT_TYPE = "cron" ]] && echo "MORE_EXAMPLES")
+    - 'VENV_ROOT="$HOME/venv"'
+    - 'LINT_SRC="$(ls bidict/*.py tests/*.py tests/*/*.py setup.py)"'
+    - 'HYPOTHESIS_PROFILE="$([[ "$TRAVIS_EVENT_TYPE" == "cron" ]] && echo "MORE_EXAMPLES")"'
 
 
 before_install:
-  - echo 'TRAVIS_PULL_REQUEST_SHA:' $TRAVIS_PULL_REQUEST_SHA
-  - echo 'TRAVIS_COMMIT:' $TRAVIS_COMMIT
-  - git --no-pager log -n2
+  - 'echo "TRAVIS_PULL_REQUEST_SHA: $TRAVIS_PULL_REQUEST_SHA"'
+  - 'echo "TRAVIS_COMMIT: $TRAVIS_COMMIT"'
+  - 'git --no-pager log -n2'
   # Travis does a shallow (--depth=50) clone by default.
   # Clone the full history as requested by setuptools_scm.
-  - travis_retry git fetch --unshallow
+  - 'travis_retry git fetch --unshallow'
+  # Install Python on macOS since https://github.com/travis-ci/travis-ci/issues/2312 is WONTFIXed.
+  - |
+    if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+      env | sort
+      echo
+      echo "TRAVIS_PYTHON_VERSION=$TRAVIS_PYTHON_VERSION"
+      if ! type -P "python$TRAVIS_PYTHON_VERSION"; then
+        export HOMEBREW_NO_AUTO_UPDATE=1
+        brew tap minrk/homebrew-python-frameworks
+        brew cask install "python-framework-${TRAVIS_PYTHON_VERSION/./}"
+      fi
+      declare -r python="$(type -P "python$TRAVIS_PYTHON_VERSION")"
+      echo python is "$python"
+      travis_retry curl https://bootstrap.pypa.io/get-pip.py | python
+      python -m pip install virtualenv
+      python -m virtualenv -p "$python" ~/travis-env
+      source ~/travis-env/bin/activate
+      type python
+    fi
+  - 'python --version'
   # https://github.com/python-trio/trio/issues/487#issuecomment-377931587
-  - echo 'Installing latest pip...'
-  - travis_retry curl https://bootstrap.pypa.io/get-pip.py | python
-  - pip --version
+  - 'echo "Installing latest pip..."'
+  - 'travis_retry curl https://bootstrap.pypa.io/get-pip.py | python'
+  - 'pip --version'
 
 
 install:  # Install our test dependencies.
-  - export EXTRAS="test"
-  - if [[ -n $COVERAGE ]]; then export EXTRAS="${EXTRAS},coverage"; fi
-  - travis_retry pip install .[$EXTRAS]
-  - pip list
+  - 'travis_retry pip install .[test"$([[ "$COVERAGE" ]] && echo ",coverage")"]'
+  - 'pip list'
 
 
 script:  # Run our test suite.
-  - if [[ -n $COVERAGE ]]; then export PYTEST_ADDOPTS="--cov=bidict --cov-config=.coveragerc"; fi
-  - ./run_tests.py
+  - 'export PYTEST_ADDOPTS="$([[ "$COVERAGE" ]] && echo "--cov=bidict --cov-config=.coveragerc")"'
+  - './run_tests.py'
 
 
 after_script:
   - |
-      if [[ -n $COVERAGE ]]; then
-        echo "Installing codecov..."
-        travis_retry pip install codecov || exit 1
-        echo
-        echo "Uploading coverage report to codecov..."
-        travis_retry codecov
-      fi
+    if [[ "$COVERAGE" ]]; then
+      echo "Installing codecov..."
+      travis_retry pip install codecov || exit 1
+      echo
+      echo "Uploading coverage report to codecov..."
+      travis_retry codecov
+    fi
 
 
 matrix:
   allow_failures:
-    - env: TASK=docs-linkcheck
+    - env: 'TASK=docs-linkcheck'
   include:
     # Each job below performs a single task. Setting a per-job "TASK" env var
     # causes Travis to clearly show each job's task in the web UI,
@@ -61,102 +79,106 @@ matrix:
 
     ## "TEST" tasks: Run the test suite with various Python versions.
     ### Enable coverage for the most recent {CPython, PyPy} x {2, 3} releases.
-    - python: "3.7"
-      env: TASK=test COVERAGE=1
+    - python: '3.7'
+      env: 'TASK=test COVERAGE=1'
 
-    - python: "2.7"
-      env: TASK=test COVERAGE=1
+    - python: '2.7'
+      env: 'TASK=test COVERAGE=1'
 
-    - python: pypy3
-      env: TASK=test COVERAGE=1
+    - python: 'pypy3'
+      env: 'TASK=test COVERAGE=1'
       # pypy3 not currently available on xenial
-      dist: trusty
+      dist: 'trusty'
 
-    - python: pypy
-      env: TASK=test COVERAGE=1
+    - python: 'pypy'
+      env: 'TASK=test COVERAGE=1'
       # pypy not currently available on xenial
-      dist: trusty
+      dist: 'trusty'
 
-    - python: "3.8-dev"
-      env: TASK=test
+    - python: '3.8-dev'
+      env: 'TASK=test'
 
-    - python: "3.6"
-      env: TASK=test
+    - python: '3.6'
+      env: 'TASK=test'
 
-    - python: "3.5"
-      env: TASK=test
+    - python: '3.5'
+      env: 'TASK=test'
 
-    - python: "3.4"
-      env: TASK=test
+    - python: '3.4'
+      env: 'TASK=test'
 
     ## macOS
-    ### Commented out pending https://github.com/travis-ci/travis-ci/issues/2312
-    ####- python: "2.7"
-    ####  env: TASK=test
-    ####  os: osx
-    ####  osx_image: xcode9.2
+    - python: '2.7'
+      env: 'TASK=test TRAVIS_PYTHON_VERSION=2.7'
+      os: 'osx'
+      language: 'generic'
+
+    - python: '3.7'
+      env: 'TASK=test TRAVIS_PYTHON_VERSION=3.7'
+      os: 'osx'
+      language: 'generic'
 
     ## Other checks. Override "install", "before_install", and "script" to do each of these instead.
-    - env: TASK=pydocstyle
-      before_install: skip
-      install: travis_retry pip install 'pydocstyle<2.2'  # keep in sync with the version in setup.py
-      script: pydocstyle $LINT_SRC
+    - env: 'TASK=pydocstyle'
+      before_install: 'skip'
+      install: 'travis_retry pip install "pydocstyle<2.2"'  # keep in sync with the version in setup.py
+      script: 'pydocstyle $LINT_SRC'
 
-    - env: TASK=docs-build
-      before_install: skip
-      install: travis_retry pip install Sphinx
-      script: ./build-docs.sh
+    - env: 'TASK=docs-build'
+      before_install: 'skip'
+      install: 'travis_retry pip install "Sphinx<2"'  # keep in sync with the version in setup.py
+      script: './build-docs.sh'
 
-    - env: TASK=docs-linkcheck
-      before_install: skip
-      install: travis_retry pip install Sphinx
-      script: cd docs; travis_retry make linkcheck
+    - env: 'TASK=docs-linkcheck'
+      before_install: 'skip'
+      install: 'travis_retry pip install "Sphinx<2"'  # keep in sync with the version in setup.py
+      script: '(cd docs && travis_retry make linkcheck)'
 
-    - env: TASK=flake8
-      before_install: skip
-      install: travis_retry pip install 'flake8<3.6'  # keep in sync with the version in setup.py
-      script: flake8 $LINT_SRC
+    - env: 'TASK=flake8'
+      before_install: 'skip'
+      install: 'travis_retry pip install "flake8<3.7"'  # keep in sync with the version in setup.py
+      script: 'flake8 $LINT_SRC'
 
-    - env: TASK=pylint
-      before_install: skip
-      install: travis_retry pip install 'pylint<2.2' 'hypothesis<4' 'pytest<4'  # keep in sync with the versions in setup.py
-      script: pylint --jobs=0 $LINT_SRC
+    - env: 'TASK=pylint'
+      before_install: 'skip'
+      install: 'travis_retry pip install "pylint<2.3" "hypothesis<4" "pytest<5"'  # keep in sync with the versions in setup.py
+      script: 'pylint --jobs=0 $LINT_SRC'
 
-    - env: TASK=test-with-optimization-flag  # make sure there are no relied-on side effects in assert statements
-      before_install: skip
-      install: skip
-      script: python -O -m doctest -o IGNORE_EXCEPTION_DETAIL -o ELLIPSIS tests/*.txt
+    - env: 'TASK=test-with-optimization-flag'  # make sure there are no relied-on side effects in assert statements
+      before_install: 'skip'
+      install: 'skip'
+      script: 'python -O -m doctest -o IGNORE_EXCEPTION_DETAIL -o ELLIPSIS tests/*.txt'
 
-    - stage: deploy-if-tag
-      env: TASK=deploy-if-tag
-      before_install: skip
-      install: skip
-      script: skip
+    - stage: 'deploy-if-tag'
+      env: 'TASK=deploy-if-tag'
+      before_install: 'skip'
+      install: 'skip'
+      script: 'skip'
       deploy:
-        - provider: pypi
-          user: jab
+        - provider: 'pypi'
+          user: 'jab'
           password:
-            secure: B9LLgXkTbtjeC/IbH4wh9PEBzvKEAuYo3EBNW5f1xuLqVqtsysIyxJa5ar/FQ4qwUCBwZPFAXFurN3lLzRhb2Tc04YQ0GYVv6f8lkzwrjoWau4iB9Qt/nnvdRa7KryEJvtenHCAnwoEUaADCjkZjwo6fIA0hEOLB6/AYfhfgXYA=
+            secure: 'B9LLgXkTbtjeC/IbH4wh9PEBzvKEAuYo3EBNW5f1xuLqVqtsysIyxJa5ar/FQ4qwUCBwZPFAXFurN3lLzRhb2Tc04YQ0GYVv6f8lkzwrjoWau4iB9Qt/nnvdRa7KryEJvtenHCAnwoEUaADCjkZjwo6fIA0hEOLB6/AYfhfgXYA='
           on:
             tags: true
             # Does this deploy all tags to PyPI, not just release tags?
             # https://docs.travis-ci.com/user/deployment/pypi/ doesn't say.
-          distributions: "sdist bdist_wheel"
+          distributions: 'sdist bdist_wheel'
 
 
 before_cache:
-  - rm -rf $HOME/.cache/pip/log
+  - 'rm -rf "$HOME"/.cache/pip/log'
 
 
 cache:
   directories:
-    - $HOME/.cache/pip
-    - $HOME/.hypothesis
+    - '"$HOME"/.cache/pip'
+    - '"$HOME"/.hypothesis'
 
 
 notifications:
   webhooks:
     urls:
-      - https://webhooks.gitter.im/e/bf64fb45a633c0935b9b
+      - 'https://webhooks.gitter.im/e/bf64fb45a633c0935b9b'
   email:
-    recipients: jab@math.brown.edu
+    recipients: 'jab@math.brown.edu'

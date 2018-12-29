@@ -18,7 +18,7 @@ from bidict import bidict, frozenbidict, FrozenOrderedBidict, OrderedBidict, Bid
 from bidict.compat import Mapping, MutableMapping, PY2
 
 
-class OldStyleClass:  # pylint: disable=old-style-class,no-init,too-few-public-methods
+class OldStyleClass:  # pylint: disable=no-init,too-few-public-methods
     """In Python 2 this is an old-style class (not derived from object)."""
 
 

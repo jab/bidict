@@ -65,6 +65,14 @@ def namedbidict(typename, keyname, valname, base_type=bidict):
         def _getinv(self):
             return self if self._isinv else self.inv
 
+        @property
+        def _keyname(self):
+            return valname if self._isinv else keyname
+
+        @property
+        def _valname(self):
+            return keyname if self._isinv else valname
+
         def __reduce__(self):
             return (_make_empty, (typename, keyname, valname, base_type), self.__getstate__())
 

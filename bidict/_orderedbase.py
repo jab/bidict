@@ -130,7 +130,7 @@ class _Sentinel(_Node):  # pylint: disable=too-few-public-methods
             node = getattr(node, attr)
 
 
-class OrderedBidictBase(BidictBase):  # lgtm [py/missing-equals]
+class OrderedBidictBase(BidictBase):
     """Base class implementing an ordered :class:`BidirectionalMapping`."""
 
     __slots__ = ('_sntl',)
@@ -290,6 +290,7 @@ class OrderedBidictBase(BidictBase):  # lgtm [py/missing-equals]
 
         *See also* :ref:`eq-order-insensitive`
         """
+        # Same short-circuit as BidictBase.__eq__. Factoring out not worth function call overhead.
         if not isinstance(other, Mapping) or len(self) != len(other):
             return False
         return all(i == j for (i, j) in izip(iteritems(self), iteritems(other)))
