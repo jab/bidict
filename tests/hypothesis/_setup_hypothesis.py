@@ -12,7 +12,6 @@ from hypothesis import HealthCheck, settings, unlimited
 
 
 MAX_EXAMPLES_DEFAULT = 200
-MAX_EXAMPLES_MORE = MAX_EXAMPLES_DEFAULT * 10
 NOCHECK_SLOW = (HealthCheck.hung_test, HealthCheck.too_slow)
 PROFILE_DEFAULT = {
     'max_examples': int(getenv('HYPOTHESIS_MAX_EXAMPLES') or MAX_EXAMPLES_DEFAULT),
@@ -23,13 +22,13 @@ PROFILE_DEFAULT = {
 }
 PROFILE_MORE_EXAMPLES = dict(
     PROFILE_DEFAULT,
-    max_examples=int(getenv('HYPOTHESIS_MAX_EXAMPLES') or MAX_EXAMPLES_MORE),
+    max_examples=int(getenv('HYPOTHESIS_MAX_EXAMPLES') or MAX_EXAMPLES_DEFAULT * 10),
     suppress_health_check=NOCHECK_SLOW,
 )
-settings.register_profile('DEFAULT', **PROFILE_DEFAULT)
-settings.register_profile('MORE_EXAMPLES', **PROFILE_MORE_EXAMPLES)
+settings.register_profile('default', **PROFILE_DEFAULT)
+settings.register_profile('more-examples', **PROFILE_MORE_EXAMPLES)
 
 
-def load_profile(name=getenv('HYPOTHESIS_PROFILE', 'DEFAULT')):
+def load_profile(name=getenv('HYPOTHESIS_PROFILE') or 'default'):
     """Load the Hypothesis profile with the given name."""
     settings.load_profile(name)

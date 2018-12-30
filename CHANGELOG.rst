@@ -27,6 +27,8 @@ on libraries.io to be notified when new versions of bidict are released.
 
 - Add Python 2/3-compatible :attr:`bidict.compat.collections_abc` alias.
 
+- Warn on Python 3 < 3.4 rather than on Python 3 < 3.3.
+
 
 0.17.5 (2018-11-19)
 -------------------

@@ -30,7 +30,7 @@ DICTS_ORDERED = PYPY or (CPY and (PYMAJOR, PYMINOR) >= (3, 6))  #:
 if PY2:
 
     if PYMINOR < 7:  # pragma: no cover
-        warn('Python < 2.7 is unsupported.')
+        warn('Python < 2.7 is not officially supported.')
 
     # abstractproperty deprecated in Python 3.3 in favor of using @property with @abstractmethod.
     # Before 3.3, this silently fails to detect when an abstract property has not been overridden.
@@ -40,7 +40,7 @@ if PY2:
 
     # In Python 3, the collections ABCs were moved into collections.abc, which does not exist in
     # Python 2. Support for importing them directly from collections is dropped in Python 3.8.
-    import collections as collections_abc  # noqa: F401
+    import collections as collections_abc  # noqa: F401 (imported but unused)
     from collections import (  # noqa: F401 (imported but unused)
         Mapping, MutableMapping, KeysView, ValuesView, ItemsView)
 
@@ -54,8 +54,8 @@ if PY2:
 
 else:
     # Assume Python 3 when not PY2, but explicitly check before showing this warning.
-    if PYMAJOR == 3 and PYMINOR < 3:  # pragma: no cover
-        warn('Python3 < 3.3 is unsupported.')
+    if PYMAJOR == 3 and PYMINOR < 4:  # pragma: no cover
+        warn('Python3 < 3.4 is not officially supported.')
 
     import collections.abc as collections_abc  # noqa: F401 (imported but unused)
     from collections.abc import (  # noqa: F401 (imported but unused)
