@@ -55,11 +55,8 @@ TEST_REQS = [
     'hypothesis < 4',
     'hypothesis-pytest < 1',
     'py < 2',
-    # pytest-benchmark not yet compatible with pytest 4.1
-    # so pin to pytest < 4.1 pending https://github.com/ionelmc/pytest-benchmark/issues/124
-    #'pytest < 5',
-    'pytest < 4.1',
-    'pytest-benchmark < 4',
+    'pytest < 5',
+    'pytest-benchmark >= 3.2.0, < 4',
     'sortedcollections < 2',
     'sortedcontainers < 3',
     # pytest's doctest support doesn't support Sphinx extensions
