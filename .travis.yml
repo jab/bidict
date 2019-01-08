@@ -48,7 +48,7 @@ before_install:  # Ensure we have the required versions of Python and Pip.
 
 
 install:  # Install our test dependencies.
-  - 'travis_retry pip install .[test$([[ $COVERAGE ]] && echo ",coverage")]'
+  - 'travis_retry pip install -U --upgrade-strategy=eager .[test$([[ $COVERAGE ]] && echo ",coverage")]'
   - 'pip list'
 
 
