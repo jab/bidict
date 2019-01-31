@@ -76,8 +76,8 @@ DEV_REQ = SETUP_REQS + TEST_REQS + COVERAGE_REQS + DOCS_REQS + [
     # The following dependencies have a higher chance of suddenly causing CI to fail after updating
     # even between minor versions so pin to currently-working minor versions. Upgrade to newer
     # minor versions manually to have a chance to fix any resulting breakage before it hits CI.
-    'flake8 < 3.7',
-    'pydocstyle < 2.2',
+    'flake8 < 3.8',
+    'pydocstyle < 3.1',
     'pylint < 2.3',
 ]
 
@@ -104,7 +104,6 @@ setup(
         'Operating System :: OS Independent',
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.4',
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',

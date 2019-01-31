@@ -25,9 +25,16 @@ on libraries.io to be notified when new versions of bidict are released.
 0.17.6 (not yet released)
 -------------------------
 
+- Stop testing Python 3.4 on CI,
+  and warn when Python 3 < 3.5 is detected
+  rather than Python 3 < 3.3.
+
+  According to `PyPI Stats <https://pypistats.org/packages/bidict>`__,
+  Python 3.4 represents only about 3% of bidict downloads as of January 2019.
+  The latest release of Pip has also deprecated support for Python 3.4.
+
 - Add Python 2/3-compatible :attr:`bidict.compat.collections_abc` alias.
 
-- Warn on Python 3 < 3.4 rather than on Python 3 < 3.3.
 
 
 0.17.5 (2018-11-19)

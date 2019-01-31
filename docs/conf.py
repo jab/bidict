@@ -31,7 +31,7 @@ import os
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 sys.path.insert(0, os.path.abspath('..'))
 
-import bidict  # pylint: disable=wrong-import-position
+import bidict  # noqa: E402; pylint: disable=wrong-import-position
 
 # -- General configuration ------------------------------------------------
 

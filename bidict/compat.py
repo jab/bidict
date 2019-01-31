@@ -54,8 +54,8 @@ if PY2:
 
 else:
     # Assume Python 3 when not PY2, but explicitly check before showing this warning.
-    if PYMAJOR == 3 and PYMINOR < 4:  # pragma: no cover
-        warn('Python3 < 3.4 is not officially supported.')
+    if PYMAJOR == 3 and PYMINOR < 5:  # pragma: no cover
+        warn('Python3 < 3.5 is not officially supported.')
 
     import collections.abc as collections_abc  # noqa: F401 (imported but unused)
     from collections.abc import (  # noqa: F401 (imported but unused)

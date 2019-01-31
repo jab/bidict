@@ -8,11 +8,6 @@ python: '3.7'
 dist: 'xenial'
 
 
-env:
-  global:
-    - 'LINT_SRC="$(ls bidict/*.py tests/*.py tests/*/*.py setup.py)"'
-
-
 before_install:  # Ensure we have the required versions of Python and Pip.
   - 'echo "TRAVIS_PULL_REQUEST_SHA: $TRAVIS_PULL_REQUEST_SHA"'
   - 'echo "TRAVIS_COMMIT: $TRAVIS_COMMIT"'
@@ -22,7 +17,7 @@ before_install:  # Ensure we have the required versions of Python and Pip.
   - 'travis_retry git fetch --unshallow'
   # Install Python on macOS since https://github.com/travis-ci/travis-ci/issues/2312 is WONTFIXed.
   - |
-    if [[ $TRAVIS_OS_NAME == osx ]]; then
+    if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
       declare -r pyver="${TASK##*-}"  # strip all chars up to and including the last -
       declare -r python="python$pyver"
       echo "TASK=$TASK -> pyver=$pyver python=$python"
@@ -48,20 +43,29 @@ before_install:  # Ensure we have the required versions of Python and Pip.
 
 
 install:  # Install our test dependencies.
-  - 'travis_retry pip install -U --upgrade-strategy=eager .[test$([[ $COVERAGE ]] && echo ",coverage")]'
+  - 'travis_retry pip install -U --upgrade-strategy=eager .[test$([[ "$COVERAGE" ]] && echo ",coverage")]'
+
+
+before_script:
   - 'pip list'
+  - |
+    if [[ "$TASK" == lint-* ]]; then
+      shopt -s globstar
+      export LINT_SRC=**/*.py
+      echo "LINT_SRC:" $LINT_SRC
+    fi
 
 
 script:  # Run the test suite.
   # See tests/hypothesis/_setup_hypothesis.py
-  - 'export HYPOTHESIS_PROFILE=$([[ $TRAVIS_EVENT_TYPE == cron ]] && echo more-examples)'
-  - 'export PYTEST_ADDOPTS=$([[ $COVERAGE ]] && echo "--cov=bidict --cov-config=.coveragerc")'
+  - 'export HYPOTHESIS_PROFILE=$([[ "$TRAVIS_EVENT_TYPE" == cron ]] && echo more-examples)'
+  - 'export PYTEST_ADDOPTS=$([[ "$COVERAGE" ]] && echo "--cov=bidict --cov-config=.coveragerc")'
   - './run_tests.py'
 
 
 after_script:
   - |
-    if [[ $COVERAGE ]]; then
+    if [[ "$COVERAGE" ]]; then
       echo "Installing codecov..."
       travis_retry pip install codecov || exit 1
       echo
@@ -107,19 +111,19 @@ matrix:
       language: 'generic'
 
     ## Linting, static analysis, code style.
-    - env: 'TASK=flake8'
+    - env: 'TASK=lint-flake8'
       before_install: 'skip'
-      install: 'travis_retry pip install "flake8<3.7"'  # keep in sync with the version in setup.py
+      install: 'travis_retry pip install "flake8<3.8"'  # keep in sync with the version in setup.py
       script: 'flake8 $LINT_SRC'
 
-    - env: 'TASK=pylint'
+    - env: 'TASK=lint-pylint'
       before_install: 'skip'
-      install: 'travis_retry pip install "pylint<2.3" "hypothesis<4" "pytest<5"'  # keep in sync with the versions in setup.py
+      install: 'travis_retry pip install "pylint<2.3" "hypothesis<4" "pytest<5" "Sphinx<2"'  # keep in sync with the versions in setup.py
       script: 'pylint --jobs=0 $LINT_SRC'
 
-    - env: 'TASK=pydocstyle'
+    - env: 'TASK=lint-pydocstyle'
       before_install: 'skip'
-      install: 'travis_retry pip install "pydocstyle<2.2"'  # keep in sync with the version in setup.py
+      install: 'travis_retry pip install "pydocstyle<3.1"'  # keep in sync with the version in setup.py
       script: 'pydocstyle $LINT_SRC'
 
     ## Misc.
@@ -139,9 +143,6 @@ matrix:
 
     - python: '3.5'
       env: 'TASK=test-linux-cpython-3.5'
-
-    - python: '3.4'
-      env: 'TASK=test-linux-cpython-3.4'
 
     ## Misc.
     - env: 'TASK=docs-linkcheck ALLOW_FAIL=1'
