@@ -144,6 +144,7 @@ html_theme_options = dict(
     show_powered_by=False,
     show_relbar_bottom=True,
     donate_url='https://gumroad.com/l/bidict',
+    tidelift_url='https://tidelift.com/subscription/pkg/pypi-bidict?utm_source=pypi-bidict&utm_medium=referral&utm_campaign=docs',  # noqa: E501; pylint: disable=line-too-long
 )
 
 # Add any paths that contain custom themes here, relative to this directory.
@@ -317,3 +318,8 @@ autosectionlabel_prefix_document = True
 # http://www.sphinx-doc.org/en/master/usage/extensions/doctest.html
 doctest_global_setup = """
 """
+
+
+def setup(app):
+    """https://docs.readthedocs.io/en/latest/guides/adding-custom-css.html#adding-custom-css-or-javascript-to-a-sphinx-project"""  # noqa: E501; pylint: disable=line-too-long
+    app.add_javascript('custom.js')

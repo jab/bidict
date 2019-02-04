@@ -21,3 +21,11 @@ a.image-reference:hover { border-bottom: 0 !important; }
 
 .sphinxsidebar h3 { margin-top: 20px !important; }
 .sphinxsidebar h3.donation { margin-top: 50px !important; }
+
+#codefund { margin-top: 50px; }
+#cf, .cf-wrapper { margin: 0 !important; }
+#cf * { border: none !important; }
+/* Make cf text lighter on narrow viewports where it's moved to the footer. */
+@media only screen and (max-width: 34em) {
+  #cf * { color: #aaa !important; }
+}

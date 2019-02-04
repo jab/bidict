@@ -42,6 +42,7 @@ People
 Projects
 ========
 
+- `Tidelift <https://tidelift.com>`__
 - `Pytest <https://docs.pytest.org/en/latest/>`__
 - `Coverage <https://coverage.readthedocs.io/en/latest/>`__
 - `hypothesis <https://hypothesis.readthedocs.io/en/latest/>`__
@@ -52,4 +53,6 @@ Projects
 - `Codecov <https://codecov.io>`__
 - `lgtm <https://lgtm.com/>`__
 - `Pylint <https://www.pylint.org/>`__
+- `Flake8 <http://flake8.pycqa.org>`__
+- `Alabaster <https://alabaster.readthedocs.io>`__
 - `setuptools_scm <https://github.com/pypa/setuptools_scm>`__
