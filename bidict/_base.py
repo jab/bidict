@@ -45,9 +45,9 @@ from .compat import PY2, KeysView, ItemsView, Mapping, iteritems
 # provides all the required attributes that the __subclasshook__ checks for,
 # BidictBase would be a (virtual) subclass of BidirectionalMapping even if
 # it didn't subclass it explicitly. But subclassing BidirectionalMapping
-# explicitly allows BidictBase to inherit any useful methods that
+# explicitly allows BidictBase to inherit any useful implementations that
 # BidirectionalMapping provides that aren't part of the required interface,
-# such as its __inverted__ implementation.
+# such as its `__inverted__` implementation and `inverse` alias.
 
 class BidictBase(BidirectionalMapping):
     """Base class implementing :class:`BidirectionalMapping`."""
@@ -123,7 +123,7 @@ class BidictBase(BidirectionalMapping):
         inv._invm = self._fwdm  # pylint: disable=protected-access
         # Only give the inverse a weak reference to this bidict to avoid creating a reference cycle,
         # stored in the _invweak attribute. See also the docs in
-        # :ref:`addendum:\:attr\:\`~bidict.BidictBase.inv\` Avoids Reference Cycles`
+        # :ref:`addendum:Bidict Avoids Reference Cycles`
         inv._inv = None  # pylint: disable=protected-access
         inv._invweak = ref(self)  # pylint: disable=protected-access
         # Since this bidict has a strong reference to its inverse already, set its _invweak to None.
@@ -148,8 +148,11 @@ class BidictBase(BidirectionalMapping):
         return self._inv is None
 
     @property
-    def inv(self):
-        """The inverse of this bidict."""
+    def inverse(self):
+        """The inverse of this bidict.
+
+        *See also* :attr:`inv`
+        """
         # Resolve and return a strong reference to the inverse bidict.
         # One may be stored in self._inv already.
         if self._inv is not None:
@@ -161,6 +164,11 @@ class BidictBase(BidirectionalMapping):
         # Refcount of referent must have dropped to zero, as in `bidict().inv.inv`. Init a new one.
         self._init_inv()  # Now this bidict will retain a strong ref to its inverse.
         return self._inv
+
+    @property
+    def inv(self):
+        """Alias for :attr:`inverse`."""
+        return self.inverse
 
     def __getstate__(self):
         """Needed to enable pickling due to use of :attr:`__slots__` and weakrefs.
@@ -417,7 +425,7 @@ class BidictBase(BidirectionalMapping):
         which has the advantages of constant-time containment checks
         and supporting set operations.
         """
-        return self.inv.keys()
+        return self.inverse.keys()
 
     if PY2:
         # For iterkeys and iteritems, inheriting from Mapping already provides
@@ -425,13 +433,13 @@ class BidictBase(BidirectionalMapping):
 
         def itervalues(self):
             """An iterator over the contained values."""
-            return self.inv.iterkeys()
+            return self.inverse.iterkeys()
 
         def viewkeys(self):  # noqa: D102; pylint: disable=missing-docstring
             return KeysView(self)
 
         def viewvalues(self):  # noqa: D102; pylint: disable=missing-docstring
-            return self.inv.viewkeys()
+            return self.inverse.viewkeys()
 
         viewvalues.__doc__ = values.__doc__
         values.__doc__ = 'A list of the contained values.'

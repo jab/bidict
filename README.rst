@@ -100,7 +100,7 @@ Quick Start
    >>> element_by_symbol = bidict({'H': 'hydrogen'})
    >>> element_by_symbol['H']
    'hydrogen'
-   >>> element_by_symbol.inv['hydrogen']
+   >>> element_by_symbol.inverse['hydrogen']
    'H'
 
 

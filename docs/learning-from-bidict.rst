@@ -256,10 +256,12 @@ API Design
     In the face of ambiguity, refuse the temptation to guess."
     → bidict's default duplication policies
 
-  - "Explicit is better than implicit.
-    There should be one—and preferably only one—obvious way to do it."
-    → dropped the alternate ``.inv`` APIs that used
-    the ``~`` operator and the old slice syntax
+  - "Readability counts."
+    "There should be one – and preferably only one – obvious way to do it."
+    → an early version of bidict allowed using the ``~`` operator to access ``.inverse``
+    and a special slice syntax like ``b[:val]`` to look up a key by value,
+    but these were removed in preference to the more obvious and readable
+    ``.inverse``-based spellings.
 
 
 Portability

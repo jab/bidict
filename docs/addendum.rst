@@ -34,8 +34,8 @@ A careful reader might notice the following...
 .. doctest::
 
    >>> fwd = bidict(one=1)
-   >>> inv = fwd.inv
-   >>> inv.inv is fwd
+   >>> inv = fwd.inverse
+   >>> inv.inverse is fwd
    True
 
 ...and become concerned that a bidict and its inverse create a reference cycle.
@@ -184,7 +184,7 @@ in its own inverse:
    >>> b.forceput('FALSE', False)
    >>> b
    bidict({'FALSE': False})
-   >>> b.inv
+   >>> b.inverse
    bidict({0: 'FALSE'})
 
 

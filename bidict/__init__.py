@@ -29,11 +29,20 @@
 """
 Efficient, Pythonic bidirectional map implementation and related functionality.
 
-.. note::
+.. code-block:: python
 
-    If you are reading this elsewhere,
-    please see https://bidict.readthedocs.io for the most up-to-date documentation,
-    and https://github.com/jab/bidict for the most up-to-date code.
+   >>> from bidict import bidict
+   >>> element_by_symbol = bidict({'H': 'hydrogen'})
+   >>> element_by_symbol['H']
+   'hydrogen'
+   >>> element_by_symbol.inverse['hydrogen']
+   'H'
+
+
+Please see https://github.com/jab/bidict for the most up-to-date code and
+https://bidict.readthedocs.io for the most up-to-date documentation
+if you are reading this elsewhere.
+
 
 .. :copyright: (c) 2019 Joshua Bronson.
 .. :license: MPLv2. See LICENSE for details.

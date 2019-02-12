@@ -26,13 +26,13 @@ It implements the familiar API you're used to from dict:
    'hydrogen'
 
 But it also maintains the inverse bidict via the
-:attr:`~bidict.BidictBase.inv` attribute:
+:attr:`~bidict.BidictBase.inverse` attribute:
 
 .. doctest::
 
-   >>> element_by_symbol.inv
+   >>> element_by_symbol.inverse
    bidict({'hydrogen': 'H'})
-   >>> element_by_symbol.inv['hydrogen']
+   >>> element_by_symbol.inverse['hydrogen']
    'H'
 
 Concise, efficient, Pythonic.
@@ -96,7 +96,7 @@ leaving us with just what we wanted:
    >>> m
    bidict({'a': 'b'})
 
-   >>> m.inv
+   >>> m.inverse
    bidict({'b': 'a'})
 
 

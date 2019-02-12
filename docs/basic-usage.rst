@@ -13,13 +13,13 @@ Let's return to the example from the :doc:`intro`:
 
 As we saw, this behaves just like a dict,
 but maintains a special
-:attr:`~bidict.BidictBase.inv` attribute
+:attr:`~bidict.BidictBase.inverse` attribute
 giving access to inverse items:
 
 .. doctest::
 
-   >>> element_by_symbol.inv['helium'] = 'He'
-   >>> del element_by_symbol.inv['hydrogen']
+   >>> element_by_symbol.inverse['helium'] = 'He'
+   >>> del element_by_symbol.inverse['hydrogen']
    >>> element_by_symbol
    bidict({'He': 'helium'})
 
@@ -40,9 +40,9 @@ as well:
    >>> element_by_symbol.update(Hg='mercury')
    >>> element_by_symbol
    bidict({'Hg': 'mercury'})
-   >>> 'mercury' in element_by_symbol.inv
+   >>> 'mercury' in element_by_symbol.inverse
    True
-   >>> element_by_symbol.inv.pop('mercury')
+   >>> element_by_symbol.inverse.pop('mercury')
    'Hg'
 
 Because inverse items are maintained alongside forward items,
