@@ -24,7 +24,7 @@ def namedbidict(typename, keyname, valname, base_type=bidict):
     The new class's ``__name__`` will be set to *typename*.
 
     Instances of it will provide access to their
-    :attr:`inverse <BidirectionalMapping.inv>`\s
+    :attr:`inverse <BidirectionalMapping.inverse>`\s
     via the custom *keyname*\_for property,
     and access to themselves
     via the custom *valname*\_for property.
@@ -60,10 +60,10 @@ def namedbidict(typename, keyname, valname, base_type=bidict):
         __slots__ = ()
 
         def _getfwd(self):
-            return self.inv if self._isinv else self
+            return self.inverse if self._isinv else self
 
         def _getinv(self):
-            return self if self._isinv else self.inv
+            return self if self._isinv else self.inverse
 
         @property
         def _keyname(self):

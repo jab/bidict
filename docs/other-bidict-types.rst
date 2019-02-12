@@ -23,12 +23,12 @@ are subclasses of :class:`bidict.BidirectionalMapping`.
 This abstract base class
 extends :class:`collections.abc.Mapping`
 by adding the
-":attr:`~bidict.BidirectionalMapping.inv`"
+":attr:`~bidict.BidirectionalMapping.inverse`"
 :obj:`~abc.abstractproperty`. [#fn-subclasshook]_
 
 .. [#fn-subclasshook]
    In fact, any :class:`collections.abc.Mapping`
-   that provides an ``inv`` attribute
+   that provides an ``inverse`` attribute
    will be considered a virtual subclass of
    :class:`bidict.BidirectionalMapping`
    :meth:`automatically <bidict.BidirectionalMapping.__subclasshook__>`,
@@ -89,7 +89,7 @@ It's like a bidirectional version of :class:`collections.OrderedDict`.
    >>> element_by_symbol = OrderedBidict([
    ...     ('H', 'hydrogen'), ('He', 'helium'), ('Li', 'lithium')])
 
-   >>> element_by_symbol.inv
+   >>> element_by_symbol.inverse
    OrderedBidict([('hydrogen', 'H'), ('helium', 'He'), ('lithium', 'Li')])
 
    >>> first, second, third = element_by_symbol.values()
@@ -229,7 +229,7 @@ with an order-preserving :class:`dict` version of Python:
     >>> b[2] = 'UPDATED'
     >>> b
     bidict({1: -1, 2: 'UPDATED', 3: -3})
-    >>> b.inv  # oops:
+    >>> b.inverse  # oops:
     bidict({-1: 1, -3: 3, 'UPDATED': 2})
 
 When the value associated with the key ``2`` was changed,

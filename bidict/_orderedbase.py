@@ -163,7 +163,7 @@ class OrderedBidictBase(BidictBase):
 
     def _init_inv(self):
         super(OrderedBidictBase, self)._init_inv()
-        self.inv._sntl = self._sntl  # pylint: disable=protected-access
+        self.inverse._sntl = self._sntl  # pylint: disable=protected-access
 
     # Can't reuse BidictBase.copy since ordered bidicts have different internal structure.
     def copy(self):
@@ -188,12 +188,12 @@ class OrderedBidictBase(BidictBase):
 
     def __getitem__(self, key):
         nodefwd = self._fwdm[key]
-        val = self._invm.inv[nodefwd]
+        val = self._invm.inverse[nodefwd]
         return val
 
     def _pop(self, key):
         nodefwd = self._fwdm.pop(key)
-        val = self._invm.inv.pop(nodefwd)
+        val = self._invm.inverse.pop(nodefwd)
         nodefwd.prv.nxt = nodefwd.nxt
         nodefwd.nxt.prv = nodefwd.prv
         return val
@@ -221,8 +221,8 @@ class OrderedBidictBase(BidictBase):
         elif isdupkey and isdupval:
             # Key and value duplication across two different nodes.
             assert nodefwd is not nodeinv
-            oldval = invm.inv[nodefwd]
-            oldkey = fwdm.inv[nodeinv]
+            oldval = invm.inverse[nodefwd]
+            oldkey = fwdm.inverse[nodeinv]
             assert oldkey != key
             assert oldval != val
             # We have to collapse nodefwd and nodeinv into a single node, i.e. drop one of them.
@@ -238,13 +238,13 @@ class OrderedBidictBase(BidictBase):
             assert tmp is nodefwd
             fwdm[key] = invm[val] = nodefwd
         elif isdupkey:
-            oldval = invm.inv[nodefwd]
+            oldval = invm.inverse[nodefwd]
             oldkey = _MISS
             oldnodeinv = invm.pop(oldval)
             assert oldnodeinv is nodefwd
             invm[val] = nodefwd
         else:  # isdupval
-            oldkey = fwdm.inv[nodeinv]
+            oldkey = fwdm.inverse[nodeinv]
             oldval = _MISS
             oldnodefwd = fwdm.pop(oldkey)
             assert oldnodefwd is nodeinv
@@ -278,7 +278,7 @@ class OrderedBidictBase(BidictBase):
         """An iterator over this bidict's items in order."""
         fwdm = self._fwdm
         for node in self._sntl.__iter__(reverse=reverse):
-            yield fwdm.inv[node]
+            yield fwdm.inverse[node]
 
     def __reversed__(self):
         """An iterator over this bidict's items in reverse order."""

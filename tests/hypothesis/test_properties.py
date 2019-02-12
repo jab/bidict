@@ -339,6 +339,13 @@ def test_slots(bi_cls):
 
 
 @given(st.BIDICTS)
+def test_inv_aliases_inverse(bi):
+    """bi.inv should alias bi.inverse."""
+    assert bi.inverse is bi.inv
+    assert bi.inv.inverse is bi.inverse.inv
+
+
+@given(st.BIDICTS)
 def test_pickle_roundtrips(bi):
     """A bidict should equal the result of unpickling its pickle."""
     dumps_args = {}

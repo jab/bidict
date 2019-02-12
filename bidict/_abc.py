@@ -35,41 +35,41 @@ class BidirectionalMapping(Mapping):  # pylint: disable=abstract-method,no-init
     """Abstract base class (ABC) for bidirectional mapping types.
 
     Extends :class:`collections.abc.Mapping` primarily by adding the
-    (abstract) :attr:`inv` property,
+    (abstract) :attr:`inverse` property,
     which implementors of :class:`BidirectionalMapping`
     should override to return a reference to the inverse
     :class:`BidirectionalMapping` instance.
 
     Implements :attr:`__subclasshook__` such that any
     :class:`~collections.abc.Mapping` that also provides
-    :attr:`~BidirectionalMapping.inv`
+    :attr:`~BidirectionalMapping.inverse`
     will be considered a (virtual) subclass of this ABC.
     """
 
     __slots__ = ()
 
     @abstractproperty
-    def inv(self):
+    def inverse(self):
         """The inverse of this bidirectional mapping instance.
 
-        *See also* :attr:`bidict.BidictBase.inv`
+        *See also* :attr:`bidict.BidictBase.inverse`, :attr:`bidict.BidictBase.inv`
 
         :raises NotImplementedError: Meant to be overridden in subclasses.
         """
         # The @abstractproperty decorator prevents BidirectionalMapping subclasses from being
         # instantiated unless they override this method. So users shouldn't be able to get to the
-        # point where they can unintentionally call this implementation of .inv on something
+        # point where they can unintentionally call this implementation of .inverse on something
         # anyway. Could leave the method body empty, but raise NotImplementedError so it's extra
         # clear there's no reason to call this implementation (e.g. via super() after overriding).
         raise NotImplementedError
 
     def __inverted__(self):
-        """Get an iterator over the items in :attr:`inv`.
+        """Get an iterator over the items in :attr:`inverse`.
 
         This is functionally equivalent to iterating over the items in the
         forward mapping and inverting each one on the fly, but this provides a
         more efficient implementation: Assuming the already-inverted items
-        are stored in :attr:`inv`, just return an iterator over them directly.
+        are stored in :attr:`inverse`, just return an iterator over them directly.
 
         Providing this default implementation enables external functions,
         particularly :func:`~bidict.inverted`, to use this optimized
@@ -77,12 +77,12 @@ class BidirectionalMapping(Mapping):  # pylint: disable=abstract-method,no-init
 
         *See also* :func:`bidict.inverted`
         """
-        return iteritems(self.inv)
+        return iteritems(self.inverse)
 
     @classmethod
     def __subclasshook__(cls, C):  # noqa: N803 (argument name should be lowercase)
         """Check if *C* is a :class:`~collections.abc.Mapping`
-        that also provides an ``inv`` attribute,
+        that also provides an ``inverse`` attribute,
         thus conforming to the :class:`BidirectionalMapping` interface,
         in which case it will be considered a (virtual) C
         even if it doesn't explicitly extend it.
@@ -94,7 +94,7 @@ class BidirectionalMapping(Mapping):  # pylint: disable=abstract-method,no-init
         mro = getattr(C, '__mro__', None)
         if mro is None:  # Python 2 old-style class
             return NotImplemented
-        if not any(B.__dict__.get('inv') for B in mro):
+        if not any(B.__dict__.get('inverse') for B in mro):
             return NotImplemented
         return True
 

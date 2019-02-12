@@ -22,8 +22,18 @@ Tip: `Subscribe to bidict releases <https://libraries.io/pypi/bidict>`__
 on libraries.io to be notified when new versions of bidict are released.
 
 
-0.17.6 (not yet released)
+0.18.0 (not yet released)
 -------------------------
+
+- Rename ``bidict.BidirectionalMapping.inv`` to :attr:`~bidict.BidirectionalMapping.inverse`
+  and make :attr:`bidict.BidictBase.inv`` an alias for :attr:`~bidict.BidictBase.inverse`.
+  `#86 <https://github.com/jab/bidict/issues/86>`__
+
+- :meth:`bidict.BidirectionalMapping.__subclasshook__` now requires an ``inverse`` attribute
+  rather than an ``inv`` attribute for a class to qualify as a virtual subclass.
+  This breaking change is expected to affect few if any users.
+
+- Add Python 2/3-compatible :attr:`bidict.compat.collections_abc` alias.
 
 - Stop testing Python 3.4 on CI,
   and warn when Python 3 < 3.5 is detected
@@ -32,9 +42,6 @@ on libraries.io to be notified when new versions of bidict are released.
   According to `PyPI Stats <https://pypistats.org/packages/bidict>`__,
   Python 3.4 represents only about 3% of bidict downloads as of January 2019.
   The latest release of Pip has also deprecated support for Python 3.4.
-
-- Add Python 2/3-compatible :attr:`bidict.compat.collections_abc` alias.
-
 
 
 0.17.5 (2018-11-19)
@@ -240,7 +247,7 @@ Minor Bugfixes
   (with ``_fwdm_cls`` and ``_invm_cls`` swapped)
   is now correctly computed and used automatically
   for your custom bidict's
-  :attr:`~bidict.BidictBase.inv` bidict.
+  :attr:`~bidict.BidictBase.inverse` bidict.
 
 Miscellaneous
 +++++++++++++

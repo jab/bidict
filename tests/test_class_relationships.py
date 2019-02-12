@@ -32,17 +32,17 @@ class VirtualBimapSubclass(Mapping):  # pylint: disable=abstract-method
     but doesn't need to be for the purposes of this test.)
     """
 
-    inv = NotImplemented
+    inverse = NotImplemented
 
 
 class AbstractBimap(BidirectionalMapping):  # pylint: disable=abstract-method
     """Dummy type that explicitly extends BidirectionalMapping
     but fails to provide a concrete implementation for the
-    :attr:`BidirectionalMapping.inv` :func:`abc.abstractproperty`.
+    :attr:`BidirectionalMapping.inverse` :func:`abc.abstractproperty`.
 
     As a result, attempting to create an instance of this class
     should result in ``TypeError: Can't instantiate abstract class
-    AbstractBimap with abstract methods inv``
+    AbstractBimap with abstract methods inverse``
     """
 
     __getitem__ = NotImplemented
@@ -134,9 +134,9 @@ def test_abstract_bimap_init_fails():
         AbstractBimap()  # pylint: disable=abstract-class-instantiated
 
 
-def test_bimap_inv_notimplemented():
-    """Calling .inv on a BidirectionalMapping should raise :class:`NotImplementedError`."""
+def test_bimap_inverse_notimplemented():
+    """Calling .inverse on a BidirectionalMapping should raise :class:`NotImplementedError`."""
     with pytest.raises(NotImplementedError):
         # Can't instantiate a BidirectionalMapping that hasn't overridden the abstract methods of
         # the interface, so only way to call this implementation is on the class.
-        BidirectionalMapping.inv.fget(bidict())  # pylint: disable=no-member
+        BidirectionalMapping.inverse.fget(bidict())  # pylint: disable=no-member
