@@ -26,7 +26,7 @@ on libraries.io to be notified when new versions of bidict are released.
 -------------------
 
 - Rename ``bidict.BidirectionalMapping.inv`` to :attr:`~bidict.BidirectionalMapping.inverse`
-  and make :attr:`bidict.BidictBase.inv`` an alias for :attr:`~bidict.BidictBase.inverse`.
+  and make :attr:`bidict.BidictBase.inv` an alias for :attr:`~bidict.BidictBase.inverse`.
   `#86 <https://github.com/jab/bidict/issues/86>`__
 
 - :meth:`bidict.BidirectionalMapping.__subclasshook__` now requires an ``inverse`` attribute
