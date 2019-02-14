@@ -22,8 +22,8 @@ Tip: `Subscribe to bidict releases <https://libraries.io/pypi/bidict>`__
 on libraries.io to be notified when new versions of bidict are released.
 
 
-0.18.0 (not yet released)
--------------------------
+0.18.0 (2019-02-14)
+-------------------
 
 - Rename ``bidict.BidirectionalMapping.inv`` to :attr:`~bidict.BidirectionalMapping.inverse`
   and make :attr:`bidict.BidictBase.inv`` an alias for :attr:`~bidict.BidictBase.inverse`.
