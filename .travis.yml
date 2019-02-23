@@ -74,9 +74,15 @@ after_script:
     fi
 
 
+# https://docs.travis-ci.com/user/customizing-the-build/
+# "Without the top-level env, no job will be allowed to fail."
+env:
+
 matrix:
   allow_failures:
-    - env: 'ALLOW_FAIL=1'
+    - env: 'TASK=docs-linkcheck'
+    - env: 'TASK=test-linux-cpython-3.8-dev'
+    - env: 'TASK=deploy-if-tag'
   fast_finish: true
   include:
     # Each job below performs a single task. Setting a per-job "TASK" env var
@@ -145,16 +151,16 @@ matrix:
       env: 'TASK=test-linux-cpython-3.5'
 
     ## Misc.
-    - env: 'TASK=docs-linkcheck ALLOW_FAIL=1'
+    - env: 'TASK=docs-linkcheck'
       before_install: 'skip'
       install: 'travis_retry pip install "Sphinx<2"'  # keep in sync with the version in setup.py
       script: '(cd docs && travis_retry make linkcheck)'
 
     - python: '3.8-dev'
-      env: 'TASK=test-linux-cpython-3.8-dev ALLOW_FAIL=1'
+      env: 'TASK=test-linux-cpython-3.8-dev'
 
     - stage: 'deploy-if-tag'
-      env: 'TASK=deploy-if-tag ALLOW_FAIL=1'
+      env: 'TASK=deploy-if-tag'
       before_install: 'skip'
       install: 'skip'
       script: 'skip'
