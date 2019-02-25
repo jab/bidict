@@ -9,14 +9,13 @@ repos:
   # This stopped working so comment out for now (started applying to files that didn't need it):
   # - id: fix-encoding-pragma
   - id: check-yaml
-  # Keep in sync with flake8 version in setup.py and .travis.yml --
+  # Keep in sync with flake8 version in setup.py --
   # check https://github.com/pre-commit/pre-commit-hooks/blob/master/setup.py
   # for the version of flake8 that is included with this pre-commit repo.
   - id: flake8
-    exclude: docs/conf.py
 
 - repo: https://github.com/chewse/pre-commit-mirrors-pydocstyle
-  # Keep in sync with pydocstyle version in setup.py and .travis.yml
+  # Keep in sync with pydocstyle version in setup.py
   rev: v2.1.1
   hooks:
   - id: pydocstyle
@@ -38,15 +37,15 @@ repos:
   #   - --license-filepath=.LICENSE_HEADER
 
 - repo: https://github.com/pre-commit/mirrors-pylint
-  # Keep in sync with pylint version in setup.py and .travis.yml
+  # Keep in sync with pylint version in setup.py
   rev: v2.2.2
   hooks:
   - id: pylint
     # Needed to avoid ImportErrors when linting tests (keep in sync with versions in setup.py):
-    additional_dependencies: ["hypothesis<4","pytest<5", "sphinx<2"]
+    additional_dependencies: ["hypothesis<4","pytest<5", "Sphinx<2"]
     args:
     # http://pylint.pycqa.org/en/latest/user_guide/run.html#parallel-execution
-    # > If the provided number is 0, then the total number of CPUs will be used.
+    # "If the provided number is 0, then the total number of CPUs will be used."
     - --jobs=0
 
 - repo: https://github.com/jumanjihouse/pre-commit-hooks
