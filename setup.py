@@ -70,16 +70,35 @@ COVERAGE_REQS = [
     'pytest-cov < 3',
 ]
 
-DEV_REQ = SETUP_REQS + TEST_REQS + COVERAGE_REQS + DOCS_REQS + [
+# The following dependencies have a higher chance of suddenly causing CI to fail after updating
+# even between minor versions, so pin to currently-working minor versions. Upgrade to newer
+# minor versions manually to have a chance to fix any resulting breakage before it hits CI.
+FLAKE8_REQ = 'flake8 < 3.8'
+PYDOCSTYLE_REQ = 'pydocstyle < 3.1'
+PYLINT_REQ = 'pylint < 2.3'
+
+LINT_REQS = [
+    FLAKE8_REQ,
+    PYDOCSTYLE_REQ,
+    PYLINT_REQ,
+]
+
+DEV_REQS = SETUP_REQS + DOCS_REQS + TEST_REQS + COVERAGE_REQS + LINT_REQS + [
     'pre-commit < 2',
     'tox < 4',
-    # The following dependencies have a higher chance of suddenly causing CI to fail after updating
-    # even between minor versions so pin to currently-working minor versions. Upgrade to newer
-    # minor versions manually to have a chance to fix any resulting breakage before it hits CI.
-    'flake8 < 3.8',
-    'pydocstyle < 3.1',
-    'pylint < 2.3',
 ]
+
+EXTRAS_REQS = dict(
+    docs=DOCS_REQS,
+    test=TEST_REQS,
+    coverage=COVERAGE_REQS,
+    lint=LINT_REQS,
+    dev=DEV_REQS,
+    sphinx=[SPHINX_REQ],
+    flake8=[FLAKE8_REQ],
+    pydocstyle=[PYDOCSTYLE_REQ],
+    pylint=[PYLINT_REQ],
+)
 
 setup(
     name='bidict',
@@ -114,10 +133,5 @@ setup(
     setup_requires=SETUP_REQS,  # required so pip < 10 install works (no PEP-517/518 support)
     # for more details see https://www.python.org/dev/peps/pep-0518/#rationale
     tests_require=TEST_REQS,
-    extras_require=dict(
-        test=TEST_REQS,
-        coverage=COVERAGE_REQS,
-        docs=DOCS_REQS,
-        dev=DEV_REQ,
-    ),
+    extras_require=EXTRAS_REQS,
 )
