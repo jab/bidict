@@ -276,9 +276,9 @@ class OrderedBidictBase(BidictBase):
 
     def __iter__(self, reverse=False):
         """An iterator over this bidict's items in order."""
-        fwdm = self._fwdm
+        fwdm_inv = self._fwdm.inverse
         for node in self._sntl.__iter__(reverse=reverse):
-            yield fwdm.inverse[node]
+            yield fwdm_inv[node]
 
     def __reversed__(self):
         """An iterator over this bidict's items in reverse order."""
