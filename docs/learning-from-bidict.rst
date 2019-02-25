@@ -1,19 +1,17 @@
 Learning from bidict
 --------------------
 
-Below is an outline of
-some of the more fascinating Python corners
-I got to explore further
+Below is an outline of some of the more fascinating
+and lesser-known Python corners I got to explore further
 thanks to working on bidict.
 
 If you are interested in learning more about any of the following,
 I highly encourage you to
-`read bidict's code <https://github.com/jab/bidict/blob/master/bidict/_abc.py#L10>`__.
+`read bidict's code <https://github.com/jab/bidict/blob/master/bidict/__init__.py#L10>`__.
 
-I've sought to optimize the code not just for correctness and for performance,
-but also to make it a pleasure to read,
-to share the `joys of computing <https://joy.recurse.com/posts/148-bidict>`__
-in bidict with others.
+I've sought to optimize the code not just for correctness and performance,
+but also to make for a clear and enjoyable read,
+illuminating anything that could otherwise be obscure or subtle.
 
 I hope it brings you some of the joy it's brought me. 😊
 
@@ -21,16 +19,15 @@ I hope it brings you some of the joy it's brought me. 😊
 Python syntax hacks
 ===================
 
-bidict used to support
-`slice syntax <https://bidict.readthedocs.io/en/v0.9.0.post1/intro.html#bidict-bidict>`__
-for looking up keys by value:
+Bidict used to support (ab)using a specialized form of Python's :ref:`slice <slicings>` syntax
+for getting and setting keys by value:
 
 .. code-block:: python
 
    >>> element_by_symbol = bidict(H='hydrogen')
-   >>> element_by_symbol['H']  # normal syntax for the forward mapping
+   >>> element_by_symbol['H']  # [normal] syntax for the forward mapping
    'hydrogen'
-   >>> element_by_symbol[:'hydrogen']  # :slice syntax for the inverse
+   >>> element_by_symbol[:'hydrogen']  # [:slice] syntax for the inverse (no longer supported)
    'H'
 
 See `this code <https://github.com/jab/bidict/blob/356dbe3/bidict/_bidict.py#L25>`__
@@ -38,37 +35,105 @@ for how this was implemented,
 and `#19 <https://github.com/jab/bidict/issues/19>`__ for why this was dropped.
 
 
-Efficient ordered mappings
-==========================
+Code structure
+==============
 
-**It's a real, live, industrial-strength linked list in the wild!**
-If you've only ever seen the tame kind in those boring data structures courses,
-you may be in for a treat:
-see `_orderedbase.py <https://github.com/jab/bidict/blob/master/bidict/_orderedbase.py#L10>`__.
-Inspired by Python's own :class:`~collections.OrderedDict`
-`implementation <https://github.com/python/cpython/blob/a0374d/Lib/collections/__init__.py#L71>`_.
+Bidicts come in every combination of mutable, immutable, ordered, and unordered types,
+implementing Python's various
+:class:`relevant <collections.abc.Mapping>`
+:class:`collections <collections.abc.MutableMapping>`
+:class:`interfaces <collections.abc.Hashable>`
+as appropriate.
+
+Factoring the code to maximize reuse, modularity, and
+adherence to `SOLID <https://en.wikipedia.org/wiki/SOLID>`__ design principles
+has been one of the most fun parts of working on bidict.
+
+To see how this is done, check out this code:
+
+- `_base.py <https://github.com/jab/bidict/blob/master/bidict/_base.py#L10>`__
+- `_frozenbidict.py <https://github.com/jab/bidict/blob/master/bidict/_frozenbidict.py#L10>`__
+- `_mut.py <https://github.com/jab/bidict/blob/master/bidict/_mut.py#L10>`__
+- `_bidict.py <https://github.com/jab/bidict/blob/master/bidict/_bidict.py#L10>`__
+- `_orderedbase.py <https://github.com/jab/bidict/blob/master/bidict/_orderedbase.py#L10>`__
+- `_frozenordered.py <https://github.com/jab/bidict/blob/master/bidict/_frozenordered.py#L10>`__
+- `_orderedbidict.py <https://github.com/jab/bidict/blob/master/bidict/_orderedbidict.py#L10>`__
+
+Data structures are amazing
+===========================
+
+Data structures are one of the most fascinating and important
+building blocks of programming and computer science.
+
+It's all too easy to lose sight of the magic when having to implement them
+for computer science courses or job interview questions.
+Part of this is because many of the most interesting real-world details get left out,
+and you miss all the value that comes from ongoing, direct practical application.
+
+Bidict shows how fundamental data structures
+can be implemented in Python for important real-world usage,
+with practical concerns at top of mind.
+Come to catch sight of a real, live, industrial-strength linked list in the wild.
+Stay for the rare, exotic bidirectional mappings breeds you'll rarely see at home.
+[#fn-data-struct]_
+
+.. [#fn-data-struct] To give you a taste:
+
+   A regular :class:`~bidict.bidict`
+   encapsulates two regular dicts,
+   keeping them in sync to preserve the bidirectional mapping invariants.
+   Since dicts are unordered, regular bidicts are unordered too.
+   How should we extend this to implement an ordered bidict?
+
+   We'll still need two backing mappings to store the forward and inverse associations.
+   To store the ordering, we use a (circular, doubly-) linked list.
+   This allows us to e.g. delete an item in any position in O(1) time.
+
+   Interestingly, the nodes of the linked list encode only the ordering of the items;
+   the nodes themselves contain no key or value data.
+   The two backing mappings associate the key and value data
+   with the nodes, providing the final pieces of the puzzle.
+
+   Can we use dicts for the backing mappings, as we did for the unordered bidict?
+   It turns out that dicts aren't enough—the backing mappings must actually be
+   (unordered) bidicts themselves!
+
+Check out `_orderedbase.py <https://github.com/jab/bidict/blob/master/bidict/_orderedbase.py#L10>`__
+to see this in action.
 
 
-Property-based testing is amazing
-=================================
+Property-based testing is revolutionary
+=======================================
 
-Dramatically increase test coverage by
-asserting that your properties hold for ~all valid inputs.
-Don't just automatically run the testcases you happened to think of manually,
-generate your testcases automatically
-(and a whole lot more of the ones you'd never think of) too.
+When your automated tests run,
+are they only checking the test cases
+you happened to hard-code into your test suite?
+How do you know these test cases aren't missing
+some important edge cases?
+
+With property-based testing,
+you describe the types of test case inputs your functions accept,
+along with the properties that should hold for all inputs.
+Rather than having to think up your test case inputs manually
+and hard-code them into your test suite,
+they get generated for you dynamically,
+in much greater quantity and edge case-exercising diversity
+than you could come up with by hand.
+This dramatically increases test coverage
+and confidence that your code is correct.
 
 Bidict never would have survived so many refactorings with so few bugs
 if it weren't for property-based testing, enabled by the amazing
 `Hypothesis <https://hypothesis.readthedocs.io>`__ library.
 It's game-changing.
 
-See `bidict's property-based tests
-<https://github.com/jab/bidict/blob/master/tests/hypothesis/test_properties.py>`__.
+Check out `bidict's property-based tests
+<https://github.com/jab/bidict/blob/master/tests/hypothesis/test_properties.py>`__
+to see this in action.
 
 
-Python's surprises, gotchas, and a mistake
-==========================================
+Python surprises, gotchas, regrets
+==================================
 
 - See :ref:`addendum:nan as key`.
 
@@ -110,103 +175,18 @@ Python's surprises, gotchas, and a mistake
      >>> len({od, od2, d})
      2
 
-  According to Raymond Hettinger (the author of :class:`~collections.OrderedDict`),
+  According to Raymond Hettinger
+  (Python core developer responsible for much of Python's collections),
   this design was a mistake
-  (it violates the `Liskov substitution principle
-  <https://en.wikipedia.org/wiki/Liskov_substitution_principle>`__),
+  (e.g. it violates the `Liskov substitution principle
+  <https://en.wikipedia.org/wiki/Liskov_substitution_principle>`__
+  and the `transitive property of equality
+  <https://en.wikipedia.org/wiki/Equality_(mathematics)#Basic_properties>`__),
   but it's too late now to fix.
 
   Fortunately, it wasn't too late for bidict to learn from this.
   Hence :ref:`eq-order-insensitive` for ordered bidicts,
   and their separate :meth:`~bidict.FrozenOrderedBidict.equals_order_sensitive` method.
-
-
-Python's data model
-===================
-
-- What happens when you implement a custom :meth:`~object.__eq__`?
-  e.g. What's the difference between ``a == b`` and ``b == a``
-  when only ``a`` is an instance of your class?
-  See the great write-up in https://eev.ee/blog/2012/03/24/python-faq-equality/
-  for the answer.
-
-- If an instance of your special mapping type
-  is being compared against a mapping of some foreign mapping type
-  that contains the same items,
-  should your ``__eq__()`` method return true?
-
-  bidict says yes, again based on the `Liskov substitution principle
-  <https://en.wikipedia.org/wiki/Liskov_substitution_principle>`__.
-  Only returning true when the types matched exactly would violate this.
-  And returning :obj:`NotImplemented` would cause Python to fall back on
-  using identity comparison, which is not what is being asked for.
-
-  (Just for fun, suppose you did only return true when the types matched exactly,
-  and suppose your special mapping type were also hashable.
-  Would it be worth having your ``__hash__()`` method include your type
-  as well as your items?
-  The only point would be to reduce collisions when multiple instances of different
-  types contained the same items
-  and were going to be inserted into the same :class:`dict` or :class:`set`,
-  since they'd now be unequal but would hash to the same value otherwise.)
-
-- Making an immutable type hashable
-  (so it can be inserted into :class:`dict`\s and :class:`set`\s):
-  Must implement :meth:`~object.__hash__` such that
-  ``a == b ⇒ hash(a) == hash(b)``.
-  See the :meth:`object.__hash__` and :meth:`object.__eq__` docs, and
-  the `implementation <https://github.com/jab/bidict/blob/master/bidict/_frozenbidict.py#L10>`__
-  of :class:`~bidict.frozenbidict`.
-
-  - Consider :class:`~bidict.FrozenOrderedBidict`:
-    its :meth:`~bidict.FrozenOrderedBidict.__eq__`
-    is :ref:`order-insensitive <eq-order-insensitive>`.
-    So all contained items must participate in the hash order-insensitively.
-
-  - Can use `collections.abc.Set._hash <https://github.com/python/cpython/blob/a0374d/Lib/_collections_abc.py#L521>`__
-    which provides a pure Python implementation of the same hash algorithm
-    used to hash :class:`frozenset`\s.
-    (Since :class:`~collections.abc.ItemsView` extends
-    :class:`~collections.abc.Set`,
-    :meth:`bidict.frozenbidict.__hash__`
-    just calls ``ItemsView(self)._hash()``.)
-
-    - Does this argue for making :meth:`collections.abc.Set._hash` non-private?
-
-    - Why isn't the C implementation of this algorithm directly exposed in
-      CPython? The only way to use it is to call ``hash(frozenset(self.items()))``,
-      which wastes memory allocating the ephemeral frozenset,
-      and time copying all the items into it before they're hashed.
-
-  - Unlike other attributes, if a class implements ``__hash__()``,
-    any subclasses of that class will not inherit it.
-    It's like Python implicitly adds ``__hash__ = None`` to the body
-    of every class that doesn't explicitly define ``__hash__``.
-    So if you do want a subclass to inherit a base class's ``__hash__()``
-    implementation, you have to set that manually,
-    e.g. by adding ``__hash__ = BaseClass.__hash__`` in the class body.
-    See :class:`~bidict.FrozenOrderedBidict`.
-
-    This is consistent with the fact that
-    :class:`object` implements ``__hash__()``,
-    but subclasses of :class:`object`
-    that override :meth:`~object.__eq__`
-    are not hashable by default.
-
-- Using :meth:`~object.__new__` to bypass default object initialization,
-  e.g. for better :meth:`~bidict.bidict.copy` performance.
-  See `_base.py <https://github.com/jab/bidict/blob/master/bidict/_bidict.py#L10>`__.
-
-- Overriding :meth:`object.__getattribute__` for custom attribute lookup.
-  See :ref:`extending:Sorted Bidict Recipes`.
-
-- Using
-  :meth:`object.__getstate__`,
-  :meth:`object.__setstate__`, and
-  :meth:`object.__reduce__` to make an object pickleable
-  that otherwise wouldn't be,
-  due to e.g. using weakrefs,
-  as bidicts do (covered further below).
 
 
 Better memory usage through ``__slots__``
@@ -290,11 +270,19 @@ of :func:`~bidict.namedbidict`.
 API Design
 ==========
 
-How to deeply integrate with Python's :mod:`collections`?
+How to deeply integrate with Python's :mod:`collections` and other built-in APIs?
 
-- Thanks to :class:`~collections.abc.Hashable`
+- Beyond implementing :class:`collections.abc.Mapping`,
+  bidicts implement additional APIs
+  that :class:`dict` and :class:`~collections.OrderedDict` implement
+  (e.g. :func:`setdefault`, :func:`popitem`, etc.).
+
+  - When creating a new API, making it familiar, memorable, and intuitive
+    is hugely important to a good user experience.
+
+- Thanks to :class:`~collections.abc.Hashable`'s
   implementing :meth:`abc.ABCMeta.__subclasshook__`,
-  any class that implements all the required methods of the
+  any class that implements the required methods of the
   :class:`~collections.abc.Hashable` interface
   (namely, :meth:`~collections.abc.Hashable.__hash__`)
   makes it a virtual subclass already, no need to explicitly extend.
@@ -302,15 +290,8 @@ How to deeply integrate with Python's :mod:`collections`?
   ``issubclass(Foo, Hashable)`` will always be True,
   no need to explicitly subclass via ``class Foo(Hashable): ...``
 
-- :class:`collections.abc.Mapping` and
-  :class:`collections.abc.MutableMapping`
-  don't implement :meth:`~abc.ABCMeta.__subclasshook__`,
-  so must either explicitly subclass
-  (if you want to inherit any of their implementations)
-  or use :meth:`abc.ABCMeta.register`
-  (to register as a virtual subclass without inheriting any implementation)
-
-- How to make your own open ABC like :class:`~collections.abc.Hashable`?
+- How to make your own open ABC like :class:`~collections.abc.Hashable`,
+  i.e. how does :class:`~bidict.BidirectionalMapping` work?
 
   - Override :meth:`~abc.ABCMeta.__subclasshook__`
     to check for the interface you require.
@@ -324,18 +305,20 @@ How to deeply integrate with Python's :mod:`collections`?
     :class:`list` is a subclass of :class:`object`,
     but :class:`list` is not a subclass of :class:`~collections.abc.Hashable`.
 
+- :class:`collections.abc.Mapping` and
+  :class:`collections.abc.MutableMapping`
+  don't implement :meth:`~abc.ABCMeta.__subclasshook__`,
+  so must either explicitly subclass
+  (if you want to inherit any of their implementations)
+  or use :meth:`abc.ABCMeta.register`
+  (to register as a virtual subclass without inheriting any implementation)
+
 - Notice we have :class:`collections.abc.Reversible`
   but no ``collections.abc.Ordered`` or ``collections.abc.OrderedMapping``.
   Proposed in `bpo-28912 <https://bugs.python.org/issue28912>`__ but rejected.
   Would have been useful for bidict's ``__repr__()`` implementation (see ``_base.py``),
   and potentially for interop with other ordered mapping implementations
-  such as `SortedDict <http://www.grantjenks.com/docs/sortedcontainers/sorteddict.html>`__
-
-- Beyond :class:`collections.abc.Mapping`, bidicts implement additional APIs
-  that :class:`dict` and :class:`~collections.OrderedDict` implement.
-
-  - When creating a new API, making it familiar, memorable, and intuitive
-    is hugely important to a good user experience.
+  such as `SortedDict <http://www.grantjenks.com/docs/sortedcontainers/sorteddict.html>`__.
 
 How to make APIs Pythonic?
 
@@ -357,6 +340,94 @@ How to make APIs Pythonic?
   and a special slice syntax like ``b[:val]`` to look up a key by value,
   but these were removed in preference to the more obvious and readable
   ``.inverse``-based spellings.
+
+
+Python's data model
+===================
+
+- What happens when you implement a custom :meth:`~object.__eq__`?
+  e.g. What's the difference between ``a == b`` and ``b == a``
+  when only ``a`` is an instance of your class?
+  See the great write-up in https://eev.ee/blog/2012/03/24/python-faq-equality/
+  for the answer.
+
+- If an instance of your special mapping type
+  is being compared against a mapping of some foreign mapping type
+  that contains the same items,
+  should your ``__eq__()`` method return true?
+
+  Bidict says yes, again based on the `Liskov substitution principle
+  <https://en.wikipedia.org/wiki/Liskov_substitution_principle>`__.
+  Only returning true when the types matched exactly would violate this.
+  And returning :obj:`NotImplemented` would cause Python to fall back on
+  using identity comparison, which is not what is being asked for.
+
+  (Just for fun, suppose you did only return true when the types matched exactly,
+  and suppose your special mapping type were also hashable.
+  Would it be worth having your ``__hash__()`` method include your type
+  as well as your items?
+  The only point would be to reduce collisions when multiple instances of different
+  types contained the same items
+  and were going to be inserted into the same :class:`dict` or :class:`set`,
+  since they'd now be unequal but would hash to the same value otherwise.)
+
+- Making an immutable type hashable
+  (so it can be inserted into :class:`dict`\s and :class:`set`\s):
+  Must implement :meth:`~object.__hash__` such that
+  ``a == b ⇒ hash(a) == hash(b)``.
+  See the :meth:`object.__hash__` and :meth:`object.__eq__` docs, and
+  the `implementation <https://github.com/jab/bidict/blob/master/bidict/_frozenbidict.py#L10>`__
+  of :class:`~bidict.frozenbidict`.
+
+  - Consider :class:`~bidict.FrozenOrderedBidict`:
+    its :meth:`~bidict.FrozenOrderedBidict.__eq__`
+    is :ref:`order-insensitive <eq-order-insensitive>`.
+    So all contained items must participate in the hash order-insensitively.
+
+  - Can use `collections.abc.Set._hash <https://github.com/python/cpython/blob/a0374d/Lib/_collections_abc.py#L521>`__
+    which provides a pure Python implementation of the same hash algorithm
+    used to hash :class:`frozenset`\s.
+    (Since :class:`~collections.abc.ItemsView` extends
+    :class:`~collections.abc.Set`,
+    :meth:`bidict.frozenbidict.__hash__`
+    just calls ``ItemsView(self)._hash()``.)
+
+    - Does this argue for making :meth:`collections.abc.Set._hash` non-private?
+
+    - Why isn't the C implementation of this algorithm directly exposed in
+      CPython? The only way to use it is to call ``hash(frozenset(self.items()))``,
+      which wastes memory allocating the ephemeral frozenset,
+      and time copying all the items into it before they're hashed.
+
+  - Unlike other attributes, if a class implements ``__hash__()``,
+    any subclasses of that class will not inherit it.
+    It's like Python implicitly adds ``__hash__ = None`` to the body
+    of every class that doesn't explicitly define ``__hash__``.
+    So if you do want a subclass to inherit a base class's ``__hash__()``
+    implementation, you have to set that manually,
+    e.g. by adding ``__hash__ = BaseClass.__hash__`` in the class body.
+    See :class:`~bidict.FrozenOrderedBidict`.
+
+    This is consistent with the fact that
+    :class:`object` implements ``__hash__()``,
+    but subclasses of :class:`object`
+    that override :meth:`~object.__eq__`
+    are not hashable by default.
+
+- Using :meth:`~object.__new__` to bypass default object initialization,
+  e.g. for better :meth:`~bidict.bidict.copy` performance.
+  See `_base.py <https://github.com/jab/bidict/blob/master/bidict/_bidict.py#L10>`__.
+
+- Overriding :meth:`object.__getattribute__` for custom attribute lookup.
+  See :ref:`extending:Sorted Bidict Recipes`.
+
+- Using
+  :meth:`object.__getstate__`,
+  :meth:`object.__setstate__`, and
+  :meth:`object.__reduce__` to make an object pickleable
+  that otherwise wouldn't be,
+  due to e.g. using weakrefs,
+  as bidicts do (covered further below).
 
 
 Portability
@@ -413,6 +484,6 @@ Other interesting stuff in the standard library
 Tools
 =====
 
-See :ref:`thanks:Projects` for some of the fantastic tools
+See the :ref:`Thanks <thanks:Projects>` page for some of the fantastic tools
 for software verification, performance, code quality, etc.
 that bidict has provided an excuse to play with and learn.
