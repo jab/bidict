@@ -75,13 +75,17 @@ COVERAGE_REQS = [
 # minor versions manually to have a chance to fix any resulting breakage before it hits CI.
 FLAKE8_REQ = 'flake8 < 3.8'
 PYDOCSTYLE_REQ = 'pydocstyle < 3.1'
-PYLINT_REQ = 'pylint < 2.3'
+PYLINT_REQS = [
+    'pylint < 2.3',
+    # Pin to astroid 2.1.0 pending https://github.com/PyCQA/pylint/pull/2774.
+    # (astroid is pulled in transitively via pylint.)
+    'astroid==2.1.0',
+]
 
 LINT_REQS = [
     FLAKE8_REQ,
     PYDOCSTYLE_REQ,
-    PYLINT_REQ,
-]
+] + PYLINT_REQS
 
 DEV_REQS = SETUP_REQS + DOCS_REQS + TEST_REQS + COVERAGE_REQS + LINT_REQS + [
     'pre-commit < 2',
@@ -97,7 +101,7 @@ EXTRAS_REQS = dict(
     sphinx=[SPHINX_REQ],
     flake8=[FLAKE8_REQ],
     pydocstyle=[PYDOCSTYLE_REQ],
-    pylint=[PYLINT_REQ],
+    pylint=PYLINT_REQS,
 )
 
 setup(
