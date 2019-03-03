@@ -172,15 +172,19 @@ def _bidict_and_mapping_from_items(
     else:
         map_cls = draw(map_types)
     bi_items_ = draw(bi_items)
-    if map_items in (_SAME_AS_BI_ITEMS, _SAME_AS_BI_ITEMS_DIFF_ORDER):
+    same_items = map_items in (_SAME_AS_BI_ITEMS, _SAME_AS_BI_ITEMS_DIFF_ORDER)
+    if same_items:
         map_items_ = bi_items_[:]
         if map_items is _SAME_AS_BI_ITEMS_DIFF_ORDER:
             draw(RAND).shuffle(map_items_)
             assume(map_items_ != bi_items_)
     else:
         map_items_ = draw(map_items)
-        assume(map_items_ != bi_items_)
-    return bi_cls(bi_items_), map_cls(map_items_)
+    b = bi_cls(bi_items_)
+    m = map_cls(map_items_)
+    if not same_items:
+        assume(m.items() != b.items())
+    return b, m
 
 
 BIDICT_AND_MAPPING_FROM_SAME_ITEMS_NODUP = _bidict_and_mapping_from_items()

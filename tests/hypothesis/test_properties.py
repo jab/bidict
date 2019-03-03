@@ -15,7 +15,7 @@ from collections import OrderedDict
 from weakref import ref
 
 import pytest
-from hypothesis import given
+from hypothesis import HealthCheck, given, settings
 
 import _setup_hypothesis
 import _strategies as st
@@ -43,6 +43,7 @@ def test_unequal_to_non_mapping(bi, not_a_mapping):
 
 
 @given(st.BIDICT_AND_MAPPING_FROM_DIFFERENT_ITEMS)
+@settings(suppress_health_check=[HealthCheck.too_slow])
 def test_unequal_to_mapping_with_different_items(bidict_and_mapping_from_different_items):
     """Bidicts should be unequal to mappings containing different items."""
     bi, mapping = bidict_and_mapping_from_different_items
