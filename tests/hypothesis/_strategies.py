@@ -179,7 +179,7 @@ def _bidict_and_mapping_from_items(
             assume(map_items_ != bi_items_)
     else:
         map_items_ = draw(map_items)
-        assume(map_items_ != bi_items_)
+        assume(set(map_items_) != set(bi_items_))
     return bi_cls(bi_items_), map_cls(map_items_)
 
 

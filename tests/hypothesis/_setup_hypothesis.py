@@ -17,8 +17,7 @@ PROFILE_DEFAULT = {
     'max_examples': int(getenv('HYPOTHESIS_MAX_EXAMPLES') or MAX_EXAMPLES_DEFAULT),
     'deadline': None,
     'timeout': unlimited,
-    # Enabling coverage slows down hypothesis.
-    'suppress_health_check': NOCHECK_SLOW if getenv('COVERAGE') else (),
+    'suppress_health_check': NOCHECK_SLOW,
 }
 PROFILE_MORE_EXAMPLES = dict(
     PROFILE_DEFAULT,
