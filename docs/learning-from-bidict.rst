@@ -13,7 +13,9 @@ I've sought to optimize the code not just for correctness and performance,
 but also to make for a clear and enjoyable read,
 illuminating anything that could otherwise be obscure or subtle.
 
-I hope it brings you some of the joy it's brought me. 😊
+I hope it brings you some of the
+`joy <https://joy.recurse.com/posts/148-bidict>`__
+it's brought me. 😊
 
 
 Python syntax hacks
@@ -47,11 +49,13 @@ as appropriate.
 
 Factoring the code to maximize reuse, modularity, and
 adherence to `SOLID <https://en.wikipedia.org/wiki/SOLID>`__ design principles
+(while not missing any chances for special-case optimizations)
 has been one of the most fun parts of working on bidict.
 
 To see how this is done, check out this code:
 
 - `_base.py <https://github.com/jab/bidict/blob/master/bidict/_base.py#L10>`__
+- `_delegating_mixins.py <https://github.com/jab/bidict/blob/master/bidict/_delegating_mixins.py#L10>`__
 - `_frozenbidict.py <https://github.com/jab/bidict/blob/master/bidict/_frozenbidict.py#L10>`__
 - `_mut.py <https://github.com/jab/bidict/blob/master/bidict/_mut.py#L10>`__
 - `_bidict.py <https://github.com/jab/bidict/blob/master/bidict/_bidict.py#L10>`__
@@ -74,7 +78,7 @@ Bidict shows how fundamental data structures
 can be implemented in Python for important real-world usage,
 with practical concerns at top of mind.
 Come to catch sight of a real, live, industrial-strength linked list in the wild.
-Stay for the rare, exotic bidirectional mappings breeds you'll rarely see at home.
+Stay for the rare, exotic bidirectional mapping breeds you'll rarely see at home.
 [#fn-data-struct]_
 
 .. [#fn-data-struct] To give you a taste:
@@ -188,6 +192,13 @@ Python surprises, gotchas, regrets
   Hence :ref:`eq-order-insensitive` for ordered bidicts,
   and their separate :meth:`~bidict.FrozenOrderedBidict.equals_order_sensitive` method.
 
+- If you define a custom :meth:`~object.__eq__` on a class,
+  it will *not* be used for ``!=`` comparisons on Python 2 automatically;
+  you must explicitly add an :meth:`~object.__ne__` implementation
+  that calls your :meth:`~object.__eq__` implementation.
+  If you don't, :meth:`object.__ne__` will be used instead,
+  which behaves like ``is not``. Python 3 thankfully fixes this.
+
 
 Better memory usage through ``__slots__``
 =========================================
@@ -231,7 +242,7 @@ Here's a larger one:
    >>> from collections import namedtuple
    >>> from itertools import count
 
-   >>> class Node(namedtuple('_Node', 'cost tiebreaker data parent')):
+   >>> class Node(namedtuple('_Node', 'cost tiebreaker data parent depth')):
    ...     """Represent nodes in a graph traversal. Suitable for use with e.g. heapq."""
    ...
    ...     __slots__ = ()
@@ -240,11 +251,8 @@ Here's a larger one:
    ...     # Give call sites a cleaner API for creating new Nodes
    ...     def __new__(cls, cost, data, parent=None):
    ...         tiebreaker = next(cls._counter)
-   ...         return super(Node, cls).__new__(cls, cost, tiebreaker, data, parent)
-   ...
-   ...     @property
-   ...     def depth(self):
-   ...         return self.parent.depth + 1 if self.parent else 0
+   ...         depth = parent.depth + 1 if parent else 0
+   ...         return super(Node, cls).__new__(cls, cost, tiebreaker, data, parent, depth)
    ...
    ...     def __repr__(self):
    ...         return 'Node(cost={cost}, data={data!r})'.format(**self._asdict())
@@ -304,6 +312,17 @@ How to deeply integrate with Python's :mod:`collections` and other built-in APIs
     e.g. :class:`object` is a subclass of :class:`~collections.abc.Hashable`,
     :class:`list` is a subclass of :class:`object`,
     but :class:`list` is not a subclass of :class:`~collections.abc.Hashable`.
+
+- What if we needed to add a second metaclass
+  in addition to :class:`~bidict.BidirectionalMapping`
+  (e.g. to conditionally implement an optimized version of some methods
+  based on the type of ``_fwmd_cls``,
+  as ``_delegating_mixins.py`` currently does without a metaclass)?
+  Would have to be careful to avoid
+  "TypeError: metaclass conflict: the metaclass of a derived class
+  must be a (non-strict) subclass of the metaclasses of all its bases".
+  See the great write-up in
+  https://blog.ionelmc.ro/2015/02/09/understanding-python-metaclasses/.
 
 - :class:`collections.abc.Mapping` and
   :class:`collections.abc.MutableMapping`
@@ -435,18 +454,10 @@ Portability
 
 - Python 2 vs. Python 3
 
-  - Mostly :class:`dict` API changes,
+  - As affects bidict, mostly :class:`dict` API changes,
     but also functions like :func:`zip`, :func:`map`, :func:`filter`, etc.
 
-  - If you define a custom :meth:`~object.__eq__` on a class,
-    it will *not* be used for ``!=`` comparisons on Python 2 automatically;
-    you must explicitly add an :meth:`~object.__ne__` implementation
-    that calls your :meth:`~object.__eq__` implementation.
-    If you don't, :meth:`object.__ne__` will be used instead,
-    which behaves like ``is not``.
-    GOTCHA alert!
-
-    Python 3 thankfully fixes this.
+  - See the :meth:`~object.__ne__` gotcha for Python 2 above.
 
   - Borrowing methods from other classes:
 
