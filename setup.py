@@ -76,10 +76,10 @@ COVERAGE_REQS = [
 FLAKE8_REQ = 'flake8 < 3.8'
 PYDOCSTYLE_REQ = 'pydocstyle < 3.1'
 PYLINT_REQS = [
-    'pylint < 2.3',
-    # Pin to astroid 2.1.0 pending https://github.com/PyCQA/pylint/pull/2774.
-    # (astroid is pulled in transitively via pylint.)
-    'astroid==2.1.0',
+    # Pin to exact versions of Pylint and Astroid, which don't follow semver.
+    # See https://github.com/PyCQA/astroid/issues/651#issuecomment-469021040
+    'pylint == 2.2.3',
+    'astroid == 2.1.0',
 ]
 
 LINT_REQS = [
