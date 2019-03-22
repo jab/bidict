@@ -12,13 +12,12 @@ from collections import OrderedDict
 
 from hypothesis import assume, strategies as st
 from bidict import IGNORE, OVERWRITE, RAISE, OrderedBidictBase, namedbidict
-from bidict.compat import izip
+from bidict.compat import PY2, izip
 
 import _types as t
 
 
 # pylint: disable=invalid-name
-
 
 DATA = st.data()
 RAND = st.randoms()
@@ -48,6 +47,10 @@ LISTS_MAX_SIZE = 10
 LISTS_PAIRS = st.lists(st.tuples(IMMUTABLES, IMMUTABLES), max_size=LISTS_MAX_SIZE)
 
 NON_MAPPINGS = IMMUTABLES | LISTS_PAIRS
+
+IDENTIFIER_TYPE = TEXT
+if PY2:
+    IDENTIFIER_TYPE = IDENTIFIER_TYPE.map(lambda x: x.encode('utf-8'))
 
 
 @st.composite

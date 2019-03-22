@@ -231,7 +231,7 @@ def test_orderedbidict_iterkeys_itervals_iteritems(ob):
     assert list(ob.iteritems()) == ob.items()
 
 
-@given(st.st.tuples(st.TEXT, st.TEXT, st.TEXT))
+@given(st.st.tuples(st.IDENTIFIER_TYPE, st.IDENTIFIER_TYPE, st.IDENTIFIER_TYPE))
 def test_namedbidict_raises_on_invalid_name(names):
     """:func:`bidict.namedbidict` should raise if given invalid names."""
     typename, keyname, valname = names
