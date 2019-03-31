@@ -39,9 +39,9 @@ on libraries.io to be notified when new versions of bidict are released.
   and warn when Python 3 < 3.5 is detected
   rather than Python 3 < 3.3.
 
-  According to `PyPI Stats <https://pypistats.org/packages/bidict>`__,
-  Python 3.4 represents only about 3% of bidict downloads as of January 2019.
-  The latest release of Pip has also deprecated support for Python 3.4.
+  Python 3.4 reaches `end of life <https://www.python.org/dev/peps/pep-0429/>`__ on 2019-03-18.
+  As of January 2019, 3.4 represents only about 3% of bidict downloads on
+  `PyPI Stats <https://pypistats.org/packages/bidict>`__.
 
 
 0.17.5 (2018-11-19)
