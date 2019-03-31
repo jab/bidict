@@ -52,7 +52,7 @@ SPHINX_REQ = 'Sphinx < 2'
 DOCS_REQS = [SPHINX_REQ]
 
 TEST_REQS = [
-    'hypothesis < 4',
+    'hypothesis < 5',
     'py < 2',
     'pytest < 5',
     'pytest-benchmark >= 3.2.0, < 4',
