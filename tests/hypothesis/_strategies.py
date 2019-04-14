@@ -12,7 +12,7 @@ from collections import OrderedDict
 
 from hypothesis import assume, strategies as st
 from bidict import IGNORE, OVERWRITE, RAISE, OrderedBidictBase, namedbidict
-from bidict.compat import PY2, izip
+from bidict.compat import ItemsView, PY2, izip
 
 import _types as t
 
@@ -186,7 +186,7 @@ def _bidict_and_mapping_from_items(
     b = bi_cls(bi_items_)
     m = map_cls(map_items_)
     if not same_items:
-        assume(m.items() != b.items())
+        assume(ItemsView(m) != ItemsView(b))
     return b, m
 
 
