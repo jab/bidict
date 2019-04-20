@@ -1,8 +1,16 @@
+*.pyc
+.DS_Store
 .benchmarks
 .cache
 .coverage
+.eggs
 .hypothesis
+.mypy_cache
 .tox
+.vscode
+__pycache__
+_build
+bidict.egg-info
 bidict/_version.py
 coverage.xml
 htmlcov
