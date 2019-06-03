@@ -314,9 +314,9 @@ def test_refcycle_orderedbidict_nodes(ob_cls, init_items):
             map(ref, some_ordered_bidict._fwdm.values()),  # pylint: disable=protected-access
             []
         )
-        assert all(ref() is not None for ref in node_weakrefs)
+        assert all(r() is not None for r in node_weakrefs)
         del some_ordered_bidict
-        assert all(ref() is None for ref in node_weakrefs)
+        assert all(r() is None for r in node_weakrefs)
     finally:
         gc.enable()
 
