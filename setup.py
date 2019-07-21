@@ -47,9 +47,14 @@ SETUP_REQS = [
     'setuptools_scm < 4',
 ]
 
-SPHINX_REQ = 'Sphinx < 2'
+SPHINX_REQS = [
+    'Sphinx < 2',
+    # Sphinx's docutils pin has no upper bound. Pin to 0.14 pending sphinx-doc/sphinx#6594.
+    # Without this we'd pull 0.15 and "make doctest" would break with SyntaxError under Python 2.7.
+    'docutils == 0.14',
+]
 
-DOCS_REQS = [SPHINX_REQ]
+DOCS_REQS = SPHINX_REQS
 
 TEST_REQS = [
     'hypothesis < 5',
@@ -61,7 +66,7 @@ TEST_REQS = [
     # pytest's doctest support doesn't support Sphinx extensions
     # (https://www.sphinx-doc.org/en/latest/usage/extensions/doctest.html)
     # so †est the code in the Sphinx docs using Sphinx's own doctest support.
-    SPHINX_REQ,
+    DOCS_REQS,
 ]
 
 # Split out coverage from test requirements since it slows down the tests.
@@ -98,7 +103,7 @@ EXTRAS_REQS = dict(
     coverage=COVERAGE_REQS,
     lint=LINT_REQS,
     dev=DEV_REQS,
-    sphinx=[SPHINX_REQ],
+    sphinx=SPHINX_REQS,
     flake8=[FLAKE8_REQ],
     pydocstyle=[PYDOCSTYLE_REQ],
     pylint=PYLINT_REQS,
