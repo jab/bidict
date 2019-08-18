@@ -95,7 +95,8 @@ matrix:
     - env: 'TASK=docs-linkcheck INSTALL_EXTRAS=docs'
     - env: 'TASK=test-linux-cpython-3.8-dev'
     - env: 'TASK=deploy-if-tag'
-  fast_finish: true
+  ## fast_finish causes Travis to sned a useless daily "build pending" email; not worth the noise.
+  # fast_finish: true
   include:
     # Each job below performs a single task. Setting a per-job "TASK" env var
     # causes Travis to clearly show each job's task in the web UI.
