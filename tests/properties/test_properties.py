@@ -11,6 +11,7 @@ import gc
 import pickle
 
 from functools import reduce
+from copy import deepcopy
 from collections import OrderedDict
 from weakref import ref
 
@@ -154,7 +155,7 @@ def test_consistency_after_method_call(bi_and_cmp_dict, args_by_method):
 
 
 @given(st.MUTABLE_BIDICTS, st.LISTS_PAIRS_DUP, st.DUP_POLICIES_DICT)
-def test_putall_same_as_iterated_put(bi, items, dup_policies):
+def test_putall_same_as_put_for_each_item(bi, items, dup_policies):
     """*bi.putall(items) <==> for i in items: bi.put(i)* for all duplication policies."""
     check = bi.copy()
     expect = bi.copy()
@@ -351,7 +352,21 @@ def test_pickle_roundtrips(bi):
         dumps_args['protocol'] = 2
     pickled = pickle.dumps(bi, **dumps_args)
     roundtripped = pickle.loads(pickled)
+    assert roundtripped is roundtripped.inv.inv
     assert roundtripped == bi
+    assert roundtripped.inv == bi.inv
+    assert roundtripped.inv.inv == bi.inv.inv
+
+
+@given(st.BIDICTS)
+def test_deepcopy(bi):
+    """A bidict should equal its deepcopy."""
+    cp = deepcopy(bi)
+    assert cp is not bi
+    assert cp.inv.inv is cp
+    assert cp.inv.inv is not bi
+    assert bi == cp
+    assert bi.inv == cp.inv
 
 
 def test_iteritems_args_kw_raises_on_too_many_args():

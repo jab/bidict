@@ -22,6 +22,14 @@ Tip: `Subscribe to bidict releases <https://libraries.io/pypi/bidict>`__
 on libraries.io to be notified when new versions of bidict are released.
 
 
+0.18.1 (not yet released)
+-------------------------
+
+- Fix a bug introduced in 0.15.0 where a deepcopy'd or pickled-then-unpickled bidict
+  would not have its inverse set correctly.
+  `#94 <https://github.com/jab/bidict/issues/94>`__
+
+
 0.18.0 (2019-02-14)
 -------------------
 

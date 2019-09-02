@@ -132,7 +132,7 @@ if it weren't for property-based testing, enabled by the amazing
 It's game-changing.
 
 Check out `bidict's property-based tests
-<https://github.com/jab/bidict/blob/master/tests/hypothesis/test_properties.py>`__
+<https://github.com/jab/bidict/blob/master/tests/properties/test_properties.py>`__
 to see this in action.
 
 
@@ -478,7 +478,7 @@ Portability
 
     - Hence ``test_no_reference_cycles()``
       in `test_properties.py
-      <https://github.com/jab/bidict/blob/master/tests/hypothesis/test_properties.py>`__
+      <https://github.com/jab/bidict/blob/master/tests/properties/test_properties.py>`__
       is skipped on PyPy.
 
 

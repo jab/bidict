@@ -33,7 +33,7 @@ Status
    :target: https://codecov.io/gh/jab/bidict
    :alt: Test coverage
 
-.. image:: https://img.shields.io/lgtm/alerts/g/jab/bidict.svg
+.. image:: https://img.shields.io/lgtm/alerts/github/jab/bidict.svg
   :target: https://lgtm.com/projects/g/jab/bidict/
   :alt: LGTM alerts
 

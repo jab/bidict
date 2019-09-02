@@ -181,9 +181,9 @@ class BidictBase(BidirectionalMapping):
             for slot in slots:
                 if hasattr(self, slot):
                     state[slot] = getattr(self, slot)
-        # These weakrefs can't be pickled, and don't need to be anyway.
-        state.pop('__weakref__', None)
-        state.pop('_invweak', None)
+        # weakrefs can't be pickled.
+        state.pop('_invweak', None)  # Added back in __setstate__ via _init_inv call.
+        state.pop('__weakref__', None)  # Not added back in __setstate__. Python manages this one.
         return state
 
     def __setstate__(self, state):
@@ -193,6 +193,7 @@ class BidictBase(BidirectionalMapping):
         """
         for slot, value in iteritems(state):
             setattr(self, slot, value)
+        self._init_inv()
 
     def __repr__(self):
         """See :func:`repr`."""
