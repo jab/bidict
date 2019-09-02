@@ -17,17 +17,13 @@ from weakref import ref
 import pytest
 from hypothesis import HealthCheck, given, settings
 
-import _setup_hypothesis
-import _strategies as st
-
 from bidict import BidictException, OrderedBidictBase, namedbidict, inverted
 from bidict.compat import (
     PY2, PYPY, collections_abc as c, iteritems, izip, viewkeys, viewitems,
 )
 from bidict._util import _iteritems_args_kw  # pylint: disable=protected-access
 
-
-_setup_hypothesis.load_profile()
+from . import _strategies as st
 
 
 # pylint: disable=invalid-name
@@ -158,7 +154,7 @@ def test_consistency_after_method_call(bi_and_cmp_dict, args_by_method):
 
 
 @given(st.MUTABLE_BIDICTS, st.LISTS_PAIRS_DUP, st.DUP_POLICIES_DICT)
-def test_putall_same_as_sequential_put(bi, items, dup_policies):
+def test_putall_same_as_iterated_put(bi, items, dup_policies):
     """*bi.putall(items) <==> for i in items: bi.put(i)* for all duplication policies."""
     check = bi.copy()
     expect = bi.copy()

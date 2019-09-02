@@ -16,6 +16,8 @@ ul li { margin-bottom: 8px; }
 /* Can remove this when https://github.com/bitprophet/alabaster/pull/125 lands */
 a.image-reference:hover { border-bottom: 0 !important; }
 
+div.sphinxsidebar img[alt="Donate"] { display: none; }
+
 /* override the inherited "max-width: 100%" in case a badge fails to load */
 #status img { max-width: inherit; }
 

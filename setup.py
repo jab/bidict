@@ -48,10 +48,10 @@ SETUP_REQS = [
 ]
 
 SPHINX_REQS = [
-    'Sphinx < 2',
-    # Sphinx's docutils pin has no upper bound. Pin to 0.14 pending sphinx-doc/sphinx#6594.
-    # Without this we'd pull 0.15 and "make doctest" would break with SyntaxError under Python 2.7.
-    'docutils == 0.14',
+    'Sphinx < 3',
+    # Sphinx's docutils pin has no upper bound. Pin to 0.15.2 pending sphinx-doc/sphinx#6594.
+    # (Pulling 0.15 previously broke "make doctest" with SyntaxError under Python 2.7.)
+    'docutils == 0.15.2',
 ]
 
 DOCS_REQS = SPHINX_REQS
@@ -59,7 +59,7 @@ DOCS_REQS = SPHINX_REQS
 TEST_REQS = [
     'hypothesis < 5',
     'py < 2',
-    'pytest < 5',
+    'pytest < 6',
     'pytest-benchmark >= 3.2.0, < 4',
     'sortedcollections < 2',
     'sortedcontainers < 3',

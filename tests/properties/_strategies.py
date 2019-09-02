@@ -14,7 +14,7 @@ from hypothesis import assume, strategies as st
 from bidict import IGNORE, OVERWRITE, RAISE, OrderedBidictBase, namedbidict
 from bidict.compat import ItemsView, PY2, izip
 
-import _types as t
+from . import _types as t
 
 
 # pylint: disable=invalid-name
