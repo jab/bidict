@@ -273,9 +273,16 @@ https://github.com/grantjenks/python-sortedcontainers/pull/106#issuecomment-4356
     >>> viewitems(mvmdict) == ItemsView(mvmdict)
     True
 
-Make sure copy.copy ends up calling BidictBase.__copy__
-(should show up in the coverage report)::
+Make sure copy.copy and copy.deepcopy create shallow and deep copies, respectively::
 
-    >>> from copy import copy
-    >>> copy(bidict())
-    bidict()
+    >>> from copy import copy, deepcopy
+    >>> from bidict import frozenbidict
+    >>> b = frozenbidict({1: frozenbidict()})
+    >>> c = copy(b)
+    >>> d = deepcopy(b)
+    >>> b == c == d
+    True
+    >>> b[1] is c[1]
+    True
+    >>> b[1] is d[1]
+    False
