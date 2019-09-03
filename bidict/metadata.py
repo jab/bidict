@@ -37,7 +37,7 @@ __email__ = u'jab@math.brown.edu'
 # See: ../docs/thanks.rst
 __credits__ = [i.strip() for i in u"""
 Joshua Bronson, Michael Arntzenius, Francis Carr, Gregory Ewing, Raymond Hettinger, Jozef Knaperek,
-Daniel Pope, Terry Reedy, David Turner, Tom Viner
+Daniel Pope, Terry Reedy, David Turner, Tom Viner, Richard Sanger, Zeyi Wang
 """.split(u',')]
 
 __description__ = u'Efficient, Pythonic bidirectional map implementation and related functionality'

@@ -21,12 +21,14 @@ Release Notifications
 Tip: `Subscribe to bidict releases <https://libraries.io/pypi/bidict>`__
 on libraries.io to be notified when new versions of bidict are released.
 
-
 0.18.1 (not yet released)
 -------------------------
 
-- Fix a bug introduced in 0.15.0 where a deepcopy'd or pickled-then-unpickled bidict
-  would not have its inverse set correctly.
+- Fix a bug introduced by the memory optimizations added in 0.15.0
+  which caused
+  :func:`deepcopied <copy.deepcopy>` and
+  :func:`unpickled <pickle.loads>`
+  bidicts to have their inverses set incorrectly.
   `#94 <https://github.com/jab/bidict/issues/94>`__
 
 
@@ -121,8 +123,8 @@ Minor code, interop, and (semi-)private API improvements.
 -------------------
 
 - Improve packaging by adding a pyproject.toml
-  (`thanks, @gaborbernat <https://github.com/jab/bidict/pull/81>`__)
   and by including more supporting files in the distribution.
+  `#81 <https://github.com/jab/bidict/pull/81>`__
 
 - Drop pytest-runner and support for running tests via ``python setup.py test``
   in preference to ``pytest`` or ``python -m pytest``.
@@ -225,7 +227,7 @@ Speedups and memory usage improvements
   See the new
   :ref:`addendum:Bidict Avoids Reference Cycles`
   documentation.
-  Fixes `#24 <https://github.com/jab/bidict/issues/20>`__.
+  `#24 <https://github.com/jab/bidict/issues/20>`__
 
 - Make :func:`bidict.BidictBase.__eq__` significantly
   more speed- and memory-efficient when comparing to
@@ -360,8 +362,7 @@ The following breaking changes are expected to affect few if any users.
 - Fix a bug introduced in 0.14.0 for Python 2 users
   where attempting to call ``viewitems()``
   would cause a ``TypeError``.
-  Thanks Richard Sanger for
-  `reporting <https://github.com/jab/bidict/issues/48>`__.
+  `#48 <https://github.com/jab/bidict/issues/48>`__
 
 
 0.14.0 (2017-11-20)
@@ -505,7 +506,7 @@ This release includes multiple API simplifications and improvements.
   ``issubclass(OldStyleClass, BidirectionalMapping)`` once again
   works with old-style classes,
   returning ``False`` rather than raising :class:`AttributeError`
-  (`thanks, @knaperek <https://github.com/jab/bidict/pull/41>`__).
+  `#41 <https://github.com/jab/bidict/pull/41>`__
 
 
 0.13.0 (2017-01-19)
@@ -661,8 +662,8 @@ This release includes multiple API simplifications and improvements.
 - Implement :func:`~bidict.BidictBase.__copy__`
   for use with the :mod:`copy` module.
 
-- Fix issue preventing a client class from inheriting from ``loosebidict``
-  (see `#34 <https://github.com/jab/bidict/issues/34>`__).
+- Fix issue preventing a client class from inheriting from ``loosebidict``.
+  `#34 <https://github.com/jab/bidict/issues/34>`__
 
 - Add benchmarking to tests.
 
@@ -799,7 +800,7 @@ Breaking API Changes
   `Gitter chat room <https://gitter.im/jab/bidict>`__,
   and other community-oriented improvements.
 
-- Adopt Pytest (thanks Tom Viner and Adopt Pytest Month).
+- Adopt Pytest.
 
 - Add property-based tests via
   `hypothesis <https://hypothesis.readthedocs.io>`__.
