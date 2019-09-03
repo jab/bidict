@@ -21,8 +21,8 @@ Release Notifications
 Tip: `Subscribe to bidict releases <https://libraries.io/pypi/bidict>`__
 on libraries.io to be notified when new versions of bidict are released.
 
-0.18.1 (not yet released)
--------------------------
+0.18.1 (2019-09-03)
+-------------------
 
 - Fix a bug introduced by the memory optimizations added in 0.15.0
   which caused
