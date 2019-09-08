@@ -85,6 +85,15 @@ Bidict:
   that leverages a number of advanced language features [#fn-learning]_
 
 
+⚠️ Python 2 EOL ⚠️
+++++++++++++++++++
+
+Python 2 support will be dropped in a future release.
+
+See `python3statement.org <https://python3statement.org>`__
+for more info.
+
+
 Installation
 ------------
 

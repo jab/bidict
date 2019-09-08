@@ -26,10 +26,17 @@ click "`Watch <https://help.github.com/en/articles/watching-and-unwatching-relea
 and choose "Releases".
 
 
+0.18.2 (2019-09-08)
+-------------------
+
+- Warn that Python 2 support will be dropped in a future release
+  when Python 2 is detected.
+
+
 0.18.1 (2019-09-03)
 -------------------
 
-- Fix a bug introduced by the memory optimizations added in 0.15.0
+- Fix a regression introduced by the memory optimizations added in 0.15.0
   which caused
   :func:`deepcopied <copy.deepcopy>` and
   :func:`unpickled <pickle.loads>`

@@ -41,6 +41,11 @@ from ._util import _iteritems_args_kw
 from .compat import PY2, KeysView, ItemsView, Mapping, iteritems
 
 
+_DedupResult = namedtuple('_DedupResult', 'isdupkey isdupval invbyval fwdbykey')
+_WriteResult = namedtuple('_WriteResult', 'key val oldkey oldval')
+_NODUP = _DedupResult(False, False, _MISS, _MISS)
+
+
 # Since BidirectionalMapping implements __subclasshook__, and BidictBase
 # provides all the required attributes that the __subclasshook__ checks for,
 # BidictBase would be a (virtual) subclass of BidirectionalMapping even if
@@ -326,24 +331,29 @@ class BidictBase(BidirectionalMapping):
         return _WriteResult(key, val, oldkey, oldval)
 
     def _update(self, init, on_dup, *args, **kw):
+        # args[0] may be a generator that yields many items, so process input in a single pass.
         if not args and not kw:
             return
+        can_skip_dup_check = not self and not kw and isinstance(args[0], BidirectionalMapping)
+        if can_skip_dup_check:
+            self._update_no_dup_check(args[0])
+            return
         on_dup = self._get_on_dup(on_dup)
-        empty = not self
-        only_copy_from_bimap = empty and not kw and isinstance(args[0], BidirectionalMapping)
-        if only_copy_from_bimap:  # no need to check for duplication
-            write_item = self._write_item
-            for (key, val) in iteritems(args[0]):
-                write_item(key, val, _NODUP)
-            return
-        raise_on_dup = RAISE in on_dup
-        rollback = raise_on_dup and not init
-        if rollback:
+        can_skip_rollback = init or RAISE not in on_dup
+        if can_skip_rollback:
+            self._update_no_rollback(on_dup, *args, **kw)
+        else:
             self._update_with_rollback(on_dup, *args, **kw)
-            return
-        _put = self._put
+
+    def _update_no_dup_check(self, other, _nodup=_NODUP):
+        write_item = self._write_item
+        for (key, val) in iteritems(other):
+            write_item(key, val, _nodup)
+
+    def _update_no_rollback(self, on_dup, *args, **kw):
+        put = self._put
         for (key, val) in _iteritems_args_kw(*args, **kw):
-            _put(key, val, on_dup)
+            put(key, val, on_dup)
 
     def _update_with_rollback(self, on_dup, *args, **kw):
         """Update, rolling back on failure."""
@@ -452,11 +462,6 @@ class BidictBase(BidirectionalMapping):
         def __ne__(self, other):  # noqa: N802
             u"""*x.__ne__(other)　⟺　x != other*"""
             return not self == other  # Implement __ne__ in terms of __eq__.
-
-
-_DedupResult = namedtuple('_DedupResult', 'isdupkey isdupval invbyval fwdbykey')
-_WriteResult = namedtuple('_WriteResult', 'key val oldkey oldval')
-_NODUP = _DedupResult(False, False, _MISS, _MISS)
 
 
 #                             * Code review nav *
