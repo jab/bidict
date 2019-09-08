@@ -20,6 +20,11 @@ Release Notifications
 
 Tip: `Subscribe to bidict releases <https://libraries.io/pypi/bidict>`__
 on libraries.io to be notified when new versions of bidict are released.
+Alternatively,
+`on GitHub <https://github.com/jab/bidict>`__,
+click "`Watch <https://help.github.com/en/articles/watching-and-unwatching-releases-for-a-repository>`__"
+and choose "Releases".
+
 
 0.18.1 (2019-09-03)
 -------------------

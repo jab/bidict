@@ -6,8 +6,17 @@
  * file, You can obtain one at http://mozilla.org/MPL/2.0/.
  */
 
+pre { padding: 10px; }
+@media only screen and (max-width: 875px) {
+  p { width: calc(100% - 20px); }
+  pre { max-width: calc(100% - 40px); }
+  /* Make code text in side nav lighter on narrow viewports where it's moved to the footer. */
+  .sphinxsidebarwrapper code { color: #ccc !important; background: inherit !important; }
+}
+
 h1, h2, h3, h4, h5 { font-weight: bold !important; }
 
+ul, ol { margin: 10px 20px; }
 ul li { margin-bottom: 8px; }
 
 /* Float the logo to the right of the status badges on the homepage */
