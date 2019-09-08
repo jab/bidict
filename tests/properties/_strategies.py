@@ -124,7 +124,7 @@ MUTABLE_BIDICTS = bidicts(bi_types=MUTABLE_BIDICT_TYPES)
 ORDERED_BIDICTS = bidicts(bi_types=ORDERED_BIDICT_TYPES)
 
 
-NAMEDBIDICT_VALID_NAME_PAT = re.compile('[A-z][A-z0-9_]*$')
+NAMEDBIDICT_VALID_NAME_PAT = re.compile('[A-Za-z_][A-Za-z0-9_]*$')
 NAMEDBIDICT_NAMES = st.from_regex(NAMEDBIDICT_VALID_NAME_PAT, fullmatch=True)
 NAMEDBIDICT_3_NAMES = st.tuples(
     NAMEDBIDICT_NAMES,

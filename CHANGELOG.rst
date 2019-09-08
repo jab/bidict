@@ -26,6 +26,14 @@ click "`Watch <https://help.github.com/en/articles/watching-and-unwatching-relea
 and choose "Releases".
 
 
+master
+------
+
+- Improve validation of names passed to :func:`~bidict.namedbidict`:
+  Use :meth:`str.isidentifier` on Python 3,
+  and a better regex on Python 2.
+
+
 0.18.2 (2019-09-08)
 -------------------
 

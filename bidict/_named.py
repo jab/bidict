@@ -11,9 +11,12 @@ import re
 
 from ._abc import BidirectionalMapping
 from ._bidict import bidict
+from .compat import PY2
 
 
-_VALID_NAME = re.compile('[A-z][A-z0-9_]*$')
+_isidentifier = (  # pylint: disable=invalid-name
+    re.compile('[A-Za-z_][A-Za-z0-9_]*$').match if PY2 else str.isidentifier
+)
 
 
 def namedbidict(typename, keyname, valname, base_type=bidict):
@@ -33,7 +36,7 @@ def namedbidict(typename, keyname, valname, base_type=bidict):
     <other-bidict-types:\:func\:\`~bidict.namedbidict\`>`
 
     :raises ValueError: if any of the *typename*, *keyname*, or *valname*
-        strings does not match ``%s``, or if *keyname == valname*.
+        strings is not a valid Python identifier, or if *keyname == valname*.
 
     :raises TypeError: if *base_type* is not a subclass of
         :class:`BidirectionalMapping`.
@@ -52,7 +55,7 @@ def namedbidict(typename, keyname, valname, base_type=bidict):
     if not issubclass(base_type, BidirectionalMapping):
         raise TypeError(base_type)
     names = (typename, keyname, valname)
-    if not all(map(_VALID_NAME.match, names)) or keyname == valname:
+    if not all(map(_isidentifier, names)) or keyname == valname:
         raise ValueError(names)
 
     class _Named(base_type):  # pylint: disable=too-many-ancestors
@@ -87,9 +90,6 @@ def namedbidict(typename, keyname, valname, base_type=bidict):
 
     _Named.__name__ = typename
     return _Named
-
-
-namedbidict.__doc__ %= _VALID_NAME.pattern  # pylint: disable=no-member
 
 
 def _make_empty(typename, keyname, valname, base_type):
