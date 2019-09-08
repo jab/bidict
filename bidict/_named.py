@@ -24,7 +24,8 @@ def namedbidict(typename, keyname, valname, base_type=bidict):
 
     Analagous to :func:`collections.namedtuple`.
 
-    The new class's ``__name__`` will be set to *typename*.
+    The new class's ``__name__`` and ``__qualname__``
+    will be set based on *typename*.
 
     Instances of it will provide access to their
     :attr:`inverse <BidirectionalMapping.inverse>`\s
@@ -88,6 +89,8 @@ def namedbidict(typename, keyname, valname, base_type=bidict):
     setattr(_Named, fname, property(_Named._getfwd, doc=fdoc))  # pylint: disable=protected-access
     setattr(_Named, iname, property(_Named._getinv, doc=idoc))  # pylint: disable=protected-access
 
+    if not PY2:
+        _Named.__qualname__ = _Named.__qualname__[:-len(_Named.__name__)] + typename
     _Named.__name__ = typename
     return _Named
 

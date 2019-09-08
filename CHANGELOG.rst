@@ -33,6 +33,10 @@ master
   Use :meth:`str.isidentifier` on Python 3,
   and a better regex on Python 2.
 
+- On Python 3,
+  set :attr:`~definition.__qualname__` on :func:`~bidict.namedbidict` classes
+  based on the provided ``typename`` argument.
+
 
 0.18.2 (2019-09-08)
 -------------------
