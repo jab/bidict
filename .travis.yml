@@ -71,12 +71,9 @@ before_script:
 script:  # Run the test suite.
   - |
     if [[ "$TRAVIS_EVENT_TYPE" == "cron" ]]; then
-      export HYPOTHESIS_PROFILE="more-examples"  # See tests/hypothesis/_setup_hypothesis.py
-    else
-      export HYPOTHESIS_PROFILE="default"
+      export HYPOTHESIS_MAX_EXAMPLES="2000"  # See tests/conftest.py
+      export PYTEST_ADDOPTS="--hypothesis-verbosity=verbose --hypothesis-show-statistics"
     fi
-    export PYTEST_ADDOPTS="--hypothesis-profile=${HYPOTHESIS_PROFILE}"
-
     if [[ "$COVERAGE" ]]; then
       export PYTEST_ADDOPTS="${PYTEST_ADDOPTS} --cov=bidict --cov-config=.coveragerc"
     fi
@@ -116,11 +113,11 @@ matrix:
     - python: '2.7'
       env: 'TASK=test-linux-cpython-2.7 COVERAGE=1'
 
-    - python: 'pypy3.5-6.0'
-      env: 'TASK=test-linux-pypy-3.5-6.0 COVERAGE=1'
+    - python: 'pypy3'
+      env: 'TASK=test-linux-pypy3 COVERAGE=1'
 
-    - python: 'pypy2.7-6.0'
-      env: 'TASK=test-linux-pypy-2.7-6.0 COVERAGE=1'
+    - python: 'pypy'
+      env: 'TASK=test-linux-pypy COVERAGE=1'
 
     ## Test suite on Mac with latest CPython 2 and 3.
     - python: '2.7'

@@ -10,13 +10,14 @@
 import gc
 import pickle
 
-from functools import reduce
 from copy import deepcopy
 from collections import OrderedDict
+from functools import reduce
+from itertools import tee
 from weakref import ref
 
 import pytest
-from hypothesis import HealthCheck, given, settings
+from hypothesis import given
 
 from bidict import BidictException, OrderedBidictBase, namedbidict, inverted
 from bidict.compat import (
@@ -39,22 +40,21 @@ def test_unequal_to_non_mapping(bi, not_a_mapping):
     assert not bi.inv == not_a_mapping
 
 
-@given(st.BIDICT_AND_MAPPING_FROM_DIFFERENT_ITEMS)
-@settings(suppress_health_check=[HealthCheck.too_slow])
-def test_unequal_to_mapping_with_different_items(bidict_and_mapping_from_different_items):
+@given(st.BI_AND_MAP_FROM_DIFF_ITEMS)
+def test_unequal_to_mapping_with_different_items(bi_and_map_from_diff_items):
     """Bidicts should be unequal to mappings containing different items."""
-    bi, mapping = bidict_and_mapping_from_different_items
+    bi, mapping = bi_and_map_from_diff_items
     assert bi != mapping
     assert not bi == mapping
 
 
-@given(st.BIDICT_AND_MAPPING_FROM_SAME_ITEMS_NODUP)
-def test_equal_to_mapping_with_same_items(bidict_and_mapping_from_same_items_nodup):
+@given(st.BI_AND_MAP_FROM_SAME_ITEMS)
+def test_equal_to_mapping_with_same_items(bi_and_map_from_same_items):
     """Bidicts should be equal to mappings created from the same non-duplicating items.
 
     The bidict's inverse and the mapping's inverse should also be equal.
     """
-    bi, mapping = bidict_and_mapping_from_same_items_nodup
+    bi, mapping = bi_and_map_from_same_items
     assert bi == mapping
     assert not bi != mapping
     mapping_inv = OrderedDict((v, k) for (k, v) in iteritems(mapping))
@@ -62,7 +62,7 @@ def test_equal_to_mapping_with_same_items(bidict_and_mapping_from_same_items_nod
     assert not bi.inv != mapping_inv
 
 
-@given(st.HASHABLE_BIDICT_AND_MAPPING_FROM_SAME_ITEMS_NODUP)
+@given(st.HBI_AND_HMAP_FROM_SAME_ITEMS)
 def test_equal_hashables_have_same_hash(hashable_bidict_and_mapping):
     """Hashable bidicts and hashable mappings that are equal should hash to the same value."""
     bi, mapping = hashable_bidict_and_mapping
@@ -70,7 +70,7 @@ def test_equal_hashables_have_same_hash(hashable_bidict_and_mapping):
     assert hash(bi) == hash(mapping)
 
 
-@given(st.ORDERED_BIDICT_AND_ORDERED_MAPPING_FROM_SAME_ITEMS_NODUP)
+@given(st.OBI_AND_OMAP_FROM_SAME_ITEMS)
 def test_equals_order_sensitive(ob_and_om):
     """Ordered bidicts should be order-sensitive-equal to ordered mappings with same nondup items.
 
@@ -82,7 +82,7 @@ def test_equals_order_sensitive(ob_and_om):
     assert ob.inv.equals_order_sensitive(om_inv)
 
 
-@given(st.ORDERED_BIDICT_AND_ORDERED_MAPPING_FROM_SAME_ITEMS_DIFF_ORDER)
+@given(st.OBI_AND_OMAP_FROM_SAME_ITEMS_DIFF_ORDER)
 def test_unequal_order_sensitive_same_items_different_order(ob_and_om):
     """Ordered bidicts should be order-sensitive-unequal to ordered mappings of diff-ordered items.
 
@@ -117,7 +117,7 @@ def test_bijectivity(bi):
         assert all(b.inv[v] == k for (k, v) in iteritems(b))
 
 
-@given(st.BIDICT_AND_COMPARE_DICT_FROM_SAME_ITEMS_NODUP, st.ARGS_BY_METHOD)
+@given(st.BI_AND_CMPDICT_FROM_SAME_ITEMS, st.ARGS_BY_METHOD)
 def test_consistency_after_method_call(bi_and_cmp_dict, args_by_method):
     """A bidict should be left in a consistent state after calling any method, even if it raises."""
     # pylint: disable=too-many-locals
@@ -154,7 +154,7 @@ def test_consistency_after_method_call(bi_and_cmp_dict, args_by_method):
         assert bi.inv == OrderedDict((v, k) for (k, v) in iteritems(bi))
 
 
-@given(st.MUTABLE_BIDICTS, st.LISTS_PAIRS_DUP, st.DUP_POLICIES_DICT)
+@given(st.MUTABLE_BIDICTS, st.L_PAIRS, st.DUP_POLICIES_DICT)
 def test_putall_same_as_put_for_each_item(bi, items, dup_policies):
     """*bi.putall(items) <==> for i in items: bi.put(i)* for all duplication policies."""
     check = bi.copy()
@@ -177,21 +177,21 @@ def test_putall_same_as_put_for_each_item(bi, items, dup_policies):
     assert check.inv == expect.inv
 
 
-@given(st.BIDICT_AND_COMPARE_DICT_FROM_SAME_ITEMS_NODUP)
+@given(st.BI_AND_CMPDICT_FROM_SAME_ITEMS)
 def test_iter(bi_and_cmp_dict):
     """:meth:`bidict.BidictBase.__iter__` should yield all the keys in a bidict."""
     bi, cmp_dict = bi_and_cmp_dict
     assert set(bi) == viewkeys(cmp_dict)
 
 
-@given(st.ORDERED_BIDICT_AND_ORDERED_DICT_FROM_SAME_ITEMS_NODUP)
+@given(st.OBI_AND_OD_FROM_SAME_ITEMS)
 def test_orderedbidict_iter(ob_and_od):
     """Ordered bidict __iter__ should yield all the keys in an ordered bidict in the right order."""
     ob, od = ob_and_od
     assert all(i == j for (i, j) in izip(ob, od))
 
 
-@given(st.ORDERED_BIDICT_AND_ORDERED_DICT_FROM_SAME_ITEMS_NODUP)
+@given(st.OBI_AND_OD_FROM_SAME_ITEMS)
 def test_orderedbidict_reversed(ob_and_od):
     """:meth:`bidict.OrderedBidictBase.__reversed__` should yield all the keys
     in an ordered bidict in the reverse-order they were inserted.
@@ -228,18 +228,23 @@ def test_orderedbidict_iterkeys_itervals_iteritems(ob):
     assert list(ob.iteritems()) == ob.items()
 
 
-@given(st.st.tuples(st.IDENTIFIER_TYPE, st.IDENTIFIER_TYPE, st.IDENTIFIER_TYPE))
+@given(st.NAMEDBIDICT_NAMES_SOME_INVALID)
 def test_namedbidict_raises_on_invalid_name(names):
     """:func:`bidict.namedbidict` should raise if given invalid names."""
     typename, keyname, valname = names
-    try:
+    with pytest.raises(ValueError):
         namedbidict(typename, keyname, valname)
-    except ValueError:
-        # Either one of the names was invalid, or the keyname and valname were not distinct.
-        assert not all(map(st.NAMEDBIDICT_VALID_NAME_PAT.match, names)) or keyname == valname
 
 
-@given(st.NAMEDBIDICT_3_NAMES, st.NON_BIDICT_MAPPING_TYPES)
+@given(st.NAMEDBIDICT_NAMES_ALL_VALID)
+def test_namedbidict_raises_on_same_keyname_as_valname(names):
+    """:func:`bidict.namedbidict` should raise if given same keyname as valname."""
+    typename, keyname, _ = names
+    with pytest.raises(ValueError):
+        namedbidict(typename, keyname, keyname)
+
+
+@given(st.NAMEDBIDICT_NAMES_ALL_VALID, st.NON_BIDICT_MAPPING_TYPES)
 def test_namedbidict_raises_on_invalid_base_type(names, invalid_base_type):
     """:func:`bidict.namedbidict` should raise if given a non-bidict base_type."""
     with pytest.raises(TypeError):
@@ -296,7 +301,7 @@ def test_refcycle_bidict_inverse(bi_cls):
 
 # See comment about skipping `test_refcycle_bidict_inverse` above.
 @pytest.mark.skipif(PYPY, reason='objects with 0 refcount are not freed immediately on PyPy')
-@given(ob_cls=st.ORDERED_BIDICT_TYPES, init_items=st.LISTS_PAIRS_NODUP)
+@given(ob_cls=st.ORDERED_BIDICT_TYPES, init_items=st.I_PAIRS_NODUP)
 def test_refcycle_orderedbidict_nodes(ob_cls, init_items):
     """When you release your last strong reference to an ordered bidict,
     the refcount of each of its internal nodes drops to 0
@@ -375,23 +380,23 @@ def test_iteritems_args_kw_raises_on_too_many_args():
         _iteritems_args_kw('too', 'many', 'args')
 
 
-@given(st.LISTS_PAIRS, st.lists_pairs_nodup(elements=st.TEXT, min_size=0))  # pylint: disable=E1120
-def test_iteritems_args_kw(arg0_pairs, kw_pairs):
+@given(st.I_PAIRS, st.ODICTS_KW_PAIRS)
+def test_iteritems_args_kw(arg0, kw):
     """:func:`bidict._iteritems_args_kw` should work correctly."""
-    assert list(_iteritems_args_kw(arg0_pairs)) == list(arg0_pairs)
-    assert list(_iteritems_args_kw(OrderedDict(kw_pairs))) == list(kw_pairs)
-    kwdict = dict(kw_pairs)
-    # Create an iterator over both arg0_pairs and kw_pairs.
-    arg0_kw_items = _iteritems_args_kw(arg0_pairs, **kwdict)
-    # Consume the initial (arg0) pairs of the iterator, checking they match arg0.
-    assert all(check == expect for (check, expect) in izip(arg0_kw_items, arg0_pairs))
-    # Consume the remaining (kw) pairs of the iterator, checking they match kw.
-    assert all(kwdict[k] == v for (k, v) in arg0_kw_items)
+    arg0_1, arg0_2 = tee(arg0)
+    it = _iteritems_args_kw(arg0_1, **kw)
+    # Consume the first `len(arg0)` pairs, checking that they match `arg0`.
+    assert all(check == expect for (check, expect) in izip(it, arg0_2))
     with pytest.raises(StopIteration):
-        next(arg0_kw_items)
+        next(arg0_1)  # Iterating `it` should have consumed all of `arg0_1`.
+    # Consume the remaining pairs, checking that they match `kw`.
+    # Once min PY version required is higher, can check that the order matches `kw` too.
+    assert all(kw[k] == v for (k, v) in it)
+    with pytest.raises(StopIteration):
+        next(it)
 
 
-@given(st.LISTS_PAIRS)
+@given(st.L_PAIRS)
 def test_inverted_pairs(pairs):
     """:func:`bidict.inverted` should yield the inverses of a list of pairs."""
     inv = [(v, k) for (k, v) in pairs]
@@ -399,7 +404,7 @@ def test_inverted_pairs(pairs):
     assert list(inverted(inverted(pairs))) == pairs
 
 
-@given(st.BIDICT_AND_COMPARE_DICT_FROM_SAME_ITEMS_NODUP)
+@given(st.BI_AND_CMPDICT_FROM_SAME_ITEMS)
 def test_inverted_bidict(bi_and_cmp_dict):
     """:func:`bidict.inverted` should yield the inverse items of a bidict."""
     bi, cmp_dict = bi_and_cmp_dict
@@ -408,7 +413,7 @@ def test_inverted_bidict(bi_and_cmp_dict):
     assert set(inverted(inverted(bi))) == viewitems(cmp_dict) == viewitems(bi.inv.inv)
 
 
-@given(st.ORDERED_BIDICT_AND_ORDERED_DICT_FROM_SAME_ITEMS_NODUP)
+@given(st.OBI_AND_OD_FROM_SAME_ITEMS)
 def test_inverted_orderedbidict(ob_and_od):
     """:func:`bidict.inverted` should yield the inverse items of an ordered bidict."""
     ob, od = ob_and_od

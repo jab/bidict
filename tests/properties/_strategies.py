@@ -9,18 +9,17 @@
 
 import re
 from collections import OrderedDict
+from operator import attrgetter, itemgetter
 
-from hypothesis import assume, strategies as st
+import hypothesis.strategies as st
 from bidict import IGNORE, OVERWRITE, RAISE, OrderedBidictBase, namedbidict
-from bidict.compat import ItemsView, PY2, izip
+from bidict.compat import PY2
 
 from . import _types as t
 
 
 # pylint: disable=invalid-name
 
-DATA = st.data()
-RAND = st.randoms()
 BIDICT_TYPES = st.sampled_from(t.BIDICT_TYPES)
 MUTABLE_BIDICT_TYPES = st.sampled_from(t.MUTABLE_BIDICT_TYPES)
 FROZEN_BIDICT_TYPES = st.sampled_from(t.FROZEN_BIDICT_TYPES)
@@ -36,190 +35,92 @@ DUP_POLICIES_DICT = st.fixed_dictionaries(dict(
     on_dup_kv=DUP_POLICIES,
 ))
 
-BOOLEANS = st.booleans()
-FLOATS = st.floats(allow_nan=False)
-INTS = st.integers()
 TEXT = st.text()
-NONE = st.none()
-IMMUTABLES = BOOLEANS | TEXT | NONE | INTS | FLOATS
+BOOLEANS = st.booleans()
+ATOMS = st.none() | BOOLEANS | st.integers()
+## Uncomment the following to mix in floats and text. Leaving commented out since it
+## slows example generation without actually finding more falsifying examples.
+# ATOMS != st.floats(allow_nan=False) | TEXT
+NON_MAPPINGS = ATOMS | st.iterables(ATOMS)
+HASHABLES = ATOMS
+## Uncomment the following to mix in tuples (of tuples...) of ATOMS. Leaving commented
+## out since it slows example generation without finding more falsifying examples.
+# TUPLES = st.lists(ATOMS).map(tuple)
+# TUPLES |= st.recursive(TUPLES, lambda i: st.lists(i).map(tuple))
+# HASHABLES |= TUPLES
+ODICTS_KW_PAIRS = st.dictionaries(TEXT, HASHABLES, OrderedDict)
+PAIRS = st.tuples(HASHABLES, HASHABLES)
+L_PAIRS = st.lists(PAIRS)
+I_PAIRS = st.iterables(PAIRS)
+FST_SND = (itemgetter(0), itemgetter(1))
+L_PAIRS_NODUP = st.lists(PAIRS, unique_by=FST_SND)
+I_PAIRS_NODUP = st.iterables(PAIRS, unique_by=FST_SND)
+DIFF_ITEMS = st.lists(L_PAIRS_NODUP.map(frozenset), min_size=2, max_size=2, unique=True)
+SAME_ITEMS_DIFF_ORDER = st.tuples(
+    st.lists(PAIRS, unique_by=FST_SND, min_size=2), st.randoms()
+).map(
+    lambda i: (i[0], i[1].sample(i[0], len(i[0])))  # (seq, shuffled seq)
+).filter(lambda i: i[0] != i[1])
 
-LISTS_MAX_SIZE = 10
-LISTS_PAIRS = st.lists(st.tuples(IMMUTABLES, IMMUTABLES), max_size=LISTS_MAX_SIZE)
 
-NON_MAPPINGS = IMMUTABLES | LISTS_PAIRS
+def _bidict_strat(bi_types, init_items=I_PAIRS_NODUP, _inv=attrgetter('inverse')):
+    fwd_bidicts = st.tuples(bi_types, init_items).map(lambda i: i[0](i[1]))
+    inv_bidicts = fwd_bidicts.map(_inv)
+    return fwd_bidicts | inv_bidicts
 
-IDENTIFIER_TYPE = TEXT
+
+BIDICTS = _bidict_strat(BIDICT_TYPES)
+FROZEN_BIDICTS = _bidict_strat(FROZEN_BIDICT_TYPES)
+MUTABLE_BIDICTS = _bidict_strat(MUTABLE_BIDICT_TYPES)
+ORDERED_BIDICTS = _bidict_strat(ORDERED_BIDICT_TYPES)
+
+
 if PY2:
-    IDENTIFIER_TYPE = IDENTIFIER_TYPE.map(lambda x: x.encode('utf-8'))
-
-
-@st.composite
-def _lists_pairs_with_duplication(draw):
-    # pylint: disable=too-many-locals
-    n = draw(st.integers(min_value=3, max_value=LISTS_MAX_SIZE))
-    indexes = st.integers(min_value=0, max_value=n - 1)
-    keys = draw(st.lists(IMMUTABLES, min_size=n, max_size=n))
-    vals = draw(st.lists(IMMUTABLES, min_size=n, max_size=n))
-    fwd = OrderedDict(izip(keys, vals))
-    inv = OrderedDict(izip(vals, keys))
-    which_to_dup = draw(RAND).choice((1, 2, 3))
-    should_dup_key = which_to_dup in (1, 3)
-    should_dup_val = which_to_dup in (2, 3)
-    should_add_dup_key = should_dup_key and len(fwd) < n
-    should_add_dup_val = should_dup_val and len(inv) < n
-    if not should_add_dup_key and not should_add_dup_val:
-        return list(izip(keys, vals))
-    if should_add_dup_key:
-        dup_key_idx = draw(indexes)
-        added_key = keys[dup_key_idx]
-    else:
-        added_key = draw(IMMUTABLES)
-        assume(added_key not in fwd)
-    if should_add_dup_val:
-        dup_val_idx = draw(indexes)
-        if should_add_dup_key:
-            assume(dup_val_idx != dup_key_idx)
-        added_val = vals[dup_val_idx]
-    else:
-        added_val = draw(IMMUTABLES)
-        assume(added_val not in inv)
-    insert_idx = draw(indexes)
-    keys.insert(insert_idx, added_key)
-    vals.insert(insert_idx, added_val)
-    return list(izip(keys, vals))
-
-
-# pylint: disable=no-value-for-parameter
-LISTS_PAIRS_DUP = _lists_pairs_with_duplication()
-
-
-@st.composite
-def lists_pairs_nodup(draw, elements=IMMUTABLES, min_size=0, max_size=LISTS_MAX_SIZE):
-    """Generate a list of pairs from the given elements with no duplication."""
-    n = draw(st.integers(min_value=min_size, max_value=max_size))
-    size_n_sets = st.sets(elements, min_size=n, max_size=n)
-    keys = draw(size_n_sets)
-    vals = draw(size_n_sets)
-    return list(izip(keys, vals))
-
-
-LISTS_PAIRS_NODUP = lists_pairs_nodup()
-LISTS_TEXT_PAIRS_NODUP = lists_pairs_nodup(elements=TEXT)
-
-
-# pylint: disable=dangerous-default-value
-@st.composite
-def bidicts(draw, bi_types=BIDICT_TYPES, init_items=LISTS_PAIRS_NODUP):
-    """Generate bidicts."""
-    bi_cls = draw(bi_types)
-    items = draw(init_items)
-    bi = bi_cls(items)
-    # Return the inverse bidict with 50% probability to increase coverage.
-    return bi if draw(RAND).choice((True, False)) else bi.inv
-
-
-BIDICTS = bidicts()
-FROZEN_BIDICTS = bidicts(bi_types=FROZEN_BIDICT_TYPES)
-MUTABLE_BIDICTS = bidicts(bi_types=MUTABLE_BIDICT_TYPES)
-ORDERED_BIDICTS = bidicts(bi_types=ORDERED_BIDICT_TYPES)
-
-
-NAMEDBIDICT_VALID_NAME_PAT = re.compile('[A-Za-z_][A-Za-z0-9_]*$')
-NAMEDBIDICT_NAMES = st.from_regex(NAMEDBIDICT_VALID_NAME_PAT, fullmatch=True)
-NAMEDBIDICT_3_NAMES = st.tuples(
-    NAMEDBIDICT_NAMES,
-    NAMEDBIDICT_NAMES,
-    NAMEDBIDICT_NAMES,
+    _NAMEDBI_VALID_NAME_PAT = re.compile('[A-Za-z_][A-Za-z0-9_]*$')
+    _NAMEDBI_VALID_NAMES = st.from_regex(_NAMEDBI_VALID_NAME_PAT, fullmatch=True)
+    IS_VALID_NAME = _NAMEDBI_VALID_NAME_PAT.match
+else:
+    _ALPHABET = [chr(i) for i in range(0x10ffff) if chr(i).isidentifier()]
+    _NAMEDBI_VALID_NAMES = st.text(_ALPHABET, min_size=1)
+    IS_VALID_NAME = str.isidentifier
+NAMEDBIDICT_NAMES_ALL_VALID = st.lists(_NAMEDBI_VALID_NAMES, min_size=3, max_size=3, unique=True)
+NAMEDBIDICT_NAMES_SOME_INVALID = st.lists(st.text(min_size=1), min_size=3, max_size=3).filter(
+    lambda i: not all(IS_VALID_NAME(name) for name in i)
 )
-
-
-@st.composite
-def _namedbidict_types(draw, names=NAMEDBIDICT_3_NAMES, base_types=BIDICT_TYPES):
-    typename, keyname, valname = draw(names)
-    assume(keyname != valname)
-    base_type = draw(base_types)
-    return namedbidict(typename, keyname, valname, base_type=base_type)
-
-
-NAMEDBIDICT_TYPES = _namedbidict_types()
-
-
-@st.composite
-def _namedbidicts(draw, nb_types=NAMEDBIDICT_TYPES, init_items=LISTS_PAIRS_NODUP):
-    nb_cls = draw(nb_types)
-    items = draw(init_items)
-    nb = nb_cls(items)
-    # Return the inverse namedbidict with 50% probability to increase coverage.
-    return nb if draw(RAND).choice((True, False)) else nb.inv
-
-
-NAMEDBIDICTS = _namedbidicts()
-
-
-_COMPARE_DICT_TYPE = object()
-_SAME_AS_BI_ITEMS = object()
-_SAME_AS_BI_ITEMS_DIFF_ORDER = object()
-
-
-@st.composite
-def _bidict_and_mapping_from_items(
-        draw,
-        bi_types=BIDICT_TYPES,
-        map_types=MAPPING_TYPES,
-        bi_items=LISTS_PAIRS_NODUP,
-        map_items=_SAME_AS_BI_ITEMS,
-):
-    bi_cls = draw(bi_types)
-    if map_types is _COMPARE_DICT_TYPE:
-        map_cls = OrderedDict if issubclass(bi_cls, OrderedBidictBase) else dict
-    else:
-        map_cls = draw(map_types)
-    bi_items_ = draw(bi_items)
-    same_items = map_items in (_SAME_AS_BI_ITEMS, _SAME_AS_BI_ITEMS_DIFF_ORDER)
-    if same_items:
-        map_items_ = bi_items_[:]
-        if map_items is _SAME_AS_BI_ITEMS_DIFF_ORDER:
-            draw(RAND).shuffle(map_items_)
-            assume(map_items_ != bi_items_)
-    else:
-        map_items_ = draw(map_items)
-    b = bi_cls(bi_items_)
-    m = map_cls(map_items_)
-    if not same_items:
-        assume(ItemsView(m) != ItemsView(b))
-    return b, m
-
-
-BIDICT_AND_MAPPING_FROM_SAME_ITEMS_NODUP = _bidict_and_mapping_from_items()
-BIDICT_AND_MAPPING_FROM_DIFFERENT_ITEMS = _bidict_and_mapping_from_items(
-    map_items=LISTS_PAIRS_NODUP,
+NAMEDBIDICT_TYPES = st.tuples(NAMEDBIDICT_NAMES_ALL_VALID, BIDICT_TYPES).map(
+    lambda i: namedbidict(*i[0], base_type=i[1])
 )
-BIDICT_AND_COMPARE_DICT_FROM_SAME_ITEMS_NODUP = _bidict_and_mapping_from_items(
-    map_types=_COMPARE_DICT_TYPE,
-)
-ORDERED_BIDICT_AND_ORDERED_DICT_FROM_SAME_ITEMS_NODUP = _bidict_and_mapping_from_items(
-    bi_types=ORDERED_BIDICT_TYPES,
-    map_types=_COMPARE_DICT_TYPE,
-)
-ORDERED_BIDICT_AND_ORDERED_MAPPING_FROM_SAME_ITEMS_NODUP = _bidict_and_mapping_from_items(
-    bi_types=ORDERED_BIDICT_TYPES,
-    map_types=ORDERED_MAPPING_TYPES,
-)
-HASHABLE_BIDICT_AND_MAPPING_FROM_SAME_ITEMS_NODUP = _bidict_and_mapping_from_items(
-    bi_types=FROZEN_BIDICT_TYPES,
-    map_types=HASHABLE_MAPPING_TYPES,
-)
-ORDERED_BIDICT_AND_ORDERED_MAPPING_FROM_SAME_ITEMS_DIFF_ORDER = _bidict_and_mapping_from_items(
-    bi_types=ORDERED_BIDICT_TYPES,
-    map_types=ORDERED_MAPPING_TYPES,
-    map_items=_SAME_AS_BI_ITEMS_DIFF_ORDER,
-)
+NAMEDBIDICTS = _bidict_strat(NAMEDBIDICT_TYPES)
 
+
+def _bi_and_map(bi_types, map_types, init_items=L_PAIRS_NODUP):
+    return st.tuples(bi_types, map_types, init_items).map(
+        lambda i: (i[0](i[2]), i[1](i[2]))
+    )
+
+
+BI_AND_MAP_FROM_SAME_ITEMS = _bi_and_map(BIDICT_TYPES, MAPPING_TYPES)
+OBI_AND_OD_FROM_SAME_ITEMS = _bi_and_map(ORDERED_BIDICT_TYPES, st.just(OrderedDict))
+OBI_AND_OMAP_FROM_SAME_ITEMS = _bi_and_map(ORDERED_BIDICT_TYPES, ORDERED_MAPPING_TYPES)
+HBI_AND_HMAP_FROM_SAME_ITEMS = _bi_and_map(FROZEN_BIDICT_TYPES, HASHABLE_MAPPING_TYPES)
+
+_unpack = lambda i: (i[0](i[2][0]), i[1](i[2][1]))
+BI_AND_MAP_FROM_DIFF_ITEMS = st.tuples(BIDICT_TYPES, MAPPING_TYPES, DIFF_ITEMS).map(_unpack)
+
+OBI_AND_OMAP_FROM_SAME_ITEMS_DIFF_ORDER = st.tuples(
+    ORDERED_BIDICT_TYPES, ORDERED_MAPPING_TYPES, SAME_ITEMS_DIFF_ORDER
+).map(_unpack)
+
+_cmpdict = lambda i: (OrderedDict if issubclass(i, OrderedBidictBase) else dict)
+
+BI_AND_CMPDICT_FROM_SAME_ITEMS = st.tuples(BIDICT_TYPES, L_PAIRS_NODUP).map(
+    lambda i: (i[0](i[1]), _cmpdict(i[0])(i[1]))
+)
 
 NO_ARGS = st.just(())
-IM_ARG = st.tuples(IMMUTABLES)
-LP_ARG = st.tuples(LISTS_PAIRS)
-TWO_IM_ARGS = st.tuples(IMMUTABLES, IMMUTABLES)
+IM_ARG = st.tuples(HASHABLES)
+IP_ARG = st.tuples(I_PAIRS)
+TWO_IM_ARGS = st.tuples(HASHABLES, HASHABLES)
 
 ARGS_BY_METHOD = st.fixed_dictionaries({
     # mutating
@@ -232,15 +133,15 @@ ARGS_BY_METHOD = st.fixed_dictionaries({
     (1, 'setdefault'): IM_ARG,
     (1, 'move_to_end'): IM_ARG,
     # 1-arity, a list of pairs
-    (1, 'update'): LP_ARG,
-    (1, 'forceupdate'): LP_ARG,
+    (1, 'update'): IP_ARG,
+    (1, 'forceupdate'): IP_ARG,
     # 2-arity
     (2, 'pop'): TWO_IM_ARGS,
     (2, 'setdefault'): TWO_IM_ARGS,
     (2, '__setitem__'): TWO_IM_ARGS,
     (2, 'put'): TWO_IM_ARGS,
     (2, 'forceput'): TWO_IM_ARGS,
-    (2, 'move_to_end'): st.tuples(IMMUTABLES, BOOLEANS),
+    (2, 'move_to_end'): st.tuples(HASHABLES, BOOLEANS),
     # non-mutating
     # 0-arity
     (0, '__copy__'): NO_ARGS,

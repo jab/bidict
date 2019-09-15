@@ -12,19 +12,11 @@ from hypothesis import HealthCheck, settings, unlimited
 
 
 MAX_EXAMPLES_DEFAULT = 200
-NOCHECK_SLOW = (HealthCheck.too_slow,)
-PROFILE_DEFAULT = {
+SETTINGS = {
     'max_examples': int(getenv('HYPOTHESIS_MAX_EXAMPLES') or MAX_EXAMPLES_DEFAULT),
     'deadline': None,
     'timeout': unlimited,
-    # Enabling coverage slows down hypothesis.
-    'suppress_health_check': NOCHECK_SLOW if getenv('COVERAGE') else (),
+    'suppress_health_check': (HealthCheck.too_slow,),
 }
-PROFILE_MORE_EXAMPLES = dict(
-    PROFILE_DEFAULT,
-    max_examples=int(getenv('HYPOTHESIS_MAX_EXAMPLES') or MAX_EXAMPLES_DEFAULT * 10),
-    suppress_health_check=NOCHECK_SLOW,
-)
-settings.register_profile('default', **PROFILE_DEFAULT)
-settings.register_profile('more-examples', **PROFILE_MORE_EXAMPLES)
-settings.load_profile(getenv('HYPOTHESIS_PROFILE') or 'default')
+settings.register_profile('custom', **SETTINGS)
+settings.load_profile('custom')
