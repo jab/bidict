@@ -45,7 +45,7 @@ Status
    :target: https://bestpractices.coreinfrastructure.org/en/projects/2354
    :alt: CII best practices badge
 
-.. image:: https://img.shields.io/badge/tidelift-pro%20support-EF914C.svg
+.. image:: https://img.shields.io/badge/tidelift-pro%20support-orange.svg
    :target: https://tidelift.com/subscription/pkg/pypi-bidict?utm_source=pypi-bidict&utm_medium=referral&utm_campaign=docs
    :alt: Paid support available via Tidelift
 
@@ -142,7 +142,7 @@ in case your questions or concerns have been adressed there already.
 Paid Support via Tidelift
 -------------------------
 
-.. image:: https://img.shields.io/badge/tidelift-pro%20support-EF914C.svg
+.. image:: https://img.shields.io/badge/tidelift-pro%20support-orange.svg
    :target: https://tidelift.com/subscription/pkg/pypi-bidict?utm_source=pypi-bidict&utm_medium=referral&utm_campaign=readme
    :alt: Paid support available via Tidelift
 

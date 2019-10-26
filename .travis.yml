@@ -1,7 +1,7 @@
 language: 'python'
 
 # Default version used for jobs that don't override it.
-python: '3.7'
+python: '3.8'
 
 # TODO: Update to 'bionic' once available.
 # https://travis-ci.community/t/ubuntu-18-04-1-lts-bionic-beaver/1270
@@ -94,7 +94,6 @@ after_script:
 matrix:
   allow_failures:
     - env: 'TASK=docs-linkcheck INSTALL_EXTRAS=docs'
-    - env: 'TASK=test-linux-cpython-3.8-dev'
     - env: 'TASK=deploy-if-tag'
   ## fast_finish causes Travis to sned a useless daily "build pending" email; not worth the noise.
   # fast_finish: true
@@ -107,8 +106,8 @@ matrix:
     # Travis runs jobs in the order defined below -> order jobs by priority.
 
     ## Test suite on Linux with latest CPython and PyPy 2 and 3 -> enable coverage.
-    - python: '3.7'
-      env: 'TASK=test-linux-cpython-3.7 COVERAGE=1'
+    - python: '3.8'
+      env: 'TASK=test-linux-cpython-3.8 COVERAGE=1'
 
     - python: '2.7'
       env: 'TASK=test-linux-cpython-2.7 COVERAGE=1'
@@ -159,14 +158,14 @@ matrix:
       script: '(cd docs && travis_retry make linkcheck)'
 
     ## Remaining CPython versions on Linux.
+    - python: '3.7'
+      env: 'TASK=test-linux-cpython-3.7'
+
     - python: '3.6'
       env: 'TASK=test-linux-cpython-3.6'
 
     - python: '3.5'
       env: 'TASK=test-linux-cpython-3.5'
-
-    - python: '3.8-dev'
-      env: 'TASK=test-linux-cpython-3.8-dev'
 
     - stage: 'deploy-if-tag'
       env: 'TASK=deploy-if-tag'

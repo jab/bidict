@@ -9,8 +9,10 @@
 
 """Run all tests."""
 
+import sys
 from functools import reduce
 from operator import or_
+
 from pytest import main as pytest_main
 from sphinx.cmd.build import main as sphinx_main
 
@@ -24,4 +26,4 @@ TEST_FUNCS = [
     lambda: sphinx_main('-b doctest -d docs/_build/doctrees docs docs/_build/doctest'.split()),
 ]
 
-exit(reduce(or_, (f() for f in TEST_FUNCS)))
+sys.exit(reduce(or_, (f() for f in TEST_FUNCS)))

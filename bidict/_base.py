@@ -163,7 +163,7 @@ class BidictBase(BidirectionalMapping):
         if self._inv is not None:
             return self._inv
         # Otherwise a weakref is stored in self._invweak. Try to get a strong ref from it.
-        inv = self._invweak()
+        inv = self._invweak()  # pylint: disable=not-callable
         if inv is not None:
             return inv
         # Refcount of referent must have dropped to zero, as in `bidict().inv.inv`. Init a new one.
@@ -277,21 +277,21 @@ class BidictBase(BidirectionalMapping):
             # key and val each duplicate a different existing item.
             if on_dup.kv is RAISE:
                 raise KeyAndValueDuplicationError(key, val)
-            elif on_dup.kv is IGNORE:
+            if on_dup.kv is IGNORE:
                 return _NOOP
             assert on_dup.kv is OVERWRITE, 'invalid on_dup_kv: %r' % on_dup.kv
             # Fall through to the return statement on the last line.
         elif isdupkey:
             if on_dup.key is RAISE:
                 raise KeyDuplicationError(key)
-            elif on_dup.key is IGNORE:
+            if on_dup.key is IGNORE:
                 return _NOOP
             assert on_dup.key is OVERWRITE, 'invalid on_dup.key: %r' % on_dup.key
             # Fall through to the return statement on the last line.
         elif isdupval:
             if on_dup.val is RAISE:
                 raise ValueDuplicationError(val)
-            elif on_dup.val is IGNORE:
+            if on_dup.val is IGNORE:
                 return _NOOP
             assert on_dup.val is OVERWRITE, 'invalid on_dup.val: %r' % on_dup.val
             # Fall through to the return statement on the last line.

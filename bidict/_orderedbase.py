@@ -188,12 +188,12 @@ class OrderedBidictBase(BidictBase):
 
     def __getitem__(self, key):
         nodefwd = self._fwdm[key]
-        val = self._invm.inverse[nodefwd]
+        val = self._invm.inverse[nodefwd]  # pylint: disable=no-member
         return val
 
     def _pop(self, key):
         nodefwd = self._fwdm.pop(key)
-        val = self._invm.inverse.pop(nodefwd)
+        val = self._invm.inverse.pop(nodefwd)  # pylint: disable=no-member
         nodefwd.prv.nxt = nodefwd.nxt
         nodefwd.nxt.prv = nodefwd.prv
         return val
@@ -221,8 +221,8 @@ class OrderedBidictBase(BidictBase):
         elif isdupkey and isdupval:
             # Key and value duplication across two different nodes.
             assert nodefwd is not nodeinv
-            oldval = invm.inverse[nodefwd]
-            oldkey = fwdm.inverse[nodeinv]
+            oldval = invm.inverse[nodefwd]  # pylint: disable=no-member
+            oldkey = fwdm.inverse[nodeinv]  # pylint: disable=no-member
             assert oldkey != key
             assert oldval != val
             # We have to collapse nodefwd and nodeinv into a single node, i.e. drop one of them.
@@ -238,13 +238,13 @@ class OrderedBidictBase(BidictBase):
             assert tmp is nodefwd
             fwdm[key] = invm[val] = nodefwd
         elif isdupkey:
-            oldval = invm.inverse[nodefwd]
+            oldval = invm.inverse[nodefwd]  # pylint: disable=no-member
             oldkey = _MISS
             oldnodeinv = invm.pop(oldval)
             assert oldnodeinv is nodefwd
             invm[val] = nodefwd
         else:  # isdupval
-            oldkey = fwdm.inverse[nodeinv]
+            oldkey = fwdm.inverse[nodeinv]  # pylint: disable=no-member
             oldval = _MISS
             oldnodefwd = fwdm.pop(oldkey)
             assert oldnodefwd is nodeinv
@@ -276,7 +276,7 @@ class OrderedBidictBase(BidictBase):
 
     def __iter__(self, reverse=False):
         """An iterator over this bidict's items in order."""
-        fwdm_inv = self._fwdm.inverse
+        fwdm_inv = self._fwdm.inverse  # pylint: disable=no-member
         for node in self._sntl.__iter__(reverse=reverse):
             yield fwdm_inv[node]
 
