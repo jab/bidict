@@ -298,14 +298,18 @@ class BidictBase(BidirectionalMapping):
         # else neither isdupkey nor isdupval.
         return dedup_result
 
-    @staticmethod
-    def _isdupitem(key, val, dedup_result):
-        isdupkey, isdupval, oldkey, oldval = dedup_result
-        isdupitem = oldkey == key
-        assert isdupitem == (oldval == val), '%r %r %r' % (key, val, dedup_result)
+    def _isdupitem(self, key, val, dedup_result):
+        """Return whether (key, val) duplicates an existing item."""
+        isdupkey, isdupval, invbyval, fwdbykey = dedup_result
+        isdupitem = self._isdupitem_helper(key, val, invbyval, fwdbykey)
         if isdupitem:
             assert isdupkey
             assert isdupval
+        return isdupitem
+
+    def _isdupitem_helper(self, key, val, oldkey, oldval):  # pylint: disable=no-self-use
+        isdupitem = oldkey == key
+        assert isdupitem == (oldval == val), '%r %r %r %r' % (key, val, oldkey, oldval)
         return isdupitem
 
     @classmethod

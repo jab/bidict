@@ -198,13 +198,8 @@ class OrderedBidictBase(BidictBase):
         nodefwd.nxt.prv = nodefwd.prv
         return val
 
-    def _isdupitem(self, key, val, dedup_result):
-        """Return whether (key, val) duplicates an existing item."""
-        isdupkey, isdupval, nodeinv, nodefwd = dedup_result
+    def _isdupitem_helper(self, key, val, nodeinv, nodefwd):  # pylint: disable=arguments-differ
         isdupitem = nodeinv is nodefwd
-        if isdupitem:
-            assert isdupkey
-            assert isdupval
         return isdupitem
 
     def _write_item(self, key, val, dedup_result):  # pylint: disable=too-many-locals
