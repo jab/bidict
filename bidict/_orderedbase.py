@@ -198,9 +198,10 @@ class OrderedBidictBase(BidictBase):
         nodefwd.nxt.prv = nodefwd.prv
         return val
 
-    def _isdupitem_helper(self, key, val, nodeinv, nodefwd):  # pylint: disable=arguments-differ
-        isdupitem = nodeinv is nodefwd
-        return isdupitem
+    @staticmethod
+    def _already_have(key, val, nodeinv, nodefwd):  # pylint: disable=arguments-differ
+        # Overrides _base.BidictBase.
+        return nodeinv is nodefwd
 
     def _write_item(self, key, val, dedup_result):  # pylint: disable=too-many-locals
         fwdm = self._fwdm  # bidict mapping keys to nodes

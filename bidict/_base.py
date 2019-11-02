@@ -271,7 +271,7 @@ class BidictBase(BidirectionalMapping):
         isdupval = oldkey is not _MISS
         dedup_result = _DedupResult(isdupkey, isdupval, oldkey, oldval)
         if isdupkey and isdupval:
-            if self._isdupitem(key, val, dedup_result):
+            if self._already_have(key, val, oldkey, oldval):
                 # (key, val) duplicates an existing item -> no-op.
                 return _NOOP
             # key and val each duplicate a different existing item.
@@ -298,19 +298,12 @@ class BidictBase(BidirectionalMapping):
         # else neither isdupkey nor isdupval.
         return dedup_result
 
-    def _isdupitem(self, key, val, dedup_result):
-        """Return whether (key, val) duplicates an existing item."""
-        isdupkey, isdupval, invbyval, fwdbykey = dedup_result
-        isdupitem = self._isdupitem_helper(key, val, invbyval, fwdbykey)
-        if isdupitem:
-            assert isdupkey
-            assert isdupval
-        return isdupitem
-
-    def _isdupitem_helper(self, key, val, oldkey, oldval):  # pylint: disable=no-self-use
-        isdupitem = oldkey == key
-        assert isdupitem == (oldval == val), '%r %r %r %r' % (key, val, oldkey, oldval)
-        return isdupitem
+    @staticmethod
+    def _already_have(key, val, oldkey, oldval):
+        # Overridden by _orderedbase.OrderedBidictBase.
+        isdup = oldkey == key
+        assert isdup == (oldval == val), '%r %r %r %r' % (key, val, oldkey, oldval)
+        return isdup
 
     @classmethod
     def _get_on_dup(cls, on_dup=None):
