@@ -17,9 +17,9 @@ from itertools import tee
 from weakref import ref
 
 import pytest
-from hypothesis import given
+from hypothesis import example, given
 
-from bidict import BidictException, OrderedBidictBase, namedbidict, inverted
+from bidict import BidictException, OrderedBidictBase, OVERWRITE, bidict, namedbidict, inverted
 from bidict.compat import (
     PY2, PYPY, collections_abc as c, iteritems, izip, viewkeys, viewitems,
 )
@@ -155,6 +155,11 @@ def test_consistency_after_method_call(bi_and_cmp_dict, args_by_method):
 
 
 @given(st.MUTABLE_BIDICTS, st.L_PAIRS, st.DUP_POLICIES_DICT)
+# These test cases ensure coverage of all branches in BidictBase._undo_write
+# (Hypothesis doesn't always generate examples that hit all the branches otherwise).
+@example(bidict({1: 1, 2: 2}), [(1, 3), (1, 2)], {'on_dup_key': OVERWRITE})
+@example(bidict({1: 1, 2: 2}), [(3, 1), (2, 4)], {'on_dup_val': OVERWRITE})
+@example(bidict({1: 1, 2: 2}), [(1, 2), (1, 1)], {'on_dup_kv': OVERWRITE})
 def test_putall_same_as_put_for_each_item(bi, items, dup_policies):
     """*bi.putall(items) <==> for i in items: bi.put(i)* for all duplication policies."""
     check = bi.copy()
