@@ -27,9 +27,10 @@
 
 """Provides :class:`frozenbidict`, an immutable, hashable bidirectional mapping type."""
 
+from collections.abc import ItemsView
+
 from ._base import BidictBase
 from ._delegating_mixins import _DelegateKeysAndItemsToFwdm
-from .compat import ItemsView
 
 
 class frozenbidict(_DelegateKeysAndItemsToFwdm, BidictBase):  # noqa: N801,E501; pylint: disable=invalid-name

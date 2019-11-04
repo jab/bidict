@@ -104,14 +104,14 @@ OBI_AND_OD_FROM_SAME_ITEMS = _bi_and_map(ORDERED_BIDICT_TYPES, st.just(OrderedDi
 OBI_AND_OMAP_FROM_SAME_ITEMS = _bi_and_map(ORDERED_BIDICT_TYPES, ORDERED_MAPPING_TYPES)
 HBI_AND_HMAP_FROM_SAME_ITEMS = _bi_and_map(FROZEN_BIDICT_TYPES, HASHABLE_MAPPING_TYPES)
 
-_unpack = lambda i: (i[0](i[2][0]), i[1](i[2][1]))
+_unpack = lambda i: (i[0](i[2][0]), i[1](i[2][1]))  # noqa: E731
 BI_AND_MAP_FROM_DIFF_ITEMS = st.tuples(BIDICT_TYPES, MAPPING_TYPES, DIFF_ITEMS).map(_unpack)
 
 OBI_AND_OMAP_FROM_SAME_ITEMS_DIFF_ORDER = st.tuples(
     ORDERED_BIDICT_TYPES, ORDERED_MAPPING_TYPES, SAME_ITEMS_DIFF_ORDER
 ).map(_unpack)
 
-_cmpdict = lambda i: (OrderedDict if issubclass(i, OrderedBidictBase) else dict)
+_cmpdict = lambda i: (OrderedDict if issubclass(i, OrderedBidictBase) else dict)  # noqa: E731
 
 BI_AND_CMPDICT_FROM_SAME_ITEMS = st.tuples(BIDICT_TYPES, L_PAIRS_NODUP).map(
     lambda i: (i[0](i[1]), _cmpdict(i[0])(i[1]))

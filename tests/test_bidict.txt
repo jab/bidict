@@ -224,55 +224,6 @@ inserting existing items is a no-op (i.e. it doesn't raise)::
     >>> b == b0
     True
 
-Python 2 dict "view*" APIs are supported::
-
-    >>> from bidict.compat import PY2
-    >>> sorted(b.viewkeys()) == sorted(b.keys()) if PY2 else True
-    True
-    >>> sorted(b.viewvalues()) == sorted(b.values()) if PY2 else True
-    True
-    >>> sorted(b.viewitems()) == sorted(b.items()) if PY2 else True
-    True
-
-    >>> from bidict import OrderedBidict
-    >>> ob = OrderedBidict(b)
-    >>> sorted(ob.viewkeys()) == sorted(ob.keys()) if PY2 else True
-    True
-    >>> sorted(ob.viewvalues()) == sorted(ob.values()) if PY2 else True
-    True
-    >>> sorted(ob.viewitems()) == sorted(ob.items()) if PY2 else True
-    True
-
-On Python 2, bidict.compat.{iter,view}* functions should still work
-even if passed a Mapping that does not provide corresponding methods
-(e.g. a sortedcontainers.SortedDict, see
-https://github.com/grantjenks/python-sortedcontainers/pull/106#issuecomment-435631649)::
-
-    >>> class MissingViewMethodsDict(dict):
-    ...     def __getattribute__(self, attr):
-    ...         if attr in (
-    ...                 'iterkeys', 'itervalues', 'iteritems',
-    ...                 'viewkeys', 'viewvalues', 'viewitems'):
-    ...             raise AttributeError(attr)
-    ...         return object.__getattribute__(self, attr)
-
-    >>> mvmdict = MissingViewMethodsDict({'a': 'A', 'b': 'B'})
-    >>> from bidict.compat import (
-    ...     iterkeys, itervalues, iteritems,
-    ...     viewkeys, viewvalues, viewitems, KeysView, ValuesView, ItemsView)
-    >>> set(iterkeys(mvmdict)) == set(mvmdict.keys())
-    True
-    >>> set(itervalues(mvmdict)) == set(mvmdict.values())
-    True
-    >>> set(iteritems(mvmdict)) == set(mvmdict.items())
-    True
-    >>> viewkeys(mvmdict) == KeysView(mvmdict)
-    True
-    >>> set(viewvalues(mvmdict)) == set(ValuesView(mvmdict))  # ValuesView is not a Set, must wrap
-    True
-    >>> viewitems(mvmdict) == ItemsView(mvmdict)
-    True
-
 Make sure copy.copy and copy.deepcopy create shallow and deep copies, respectively::
 
     >>> from copy import copy, deepcopy

@@ -7,16 +7,8 @@
 
 """Provides :func:`bidict.namedbidict`."""
 
-import re
-
 from ._abc import BidirectionalMapping
 from ._bidict import bidict
-from .compat import PY2
-
-
-_isidentifier = (  # pylint: disable=invalid-name
-    re.compile('[A-Za-z_][A-Za-z0-9_]*$').match if PY2 else str.isidentifier
-)
 
 
 def namedbidict(typename, keyname, valname, base_type=bidict):
@@ -56,7 +48,7 @@ def namedbidict(typename, keyname, valname, base_type=bidict):
     if not issubclass(base_type, BidirectionalMapping):
         raise TypeError(base_type)
     names = (typename, keyname, valname)
-    if not all(map(_isidentifier, names)) or keyname == valname:
+    if not all(map(str.isidentifier, names)) or keyname == valname:
         raise ValueError(names)
 
     class _Named(base_type):  # pylint: disable=too-many-ancestors
@@ -89,8 +81,7 @@ def namedbidict(typename, keyname, valname, base_type=bidict):
     setattr(_Named, fname, property(_Named._getfwd, doc=fdoc))  # pylint: disable=protected-access
     setattr(_Named, iname, property(_Named._getinv, doc=idoc))  # pylint: disable=protected-access
 
-    if not PY2:
-        _Named.__qualname__ = _Named.__qualname__[:-len(_Named.__name__)] + typename
+    _Named.__qualname__ = _Named.__qualname__[:-len(_Named.__name__)] + typename
     _Named.__name__ = typename
     return _Named
 

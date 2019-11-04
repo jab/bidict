@@ -28,12 +28,12 @@
 
 """Provides :class:`OrderedBidictBase`."""
 
+from collections.abc import Mapping
 from weakref import ref
 
 from ._base import _WriteResult, BidictBase
 from ._bidict import bidict
 from ._miss import _MISS
-from .compat import Mapping, PY2, iteritems, izip
 
 
 class _Node(object):  # pylint: disable=too-few-public-methods
@@ -114,9 +114,6 @@ class _Sentinel(_Node):  # pylint: disable=too-few-public-methods
     def __bool__(self):
         return False
 
-    if PY2:
-        __nonzero__ = __bool__
-
     def __iter__(self, reverse=False):
         """Iterator yielding nodes in the requested order,
         i.e. traverse the linked list via :attr:`nxt`
@@ -175,7 +172,7 @@ class OrderedBidictBase(BidictBase):
         invm = self._invm.copy()
         cur = sntl
         nxt = sntl.nxt
-        for (key, val) in iteritems(self):
+        for (key, val) in self.items():
             nxt = _Node(cur, sntl)
             cur.nxt = fwdm[key] = invm[val] = nxt
             cur = nxt
@@ -289,7 +286,7 @@ class OrderedBidictBase(BidictBase):
         # Same short-circuit as BidictBase.__eq__. Factoring out not worth function call overhead.
         if not isinstance(other, Mapping) or len(self) != len(other):
             return False
-        return all(i == j for (i, j) in izip(iteritems(self), iteritems(other)))
+        return all(i == j for (i, j) in zip(self.items(), other.items()))
 
 
 #                             * Code review nav *

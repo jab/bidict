@@ -29,6 +29,7 @@
 """Provides :class:`BidictBase`."""
 
 from collections import namedtuple
+from collections.abc import Mapping
 from weakref import ref
 
 from ._abc import BidirectionalMapping
@@ -38,7 +39,6 @@ from ._exc import (
 from ._miss import _MISS
 from ._noop import _NOOP
 from ._util import _iteritems_args_kw
-from .compat import PY2, KeysView, ItemsView, Mapping, iteritems
 
 
 _DedupResult = namedtuple('_DedupResult', 'isdupkey isdupval invbyval fwdbykey')
@@ -57,7 +57,7 @@ _NODUP = _DedupResult(False, False, _MISS, _MISS)
 class BidictBase(BidirectionalMapping):
     """Base class implementing :class:`BidirectionalMapping`."""
 
-    __slots__ = ('_fwdm', '_invm', '_inv', '_invweak', '_hash') + (() if PY2 else ('__weakref__',))
+    __slots__ = ('_fwdm', '_invm', '_inv', '_invweak', '_hash', '__weakref__')
 
     #: The default :class:`DuplicationPolicy`
     #: (in effect during e.g. :meth:`~bidict.bidict.__init__` calls)
@@ -196,7 +196,7 @@ class BidictBase(BidirectionalMapping):
 
         *See also* :meth:`object.__setstate__`
         """
-        for slot, value in iteritems(state):
+        for slot, value in state.items():
             setattr(self, slot, value)
         self._init_inv()
 
@@ -205,7 +205,7 @@ class BidictBase(BidirectionalMapping):
         clsname = self.__class__.__name__
         if not self:
             return '%s()' % clsname
-        return '%s(%r)' % (clsname, self._repr_delegate(iteritems(self)))
+        return '%s(%r)' % (clsname, self._repr_delegate(self.items()))
 
     # The inherited Mapping.__eq__ implementation would work, but it's implemented in terms of an
     # inefficient ``dict(self.items()) == dict(other.items())`` comparison, so override it with a
@@ -227,7 +227,7 @@ class BidictBase(BidirectionalMapping):
         if not isinstance(other, Mapping) or len(self) != len(other):
             return False
         selfget = self.get
-        return all(selfget(k, _MISS) == v for (k, v) in iteritems(other))
+        return all(selfget(k, _MISS) == v for (k, v) in other.items())
 
     # The following methods are mutating and so are not public. But they are implemented in this
     # non-mutable base class (rather than the mutable `bidict` subclass) because they are used here
@@ -344,7 +344,7 @@ class BidictBase(BidirectionalMapping):
 
     def _update_no_dup_check(self, other, _nodup=_NODUP):
         write_item = self._write_item
-        for (key, val) in iteritems(other):
+        for (key, val) in other.items():
             write_item(key, val, _nodup)
 
     def _update_no_rollback(self, on_dup, *args, **kw):
@@ -434,31 +434,6 @@ class BidictBase(BidirectionalMapping):
         and supporting set operations.
         """
         return self.inverse.keys()
-
-    if PY2:
-        # For iterkeys and iteritems, inheriting from Mapping already provides
-        # the best default implementations so no need to define here.
-
-        def itervalues(self):
-            """An iterator over the contained values."""
-            return self.inverse.iterkeys()
-
-        def viewkeys(self):  # noqa: D102; pylint: disable=missing-docstring
-            return KeysView(self)
-
-        def viewvalues(self):  # noqa: D102; pylint: disable=missing-docstring
-            return self.inverse.viewkeys()
-
-        viewvalues.__doc__ = values.__doc__
-        values.__doc__ = 'A list of the contained values.'
-
-        def viewitems(self):  # noqa: D102; pylint: disable=missing-docstring
-            return ItemsView(self)
-
-        # __ne__ added automatically in Python 3 when you implement __eq__, but not in Python 2.
-        def __ne__(self, other):  # noqa: N802
-            u"""*x.__ne__(other)　⟺　x != other*"""
-            return not self == other  # Implement __ne__ in terms of __eq__.
 
 
 #                             * Code review nav *

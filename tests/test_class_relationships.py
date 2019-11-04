@@ -7,19 +7,11 @@
 
 """Test various issubclass checks."""
 
-try:
-    from collections.abc import Hashable
-except ImportError:  # Python < 3
-    from collections import Hashable
+from collections.abc import Hashable, Mapping, MutableMapping
 
 import pytest
 
 from bidict import bidict, frozenbidict, FrozenOrderedBidict, OrderedBidict, BidirectionalMapping
-from bidict.compat import Mapping, MutableMapping, PY2
-
-
-class OldStyleClass:  # pylint: disable=no-init,too-few-public-methods
-    """In Python 2 this is an old-style class (not derived from object)."""
 
 
 class VirtualBimapSubclass(Mapping):  # pylint: disable=abstract-method
@@ -52,7 +44,7 @@ class AbstractBimap(BidirectionalMapping):  # pylint: disable=abstract-method
 
 BIDICT_TYPES = (bidict, frozenbidict, FrozenOrderedBidict, OrderedBidict)
 BIMAP_TYPES = BIDICT_TYPES + (VirtualBimapSubclass, AbstractBimap)
-NOT_BIMAP_TYPES = (dict, object, OldStyleClass)
+NOT_BIMAP_TYPES = (dict, object)
 MUTABLE_BIDICT_TYPES = (bidict, OrderedBidict)
 HASHABLE_BIDICT_TYPES = (frozenbidict, FrozenOrderedBidict)
 ORDERED_BIDICT_TYPES = (OrderedBidict, FrozenOrderedBidict)
@@ -75,8 +67,6 @@ def test_not_issubclass_not_bimap(not_bi_cls):
     assert not issubclass(not_bi_cls, BidirectionalMapping)
     # Make sure one of the types tested is an old-style class on Python 2,
     # i.e. that BidirectionalMapping.__subclasshook__ doesn't break for them.
-    if PY2:  # testing the tests ¯\_(ツ)_/¯
-        assert any(not issubclass(cls, object) for cls in NOT_BIMAP_TYPES)
 
 
 @pytest.mark.parametrize('bi_cls', BIDICT_TYPES)

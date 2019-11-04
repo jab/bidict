@@ -4,8 +4,9 @@ os: "Visual Studio 2019"
 
 environment:
   matrix:
-    - PYTHON: "C:\\Python27"
-    - PYTHON: "C:\\Python37"
+    # https://www.appveyor.com/docs/windows-images-software/#python
+    # TODO: Update to Python 3.8 once AppVeyor makes it available.
+    - PYTHON: "C:\\Python37-x64"
 
 build_script:
   - "git --no-pager log -n2"

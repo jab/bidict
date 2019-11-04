@@ -8,9 +8,8 @@
 
 """Useful functions for working with bidirectional mappings and related data."""
 
+from collections.abc import Mapping
 from itertools import chain, repeat
-
-from .compat import iteritems, Mapping
 
 
 _NULL_IT = repeat(None, 0)  # repeat 0 times -> raise StopIteration from the start
@@ -22,7 +21,7 @@ def _iteritems_mapping_or_iterable(arg):
     If *arg* is a :class:`~collections.abc.Mapping`, return an iterator over its items.
     Otherwise return an iterator over *arg* itself.
     """
-    return iteritems(arg) if isinstance(arg, Mapping) else iter(arg)
+    return iter(arg.items() if isinstance(arg, Mapping) else arg)
 
 
 def _iteritems_args_kw(*args, **kw):
@@ -39,7 +38,7 @@ def _iteritems_args_kw(*args, **kw):
         if arg:
             itemchain = _iteritems_mapping_or_iterable(arg)
     if kw:
-        iterkw = iteritems(kw)
+        iterkw = iter(kw.items())
         itemchain = chain(itemchain, iterkw) if itemchain else iterkw
     return itemchain or _NULL_IT
 

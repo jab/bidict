@@ -50,20 +50,11 @@ which are incompatible with the backing
 :class:`sortedcontainers.SortedDict`s.
 """
 
-from .compat import PY2
 
-
-_KEYS_METHODS = ('keys',) + (('viewkeys', 'iterkeys') if PY2 else ())
-_ITEMS_METHODS = ('items',) + (('viewitems', 'iteritems') if PY2 else ())
 _DOCSTRING_BY_METHOD = {
     'keys': 'A set-like object providing a view on the contained keys.',
     'items': 'A set-like object providing a view on the contained items.',
 }
-if PY2:
-    _DOCSTRING_BY_METHOD['viewkeys'] = _DOCSTRING_BY_METHOD['keys']
-    _DOCSTRING_BY_METHOD['viewitems'] = _DOCSTRING_BY_METHOD['items']
-    _DOCSTRING_BY_METHOD['keys'] = 'A list of the contained keys.'
-    _DOCSTRING_BY_METHOD['items'] = 'A list of the contained items.'
 
 
 def _make_method(methodname):
@@ -79,12 +70,13 @@ def _make_fwdm_delegating_mixin(clsname, methodnames):
     return type(clsname, (object,), clsdict)
 
 
-_DelegateKeysToFwdm = _make_fwdm_delegating_mixin('_DelegateKeysToFwdm', _KEYS_METHODS)
-_DelegateItemsToFwdm = _make_fwdm_delegating_mixin('_DelegateItemsToFwdm', _ITEMS_METHODS)
+_DelegateKeysToFwdm = _make_fwdm_delegating_mixin('_DelegateKeysToFwdm', ('keys',))
+_DelegateItemsToFwdm = _make_fwdm_delegating_mixin('_DelegateItemsToFwdm', ('items',))
 _DelegateKeysAndItemsToFwdm = type(
     '_DelegateKeysAndItemsToFwdm',
     (_DelegateKeysToFwdm, _DelegateItemsToFwdm),
     {'__slots__': ()})
+
 
 #                             * Code review nav *
 #==============================================================================

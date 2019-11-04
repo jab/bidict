@@ -8,7 +8,7 @@ let's look at some other bidirectional mapping types.
 .. testsetup::
 
    from bidict import bidict
-   from bidict.compat import Mapping, MutableMapping
+   from collections.abc import Mapping, MutableMapping
 
 
 Bidict Types Diagram

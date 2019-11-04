@@ -12,6 +12,7 @@ import pickle
 
 from copy import deepcopy
 from collections import OrderedDict
+from collections.abc import Iterable
 from functools import reduce
 from itertools import tee
 from weakref import ref
@@ -20,9 +21,7 @@ import pytest
 from hypothesis import example, given
 
 from bidict import BidictException, OrderedBidictBase, OVERWRITE, bidict, namedbidict, inverted
-from bidict.compat import (
-    PY2, PYPY, collections_abc as c, iteritems, izip, viewkeys, viewitems,
-)
+from bidict.compat import PYPY
 from bidict._util import _iteritems_args_kw  # pylint: disable=protected-access
 
 from . import _strategies as st
@@ -57,7 +56,7 @@ def test_equal_to_mapping_with_same_items(bi_and_map_from_same_items):
     bi, mapping = bi_and_map_from_same_items
     assert bi == mapping
     assert not bi != mapping
-    mapping_inv = OrderedDict((v, k) for (k, v) in iteritems(mapping))
+    mapping_inv = OrderedDict((v, k) for (k, v) in mapping.items())
     assert bi.inv == mapping_inv
     assert not bi.inv != mapping_inv
 
@@ -78,7 +77,7 @@ def test_equals_order_sensitive(ob_and_om):
     """
     ob, om = ob_and_om
     assert ob.equals_order_sensitive(om)
-    om_inv = OrderedDict((v, k) for (k, v) in iteritems(om))
+    om_inv = OrderedDict((v, k) for (k, v) in om.items())
     assert ob.inv.equals_order_sensitive(om_inv)
 
 
@@ -93,7 +92,7 @@ def test_unequal_order_sensitive_same_items_different_order(ob_and_om):
     """
     ob, om = ob_and_om
     assert not ob.equals_order_sensitive(om)
-    om_inv = OrderedDict((v, k) for (k, v) in iteritems(om))
+    om_inv = OrderedDict((v, k) for (k, v) in om.items())
     assert not ob.inv.equals_order_sensitive(om_inv)
 
 
@@ -114,7 +113,7 @@ def test_unequal_order_sensitive_non_mapping(ob, not_a_mapping):
 def test_bijectivity(bi):
     """b[k] == v  <==>  b.inv[v] == k"""
     for b in (bi, bi.inv):
-        assert all(b.inv[v] == k for (k, v) in iteritems(b))
+        assert all(b.inv[v] == k for (k, v) in b.items())
 
 
 @given(st.BI_AND_CMPDICT_FROM_SAME_ITEMS, st.ARGS_BY_METHOD)
@@ -122,7 +121,7 @@ def test_consistency_after_method_call(bi_and_cmp_dict, args_by_method):
     """A bidict should be left in a consistent state after calling any method, even if it raises."""
     # pylint: disable=too-many-locals
     bi_orig, cmp_dict_orig = bi_and_cmp_dict
-    for (_, methodname), args in iteritems(args_by_method):
+    for (_, methodname), args in args_by_method.items():
         if not hasattr(bi_orig, methodname):
             continue
         bi = bi_orig.copy()
@@ -140,18 +139,18 @@ def test_consistency_after_method_call(bi_and_cmp_dict, args_by_method):
             cmp_dict_meth = getattr(cmp_dict, methodname, None)
             if cmp_dict_meth:
                 cmp_result = cmp_dict_meth(*args)
-                if isinstance(cmp_result, c.Iterable):
+                if isinstance(cmp_result, Iterable):
                     coll = list if isinstance(bi, OrderedBidictBase) else set
                     result = coll(result)
                     cmp_result = coll(cmp_result)
                 assert result == cmp_result, 'methodname=%s, args=%r' % (methodname, args)
         # Whether the call failed or succeeded, bi should pass consistency checks.
-        assert len(bi) == sum(1 for _ in iteritems(bi))
-        assert len(bi.inv) == sum(1 for _ in iteritems(bi.inv))
+        assert len(bi) == sum(1 for _ in bi.items())
+        assert len(bi.inv) == sum(1 for _ in bi.inv.items())
         assert bi == dict(bi)
         assert bi.inv == dict(bi.inv)
-        assert bi == OrderedDict((k, v) for (v, k) in iteritems(bi.inv))
-        assert bi.inv == OrderedDict((v, k) for (k, v) in iteritems(bi))
+        assert bi == OrderedDict((k, v) for (v, k) in bi.inv.items())
+        assert bi.inv == OrderedDict((v, k) for (k, v) in bi.items())
 
 
 @given(st.MUTABLE_BIDICTS, st.L_PAIRS, st.DUP_POLICIES_DICT)
@@ -186,14 +185,14 @@ def test_putall_same_as_put_for_each_item(bi, items, dup_policies):
 def test_iter(bi_and_cmp_dict):
     """:meth:`bidict.BidictBase.__iter__` should yield all the keys in a bidict."""
     bi, cmp_dict = bi_and_cmp_dict
-    assert set(bi) == viewkeys(cmp_dict)
+    assert set(bi) == cmp_dict.keys()
 
 
 @given(st.OBI_AND_OD_FROM_SAME_ITEMS)
 def test_orderedbidict_iter(ob_and_od):
     """Ordered bidict __iter__ should yield all the keys in an ordered bidict in the right order."""
     ob, od = ob_and_od
-    assert all(i == j for (i, j) in izip(ob, od))
+    assert all(i == j for (i, j) in zip(ob, od))
 
 
 @given(st.OBI_AND_OD_FROM_SAME_ITEMS)
@@ -202,7 +201,7 @@ def test_orderedbidict_reversed(ob_and_od):
     in an ordered bidict in the reverse-order they were inserted.
     """
     ob, od = ob_and_od
-    assert all(i == j for (i, j) in izip(reversed(ob), reversed(od)))
+    assert all(i == j for (i, j) in zip(reversed(ob), reversed(od)))
 
 
 @given(st.FROZEN_BIDICTS)
@@ -213,24 +212,6 @@ def test_frozenbidicts_hashable(bi):
     hash(bi)
     {bi}
     {bi: bi}
-
-
-@pytest.mark.skipif(not PY2, reason='iter* methods only defined on Python 2')
-@given(st.BIDICTS)
-def test_iterkeys_itervals_iteritems(bi):
-    """Bidicts' iter* methods should work as expected."""
-    assert set(bi.iterkeys()) == bi.viewkeys()
-    assert set(bi.itervalues()) == bi.viewvalues()
-    assert set(bi.iteritems()) == bi.viewitems()
-
-
-@pytest.mark.skipif(not PY2, reason='iter* methods only defined on Python 2')
-@given(st.ORDERED_BIDICTS)
-def test_orderedbidict_iterkeys_itervals_iteritems(ob):
-    """Ordered bidicts' iter* methods should work as expected."""
-    assert list(ob.iterkeys()) == ob.keys()
-    assert list(ob.itervalues()) == ob.values()
-    assert list(ob.iteritems()) == ob.items()
 
 
 @given(st.NAMEDBIDICT_NAMES_SOME_INVALID)
@@ -261,14 +242,14 @@ def test_namedbidict(nb):
     """Test :func:`bidict.namedbidict` custom accessors."""
     valfor = getattr(nb, nb._valname + '_for')  # pylint: disable=protected-access
     keyfor = getattr(nb, nb._keyname + '_for')  # pylint: disable=protected-access
-    assert all(valfor[key] == val for (key, val) in iteritems(nb))
-    assert all(keyfor[val] == key for (key, val) in iteritems(nb))
+    assert all(valfor[key] == val for (key, val) in nb.items())
+    assert all(keyfor[val] == key for (key, val) in nb.items())
     # The same custom accessors should work on the inverse.
     inv = nb.inv
     valfor = getattr(inv, nb._valname + '_for')  # pylint: disable=protected-access
     keyfor = getattr(inv, nb._keyname + '_for')  # pylint: disable=protected-access
-    assert all(valfor[key] == val for (key, val) in iteritems(nb))
-    assert all(keyfor[val] == key for (key, val) in iteritems(nb))
+    assert all(valfor[key] == val for (key, val) in nb.items())
+    assert all(keyfor[val] == key for (key, val) in nb.items())
 
 
 @given(st.BIDICTS)
@@ -332,8 +313,6 @@ def test_refcycle_orderedbidict_nodes(ob_cls, init_items):
 def test_slots(bi_cls):
     """See https://docs.python.org/3/reference/datamodel.html#notes-on-using-slots."""
     stop_at = {object}
-    if PY2:
-        stop_at.update({c.Mapping, c.MutableMapping})  # These don't define __slots__ in Python 2.
     cls_by_slot = {}
     for cls in bi_cls.__mro__:
         if cls in stop_at:
@@ -356,11 +335,7 @@ def test_inv_aliases_inverse(bi):
 @given(st.BIDICTS)
 def test_pickle_roundtrips(bi):
     """A bidict should equal the result of unpickling its pickle."""
-    dumps_args = {}
-    # Pickling ordered bidicts in Python 2 requires a higher (non-default) protocol version.
-    if PY2 and isinstance(bi, OrderedBidictBase):
-        dumps_args['protocol'] = 2
-    pickled = pickle.dumps(bi, **dumps_args)
+    pickled = pickle.dumps(bi)
     roundtripped = pickle.loads(pickled)
     assert roundtripped is roundtripped.inv.inv
     assert roundtripped == bi
@@ -391,7 +366,7 @@ def test_iteritems_args_kw(arg0, kw):
     arg0_1, arg0_2 = tee(arg0)
     it = _iteritems_args_kw(arg0_1, **kw)
     # Consume the first `len(arg0)` pairs, checking that they match `arg0`.
-    assert all(check == expect for (check, expect) in izip(it, arg0_2))
+    assert all(check == expect for (check, expect) in zip(it, arg0_2))
     with pytest.raises(StopIteration):
         next(arg0_1)  # Iterating `it` should have consumed all of `arg0_1`.
     # Consume the remaining pairs, checking that they match `kw`.
@@ -413,15 +388,15 @@ def test_inverted_pairs(pairs):
 def test_inverted_bidict(bi_and_cmp_dict):
     """:func:`bidict.inverted` should yield the inverse items of a bidict."""
     bi, cmp_dict = bi_and_cmp_dict
-    cmp_dict_inv = OrderedDict((v, k) for (k, v) in iteritems(cmp_dict))
-    assert set(inverted(bi)) == viewitems(cmp_dict_inv) == viewitems(bi.inv)
-    assert set(inverted(inverted(bi))) == viewitems(cmp_dict) == viewitems(bi.inv.inv)
+    cmp_dict_inv = OrderedDict((v, k) for (k, v) in cmp_dict.items())
+    assert set(inverted(bi)) == cmp_dict_inv.items() == bi.inv.items()
+    assert set(inverted(inverted(bi))) == cmp_dict.items() == bi.inv.inv.items()
 
 
 @given(st.OBI_AND_OD_FROM_SAME_ITEMS)
 def test_inverted_orderedbidict(ob_and_od):
     """:func:`bidict.inverted` should yield the inverse items of an ordered bidict."""
     ob, od = ob_and_od
-    od_inv = OrderedDict((v, k) for (k, v) in iteritems(od))
-    assert all(i == j for (i, j) in izip(inverted(ob), iteritems(od_inv)))
-    assert all(i == j for (i, j) in izip(inverted(inverted(ob)), iteritems(od)))
+    od_inv = OrderedDict((v, k) for (k, v) in od.items())
+    assert all(i == j for (i, j) in zip(inverted(ob), od_inv.items()))
+    assert all(i == j for (i, j) in zip(inverted(inverted(ob)), od.items()))

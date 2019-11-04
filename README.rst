@@ -76,7 +76,7 @@ Bidict:
   Bloomberg, Two Sigma, and others
 - has carefully designed APIs for
   safety, simplicity, flexibility, and ergonomics
-- is CPython-, PyPy-, Python 2-, and Python 3-compatible
+- is CPython- and PyPy3-compatible [#fn-py2]_
 - has extensive test coverage
   (including property-based tests and benchmarks)
   run continuously on all supported Python versions and OSes
@@ -85,13 +85,15 @@ Bidict:
   that leverages a number of advanced language features [#fn-learning]_
 
 
-⚠️ Python 2 EOL ⚠️
-++++++++++++++++++
-
-Python 2 support will be dropped in a future release.
-
-See `python3statement.org <https://python3statement.org>`__
-for more info.
+.. [#fn-py2] As promised in the
+   :ref:`0.18.2 release <changelog:0.18.2 (2019-09-08)>`,
+   **Python 2 is no longer supported**.
+   :ref:`Version 0.18.3 <changelog:0.18.3 (2019-09-22)>`
+   is the last release of bidict that supports Python 2.
+   This makes bidict more efficient on Python 3
+   and enables further improvement to bidict in the future.
+   See `python3statement.org <https://python3statement.org>`__
+   for more info.
 
 
 Installation

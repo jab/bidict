@@ -8,9 +8,9 @@
 """Types for Hypothoses tests."""
 
 from collections import OrderedDict
+from collections.abc import ItemsView, KeysView, Mapping
 
 from bidict import bidict, OrderedBidict, frozenbidict, FrozenOrderedBidict, namedbidict
-from bidict.compat import ItemsView, KeysView, Mapping
 
 
 MyNamedBidict = namedbidict('MyNamedBidict', 'key', 'val')

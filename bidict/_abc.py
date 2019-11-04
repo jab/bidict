@@ -28,7 +28,8 @@
 
 """Provides the :class:`BidirectionalMapping` abstract base class."""
 
-from .compat import Mapping, abstractproperty, iteritems
+from abc import abstractmethod
+from collections.abc import Mapping
 
 
 class BidirectionalMapping(Mapping):  # pylint: disable=abstract-method,no-init
@@ -48,7 +49,8 @@ class BidirectionalMapping(Mapping):  # pylint: disable=abstract-method,no-init
 
     __slots__ = ()
 
-    @abstractproperty
+    @property
+    @abstractmethod
     def inverse(self):
         """The inverse of this bidirectional mapping instance.
 
@@ -77,7 +79,7 @@ class BidirectionalMapping(Mapping):  # pylint: disable=abstract-method,no-init
 
         *See also* :func:`bidict.inverted`
         """
-        return iteritems(self.inverse)
+        return iter(self.inverse.items())
 
     @classmethod
     def __subclasshook__(cls, C):  # noqa: N803 (argument name should be lowercase)

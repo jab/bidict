@@ -30,7 +30,7 @@
 from ._delegating_mixins import _DelegateKeysToFwdm
 from ._frozenbidict import frozenbidict
 from ._orderedbase import OrderedBidictBase
-from .compat import DICTS_ORDERED, PY2, izip
+from .compat import DICTS_ORDERED
 
 
 # If the Python implementation's dict type is ordered (e.g. PyPy or CPython >= 3.6), then
@@ -45,16 +45,10 @@ _CLSDICT = dict(
     # frozenbidict.__hash__ can be reused for FrozenOrderedBidict:
     # FrozenOrderedBidict inherits BidictBase.__eq__ which is order-insensitive,
     # and frozenbidict.__hash__ is consistent with BidictBase.__eq__.
-    __hash__=frozenbidict.__hash__.__func__ if PY2 else frozenbidict.__hash__,
+    __hash__=frozenbidict.__hash__,
     __doc__='Hashable, immutable, ordered bidict type.',
     __module__=__name__,  # Otherwise unpickling fails in Python 2.
 )
-
-# When PY2 (so we provide iteritems) and DICTS_ORDERED, e.g. on PyPy, the following implementation
-# of iteritems may be more efficient than that inherited from `Mapping`. This exploits the property
-# that the keys in `_fwdm` and `_invm` are already in the right order:
-if PY2 and DICTS_ORDERED:
-    _CLSDICT['iteritems'] = lambda self: izip(self._fwdm, self._invm)  # noqa: E501; pylint: disable=protected-access
 
 FrozenOrderedBidict = type('FrozenOrderedBidict', _BASES, _CLSDICT)  # pylint: disable=invalid-name
 

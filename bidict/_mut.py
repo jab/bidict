@@ -28,10 +28,11 @@
 
 """Provides :class:`bidict`."""
 
+from collections.abc import MutableMapping
+
 from ._base import BidictBase
 from ._dup import OVERWRITE, RAISE, _OnDup
 from ._miss import _MISS
-from .compat import MutableMapping
 
 
 # Extend MutableMapping explicitly because it doesn't implement __subclasshook__, as well as to
@@ -150,7 +151,7 @@ class MutableBidict(BidictBase, MutableMapping):
         del self._invm[val]
         return key, val
 
-    def update(self, *args, **kw):
+    def update(self, *args, **kw):  # pylint: disable=arguments-differ
         """Like :meth:`putall` with default duplication policies."""
         if args or kw:
             self._update(False, None, *args, **kw)

@@ -26,6 +26,18 @@ click "`Watch <https://help.github.com/en/articles/watching-and-unwatching-relea
 and choose "Releases".
 
 
+0.19.0 (not yet released)
+-------------------------
+
+Drop support for Python 2
+:ref:`as promised in v0.18.2 <changelog:0.18.2 (2019-09-08)>`.
+
+The :mod:`bidict.compat` module has been pruned accordingly.
+
+This makes bidict more efficient on Python 3
+and enables further improvement to bidict in the future.
+
+
 0.18.3 (2019-09-22)
 -------------------
 

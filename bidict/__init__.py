@@ -48,9 +48,20 @@ if you are reading this elsewhere.
 .. :license: MPLv2. See LICENSE for details.
 """
 
-# This __init__.py only collects functionality implemented in the rest of the
-# source and exports it under the `bidict` module namespace (via `__all__`).
+from warnings import warn
+from .compat import PY2, PYMAJOR, PYMINOR
 
+if PY2:
+    raise ImportError('Python 3.5+ is required.')
+
+# Assume Python 3 when not PY2, but explicitly check before showing this warning.
+if PYMAJOR == 3 and PYMINOR < 5:  # pragma: no cover
+    warn('Python 3.4 and below are not supported.')
+
+
+# The rest of this file only collects functionality implemented in the rest of the
+# source and exports it under the `bidict` module namespace (via `__all__`).
+# pylint: disable=wrong-import-position
 from ._abc import BidirectionalMapping
 from ._base import BidictBase
 from ._mut import MutableBidict

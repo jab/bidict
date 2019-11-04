@@ -82,8 +82,7 @@ Terminology
   but technically values are also keys themselves.
 
   Concretely, this allows bidict to return a set-like (*dict_keys*) object
-  for :meth:`~bidict.BidictBase.values` (Python 3) /
-  ``viewvalues()`` (Python 2.7),
+  for :meth:`~bidict.BidictBase.values`,
   rather than a non-set-like *dict_values* object.
 
 
@@ -109,9 +108,7 @@ where bidicts could be used for fun and profit
   These could be combined into a single bidict.
 
 - Python 3's
-  :mod:`html.entities` module /
-  Python 2's
-  ``htmlentitydefs`` module
+  :mod:`html.entities` module
   maintains separate
   ``html.entities.name2codepoint`` and
   ``html.entities.codepoint2name`` dicts.

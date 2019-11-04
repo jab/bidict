@@ -109,21 +109,11 @@ matrix:
     - python: '3.8'
       env: 'TASK=test-linux-cpython-3.8 COVERAGE=1'
 
-    - python: '2.7'
-      env: 'TASK=test-linux-cpython-2.7 COVERAGE=1'
-
     - python: 'pypy3'
       env: 'TASK=test-linux-pypy3 COVERAGE=1'
 
-    - python: 'pypy'
-      env: 'TASK=test-linux-pypy COVERAGE=1'
-
-    ## Test suite on Mac with latest CPython 2 and 3.
-    - python: '2.7'
-      env: 'TASK=test-mac-cpython-2.7'
-      os: 'osx'
-      language: 'generic'
-
+    ## Test suite on Mac with latest CPython 3.
+    ## TODO: Update to 3.8 once 'python-framework-38' cask is available.
     - python: '3.7'
       env: 'TASK=test-mac-cpython-3.7'
       os: 'osx'
