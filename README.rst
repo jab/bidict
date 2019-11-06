@@ -189,7 +189,7 @@ Release Notifications
 on libraries.io to be notified when new versions of bidict are released.
 Alternatively,
 on `GitHub <https://github.com/jab/bidict>`__,
-click "`Watch <https://help.github.com/en/articles/watching-and-unwatching-releases-for-a-repository>`__"
+click "`Watch <https://help.github.com/en/github/receiving-notifications-about-activity-on-github/watching-and-unwatching-releases-for-a-repository>`__"
 and choose "Releases".
 
 
