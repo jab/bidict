@@ -45,7 +45,7 @@ class OrderedBidict(OrderedBidictBase, MutableBidict):
         self._sntl.nxt = self._sntl.prv = self._sntl
 
     def popitem(self, last=True):  # pylint: disable=arguments-differ
-        u"""*x.popitem() → (k, v)*
+        """*x.popitem() → (k, v)*
 
         Remove and return the most recently added item as a (key, value) pair
         if *last* is True, else the least recently added item.

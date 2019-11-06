@@ -47,7 +47,7 @@ class MutableBidict(BidictBase, MutableMapping):
     _ON_DUP_OVERWRITE = _OnDup(key=OVERWRITE, val=OVERWRITE, kv=OVERWRITE)
 
     def __delitem__(self, key):
-        u"""*x.__delitem__(y)　⟺　del x[y]*"""
+        """*x.__delitem__(y)　⟺　del x[y]*"""
         self._pop(key)
 
     def __setitem__(self, key, val):
@@ -125,7 +125,7 @@ class MutableBidict(BidictBase, MutableMapping):
         self._invm.clear()
 
     def pop(self, key, default=_MISS):
-        u"""*x.pop(k[, d]) → v*
+        """*x.pop(k[, d]) → v*
 
         Remove specified key and return the corresponding value.
 
@@ -139,7 +139,7 @@ class MutableBidict(BidictBase, MutableMapping):
             return default
 
     def popitem(self):
-        u"""*x.popitem() → (k, v)*
+        """*x.popitem() → (k, v)*
 
         Remove and return some item as a (key, value) pair.
 

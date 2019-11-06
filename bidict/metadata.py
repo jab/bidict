@@ -29,21 +29,21 @@ try:
 except Exception:  # noqa: E722; pragma: no cover; pylint: disable=broad-except
     __vesion_info__ = (0, 0, 0, 'PARSE FAILURE: __version__=%s' % __version__)
 
-__author__ = u'Joshua Bronson'
-__maintainer__ = u'Joshua Bronson'
-__copyright__ = u'Copyright 2019 Joshua Bronson'
-__email__ = u'jab@math.brown.edu'
+__author__ = 'Joshua Bronson'
+__maintainer__ = 'Joshua Bronson'
+__copyright__ = 'Copyright 2019 Joshua Bronson'
+__email__ = 'jab@math.brown.edu'
 
 # See: ../docs/thanks.rst
-__credits__ = [i.strip() for i in u"""
+__credits__ = [i.strip() for i in """
 Joshua Bronson, Michael Arntzenius, Francis Carr, Gregory Ewing, Raymond Hettinger, Jozef Knaperek,
 Daniel Pope, Terry Reedy, David Turner, Tom Viner, Richard Sanger, Zeyi Wang
-""".split(u',')]
+""".split(',')]
 
-__description__ = u'Efficient, Pythonic bidirectional map implementation and related functionality'
+__description__ = 'Efficient, Pythonic bidirectional map implementation and related functionality'
 __keywords__ = 'dict dictionary mapping datastructure bimap bijection bijective ' \
     'injective inverse reverse bidirectional two-way 2-way'
 
-__license__ = u'MPL 2.0'
-__status__ = u'Beta'
-__url__ = u'https://bidict.readthedocs.io'
+__license__ = 'MPL 2.0'
+__status__ = 'Beta'
+__url__ = 'https://bidict.readthedocs.io'

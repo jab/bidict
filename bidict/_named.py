@@ -76,8 +76,8 @@ def namedbidict(typename, keyname, valname, base_type=bidict):
     fname = valname + '_for'
     iname = keyname + '_for'
     names = dict(typename=typename, bname=bname, keyname=keyname, valname=valname)
-    fdoc = u'{typename} forward {bname}: {keyname} → {valname}'.format(**names)
-    idoc = u'{typename} inverse {bname}: {valname} → {keyname}'.format(**names)
+    fdoc = '{typename} forward {bname}: {keyname} → {valname}'.format(**names)
+    idoc = '{typename} inverse {bname}: {valname} → {keyname}'.format(**names)
     setattr(_Named, fname, property(_Named._getfwd, doc=fdoc))  # pylint: disable=protected-access
     setattr(_Named, iname, property(_Named._getinv, doc=idoc))  # pylint: disable=protected-access
 

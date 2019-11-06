@@ -211,7 +211,7 @@ class BidictBase(BidirectionalMapping):
     # inefficient ``dict(self.items()) == dict(other.items())`` comparison, so override it with a
     # more efficient implementation.
     def __eq__(self, other):
-        u"""*x.__eq__(other)　⟺　x == other*
+        """*x.__eq__(other)　⟺　x == other*
 
         Equivalent to *dict(x.items()) == dict(other.items())*
         but more efficient.
@@ -420,7 +420,7 @@ class BidictBase(BidirectionalMapping):
         return iter(self._fwdm)
 
     def __getitem__(self, key):
-        u"""*x.__getitem__(key)　⟺　x[key]*"""
+        """*x.__getitem__(key)　⟺　x[key]*"""
         return self._fwdm[key]
 
     def values(self):
