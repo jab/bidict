@@ -3,8 +3,7 @@ language: 'python'
 # Default version used for jobs that don't override it.
 python: '3.8'
 
-# TODO: Update to 'bionic' once available.
-# https://travis-ci.community/t/ubuntu-18-04-1-lts-bionic-beaver/1270
+# TODO: Update to 'bionic' once all the Python versions we test with are available for it.
 dist: 'xenial'
 
 
@@ -22,30 +21,15 @@ before_install:  # Ensure we have the required versions of Python and Pip.
   # Travis does a shallow (--depth=50) clone by default.
   # Clone the full history as requested by setuptools_scm.
   - 'travis_retry git fetch --unshallow'
-  # Install Python on macOS since https://github.com/travis-ci/travis-ci/issues/2312 is WONTFIXed.
   - |
     if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
-      declare -r pyver="${TASK##*-}"  # strip all chars up to and including the last -
-      declare -r python="python$pyver"
-      echo "TASK=$TASK -> pyver=$pyver python=$python"
-      if ! type "$python"; then
-        export HOMEBREW_NO_AUTO_UPDATE=1
-        brew tap minrk/homebrew-python-frameworks
-        brew cask install "python-framework-${pyver/./}"
-        type "$python" || exit 1
-      fi
-      type python
-      "$python" --version
-      travis_retry curl https://bootstrap.pypa.io/get-pip.py | "$python"
-      "$python" -m pip install virtualenv
-      "$python" -m virtualenv ~/travis-env
-      source ~/travis-env/bin/activate
-      type python
+      uname -a
+      defaults read loginwindow SystemVersionStampAsString
     fi
-  - 'python --version'
-  # https://github.com/python-trio/trio/issues/487#issuecomment-377931587
+  - 'type python3'
+  - 'python3 --version'
   - 'echo "Installing latest pip..."'
-  - 'travis_retry curl https://bootstrap.pypa.io/get-pip.py | python'
+  - 'travis_retry curl https://bootstrap.pypa.io/get-pip.py | python3'
   - 'pip --version'
 
 
@@ -77,7 +61,7 @@ script:  # Run the test suite.
     if [[ "$COVERAGE" ]]; then
       export PYTEST_ADDOPTS="${PYTEST_ADDOPTS} --cov=bidict --cov-config=.coveragerc"
     fi
-    ./run_tests.py
+    python3 ./run_tests.py
 
 
 after_script:
@@ -112,18 +96,11 @@ matrix:
     - python: 'pypy3'
       env: 'TASK=test-linux-pypy3 COVERAGE=1'
 
-    ## Test suite on Mac with latest CPython 3.
-    ## TODO: Update to 3.8 once 'python-framework-38' cask is available.
-    - python: '3.7'
-      env: 'TASK=test-mac-cpython-3.7'
-      os: 'osx'
-      language: 'generic'
-
     ## Make sure there are no relied-on side effects in assert statements.
     - env: 'TASK=test-with-optimization-flag'
       before_install: 'skip'
       install: 'skip'
-      script: 'python -O -m doctest -o IGNORE_EXCEPTION_DETAIL -o ELLIPSIS tests/*.txt'
+      script: 'python3 -O -m doctest -o IGNORE_EXCEPTION_DETAIL -o ELLIPSIS tests/*.txt'
 
     ## Linting, static analysis, code style.
     - env: 'TASK=lint-flake8 INSTALL_EXTRAS=flake8'
@@ -156,6 +133,20 @@ matrix:
 
     - python: '3.5'
       env: 'TASK=test-linux-cpython-3.5'
+
+    ## Test suite on Mac with latest CPython 3 available in Travis's Mac image. Currently this is
+    ## 3.6. Set `python: '3.6'` below so this shows up correctly in the Travis web UI. Must set
+    ## `language: 'generic' for Travis Mac builds, in which case changing the `python` value below
+    ## has no effect; /usr/local/bin/python3 is always 3.6. TODO: Update the `python` value below
+    ## if/when Travis updates their Mac image with a newer Python 3 (only so the web UI is correct).
+    - env: 'TASK=test-mac-cpython-3.6'
+      python: '3.6'
+      os: 'osx'
+      language: 'generic'
+
+    ## TODO: Try Travis's new Windows support once it supports Python.
+    ### - env: 'TASK=test-windows-cpython-3.x'
+    ###   os: 'windows'
 
     - stage: 'deploy-if-tag'
       env: 'TASK=deploy-if-tag'
