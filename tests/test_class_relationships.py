@@ -65,8 +65,6 @@ def test_not_issubclass_not_bimap(not_bi_cls):
     should not be considered subclasses.
     """
     assert not issubclass(not_bi_cls, BidirectionalMapping)
-    # Make sure one of the types tested is an old-style class on Python 2,
-    # i.e. that BidirectionalMapping.__subclasshook__ doesn't break for them.
 
 
 @pytest.mark.parametrize('bi_cls', BIDICT_TYPES)

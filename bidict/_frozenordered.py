@@ -47,7 +47,7 @@ _CLSDICT = dict(
     # and frozenbidict.__hash__ is consistent with BidictBase.__eq__.
     __hash__=frozenbidict.__hash__,
     __doc__='Hashable, immutable, ordered bidict type.',
-    __module__=__name__,  # Otherwise unpickling fails in Python 2.
+    __module__=__name__,  # Required for pickling.
 )
 
 FrozenOrderedBidict = type('FrozenOrderedBidict', _BASES, _CLSDICT)  # pylint: disable=invalid-name

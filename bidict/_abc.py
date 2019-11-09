@@ -93,9 +93,7 @@ class BidirectionalMapping(Mapping):  # pylint: disable=abstract-method,no-init
             return NotImplemented
         if not Mapping.__subclasshook__(C):
             return NotImplemented
-        mro = getattr(C, '__mro__', None)
-        if mro is None:  # Python 2 old-style class
-            return NotImplemented
+        mro = C.__mro__
         if not any(B.__dict__.get('inverse') for B in mro):
             return NotImplemented
         return True
