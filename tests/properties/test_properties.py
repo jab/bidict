@@ -13,7 +13,6 @@ import pickle
 from copy import deepcopy
 from collections import OrderedDict
 from collections.abc import Iterable
-from functools import reduce
 from itertools import tee
 from weakref import ref
 
@@ -295,16 +294,11 @@ def test_refcycle_orderedbidict_nodes(ob_cls, init_items):
     """
     gc.disable()
     try:
-        some_ordered_bidict = ob_cls(init_items)
-        # On Python 2, list comprehension references leak to enclosing scope -> use reduce instead:
-        node_weakrefs = reduce(
-            lambda acc, node: acc + [node],
-            map(ref, some_ordered_bidict._fwdm.values()),  # pylint: disable=protected-access
-            []
-        )
-        assert all(r() is not None for r in node_weakrefs)
-        del some_ordered_bidict
-        assert all(r() is None for r in node_weakrefs)
+        ob = ob_cls(init_items)
+        node_refs = [ref(node) for node in ob._fwdm.values()]  # pylint: disable=protected-access
+        assert all(r() is not None for r in node_refs)
+        del ob
+        assert all(r() is None for r in node_refs)
     finally:
         gc.enable()
 
