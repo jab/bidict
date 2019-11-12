@@ -106,7 +106,7 @@ class _Sentinel(_Node):  # pylint: disable=too-few-public-methods
     __slots__ = ()
 
     def __init__(self, prv=None, nxt=None):
-        super(_Sentinel, self).__init__(prv or self, nxt or self)
+        super().__init__(prv or self, nxt or self)
 
     def __repr__(self):  # pragma: no cover
         return '<SENTINEL>'
@@ -156,10 +156,10 @@ class OrderedBidictBase(BidictBase):
         # To effect this difference, `_write_item` and `_undo_write` are overridden. But much of the
         # rest of BidictBase's implementation, including BidictBase.__init__ and BidictBase._update,
         # are inherited and are able to be reused without modification.
-        super(OrderedBidictBase, self).__init__(*args, **kw)
+        super().__init__(*args, **kw)
 
     def _init_inv(self):
-        super(OrderedBidictBase, self)._init_inv()
+        super()._init_inv()
         self.inverse._sntl = self._sntl  # pylint: disable=protected-access
 
     # Can't reuse BidictBase.copy since ordered bidicts have different internal structure.

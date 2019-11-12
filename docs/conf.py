@@ -70,7 +70,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'bidict'
+project = 'bidict'
 author = bidict.__author__
 copyright = bidict.__copyright__  # pylint: disable=redefined-builtin
 
@@ -246,7 +246,7 @@ htmlhelp_basename = 'bidictdoc'
 # (source start file, target name, title,
 #  author, documentclass [howto, manual, or own class]).
 #latex_documents = [
-#  ('index', 'bidict.tex', u'bidict Documentation',
+#  ('index', 'bidict.tex', 'bidict Documentation',
 #   author, 'manual'),
 #]
 
@@ -276,7 +276,7 @@ htmlhelp_basename = 'bidictdoc'
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 #man_pages = [
-#    ('index', 'bidict', u'bidict Documentation',
+#    ('index', 'bidict', 'bidict Documentation',
 #     [author], 1)
 #]
 
@@ -290,7 +290,7 @@ htmlhelp_basename = 'bidictdoc'
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 #texinfo_documents = [
-#  ('index', 'bidict', u'bidict Documentation',
+#  ('index', 'bidict', 'bidict Documentation',
 #   author, 'bidict', 'One line description of project.',
 #   'Miscellaneous'),
 #]
