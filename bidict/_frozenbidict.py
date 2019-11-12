@@ -22,7 +22,7 @@
 
 #                             * Code review nav *
 #==============================================================================
-# ← Prev: _delegating_mixins.py  Current: _frozenbidict.py      Next: _mut.py →
+# ← Prev: _base.py         Current: _frozenbidict.py           Next: _mut.py →
 #==============================================================================
 
 """Provides :class:`frozenbidict`, an immutable, hashable bidirectional mapping type."""
@@ -30,10 +30,10 @@
 from collections.abc import ItemsView
 
 from ._base import BidictBase
-from ._delegating_mixins import _DelegateKeysAndItemsToFwdm
+from ._delegating import _DelegatingMixin
 
 
-class frozenbidict(_DelegateKeysAndItemsToFwdm, BidictBase):  # noqa: N801,E501; pylint: disable=invalid-name
+class frozenbidict(_DelegatingMixin, BidictBase):  # noqa: N801; pylint: disable=invalid-name
     """Immutable, hashable bidict type."""
 
     __slots__ = ()
@@ -48,5 +48,5 @@ class frozenbidict(_DelegateKeysAndItemsToFwdm, BidictBase):  # noqa: N801,E501;
 
 #                             * Code review nav *
 #==============================================================================
-# ← Prev: _delegating_mixins.py  Current: _frozenbidict.py      Next: _mut.py →
+# ← Prev: _base.py         Current: _frozenbidict.py           Next: _mut.py →
 #==============================================================================

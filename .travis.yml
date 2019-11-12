@@ -96,6 +96,10 @@ matrix:
     - python: 'pypy3'
       env: 'TASK=test-linux-pypy3 COVERAGE=1'
 
+    ## Test suite on Linux with Python 3.5, where dicts are unordered -> enable coverage.
+    - python: '3.5'
+      env: 'TASK=test-linux-cpython-3.5 COVERAGE=1'
+
     ## Make sure there are no relied-on side effects in assert statements.
     - env: 'TASK=test-with-optimization-flag'
       before_install: 'skip'
@@ -130,9 +134,6 @@ matrix:
 
     - python: '3.6'
       env: 'TASK=test-linux-cpython-3.6'
-
-    - python: '3.5'
-      env: 'TASK=test-linux-cpython-3.5'
 
     ## Test suite on Mac with latest CPython 3 available in Travis's Mac image. Currently this is
     ## 3.6. Set `python: '3.6'` below so this shows up correctly in the Travis web UI. Must set
