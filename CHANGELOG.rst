@@ -29,13 +29,27 @@ and choose "Releases".
 0.19.0 (not yet released)
 -------------------------
 
-Drop support for Python 2
-:ref:`as promised in v0.18.2 <changelog:0.18.2 (2019-09-08)>`.
+* Drop support for Python 2
+  :ref:`as promised in v0.18.2 <changelog:0.18.2 (2019-09-08)>`.
 
-The :mod:`bidict.compat` module has been pruned accordingly.
+  The :mod:`bidict.compat` module has been pruned accordingly.
 
-This makes bidict more efficient on Python 3
-and enables further improvement to bidict in the future.
+  This makes bidict more efficient on Python 3
+  and enables further improvement to bidict in the future.
+
+* Move
+  :meth:`bidict.BidictBase.values` to
+  :meth:`bidict.BidirectionalMapping.values`,
+  since the implementation is generic.
+
+* Improve the more efficient implementations of
+  :meth:`~bidict.BidirectionalMapping.keys`,
+  :meth:`~bidict.BidirectionalMapping.values`, and
+  :meth:`~bidict.BidirectionalMapping.items`,
+  and now also provide a more efficient implementation of
+  :meth:`~bidict.BidirectionalMapping.__iter__`
+  by delegating to backing dicts
+  in the bidict types for which this is possible.
 
 
 0.18.3 (2019-09-22)

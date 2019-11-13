@@ -81,6 +81,20 @@ class BidirectionalMapping(Mapping):  # pylint: disable=abstract-method,no-init
         """
         return iter(self.inverse.items())
 
+    def values(self):
+        """A set-like object providing a view on the contained values.
+
+        Override the implementation inherited from
+        :class:`~collections.abc.Mapping`.
+        Because the values of a :class:`~bidict.BidirectionalMapping`
+        are the keys of its inverse,
+        this returns a :class:`~collections.abc.KeysView`
+        rather than a :class:`~collections.abc.ValuesView`,
+        which has the advantages of constant-time containment checks
+        and supporting set operations.
+        """
+        return self.inverse.keys()
+
     @classmethod
     def __subclasshook__(cls, C):  # noqa: N803 (argument name should be lowercase)
         """Check if *C* is a :class:`~collections.abc.Mapping`
@@ -97,7 +111,6 @@ class BidirectionalMapping(Mapping):  # pylint: disable=abstract-method,no-init
         if not any(B.__dict__.get('inverse') for B in mro):
             return NotImplemented
         return True
-
 
 #                             * Code review nav *
 #==============================================================================

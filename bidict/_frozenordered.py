@@ -27,30 +27,38 @@
 
 """Provides :class:`FrozenOrderedBidict`, an immutable, hashable, ordered bidict."""
 
-from ._delegating_mixins import _DelegateKeysToFwdm
 from ._frozenbidict import frozenbidict
 from ._orderedbase import OrderedBidictBase
 from .compat import DICTS_ORDERED
 
 
-# If the Python implementation's dict type is ordered (e.g. PyPy or CPython >= 3.6), then
-# `FrozenOrderedBidict` can delegate to `_fwdm` for keys: Both `_fwdm` and `_invm` will always
-# be initialized with the provided items in the correct order, and since `FrozenOrderedBidict`
-# is immutable, their respective orders can't get out of sync after a mutation. (Can't delegate
-# to `_fwdm` for items though because values in `_fwdm` are nodes.)
-_BASES = ((_DelegateKeysToFwdm,) if DICTS_ORDERED else ()) + (OrderedBidictBase,)
-_CLSDICT = dict(
-    __slots__=(),
-    # Must set __hash__ explicitly, Python prevents inheriting it.
-    # frozenbidict.__hash__ can be reused for FrozenOrderedBidict:
-    # FrozenOrderedBidict inherits BidictBase.__eq__ which is order-insensitive,
-    # and frozenbidict.__hash__ is consistent with BidictBase.__eq__.
-    __hash__=frozenbidict.__hash__,
-    __doc__='Hashable, immutable, ordered bidict type.',
-    __module__=__name__,  # Required for pickling.
-)
+class FrozenOrderedBidict(OrderedBidictBase):
+    """Hashable, immutable, ordered bidict type."""
 
-FrozenOrderedBidict = type('FrozenOrderedBidict', _BASES, _CLSDICT)  # pylint: disable=invalid-name
+    __slots__ = ()
+    __hash__ = frozenbidict.__hash__
+
+    # If the Python implementation's dict type is ordered (e.g. PyPy or CPython >= 3.6), then we can
+    # delegate to `_fwdm` and `_invm` for faster implementations of several methods. Both `_fwdm`
+    # and `_invm` will always be initialized with the provided items in the correct order, and since
+    # `FrozenOrderedBidict` is immutable, their respective orders can't get out of sync after a
+    # mutation.
+    if DICTS_ORDERED:
+        def __iter__(self, reverse=False):
+            """Iterator over the contained items."""
+            if reverse:
+                return super().__iter__(reverse=True)
+            return iter(self._fwdm._fwdm)  # pylint: disable=protected-access
+
+        def keys(self):
+            """A set-like object providing a view on the contained keys."""
+            return self._fwdm._fwdm.keys()  # pylint: disable=protected-access
+
+        def values(self):
+            """A set-like object providing a view on the contained values."""
+            return self._invm._fwdm.keys()  # pylint: disable=protected-access
+
+        # We can't delegate for items because values in `_fwdm` are nodes.
 
 
 #                             * Code review nav *

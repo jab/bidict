@@ -55,7 +55,7 @@ has been one of the most fun parts of working on bidict.
 To see how this is done, check out this code:
 
 - `_base.py <https://github.com/jab/bidict/blob/master/bidict/_base.py#L10>`__
-- `_delegating_mixins.py <https://github.com/jab/bidict/blob/master/bidict/_delegating_mixins.py#L10>`__
+- `_delegating.py <https://github.com/jab/bidict/blob/master/bidict/_delegating.py#L12>`__
 - `_frozenbidict.py <https://github.com/jab/bidict/blob/master/bidict/_frozenbidict.py#L10>`__
 - `_mut.py <https://github.com/jab/bidict/blob/master/bidict/_mut.py#L10>`__
 - `_bidict.py <https://github.com/jab/bidict/blob/master/bidict/_bidict.py#L10>`__
@@ -317,7 +317,7 @@ How to deeply integrate with Python's :mod:`collections` and other built-in APIs
   in addition to :class:`~bidict.BidirectionalMapping`
   (e.g. to conditionally implement an optimized version of some methods
   based on the type of ``_fwmd_cls``,
-  as ``_delegating_mixins.py`` currently does without a metaclass)?
+  as ``_delegating.py`` currently does without a metaclass)?
   Would have to be careful to avoid
   "TypeError: metaclass conflict: the metaclass of a derived class
   must be a (non-strict) subclass of the metaclasses of all its bases".

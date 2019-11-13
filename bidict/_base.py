@@ -22,7 +22,7 @@
 
 #                             * Code review nav *
 #==============================================================================
-# ← Prev: _abc.py             Current: _base.py   Next: _delegating_mixins.py →
+# ← Prev: _abc.py             Current: _base.py   Next:     _frozenbidict.py →
 #==============================================================================
 
 
@@ -423,20 +423,7 @@ class BidictBase(BidirectionalMapping):
         """*x.__getitem__(key)　⟺　x[key]*"""
         return self._fwdm[key]
 
-    def values(self):
-        """A set-like object providing a view on the contained values.
-
-        Note that because the values of a :class:`~bidict.BidirectionalMapping`
-        are the keys of its inverse,
-        this returns a :class:`~collections.abc.KeysView`
-        rather than a :class:`~collections.abc.ValuesView`,
-        which has the advantages of constant-time containment checks
-        and supporting set operations.
-        """
-        return self.inverse.keys()
-
-
 #                             * Code review nav *
 #==============================================================================
-# ← Prev: _abc.py             Current: _base.py   Next: _delegating_mixins.py →
+# ← Prev: _abc.py             Current: _base.py   Next:     _frozenbidict.py →
 #==============================================================================

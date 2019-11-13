@@ -29,10 +29,10 @@
 """Provides :class:`bidict`."""
 
 from ._mut import MutableBidict
-from ._delegating_mixins import _DelegateKeysAndItemsToFwdm
+from ._delegating import _DelegatingMixin
 
 
-class bidict(_DelegateKeysAndItemsToFwdm, MutableBidict):  # noqa: N801,E501; pylint: disable=invalid-name
+class bidict(_DelegatingMixin, MutableBidict):  # noqa: N801; pylint: disable=invalid-name
     """Base class for mutable bidirectional mappings."""
 
     __slots__ = ()
