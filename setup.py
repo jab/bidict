@@ -10,10 +10,29 @@
 Ref: https://github.com/pypa/sampleproject/blob/master/setup.py
 """
 
+import sys
 from codecs import open as c_open
 from os.path import abspath, dirname, join
+from warnings import warn
 
 from setuptools import setup
+
+
+PY2_ERR = """
+This version of bidict does not support Python 2.
+Either use bidict 0.18.3,
+the last release with Python 2 support,
+or use Python 3.
+
+Also ensure you are using pip >= 9.0.1 to install bidict.
+
+See python3statement.org for more info.
+"""
+
+if sys.version_info < (3,):
+    sys.exit(PY2_ERR)
+elif sys.version_info < (3, 5):
+    warn('This version of bidict is untested on Python < 3.5 and may not work.')
 
 
 CWD = abspath(dirname(__file__))
@@ -125,7 +144,7 @@ setup(
     license=METADATA.__license__,
     packages=['bidict'],
     zip_safe=False,  # Don't zip. (We're zip-safe but prefer not to.)
-    python_requires='>=3.5',
+    python_requires='>=3',
     classifiers=[
         'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
