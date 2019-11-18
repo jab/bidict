@@ -149,21 +149,16 @@ matrix:
     ### - env: 'TASK=test-windows-cpython-3.x'
     ###   os: 'windows'
 
-    - stage: 'deploy-if-tag'
-      env: 'TASK=deploy-if-tag'
-      before_install: 'skip'
-      install: 'skip'
-      script: 'skip'
-      deploy:
-        - provider: 'pypi'
-          user: 'jab'
-          password:
-            secure: 'B9LLgXkTbtjeC/IbH4wh9PEBzvKEAuYo3EBNW5f1xuLqVqtsysIyxJa5ar/FQ4qwUCBwZPFAXFurN3lLzRhb2Tc04YQ0GYVv6f8lkzwrjoWau4iB9Qt/nnvdRa7KryEJvtenHCAnwoEUaADCjkZjwo6fIA0hEOLB6/AYfhfgXYA='
-          on:
-            tags: true
-            # Does this deploy all tags to PyPI, not just release tags?
-            # https://docs.travis-ci.com/user/deployment/pypi/ doesn't say.
-          distributions: 'sdist bdist_wheel'
+deploy:
+  - provider: 'pypi'
+    user: 'jab'
+    password:
+      secure: 'B9LLgXkTbtjeC/IbH4wh9PEBzvKEAuYo3EBNW5f1xuLqVqtsysIyxJa5ar/FQ4qwUCBwZPFAXFurN3lLzRhb2Tc04YQ0GYVv6f8lkzwrjoWau4iB9Qt/nnvdRa7KryEJvtenHCAnwoEUaADCjkZjwo6fIA0hEOLB6/AYfhfgXYA='
+    on:
+      tags: true
+      # Does this deploy all tags to PyPI, not just release tags?
+      # https://docs.travis-ci.com/user/deployment/pypi/ doesn't say.
+    distributions: 'sdist bdist_wheel'
 
 
 before_cache:
