@@ -53,7 +53,7 @@ Making Changes
 
   EditorConfig allows us to provide a single ``.editorconfig`` file
   to configure settings like indentation consistently
-  across a variety of suppored editors.
+  across a variety of supported editors.
   See https://editorconfig.org/#download to install the plugin for your editor.
 
 - Create a topic branch off of master for your changes:
