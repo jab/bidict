@@ -5,6 +5,7 @@
 .coverage
 .eggs
 .hypothesis
+.idea
 .mypy_cache
 .tox
 .vscode

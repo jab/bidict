@@ -1,3 +1,8 @@
+# TODO: switch to appveyor for all CI now that windows, linux, and mac (with python) are available?
+# https://www.appveyor.com/docs/build-environment/
+# https://www.appveyor.com/docs/macos-images-software/
+# etc.
+
 language: 'python'
 
 # Default version used for jobs that don't override it.
@@ -55,8 +60,15 @@ before_script:
 script:  # Run the test suite.
   - |
     if [[ "$TRAVIS_EVENT_TYPE" == "cron" ]]; then
-      export HYPOTHESIS_MAX_EXAMPLES="2000"  # See tests/conftest.py
-      export PYTEST_ADDOPTS="--hypothesis-verbosity=verbose --hypothesis-show-statistics"
+      echo "Some jobs for Travis cron builds began failing nondeterministically"
+      echo "on 2019-12-19 (starting with https://travis-ci.org/jab/bidict/builds/627347551)"
+      echo "due to no output being received for TIMEOUT minutes (10, by default)."
+      echo "Increasing the TIMEOUT via 'travis_wait 50' did not resolve this,"
+      echo "nor did reducing HYPOTHESIS_MAX_EXAMPLES and disabling pytest output capturing."
+      echo "For now, comment out everything else inside this block so there's no reason why"
+      echo "a cron build should fail while non-cron builds are succeeding."
+      # export PYTEST_ADDOPTS="${PYTEST_ADDOPTS} --hypothesis-show-statistics"
+      # export HYPOTHESIS_MAX_EXAMPLES="2000"  # See tests/conftest.py
     fi
     if [[ "$COVERAGE" ]]; then
       export PYTEST_ADDOPTS="${PYTEST_ADDOPTS} --cov=bidict --cov-config=.coveragerc"
