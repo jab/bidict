@@ -52,7 +52,7 @@ from warnings import warn
 from .compat import PY2, PYMAJOR, PYMINOR
 
 if PY2:
-    raise ImportError('Python 3.5+ is required.')
+    raise ImportError('Python 3 is required.')
 
 if (PYMAJOR, PYMINOR) < (3, 5):  # pragma: no cover
     warn('This version of bidict is untested on Python < 3.5 and may not work.')
