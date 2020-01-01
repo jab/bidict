@@ -1,17 +1,19 @@
 Introduction
 ============
 
-The :mod:`bidict` package provides a Pythonic
-`bidirectional map <https://en.wikipedia.org/wiki/Bidirectional_map>`__
-implementation
-and related functionality to work with one-to-one mappings in Python.
+The :mod:`bidict` library provides
+several friendly, efficient data structures
+for working with
+`bidirectional mappings <https://en.wikipedia.org/wiki/Bidirectional_map>`__
+in Python.
 
 bidict.bidict
 -------------
 
 :class:`bidict.bidict`
-is the main bidirectional map data structure provided.
-It implements the familiar API you're used to from dict:
+is the main bidirectional mapping data structure provided.
+It allows looking up the *value* associated with a *key*,
+just like a :class:`dict`:
 
 .. testsetup::
 
@@ -20,22 +22,43 @@ It implements the familiar API you're used to from dict:
 .. doctest::
 
    >>> element_by_symbol = bidict({'H': 'hydrogen'})
-   >>> element_by_symbol
-   bidict({'H': 'hydrogen'})
    >>> element_by_symbol['H']
    'hydrogen'
 
-But it also maintains the inverse bidict via the
-:attr:`~bidict.BidictBase.inverse` attribute:
+But it also allows looking up the *key* associated with a *value*,
+via the special :attr:`~bidict.BidictBase.inverse` attribute:
 
 .. doctest::
 
-   >>> element_by_symbol.inverse
-   bidict({'hydrogen': 'H'})
    >>> element_by_symbol.inverse['hydrogen']
    'H'
 
-Concise, efficient, Pythonic.
+The :attr:`~bidict.BidictBase.inverse` attribute actually
+references the entire inverse bidirectional mapping:
+
+.. doctest::
+
+   >>> element_by_symbol
+   bidict({'H': 'hydrogen'})
+   >>> element_by_symbol.inverse
+   bidict({'hydrogen': 'H'})
+
+...and is automatically kept in sync
+as the original mapping is updated:
+
+.. doctest::
+
+   >>> element_by_symbol['H'] = 'hidrógeno'
+   >>> element_by_symbol.inverse
+   bidict({'hidrógeno': 'H'})
+
+If you're used to working with :class:`dict`\s,
+you'll feel right at home using :mod:`bidict`:
+
+   >>> dir(element_by_symbol)
+   [..., '__getitem__', ..., '__setitem__', ..., 'items', 'keys', ...]
+
+Familiar, elegant, Pythonic.
 
 
 Why can't I just use a dict?
@@ -45,59 +68,76 @@ A skeptic writes:
 
     If I want a mapping associating *a* → *b* and *b* → *a*,
     I can just create the dict ``{a: b, b: a}``.
-    Why bother using bidict?
+    Why bother using :mod:`bidict`?
 
 One answer is better ergonomics
 for maintaining a correct representation.
-For example, consider what happens when we need
-to change an existing association:
+For example, to get the correct length,
+you'd have to take the number reported by :func:`len`
+and cut it in half.
 
-If we want to create the assocation *a* ⟷ *b*,
-but might have already created the association *a* ⟷ *c*,
-with the skeptic's approach
-we would have to write:
+But now consider what happens when we need
+to store a new association,
+and we try to do so naively:
+
+.. code-block:: python
+
+   >>> el_by_sym = {'H': 'hydrogen', 'hydrogen': 'H'}
+   >>> # Later we need to associate 'H' with a different value
+   >>> el_by_sym.update({'H': 'hidrógeno', 'hidrógeno': 'H'}  # Too naive
+
+Here is what we're left with:
+
+.. code-block:: python
+
+   >>> el_by_sym
+   {'H': 'hidrógeno', 'hidrógeno': 'H', 'hydrogen': 'H'}
+
+Oops.
+We forgot to look up whether
+the key and value we wanted to set
+already had any previous associations
+and remove them as necessary.
+
+In general, if we want to store the assocation *k* ⟷ *v*,
+but we may have already stored the associations *k* ⟷ *V* or *K* ⟷ *v*,
+a correct implementation using the single dict approach
+would require code like this:
 
 .. doctest::
 
-   >>> # To represent an existing association a ⟷ c in a single dict d:
-   >>> d = {'a': 'c', 'c': 'a'}
+   >>> d = {'k': 'V', 'V': 'k'}
 
-   >>> # Here is what we'd have to do to make sure a ⟷ b gets associated
-   >>> # regardless of what associations may be in d already:
-   >>> newkey = 'a'
-   >>> newval = 'b'
-   >>> _sentinel = object()
-   >>> oldval = d.pop(newkey, _sentinel)
-   >>> if oldval is not _sentinel:
-   ...     del d[oldval]
-   >>> oldkey = d.pop(newval, _sentinel)
-   >>> if oldkey is not _sentinel:
-   ...     del d[oldkey]
-   >>> d[newkey] = newval
-   >>> d[newval] = newkey
-   >>> d == {'a': 'b', 'b': 'a'}
+   >>> def update(d, key, val):
+   ...     _sentinel = object()
+   ...     oldval = d.pop(key, _sentinel)
+   ...     d.pop(oldval, None)
+   ...     oldkey = d.pop(val, _sentinel)
+   ...     d.pop(oldkey, None)
+   ...     d.update({key: val, val: key})
+
+   >>> update(d, 'k', 'v')
+   >>> d == {'k': 'v', 'v': 'k'}
    True
 
 
-With bidict, we can instead just write:
+With :mod:`bidict`, we can instead just write:
 
 .. doctest::
 
-   >>> m = bidict({'a': 'c'})  # (match the previous initial setup)
+   >>> b = bidict({'k': 'V'})
+   >>> b['k'] = 'v'
 
-   >>> # Here is all we need to make sure a ⟷ b:
-   >>> m['a'] = 'b'
-
-and voilà, bidict takes care of all the fussy details,
+And :mod:`bidict` takes care of all the fussy details,
 leaving us with just what we wanted:
 
 .. doctest::
 
-   >>> m
-   bidict({'a': 'b'})
+   >>> b
+   bidict({'k': 'v'})
 
-   >>> m.inverse
-   bidict({'b': 'a'})
+   >>> b.inverse
+   bidict({'v': 'k'})
 
 
 Even more important...
@@ -123,17 +163,17 @@ and no way to tell which was which.
 
 .. doctest::
 
-   >>> # Compare:
-   >>> sorted(d.keys())    # gives both keys and values
-   ['a', 'b']
-   >>> sorted(d.values())  # gives both keys and values
-   ['a', 'b']
+   >>> # Compare this...
+   >>> sorted(d.keys())    # also gives values
+   ['k', 'v']
+   >>> sorted(d.values())  # also gives keys
+   ['k', 'v']
 
-   >>> # vs.
-   >>> sorted(m.keys())    # just the keys
-   ['a']
-   >>> sorted(m.values())  # just the values
-   ['b']
+   >>> # ...to this:
+   >>> sorted(b.keys())    # just the keys
+   ['k']
+   >>> sorted(b.values())  # just the values
+   ['v']
 
 In short,
 to model a bidirectional mapping,
@@ -141,10 +181,10 @@ we need two separate one-directional mappings,
 one for the forward associations and one for the inverse,
 that are kept in sync as the associations change.
 
-This is exactly what bidict does under the hood,
-abstracting it into a clean, simple, Pythonic interface.
+This is exactly what :mod:`bidict` does under the hood,
+abstracting it into a clean and ergonomic interface.
 
-bidict's APIs also provide power, flexibility, and safety,
+:mod:`bidict`'s APIs also provide power, flexibility, and safety,
 making sure the one-to-one invariant is maintained
 and inverse mappings are kept consistent,
 while also helping make sure you don't accidentally
@@ -156,12 +196,10 @@ Additional Functionality
 
 Besides the standard :class:`bidict.bidict` type,
 the :mod:`bidict` module provides other bidirectional mapping variants:
+:class:`~bidict.frozenbidict`,
+:class:`~bidict.OrderedBidict`
+:class:`~bidict.FrozenOrderedBidict`, and
+:func:`~bidict.namedbidict`.
+These and remaining functionality will be covered in later sections.
 
-- :class:`~bidict.frozenbidict`
-- :class:`~bidict.OrderedBidict`
-- :class:`~bidict.FrozenOrderedBidict`
-- :func:`~bidict.namedbidict` – custom bidict type factory function
-
-Additional functionality is covered in later sections.
-
-But first let's proceed to :doc:`basic-usage`.
+*But first, let's look at a few more details of* :doc:`basic-usage`.

@@ -2,7 +2,6 @@ github: "jab"
 tidelift: "pypi/bidict"
 custom:
   - https://gumroad.com/l/bidict
-  - https://www.bountysource.com/teams/bidict
   - https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=jab%40math%2ebrown%2eedu&lc=US&item_name=Support%20bidict&button_subtype=services&currency_code=USD&bn=PP%2dBuyNowBF%3aPaypal%2dBuy%2520a%2520Drink%2dblue%2esvg%3aNonHosted
 
 patreon: # Replace with a single Patreon username

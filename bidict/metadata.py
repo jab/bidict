@@ -40,7 +40,7 @@ Joshua Bronson, Michael Arntzenius, Francis Carr, Gregory Ewing, Raymond Hetting
 Daniel Pope, Terry Reedy, David Turner, Tom Viner, Richard Sanger, Zeyi Wang
 """.split(',')]
 
-__description__ = 'Efficient, Pythonic bidirectional map implementation and related functionality'
+__description__ = 'The bidirectional mapping library for Python.'
 __keywords__ = 'dict dictionary mapping datastructure bimap bijection bijective ' \
     'injective inverse reverse bidirectional two-way 2-way'
 

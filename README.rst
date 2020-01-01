@@ -7,7 +7,7 @@
 bidict
 ======
 
-Efficient, Pythonic bidirectional map implementation and related functionality.
+The bidirectional mapping library for Python.
 
 .. image:: https://raw.githubusercontent.com/jab/bidict/master/assets/logo-sm.png
    :target: https://bidict.readthedocs.io/
@@ -72,28 +72,35 @@ Status
 Bidict:
 ^^^^^^^
 
-- is in use by several teams at Google, Venmo, CERN, Bank of America Merrill Lynch,
-  Bloomberg, Two Sigma, and others
+- has been used for many years by several teams at
+  Google, Venmo, CERN, Bank of America Merrill Lynch, Bloomberg, Two Sigma, and others
 - has carefully designed APIs for
   safety, simplicity, flexibility, and ergonomics
-- is CPython- and PyPy3-compatible [#fn-py2]_
-- has extensive test coverage
+- is fast, lightweight, and has no runtime dependencies other than Python's standard library
+- integrates natively with Python’s collections interfaces
+- is implemented in concise, well-factored, pure (PyPy-compatible) Python code
+  optimized both for reading and learning from [#fn-learning]_
+  as well as for running efficiently
+- has extensive docs and test coverage
   (including property-based tests and benchmarks)
   run continuously on all supported Python versions and OSes
-- integrates natively with Python’s collections interfaces
-- is implemented in concise, well-factored, well-documented pure Python
-  that leverages a number of advanced language features [#fn-learning]_
+
+.. Use a :doc: reference to the Changelog (with a footnote) below
+   rather than a :ref: to the 0.18.2 section
+   to work around GitHub's .rst renderer.
 
 
-.. [#fn-py2] As promised in the
-   :ref:`0.18.2 release <changelog:0.18.2 (2019-09-08)>`,
-   **Python 2 is no longer supported**.
-   :ref:`Version 0.18.3 <changelog:0.18.3 (2019-09-22)>`
-   is the last release of bidict that supports Python 2.
-   This makes bidict more efficient on Python 3
-   and enables further improvement to bidict in the future.
-   See `python3statement.org <https://python3statement.org>`__
-   for more info.
+Note: Python 3 Now Required
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+As promised in the 0.18.2 release (see :doc:`changelog` [#fn-changelog]_),
+**Python 2 is no longer supported**.
+Version 0.18.3
+is the last release of bidict that supports Python 2.
+This makes bidict more efficient on Python 3
+and enables further improvement to bidict in the future.
+See `python3statement.org <https://python3statement.org>`__
+for more info.
 
 
 Installation
@@ -162,8 +169,8 @@ please let me know.
 
 You can:
 
-- `star bidict on GitHub <https://github.com/jab/bidict>`__ (the "star" button is at the top-right)
-- `create an issue <https://github.com/jab/bidict/issues/new?title=Notice+of+Usage&body=I+am+using+bidict+for...>`__ (preferred)
+- `star bidict on GitHub <https://github.com/jab/bidict>`__
+- `create an issue <https://github.com/jab/bidict/issues/new?title=Notice+of+Usage&body=I+am+using+bidict+for...>`__
 - leave a message in the `chat room <https://gitter.im/jab/bidict>`__
 - `email me <mailto:jab@math.brown.edu?subject=bidict&body=I%20am%20using%20bidict%20for...>`__
 
@@ -266,11 +273,11 @@ that can't render and link this documentation properly
 and are seeing broken links,
 try these alternate links instead:
 
-.. [#fn-intro] `<docs/intro.rst>`__ | `<https://bidict.readthedocs.io/intro.html>`__
+.. [#fn-learning] `<docs/learning-from-bidict.rst>`__ | `<https://bidict.readthedocs.io/learning-from-bidict.html>`__
 
 .. [#fn-changelog] `<CHANGELOG.rst>`__ | `<https://bidict.readthedocs.io/changelog.html>`__
 
-.. [#fn-learning] `<docs/learning-from-bidict.rst>`__ | `<https://bidict.readthedocs.io/learning-from-bidict.html>`__
+.. [#fn-intro] `<docs/intro.rst>`__ | `<https://bidict.readthedocs.io/intro.html>`__
 
 
 ----

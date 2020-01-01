@@ -27,7 +27,7 @@
 
 
 """
-Efficient, Pythonic bidirectional map implementation and related functionality.
+The bidirectional mapping library for Python.
 
 .. code-block:: python
 
