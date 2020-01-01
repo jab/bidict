@@ -17,6 +17,16 @@ dist: 'xenial'
 env:
   global:
     - 'INSTALL_EXTRAS=test'
+    # Some Travis builds began failing nondeterministically on 2019-12-19
+    # (starting with https://travis-ci.org/jab/bidict/builds/627347551)
+    # due to no output being received for TIMEOUT minutes (10, by default).
+    # Increasing the timeout by wrapping with 'travis_wait 50' did not help,
+    # nor did disabling pytest output capturing.
+    # Reducing HYPOTHESIS_MAX_EXAMPLES seems to reduce the frequency of the issue,
+    # but it still continues to occur.
+    # Try reducing HYPOTHESIS_MAX_EXAMPLES here as well as
+    # wrapping run_tests.py with 'travis_retry' below.
+    - 'HYPOTHESIS_MAX_EXAMPLES=100'
 
 
 before_install:  # Ensure we have the required versions of Python and Pip.
@@ -60,20 +70,14 @@ before_script:
 script:  # Run the test suite.
   - |
     if [[ "$TRAVIS_EVENT_TYPE" == "cron" ]]; then
-      echo "Some jobs for Travis cron builds began failing nondeterministically"
-      echo "on 2019-12-19 (starting with https://travis-ci.org/jab/bidict/builds/627347551)"
-      echo "due to no output being received for TIMEOUT minutes (10, by default)."
-      echo "Increasing the TIMEOUT via 'travis_wait 50' did not resolve this,"
-      echo "nor did reducing HYPOTHESIS_MAX_EXAMPLES and disabling pytest output capturing."
-      echo "For now, comment out everything else inside this block so there's no reason why"
-      echo "a cron build should fail while non-cron builds are succeeding."
-      # export PYTEST_ADDOPTS="${PYTEST_ADDOPTS} --hypothesis-show-statistics"
-      # export HYPOTHESIS_MAX_EXAMPLES="2000"  # See tests/conftest.py
+      export PYTEST_ADDOPTS="${PYTEST_ADDOPTS} --hypothesis-show-statistics"
+      # Commenting this out due to recent Travis flakiness (see comments above):
+      # export HYPOTHESIS_MAX_EXAMPLES="2000"  See tests/conftest.py
     fi
     if [[ "$COVERAGE" ]]; then
       export PYTEST_ADDOPTS="${PYTEST_ADDOPTS} --cov=bidict --cov-config=.coveragerc"
     fi
-    python3 ./run_tests.py
+    travis_retry python3 ./run_tests.py
 
 
 after_script:
