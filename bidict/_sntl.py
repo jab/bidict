@@ -6,14 +6,20 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 
-"""Provides :class:`_Marker`, an internal type for representing singletons."""
+"""Provides sentinels used internally in bidict."""
 
-from collections import namedtuple
+from enum import Enum
 
 
-class _Marker(namedtuple('_Marker', 'name')):
-
-    __slots__ = ()
+class _Sentinel(Enum):
+    MISS = object()
+    NOOP = object()
 
     def __repr__(self):
         return '<%s>' % self.name  # pragma: no cover
+
+
+#: The result of looking up a missing key (or inverse key).
+_MISS = _Sentinel.MISS
+#: No-op.
+_NOOP = _Sentinel.NOOP

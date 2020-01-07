@@ -44,7 +44,7 @@ class FrozenOrderedBidict(OrderedBidictBase):
     # `FrozenOrderedBidict` is immutable, their respective orders can't get out of sync after a
     # mutation.
     if DICTS_ORDERED:
-        def __iter__(self, reverse=False):
+        def __iter__(self, reverse=False):  # noqa: N802
             """Iterator over the contained items."""
             if reverse:
                 return super().__iter__(reverse=True)

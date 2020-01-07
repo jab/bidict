@@ -8,7 +8,7 @@ Test for consistency in ordered bidicts after handling duplicate keys/values
 (when passing python's -O flag, this would previously fail
 due to reliance on side effects in assert statements)::
 
-    >>> from bidict import OrderedBidict, DuplicationError, RAISE, OVERWRITE
+    >>> from bidict import OrderedBidict, DuplicationError, RAISE, DROP_OLD, OnDup
     >>> b = OrderedBidict([(0, 1)])
     >>> exc = None
     >>> try:
@@ -22,7 +22,7 @@ due to reliance on side effects in assert statements)::
 
     >>> exc = None
     >>> try:
-    ...     b.putall([(2, 1), (2, 3)], on_dup_key=RAISE, on_dup_val=OVERWRITE)
+    ...     b.putall([(2, 1), (2, 3)], OnDup(key=RAISE, val=DROP_OLD))
     ... except DuplicationError as e:
     ...     exc = e
     >>> exc is not None

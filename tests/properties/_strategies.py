@@ -10,15 +10,18 @@
 import re
 from collections import OrderedDict
 from operator import attrgetter, itemgetter
+from os import getenv
 
 import hypothesis.strategies as st
-from bidict import IGNORE, OVERWRITE, RAISE, OrderedBidictBase, namedbidict
+from bidict import DROP_NEW, DROP_OLD, RAISE, OnDup, OrderedBidictBase, namedbidict
 from bidict.compat import PY2
 
 from . import _types as t
 
 
 # pylint: disable=invalid-name
+
+MAX = int(getenv('HYPOTHESIS_GEN_MAX_SIZE', '0')) or None
 
 BIDICT_TYPES = st.sampled_from(t.BIDICT_TYPES)
 MUTABLE_BIDICT_TYPES = st.sampled_from(t.MUTABLE_BIDICT_TYPES)
@@ -28,12 +31,8 @@ MAPPING_TYPES = st.sampled_from(t.MAPPING_TYPES)
 NON_BIDICT_MAPPING_TYPES = st.sampled_from(t.NON_BIDICT_MAPPING_TYPES)
 ORDERED_MAPPING_TYPES = st.sampled_from(t.ORDERED_MAPPING_TYPES)
 HASHABLE_MAPPING_TYPES = st.sampled_from(t.HASHABLE_MAPPING_TYPES)
-DUP_POLICIES = st.sampled_from((IGNORE, OVERWRITE, RAISE))
-DUP_POLICIES_DICT = st.fixed_dictionaries(dict(
-    on_dup_key=DUP_POLICIES,
-    on_dup_val=DUP_POLICIES,
-    on_dup_kv=DUP_POLICIES,
-))
+ON_DUP_ACTIONS = st.sampled_from((DROP_NEW, DROP_OLD, RAISE))
+ON_DUP = st.tuples(ON_DUP_ACTIONS, ON_DUP_ACTIONS, ON_DUP_ACTIONS).map(OnDup._make)
 
 TEXT = st.text()
 BOOLEANS = st.booleans()
@@ -48,16 +47,16 @@ HASHABLES = ATOMS
 # TUPLES = st.lists(ATOMS).map(tuple)
 # TUPLES |= st.recursive(TUPLES, lambda i: st.lists(i).map(tuple))
 # HASHABLES |= TUPLES
-ODICTS_KW_PAIRS = st.dictionaries(TEXT, HASHABLES, OrderedDict)
+ODICTS_KW_PAIRS = st.dictionaries(TEXT, HASHABLES, OrderedDict, max_size=MAX)
 PAIRS = st.tuples(HASHABLES, HASHABLES)
-L_PAIRS = st.lists(PAIRS)
-I_PAIRS = st.iterables(PAIRS)
+L_PAIRS = st.lists(PAIRS, max_size=MAX)
+I_PAIRS = st.iterables(PAIRS, max_size=MAX)
 FST_SND = (itemgetter(0), itemgetter(1))
-L_PAIRS_NODUP = st.lists(PAIRS, unique_by=FST_SND)
-I_PAIRS_NODUP = st.iterables(PAIRS, unique_by=FST_SND)
+L_PAIRS_NODUP = st.lists(PAIRS, unique_by=FST_SND, max_size=MAX)
+I_PAIRS_NODUP = st.iterables(PAIRS, unique_by=FST_SND, max_size=MAX)
 DIFF_ITEMS = st.lists(L_PAIRS_NODUP.map(frozenset), min_size=2, max_size=2, unique=True)
 SAME_ITEMS_DIFF_ORDER = st.tuples(
-    st.lists(PAIRS, unique_by=FST_SND, min_size=2), st.randoms()
+    st.lists(PAIRS, unique_by=FST_SND, min_size=2, max_size=MAX), st.randoms()
 ).map(
     lambda i: (i[0], i[1].sample(i[0], len(i[0])))  # (seq, shuffled seq)
 ).filter(lambda i: i[0] != i[1])

@@ -37,10 +37,57 @@ and choose "Releases".
   This makes bidict more efficient on Python 3
   and enables further improvement to bidict in the future.
 
-* Move
-  :meth:`bidict.BidictBase.values` to
-  :meth:`bidict.BidirectionalMapping.values`,
-  since the implementation is generic.
+* Deprecate ``bidict.OVERWRITE`` and ``bidict.IGNORE``.
+  A :class:`UserWarning` will now be emitted if these are used.
+
+  :attr:`bidict.DROP_OLD` and :attr:`bidict.DROP_NEW` should be used instead.
+
+* Rename ``DuplicationPolicy`` to :class:`~bidict.OnDupAction`
+  (and implement it via an :class:`~enum.Enum`).
+
+  An :class:`~bidict.OnDupAction` may be one of
+  :attr:`~bidict.RAISE`,
+  :attr:`~bidict.DROP_OLD`, or
+  :attr:`~bidict.DROP_NEW`.
+
+* Expose the new :class:`~bidict.OnDup` class,
+  a three-element :func:`namedtuple <collections.namedtuple>`
+  of :class:`~bidict.OnDupAction`\s
+  that should be taken upon encountering
+  the three kinds of duplication that can occur:
+  (*key*, *val*, *kv*).
+
+* Provide the
+  :attr:`~bidict.ON_DUP_DEFAULT`,
+  :attr:`~bidict.ON_DUP_RAISE`, and
+  :attr:`~bidict.ON_DUP_DROP_OLD`
+  :class:`~bidict.OnDup` convenience instances.
+
+* Deprecate the
+  ``on_dup_key``, ``on_dup_val``, and ``on_dup_kv`` arguments
+  of :meth:`~bidict.bidict.put` and :meth:`~bidict.bidict.putall`.
+  A :class:`UserWarning` will now be emitted if these are used.
+
+  These have been subsumed by the new *on_dup* argument,
+  which takes an :class:`~bidict.OnDup` instance.
+
+  Use it like this: ``bi.put(1, 2, OnDup(key=RAISE))``.
+  Or better yet, pass one of the instances already provided
+  (such as :attr:`~bidict.ON_DUP_RAISE`)
+  instead if possible.
+
+  See the updated :ref:`basic-usage:Values Must Be Unique` docs for more info.
+
+* Deprecate the
+  ``on_dup_key``, ``on_dup_val``, and ``on_dup_kv``
+  bidict class attributes.
+  A :class:`UserWarning` will now be emitted if these are used.
+
+  These have been subsumed by the new
+  :attr:`~bidict.bidict.on_dup` class attribute,
+  which takes an :class:`~bidict.OnDup` instance.
+
+  See the updated :doc:`extending` docs for example usage.
 
 * Improve the more efficient implementations of
   :meth:`~bidict.BidirectionalMapping.keys`,
@@ -48,8 +95,15 @@ and choose "Releases".
   :meth:`~bidict.BidirectionalMapping.items`,
   and now also provide a more efficient implementation of
   :meth:`~bidict.BidirectionalMapping.__iter__`
-  by delegating to backing dicts
+  by delegating to backing :class:`dict`\s
   in the bidict types for which this is possible.
+
+* Move
+  :meth:`bidict.BidictBase.values` to
+  :meth:`bidict.BidirectionalMapping.values`,
+  since the implementation is generic.
+
+* No longer use ``__all__`` in :mod:`bidict`'s ``__init__.py``.
 
 
 0.18.3 (2019-09-22)
@@ -356,10 +410,9 @@ The following breaking changes are expected to affect few if any users.
   Most users do not need to know or care about any of these.
 
 - The :attr:`~bidict.RAISE`,
-  :attr:`~bidict.OVERWRITE`, and
-  :attr:`~bidict.IGNORE`
+  ``OVERWRITE``, and ``IGNORE``
   duplication policies are no longer available as attributes of
-  :class:`bidict.DuplicationPolicy`,
+  ``DuplicationPolicy``,
   and can now only be accessed as attributes of
   the :mod:`bidict` module namespace,
   which was the canonical way to refer to them anyway.
@@ -530,21 +583,20 @@ This release includes multiple API simplifications and improvements.
 
 - ``loosebidict`` and ``looseorderedbidict`` have been removed.
   A simple recipe to implement equivalents yourself is now given in
-  :ref:`extending:OverwritingBidict Recipe`.
+  :doc:`extending`.
 
 - Rename ``FrozenBidictBase._compute_hash()`` →
   ``frozenbidict.compute_hash()``.
 
-- Rename ``DuplicationBehavior`` →
-  :class:`~bidict.DuplicationPolicy`.
+- Rename ``DuplicationBehavior`` → ``DuplicationPolicy``.
 
 - Rename:
 
-  - ``bidict.BidictBase._fwd_class`` → ``.fwd_cls``
-  - ``bidict.BidictBase._inv_class`` → ``.inv_cls``
-  - ``bidict.BidictBase._on_dup_key`` → :attr:`~bidict.BidictBase.on_dup_key`
-  - ``bidict.BidictBase._on_dup_val`` → :attr:`~bidict.BidictBase.on_dup_val`
-  - ``bidict.BidictBase._on_dup_kv`` → :attr:`~bidict.BidictBase.on_dup_kv`
+  - ``BidictBase._fwd_class`` → ``.fwd_cls``
+  - ``BidictBase._inv_class`` → ``.inv_cls``
+  - ``BidictBase._on_dup_key`` → ``on_dup_key``
+  - ``BidictBase._on_dup_val`` → ``on_dup_val``
+  - ``BidictBase._on_dup_kv`` → ``on_dup_kv``
 
 
 0.13.1 (2017-03-15)
@@ -648,8 +700,8 @@ This release includes multiple API simplifications and improvements.
   These can take the following values:
 
   - :attr:`~bidict.RAISE`
-  - :attr:`~bidict.OVERWRITE`
-  - :attr:`~bidict.IGNORE`
+  - ``OVERWRITE``
+  - ``IGNORE``
 
   ``on_dup_kv`` can also take ``ON_DUP_VAL``.
 

@@ -37,8 +37,6 @@ class bidict(_DelegatingMixin, MutableBidict):  # noqa: N801; pylint: disable=in
 
     __slots__ = ()
 
-    __hash__ = None  # since this class is mutable; explicit > implicit.
-
 
 #                             * Code review nav *
 #==============================================================================

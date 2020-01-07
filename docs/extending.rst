@@ -1,72 +1,95 @@
 Extending ``bidict``
 --------------------
 
-Although bidict ships with all the bidict types we just covered,
-it's always possible users might need something more than what's provided.
+Although :mod:`bidict` provides the various bidirectional mapping types covered already,
+it's possible that some use case might require something more than what's provided.
 For this reason,
-bidict was written with extensibility in mind.
+:mod:`bidict` was written with extensibility in mind.
 
 Let's look at some examples.
 
 
-OverwritingBidict Recipe
-########################
+YoloBidict Recipe
+#################
 
 If you'd like
-:attr:`~bidict.OVERWRITE`
-to be the default duplication policy for
-:func:`~bidict.bidict.__setitem__` and
-:func:`~bidict.bidict.update`,
-rather than always having to use
-:func:`~bidict.bidict.forceput` and
-:func:`~bidict.bidict.forceupdate`,
+:attr:`~bidict.ON_DUP_DROP_OLD`
+to be the default :class:`~bidict.bidict.on_dup` behavior
+(for :meth:`~bidict.bidict.__init__`,
+:meth:`~bidict.bidict.__setitem__`, and
+:meth:`~bidict.bidict.update`),
 you can use the following recipe:
 
 .. doctest::
 
-   >>> from bidict import bidict, OVERWRITE
+   >>> from bidict import bidict, ON_DUP_DROP_OLD
 
-   >>> class OverwritingBidict(bidict):
-   ...     on_dup_val = OVERWRITE
+   >>> class YoloBidict(bidict):
+   ...     __slots__ = ()
+   ...     on_dup = ON_DUP_DROP_OLD
 
-   >>> b = OverwritingBidict({'one': 1})
+   >>> b = YoloBidict({'one': 1})
    >>> b['two'] = 1  # succeeds, no ValueDuplicationError
    >>> b
-   OverwritingBidict({'two': 1})
+   YoloBidict({'two': 1})
 
    >>> b.update({'three': 1})  # ditto
    >>> b
-   OverwritingBidict({'three': 1})
+   YoloBidict({'three': 1})
 
-As with
-:class:`bidict.bidict`,
-``OverwritingBidict.put()`` and
-``OverwritingBidict.putall()``
-will still provide per-call overrides for duplication policies,
-and will both still default to raising for all duplication types
-unless you override those methods too.
+Of course, ``YoloBidict``'s inherited
+:meth:`~bidict.bidict.put` and
+:meth:`~bidict.bidict.putall` methods
+still allow specifying a custom :class:`~bidict.OnDup`
+per call via the *on_dup* argument,
+and will both still default to raising for all duplication types.
 
-To make an overwriting *ordered* bidict,
-simply adapt this recipe to have the class inherit from
-:class:`bidict.OrderedBidict`.
+Further demonstrating :mod:`bidict`'s extensibility,
+to make an ``OrderedYoloBidict``,
+simply have the subclass above inherit from
+:class:`bidict.OrderedBidict`
+rather than :class:`bidict.bidict`.
 
 
-Beware of ``OVERWRITE``
-:::::::::::::::::::::::
+Beware of ``ON_DUP_DROP_OLD``
+:::::::::::::::::::::::::::::
 
-With a default :attr:`~bidict.OVERWRITE` policy
-as in the ``OverwritingBidict`` recipe above,
-beware of the following potentially surprising behavior:
+There's a good reason that :mod:`bidict` does not provide a ``YoloBidict`` out of the box.
+
+Before you decide to use a ``YoloBidict`` in your own code,
+beware of the following potentially unexpected, dangerous behavior:
 
 .. doctest::
 
-   >>> b = OverwritingBidict({'one': 1, 'two': 2})
-   >>> b['one'] = 2
-   >>> b
-   OverwritingBidict({'one': 2})
+   >>> b = YoloBidict({'one': 1, 'two': 2})  # contains two items
+   >>> b['one'] = 2                          # update one of the items
+   >>> b                                     # now only has one item!
+   YoloBidict({'one': 2})
 
-That is, setting an existing key to the value of a different existing item
-causes both existing items to be collapsed into a single item.
+As covered in :ref:`basic-usage:Key and Value Duplication`,
+setting an existing key to the value of a different existing item
+causes both existing items to quietly collapse into a single new item.
+
+A safer example of this type of customization would be something like:
+
+.. doctest::
+
+   >>> from bidict import ON_DUP_RAISE
+
+   >>> class YodoBidict(bidict):
+   ...     __slots__ = ()
+   ...     on_dup = ON_DUP_RAISE
+
+   >>> b = YodoBidict({'one': 1})
+   >>> b['one'] = 2  # Works with a regular bidict, but Yodo plays it safe.
+   Traceback (most recent call last):
+       ...
+   KeyDuplicationError: one
+   >>> b
+   YodoBidict({'one': 1})
+   >>> b.forceput('one', 2)  # Any destructive change requires more force.
+   >>> b
+   YodoBidict({'one': 2})
 
 
 Sorted Bidict Recipes
@@ -100,7 +123,7 @@ creating a sorted bidict type is dead simple:
    ...     Note: As a result, an instance and its inverse yield their items
    ...     in different orders.
    ...     """
-   ...
+   ...     __slots__ = ()
    ...     _fwdm_cls = sortedcontainers.SortedDict
    ...     _invm_cls = sortedcontainers.SortedDict
    ...     _repr_delegate = list
@@ -129,6 +152,7 @@ will yield their items in *the same* order:
    >>> import sortedcollections
 
    >>> class KeySortedBidict(MutableBidict):
+   ...     __slots__ = ()
    ...     _fwdm_cls = sortedcontainers.SortedDict
    ...     _invm_cls = sortedcollections.ValueSortedDict
    ...     _repr_delegate = list

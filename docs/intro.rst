@@ -12,7 +12,7 @@ bidict.bidict
 
 :class:`bidict.bidict`
 is the main bidirectional mapping data structure provided.
-It allows looking up the *value* associated with a *key*,
+It allows looking up the value associated with a key,
 just like a :class:`dict`:
 
 .. testsetup::
@@ -25,7 +25,7 @@ just like a :class:`dict`:
    >>> element_by_symbol['H']
    'hydrogen'
 
-But it also allows looking up the *key* associated with a *value*,
+But it also allows looking up the key associated with a value,
 via the special :attr:`~bidict.BidictBase.inverse` attribute:
 
 .. doctest::
@@ -43,14 +43,14 @@ references the entire inverse bidirectional mapping:
    >>> element_by_symbol.inverse
    bidict({'hydrogen': 'H'})
 
-...and is automatically kept in sync
+...which is automatically kept in sync
 as the original mapping is updated:
 
 .. doctest::
 
-   >>> element_by_symbol['H'] = 'hidrógeno'
+   >>> element_by_symbol['H'] = 'hydrogène'
    >>> element_by_symbol.inverse
-   bidict({'hidrógeno': 'H'})
+   bidict({'hydrogène': 'H'})
 
 If you're used to working with :class:`dict`\s,
 you'll feel right at home using :mod:`bidict`:
@@ -58,7 +58,7 @@ you'll feel right at home using :mod:`bidict`:
    >>> dir(element_by_symbol)
    [..., '__getitem__', ..., '__setitem__', ..., 'items', 'keys', ...]
 
-Familiar, elegant, Pythonic.
+Familiar, concise, Pythonic.
 
 
 Why can't I just use a dict?
@@ -84,16 +84,17 @@ and we try to do so naively:
 
    >>> el_by_sym = {'H': 'hydrogen', 'hydrogen': 'H'}
    >>> # Later we need to associate 'H' with a different value
-   >>> el_by_sym.update({'H': 'hidrógeno', 'hidrógeno': 'H'}  # Too naive
+   >>> el_by_sym.update({'H': 'hydrogène', 'hydrogène': 'H'}  # Too naive
 
 Here is what we're left with:
 
 .. code-block:: python
 
    >>> el_by_sym
-   {'H': 'hidrógeno', 'hidrógeno': 'H', 'hydrogen': 'H'}
+   {'H': 'hydrogène', 'hydrogène': 'H', 'hydrogen': 'H'}
 
 Oops.
+
 We forgot to look up whether
 the key and value we wanted to set
 already had any previous associations

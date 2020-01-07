@@ -215,9 +215,11 @@ per-call control over duplication behavior
 Even with RAISE duplication behavior,
 inserting existing items is a no-op (i.e. it doesn't raise)::
 
-    >>> from bidict import RAISE
-    >>> b.putall([('three', 3), ('one', 1)],
-    ...          on_dup_key=RAISE, on_dup_val=RAISE) is not 'an error'
+    >>> from bidict import RAISE, OnDup
+    >>> b.putall(
+    ...     [('three', 3), ('one', 1)],
+    ...     OnDup(key=RAISE, val=RAISE)
+    ... ) is not 'an error'
     True
     >>> b0 = b.copy()
     >>> b.putall([])  # no-op

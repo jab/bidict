@@ -133,7 +133,7 @@ all you have to do is say so:
    >>> b
    bidict({'two': 1})
 
-Similarly, initializations and :func:`~bidict.bidict.update` calls
+Similarly, initializations and :meth:`~bidict.bidict.update` calls
 that would overwrite the key of an existing value
 raise an exception too:
 
@@ -149,7 +149,7 @@ raise an exception too:
        ...
    ValueDuplicationError: 1
 
-If an :func:`~bidict.bidict.update` call raises,
+If an :meth:`~bidict.bidict.update` call raises,
 you can be sure that none of the supplied items were inserted:
 
 .. doctest::
@@ -185,9 +185,9 @@ This design naturally falls out of the behavior of Python's built-in dict,
 and protects against unexpected data loss.
 
 One set of alternatives to this behavior is provided by
-:func:`~bidict.bidict.forceput`
+:meth:`~bidict.bidict.forceput`
 (mentioned above)
-and :func:`~bidict.bidict.forceupdate`,
+and :meth:`~bidict.bidict.forceupdate`,
 which allow you to explicitly overwrite existing keys and values:
 
 .. doctest::
@@ -202,60 +202,57 @@ which allow you to explicitly overwrite existing keys and values:
    bidict({'four': 1})
 
 For even more control,
-you can use :func:`~bidict.bidict.put`
-instead of :func:`~bidict.bidict.forceput`
-or :func:`~bidict.bidict.__setitem__`,
-and :func:`~bidict.bidict.putall`
-instead of :func:`~bidict.bidict.update`
-or :func:`~bidict.bidict.forceupdate`.
-These methods allow you to specify different strategies for handling
-key and value duplication via
-the *on_dup_key*, *on_dup_val*, and *on_dup_kv* arguments.
-Three possible options are
-:attr:`~bidict.RAISE`,
-:attr:`~bidict.OVERWRITE`, and
-:attr:`~bidict.IGNORE`:
+you can use :meth:`~bidict.bidict.put`
+and :meth:`~bidict.bidict.putall`.
+These variants allow you to pass
+an :class:`~bidict.OnDup` instance
+to explicitly specify custom :class:`~bidict.OnDupAction`\s
+for each type of duplication that can occur.
 
 .. doctest::
 
-   >>> from bidict import RAISE, OVERWRITE, IGNORE
+   >>> from bidict import OnDup, RAISE, DROP_OLD, DROP_NEW
 
    >>> b = bidict({2: 4})
-   >>> b.put(2, 8, on_dup_key=RAISE)
+   >>> b.put(2, 8, OnDup(key=RAISE, val=DROP_OLD))
    Traceback (most recent call last):
        ...
    KeyDuplicationError: 2
    >>> b
    bidict({2: 4})
 
-   >>> b.putall([(3, 9), (2, 8)], on_dup_key=RAISE)
+   >>> b.putall([(3, 9), (2, 8)], OnDup(key=RAISE))
    Traceback (most recent call last):
        ...
    KeyDuplicationError: 2
 
-   >>> # (2, 8) was the duplicative item, but note that
-   >>> # (3, 9) was not added either because the whole call failed:
+   >>> # (2, 8) was the duplicate item triggering the error, but note
+   >>> # (3, 9) was not added either, i.e. updates fail clean.
    >>> b
    bidict({2: 4})
 
-   >>> b.putall([(3, 9), (1, 4)], on_dup_val=IGNORE)
-   >>> sorted(b.items())  # Note (1, 4) was ignored as requested:
+   >>> b.putall([(3, 9), (1, 4)], OnDup(val=DROP_NEW))
+   >>> sorted(b.items())  # Note (1, 4) was dropped as requested:
    [(2, 4), (3, 9)]
 
-If not specified,
-the *on_dup_key* and *on_dup_val* keyword arguments of
-:func:`~bidict.bidict.put`
-and
-:func:`~bidict.bidict.putall`
-default to
-:attr:`~bidict.RAISE`,
+:mod:`bidict` provides the
+:attr:`~bidict.ON_DUP_DEFAULT`,
+:attr:`~bidict.ON_DUP_RAISE`, and
+:attr:`~bidict.ON_DUP_DROP_OLD`
+:class:`~bidict.OnDup` instances
+for convenience.
+
+If no *on_dup* argument is passed,
+:meth:`~bidict.bidict.put` and
+:meth:`~bidict.bidict.putall`
+will use :attr:`~bidict.ON_DUP_RAISE`,
 providing stricter-by-default alternatives to
-:func:`~bidict.bidict.__setitem__`
+:meth:`~bidict.bidict.__setitem__`
 and
-:func:`~bidict.bidict.update`.
+:meth:`~bidict.bidict.update`.
 (These defaults complement the looser alternatives
-provided by :func:`~bidict.bidict.forceput`
-and :func:`~bidict.bidict.forceupdate`.)
+provided by :meth:`~bidict.bidict.forceput`
+and :meth:`~bidict.bidict.forceupdate`.)
 
 
 Key and Value Duplication
@@ -265,29 +262,28 @@ Note that it's possible for a given item to duplicate
 the key of one existing item,
 and the value of another existing item, as in:
 
-.. doctest::
-   :skipif: True
+.. code-block:: python
 
    >>> b.putall([(4, 16), (5, 25), (4, 25)])
 
-Because the *on_dup_key* and *on_dup_val* policies that are in effect may differ,
-*on_dup_kv* allows you to indicate how you want to handle this case
+Because the key and value deduplication actions that are in effect may differ,
+:class:`~bidict.bidict.OnDup`'s *kv* argument
+allows you to indicate how you want to handle this case
 without ambiguity:
 
 .. doctest::
 
-   >>> b.putall([(4, 16), (5, 25), (4, 25)],
-   ...          on_dup_key=IGNORE, on_dup_val=IGNORE, on_dup_kv=RAISE)
+   >>> on_dup = OnDup(key=DROP_OLD, val=DROP_NEW, kv=RAISE)
+   >>> b.putall([(4, 16), (5, 25), (4, 25)], on_dup)
    Traceback (most recent call last):
        ...
    KeyAndValueDuplicationError: (4, 25)
 
-If not specified, *on_dup_kv* defaults to ``None``,
-which causes *on_dup_kv* to match whatever *on_dup_val* policy is in effect.
+If not specified, *kv* defaults to whatever action for *val* is provided.
 
 Note that if an entire *(k, v)* item is duplicated exactly,
 the duplicate item will just be ignored,
-no matter what the duplication policies are set to.
+no matter what *on_dup* is set to.
 The insertion of an entire duplicate item is construed as a no-op:
 
 .. doctest::
@@ -299,7 +295,7 @@ The insertion of an entire duplicate item is construed as a no-op:
    >>> sorted(b.items())
    [(2, 4), (3, 9), (4, 16)]
 
-See the :ref:`extending:OverwritingBidict Recipe`
+See the :ref:`extending:YoloBidict Recipe`
 for another way to customize this behavior.
 
 
@@ -309,9 +305,9 @@ Order Matters
 Performing a bulk insert operation –
 i.e. passing multiple items to
 :meth:`~bidict.BidictBase.__init__`,
-:func:`~bidict.bidict.update`,
-:func:`~bidict.bidict.forceupdate`,
-or :func:`~bidict.bidict.putall` –
+:meth:`~bidict.bidict.update`,
+:meth:`~bidict.bidict.forceupdate`,
+or :meth:`~bidict.bidict.putall` –
 is like inserting each of those items individually in sequence.
 [#fn-fail-clean]_
 

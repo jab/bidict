@@ -6,31 +6,53 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 
-"""Provides bidict duplication policies and the :class:`_OnDup` class."""
+"""Provides :class:`OnDup` and related functionality."""
 
 
 from collections import namedtuple
-
-from ._marker import _Marker
-
-
-_OnDup = namedtuple('_OnDup', 'key val kv')
+from enum import Enum
 
 
-class DuplicationPolicy(_Marker):
-    """Base class for bidict's duplication policies.
+class OnDupAction(Enum):
+    """An action to take to prevent duplication from occurring."""
+
+    #: Raise a :class:`~bidict.DuplicationError`.
+    RAISE = 'RAISE'
+    #: Overwrite existing items with new items.
+    DROP_OLD = 'DROP_OLD'
+    #: Keep existing items and drop new items.
+    DROP_NEW = 'DROP_NEW'
+
+    def __repr__(self):
+        return '<bidict.%s>' % self.name  # pragma: no cover
+
+
+RAISE = OnDupAction.RAISE
+DROP_OLD = OnDupAction.DROP_OLD
+DROP_NEW = OnDupAction.DROP_NEW
+
+
+class OnDup(namedtuple('_OnDup', 'key val kv')):
+    r"""A 3-tuple of :class:`OnDupAction`\s specifying how to handle the 3 kinds of duplication.
 
     *See also* :ref:`basic-usage:Values Must Be Unique`
+
+    If *kv* is not specified, *val* will be used for *kv*.
     """
 
     __slots__ = ()
 
+    def __new__(cls, key=DROP_OLD, val=RAISE, kv=RAISE):
+        """Override to provide user-friendly default values."""
+        return super().__new__(cls, key, val, kv or val)
 
-#: Raise an exception when a duplication is encountered.
-RAISE = DuplicationPolicy('DUP_POLICY.RAISE')
 
-#: Overwrite an existing item when a duplication is encountered.
-OVERWRITE = DuplicationPolicy('DUP_POLICY.OVERWRITE')
-
-#: Keep the existing item and ignore the new item when a duplication is encountered.
-IGNORE = DuplicationPolicy('DUP_POLICY.IGNORE')
+#: Default :class:`OnDup` used for the
+#: :meth:`~bidict.bidict.__init__`,
+#: :meth:`~bidict.bidict.__setitem__`, and
+#: :meth:`~bidict.bidict.update` methods.
+ON_DUP_DEFAULT = OnDup()
+#: An :class:`OnDup` whose members are all :obj:`RAISE`.
+ON_DUP_RAISE = OnDup(key=RAISE, val=RAISE, kv=RAISE)
+#: An :class:`OnDup` whose members are all :obj:`DROP_OLD`.
+ON_DUP_DROP_OLD = OnDup(key=DROP_OLD, val=DROP_OLD, kv=DROP_OLD)

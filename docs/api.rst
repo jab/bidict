@@ -8,6 +8,7 @@ bidict
 
 .. automodule:: bidict
    :members:
+   :imported-members:
    :member-order: bysource
    :special-members:
    :show-inheritance:
@@ -15,14 +16,16 @@ bidict
    :exclude-members: __abstractmethods__,__dict__,__module__,__weakref__
    :inherited-members:
 
-
 .. autodata:: bidict.RAISE
-.. autodata:: bidict.OVERWRITE
-.. autodata:: bidict.IGNORE
+.. autodata:: bidict.DROP_OLD
+.. autodata:: bidict.DROP_NEW
+.. autodata:: bidict.ON_DUP_DEFAULT
+.. autodata:: bidict.ON_DUP_RAISE
+.. autodata:: bidict.ON_DUP_DROP_OLD
+
 
 .. autofunction:: bidict._util._iteritems_mapping_or_iterable
 .. autofunction:: bidict._util._iteritems_args_kw
-
 
 .. attribute:: __version__
 

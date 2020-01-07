@@ -36,7 +36,6 @@ class OrderedBidict(OrderedBidictBase, MutableBidict):
     """Mutable bidict type that maintains items in insertion order."""
 
     __slots__ = ()
-    __hash__ = None  # since this class is mutable; explicit > implicit.
 
     def clear(self):
         """Remove all items."""

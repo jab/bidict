@@ -15,7 +15,7 @@ class BidictException(Exception):
 
 class DuplicationError(BidictException):
     """Base class for exceptions raised when uniqueness is violated
-    as per the RAISE duplication policy.
+    as per the :attr:~bidict.RAISE` :class:`~bidict.OnDupAction`.
     """
 
 

@@ -26,8 +26,9 @@
 #==============================================================================
 
 
-"""
-The bidirectional mapping library for Python.
+"""The bidirectional mapping library for Python.
+
+bidict by example:
 
 .. code-block:: python
 
@@ -48,71 +49,73 @@ if you are reading this elsewhere.
 .. :license: MPLv2. See LICENSE for details.
 """
 
-from warnings import warn
-from .compat import PY2, PYMAJOR, PYMINOR
+# Use private aliases to not re-export these publicly (for Sphinx automodule with imported-members).
+from functools import partial as _partial
+from types import ModuleType as _ModuleType
+from sys import modules as _modules
+from warnings import warn as _warn
 
-if PY2:
+from . import compat as _c
+
+
+if _c.PY2:
     raise ImportError('Python 3 is required.')
 
-if (PYMAJOR, PYMINOR) < (3, 5):  # pragma: no cover
-    warn('This version of bidict is untested on Python < 3.5 and may not work.')
+_warn = _partial(_warn, stacklevel=2)  # pylint: disable=invalid-name
 
+if (_c.PYMAJOR, _c.PYMINOR) < (3, 5):  # pragma: no cover
+    _warn('This version of bidict is untested on Python < 3.5 and may not work.')
 
 # The rest of this file only collects functionality implemented in the rest of the
-# source and exports it under the `bidict` module namespace (via `__all__`).
+# source for the purposes of exporting it under the `bidict` module namespace.
 # pylint: disable=wrong-import-position
+# flake8: noqa: F401 (imported but unused)
 from ._abc import BidirectionalMapping
 from ._base import BidictBase
 from ._mut import MutableBidict
 from ._bidict import bidict
-from ._dup import DuplicationPolicy, IGNORE, OVERWRITE, RAISE
-from ._exc import (
-    BidictException, DuplicationError,
-    KeyDuplicationError, ValueDuplicationError, KeyAndValueDuplicationError)
-from ._util import inverted
 from ._frozenbidict import frozenbidict
 from ._frozenordered import FrozenOrderedBidict
 from ._named import namedbidict
 from ._orderedbase import OrderedBidictBase
 from ._orderedbidict import OrderedBidict
+from ._dup import (
+    ON_DUP_DEFAULT, ON_DUP_RAISE, ON_DUP_DROP_OLD,
+    RAISE, DROP_OLD, DROP_NEW, OnDup, OnDupAction,
+)
+from ._exc import (
+    BidictException,
+    DuplicationError, KeyDuplicationError, ValueDuplicationError, KeyAndValueDuplicationError,
+)
+from ._util import inverted
 from .metadata import (
     __author__, __maintainer__, __copyright__, __email__, __credits__, __url__,
-    __license__, __status__, __description__, __keywords__, __version__, __version_info__)
-
-
-__all__ = (
-    '__author__',
-    '__maintainer__',
-    '__copyright__',
-    '__email__',
-    '__credits__',
-    '__license__',
-    '__status__',
-    '__description__',
-    '__keywords__',
-    '__url__',
-    '__version__',
-    '__version_info__',
-    'BidirectionalMapping',
-    'BidictException',
-    'DuplicationPolicy',
-    'IGNORE',
-    'OVERWRITE',
-    'RAISE',
-    'DuplicationError',
-    'KeyDuplicationError',
-    'ValueDuplicationError',
-    'KeyAndValueDuplicationError',
-    'BidictBase',
-    'MutableBidict',
-    'frozenbidict',
-    'bidict',
-    'namedbidict',
-    'FrozenOrderedBidict',
-    'OrderedBidictBase',
-    'OrderedBidict',
-    'inverted',
+    __license__, __status__, __description__, __keywords__, __version__, __version_info__,
 )
+
+
+# Aliases for deprecated constants. TODO: remove in a future release.
+OVERWRITE = DROP_OLD
+IGNORE = DROP_NEW
+
+
+class _BidictModuleType(_ModuleType):  # pylint: disable=too-few-public-methods
+    """Compatibility shim."""
+
+    def __getattribute__(self, name):
+        if name == 'OVERWRITE':
+            _warn('bidict.OVERWRITE has been deprecated, use bidict.DROP_OLD instead.')
+            return DROP_OLD
+        if name == 'IGNORE':
+            _warn('bidict.IGNORE has been deprecated, use bidict.DROP_NEW instead.')
+            return DROP_NEW
+        return object.__getattribute__(self, name)
+
+
+try:
+    _modules[__name__].__class__ = _BidictModuleType
+except TypeError:
+    pass
 
 
 #                             * Code review nav *

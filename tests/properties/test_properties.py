@@ -19,7 +19,12 @@ from weakref import ref
 import pytest
 from hypothesis import example, given
 
-from bidict import BidictException, OrderedBidictBase, OVERWRITE, bidict, namedbidict, inverted
+from bidict import (
+    BidictException,
+    DROP_NEW, OnDup,
+    OrderedBidictBase, OrderedBidict, bidict, namedbidict,
+    inverted,
+)
 from bidict.compat import PYPY
 from bidict._util import _iteritems_args_kw  # pylint: disable=protected-access
 
@@ -152,27 +157,30 @@ def test_consistency_after_method_call(bi_and_cmp_dict, args_by_method):
         assert bi.inv == OrderedDict((v, k) for (k, v) in bi.items())
 
 
-@given(st.MUTABLE_BIDICTS, st.L_PAIRS, st.DUP_POLICIES_DICT)
-# These test cases ensure coverage of all branches in BidictBase._undo_write
+@given(st.MUTABLE_BIDICTS, st.L_PAIRS, st.ON_DUP)
+# These test cases ensure coverage of all branches in [Ordered]BidictBase._undo_write
 # (Hypothesis doesn't always generate examples that hit all the branches otherwise).
-@example(bidict({1: 1, 2: 2}), [(1, 3), (1, 2)], {'on_dup_key': OVERWRITE})
-@example(bidict({1: 1, 2: 2}), [(3, 1), (2, 4)], {'on_dup_val': OVERWRITE})
-@example(bidict({1: 1, 2: 2}), [(1, 2), (1, 1)], {'on_dup_kv': OVERWRITE})
-def test_putall_same_as_put_for_each_item(bi, items, dup_policies):
-    """*bi.putall(items) <==> for i in items: bi.put(i)* for all duplication policies."""
+@example(bidict({1: 1, 2: 2}), [(1, 3), (1, 2)], OnDup(key=DROP_NEW))
+@example(bidict({1: 1, 2: 2}), [(3, 1), (2, 4)], OnDup(val=DROP_NEW))
+@example(bidict({1: 1, 2: 2}), [(1, 2), (1, 1)], OnDup(kv=DROP_NEW))
+@example(OrderedBidict({1: 1, 2: 2}), [(1, 3), (1, 2)], OnDup(key=DROP_NEW))
+@example(OrderedBidict({1: 1, 2: 2}), [(3, 1), (2, 4)], OnDup(val=DROP_NEW))
+@example(OrderedBidict({1: 1, 2: 2}), [(1, 2), (1, 1)], OnDup(kv=DROP_NEW))
+def test_putall_same_as_put_for_each_item(bi, items, on_dup):
+    """*bi.putall(items) <==> for i in items: bi.put(i)* for all values of OnDup."""
     check = bi.copy()
     expect = bi.copy()
     checkexc = None
     expectexc = None
     for (key, val) in items:
         try:
-            expect.put(key, val, **dup_policies)
+            expect.put(key, val, on_dup)
         except BidictException as exc:
             expectexc = type(exc)
             expect = bi  # Bulk updates fail clean -> roll back to original state.
             break
     try:
-        check.putall(items, **dup_policies)
+        check.putall(items, on_dup)
     except BidictException as exc:
         checkexc = type(exc)
     assert checkexc == expectexc

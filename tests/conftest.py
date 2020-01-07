@@ -7,16 +7,18 @@
 
 """Set up hypothesis."""
 
+from datetime import timedelta
 from os import getenv
-from hypothesis import HealthCheck, settings, unlimited
+
+from hypothesis import settings
 
 
 MAX_EXAMPLES_DEFAULT = 200
+DEADLINE_DEFAULT = 200
+
 SETTINGS = {
     'max_examples': int(getenv('HYPOTHESIS_MAX_EXAMPLES') or MAX_EXAMPLES_DEFAULT),
-    'deadline': None,
-    'timeout': unlimited,
-    'suppress_health_check': (HealthCheck.too_slow,),
+    'deadline': timedelta(milliseconds=int(getenv('HYPOTHESIS_DEADLINE') or DEADLINE_DEFAULT)),
 }
 settings.register_profile('custom', **SETTINGS)
 settings.load_profile('custom')

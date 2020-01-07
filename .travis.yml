@@ -17,16 +17,10 @@ dist: 'xenial'
 env:
   global:
     - 'INSTALL_EXTRAS=test'
-    # Some Travis builds began failing nondeterministically on 2019-12-19
-    # (starting with https://travis-ci.org/jab/bidict/builds/627347551)
-    # due to no output being received for TIMEOUT minutes (10, by default).
-    # Increasing the timeout by wrapping with 'travis_wait 50' did not help,
-    # nor did disabling pytest output capturing.
-    # Reducing HYPOTHESIS_MAX_EXAMPLES seems to reduce the frequency of the issue,
-    # but it still continues to occur.
-    # Try reducing HYPOTHESIS_MAX_EXAMPLES here as well as
-    # wrapping run_tests.py with 'travis_retry' below.
-    - 'HYPOTHESIS_MAX_EXAMPLES=100'
+    # Tweak Hypothesis params so tests pass reliably since Travis workers are slow.
+    - 'HYPOTHESIS_MAX_EXAMPLES=100'  # See tests/conftest.py
+    - 'HYPOTHESIS_DEADLINE=300'
+    - 'HYPOTHESIS_GEN_MAX_SIZE=16'   # See tests/properties/_strategies.py
 
 
 before_install:  # Ensure we have the required versions of Python and Pip.
@@ -71,13 +65,19 @@ script:  # Run the test suite.
   - |
     if [[ "$TRAVIS_EVENT_TYPE" == "cron" ]]; then
       export PYTEST_ADDOPTS="${PYTEST_ADDOPTS} --hypothesis-show-statistics"
-      # Commenting this out due to recent Travis flakiness (see comments above):
-      # export HYPOTHESIS_MAX_EXAMPLES="2000"  See tests/conftest.py
+      export HYPOTHESIS_MAX_EXAMPLES="150"
+      export HYPOTHESIS_GEN_MAX_SIZE="32"
+      export HYPOTHESIS_DEADLINE="500"
+    fi
+    # Without this, pypy3 with coverage on Travis is too slow to pass reliably.
+    if [[ "$TASK" == "test-linux-pypy3" ]]; then
+      export HYPOTHESIS_MAX_EXAMPLES="100"
+      export HYPOTHESIS_GEN_MAX_SIZE="8"
     fi
     if [[ "$COVERAGE" ]]; then
       export PYTEST_ADDOPTS="${PYTEST_ADDOPTS} --cov=bidict --cov-config=.coveragerc"
     fi
-    travis_retry python3 ./run_tests.py
+    python3 ./run_tests.py
 
 
 after_script:
@@ -142,7 +142,7 @@ matrix:
 
     - env: 'TASK=docs-linkcheck INSTALL_EXTRAS=docs'
       before_install: 'skip'
-      script: '(cd docs && travis_retry make linkcheck)'
+      script: '(cd docs && make linkcheck)'
 
     ## Remaining CPython versions on Linux.
     - python: '3.7'
@@ -161,7 +161,7 @@ matrix:
       os: 'osx'
       language: 'generic'
 
-    ## TODO: Try Travis's new Windows support once it supports Python.
+    ## Try Travis's new Windows support once it supports Python?
     ### - env: 'TASK=test-windows-cpython-3.x'
     ###   os: 'windows'
 

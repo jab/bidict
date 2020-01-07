@@ -33,23 +33,19 @@ Status
    :target: https://codecov.io/gh/jab/bidict
    :alt: Test coverage
 
-.. image:: https://img.shields.io/lgtm/alerts/github/jab/bidict.svg
-  :target: https://lgtm.com/projects/g/jab/bidict/
-  :alt: LGTM alerts
-
-.. image:: https://api.codacy.com/project/badge/Grade/6628756a73254cd895656348236833b8
-   :target: https://www.codacy.com/app/jab/bidict
-   :alt: Codacy grade
-
-.. image:: https://bestpractices.coreinfrastructure.org/projects/2354/badge
-   :target: https://bestpractices.coreinfrastructure.org/en/projects/2354
-   :alt: CII best practices badge
-
-.. image:: https://img.shields.io/badge/tidelift-pro%20support-orange.svg
-   :target: https://tidelift.com/subscription/pkg/pypi-bidict?utm_source=pypi-bidict&utm_medium=referral&utm_campaign=docs
-   :alt: Paid support available via Tidelift
-
 .. Hide to reduce clutter
+   .. image:: https://img.shields.io/lgtm/alerts/github/jab/bidict.svg
+      :target: https://lgtm.com/projects/g/jab/bidict/
+      :alt: LGTM alerts
+   .. image:: https://api.codacy.com/project/badge/Grade/6628756a73254cd895656348236833b8
+      :target: https://www.codacy.com/app/jab/bidict
+      :alt: Codacy grade
+   .. image:: https://bestpractices.coreinfrastructure.org/projects/2354/badge
+      :target: https://bestpractices.coreinfrastructure.org/en/projects/2354
+      :alt: CII best practices badge
+   .. image:: https://img.shields.io/badge/tidelift-pro%20support-orange.svg
+      :target: https://tidelift.com/subscription/pkg/pypi-bidict?utm_source=pypi-bidict&utm_medium=referral&utm_campaign=docs
+      :alt: Paid support available via Tidelift
    .. image:: https://ci.appveyor.com/api/projects/status/gk133415udncwto3/branch/master?svg=true
       :target: https://ci.appveyor.com/project/jab/bidict
       :alt: AppVeyor (Windows) build status

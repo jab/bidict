@@ -252,7 +252,7 @@ Here's a larger one:
    ...     def __new__(cls, cost, data, parent=None):
    ...         tiebreaker = next(cls._counter)
    ...         depth = parent.depth + 1 if parent else 0
-   ...         return super(Node, cls).__new__(cls, cost, tiebreaker, data, parent, depth)
+   ...         return super().__new__(cls, cost, tiebreaker, data, parent, depth)
    ...
    ...     def __repr__(self):
    ...         return 'Node(cost={cost}, data={data!r})'.format(**self._asdict())
@@ -283,7 +283,7 @@ How to deeply integrate with Python's :mod:`collections` and other built-in APIs
 - Beyond implementing :class:`collections.abc.Mapping`,
   bidicts implement additional APIs
   that :class:`dict` and :class:`~collections.OrderedDict` implement
-  (e.g. :func:`setdefault`, :func:`popitem`, etc.).
+  (e.g. :meth:`setdefault`, :meth:`popitem`, etc.).
 
   - When creating a new API, making it familiar, memorable, and intuitive
     is hugely important to a good user experience.
@@ -349,7 +349,8 @@ How to make APIs Pythonic?
 
   In the face of ambiguity, refuse the temptation to guess."
 
-  Manifested in bidict's default duplication policies.
+  Manifested in bidict's default :attr:`~bidict.bidict.on_dup` class attribute
+  (see :attr:`~bidict.ON_DUP_DEFAULT`).
 
 - "Readability counts."
 

@@ -30,14 +30,15 @@
 
 from collections import namedtuple
 from collections.abc import Mapping
+from functools import wraps
+from warnings import warn
 from weakref import ref
 
 from ._abc import BidirectionalMapping
-from ._dup import RAISE, OVERWRITE, IGNORE, _OnDup
+from ._dup import ON_DUP_DEFAULT, RAISE, DROP_OLD, DROP_NEW, OnDup
 from ._exc import (
     DuplicationError, KeyDuplicationError, ValueDuplicationError, KeyAndValueDuplicationError)
-from ._miss import _MISS
-from ._noop import _NOOP
+from ._sntl import _MISS, _NOOP
 from ._util import _iteritems_args_kw
 
 
@@ -46,51 +47,43 @@ _WriteResult = namedtuple('_WriteResult', 'key val oldkey oldval')
 _NODUP = _DedupResult(False, False, _MISS, _MISS)
 
 
+# TODO: Remove this compatibility decorator in a future release. pylint: disable=fixme
+def _on_dup_compat(__init__):
+    deprecated = ('on_dup_key', 'on_dup_val', 'on_dup_kv')
+    msg = 'The `on_dup_key`, `on_dup_val`, and `on_dup_kv` class attrs are deprecated and ' \
+          'will be removed in a future version of bidict. Use the `on_dup` class attr instead.'
+
+    @wraps(__init__)
+    def wrapper(self, *args, **kw):
+        cls = self.__class__
+        shim = {s[len('on_dup_'):]: getattr(cls, s) for s in deprecated if hasattr(cls, s)}
+        if shim:
+            warn(msg, stacklevel=2)
+            cls.on_dup = OnDup(**shim)
+        return __init__(self, *args, **kw)
+
+    return wrapper
+
+
 # Since BidirectionalMapping implements __subclasshook__, and BidictBase
 # provides all the required attributes that the __subclasshook__ checks for,
 # BidictBase would be a (virtual) subclass of BidirectionalMapping even if
 # it didn't subclass it explicitly. But subclassing BidirectionalMapping
 # explicitly allows BidictBase to inherit any useful implementations that
 # BidirectionalMapping provides that aren't part of the required interface,
-# such as its `__inverted__` implementation and `inverse` alias.
+# such as its implementations of `__inverted__` and `values`.
 
 class BidictBase(BidirectionalMapping):
     """Base class implementing :class:`BidirectionalMapping`."""
 
     __slots__ = ('_fwdm', '_invm', '_inv', '_invweak', '_hash', '__weakref__')
 
-    #: The default :class:`DuplicationPolicy`
-    #: (in effect during e.g. :meth:`~bidict.bidict.__init__` calls)
+    #: The default :class:`~bidict.OnDup`
     #: that governs behavior when a provided item
-    #: duplicates only the key of another item.
-    #:
-    #: Defaults to :attr:`~bidict.OVERWRITE`
-    #: to match :class:`dict`'s behavior.
+    #: duplicates the key or value of other item(s).
     #:
     #: *See also* :ref:`basic-usage:Values Must Be Unique`, :doc:`extending`
-    on_dup_key = OVERWRITE
-
-    #: The default :class:`DuplicationPolicy`
-    #: (in effect during e.g. :meth:`~bidict.bidict.__init__` calls)
-    #: that governs behavior when a provided item
-    #: duplicates only the value of another item.
-    #:
-    #: Defaults to :attr:`~bidict.RAISE`
-    #: to prevent unintended overwrite of another item.
-    #:
-    #: *See also* :ref:`basic-usage:Values Must Be Unique`, :doc:`extending`
-    on_dup_val = RAISE
-
-    #: The default :class:`DuplicationPolicy`
-    #: (in effect during e.g. :meth:`~bidict.bidict.__init__` calls)
-    #: that governs behavior when a provided item
-    #: duplicates the key of another item and the value of a third item.
-    #:
-    #: Defaults to ``None``, which causes the *on_dup_kv* policy to match
-    #: whatever *on_dup_val* policy is in effect.
-    #:
-    #: *See also* :ref:`basic-usage:Values Must Be Unique`, :doc:`extending`
-    on_dup_kv = None
+    on_dup = ON_DUP_DEFAULT
 
     _fwdm_cls = dict
     _invm_cls = dict
@@ -98,13 +91,12 @@ class BidictBase(BidirectionalMapping):
     #: The object used by :meth:`__repr__` for printing the contained items.
     _repr_delegate = dict
 
+    @_on_dup_compat
     def __init__(self, *args, **kw):  # pylint: disable=super-init-not-called
         """Make a new bidirectional dictionary.
-        The signature is the same as that of regular dictionaries.
+        The signature behaves like that of :class:`dict`.
         Items passed in are added in the order they are passed,
-        respecting the current duplication policies in the process.
-
-        *See also* :attr:`on_dup_key`, :attr:`on_dup_val`, :attr:`on_dup_kv`
+        respecting the :attr:`on_dup` class attribute in the process.
         """
         #: The backing :class:`~collections.abc.Mapping`
         #: storing the forward mapping data (*key* → *value*).
@@ -114,7 +106,7 @@ class BidictBase(BidirectionalMapping):
         self._invm = self._invm_cls()
         self._init_inv()  # lgtm [py/init-calls-subclass]
         if args or kw:
-            self._update(True, None, *args, **kw)
+            self._update(True, self.on_dup, *args, **kw)
 
     def _init_inv(self):
         # Compute the type for this bidict's inverse bidict (will be different from this
@@ -233,7 +225,7 @@ class BidictBase(BidirectionalMapping):
     # non-mutable base class (rather than the mutable `bidict` subclass) because they are used here
     # during initialization (starting with the `_update` method). (Why is this? Because `__init__`
     # and `update` share a lot of the same behavior (inserting the provided items while respecting
-    # the active duplication policies), so it makes sense for them to share implementation too.)
+    # `on_dup`), so it makes sense for them to share implementation too.)
     def _pop(self, key):
         val = self._fwdm.pop(key)
         del self._invm[val]
@@ -244,22 +236,22 @@ class BidictBase(BidirectionalMapping):
         if dedup_result is not _NOOP:
             self._write_item(key, val, dedup_result)
 
-    def _dedup_item(self, key, val, on_dup):
+    def _dedup_item(self, key, val, on_dup):  # pylint: disable=too-many-branches
         """
         Check *key* and *val* for any duplication in self.
 
-        Handle any duplication as per the duplication policies given in *on_dup*.
+        Handle any duplication as per the passed in *on_dup*.
 
         (key, val) already present is construed as a no-op, not a duplication.
 
-        If duplication is found and the corresponding duplication policy is
-        :attr:`~bidict.RAISE`, raise the appropriate error.
+        If duplication is found and the corresponding :class:`~bidict.OnDupAction` is
+        :attr:`RAISE`, raise the appropriate error.
 
-        If duplication is found and the corresponding duplication policy is
-        :attr:`~bidict.IGNORE`, return *None*.
+        If duplication is found and the corresponding :class:`~bidict.OnDupAction` is
+        :attr:`DROP_NEW`, return *None*.
 
-        If duplication is found and the corresponding duplication policy is
-        :attr:`~bidict.OVERWRITE`,
+        If duplication is found and the corresponding :class:`~bidict.OnDupAction` is
+        :attr:`DROP_OLD`,
         or if no duplication is found,
         return the _DedupResult *(isdupkey, isdupval, oldkey, oldval)*.
         """
@@ -277,23 +269,26 @@ class BidictBase(BidirectionalMapping):
             # key and val each duplicate a different existing item.
             if on_dup.kv is RAISE:
                 raise KeyAndValueDuplicationError(key, val)
-            if on_dup.kv is IGNORE:
+            if on_dup.kv is DROP_NEW:
                 return _NOOP
-            assert on_dup.kv is OVERWRITE, 'invalid on_dup_kv: %r' % on_dup.kv
+            if on_dup.kv is not DROP_OLD:  # pragma: no cover
+                raise ValueError(on_dup.kv)
             # Fall through to the return statement on the last line.
         elif isdupkey:
             if on_dup.key is RAISE:
                 raise KeyDuplicationError(key)
-            if on_dup.key is IGNORE:
+            if on_dup.key is DROP_NEW:
                 return _NOOP
-            assert on_dup.key is OVERWRITE, 'invalid on_dup.key: %r' % on_dup.key
+            if on_dup.key is not DROP_OLD:  # pragma: no cover
+                raise ValueError(on_dup.key)
             # Fall through to the return statement on the last line.
         elif isdupval:
             if on_dup.val is RAISE:
                 raise ValueDuplicationError(val)
-            if on_dup.val is IGNORE:
+            if on_dup.val is DROP_NEW:
                 return _NOOP
-            assert on_dup.val is OVERWRITE, 'invalid on_dup.val: %r' % on_dup.val
+            if on_dup.val is not DROP_OLD:  # pragma: no cover
+                raise ValueError(on_dup.val)
             # Fall through to the return statement on the last line.
         # else neither isdupkey nor isdupval.
         return dedup_result
@@ -304,16 +299,6 @@ class BidictBase(BidirectionalMapping):
         isdup = oldkey == key
         assert isdup == (oldval == val), '%r %r %r %r' % (key, val, oldkey, oldval)
         return isdup
-
-    @classmethod
-    def _get_on_dup(cls, on_dup=None):
-        if on_dup is None:
-            on_dup = _OnDup(cls.on_dup_key, cls.on_dup_val, cls.on_dup_kv)
-        elif not isinstance(on_dup, _OnDup):
-            on_dup = _OnDup(*on_dup)
-        if on_dup.kv is None:
-            on_dup = on_dup._replace(kv=on_dup.val)
-        return on_dup
 
     def _write_item(self, key, val, dedup_result):
         isdupkey, isdupval, oldkey, oldval = dedup_result
@@ -335,7 +320,6 @@ class BidictBase(BidirectionalMapping):
         if can_skip_dup_check:
             self._update_no_dup_check(args[0])
             return
-        on_dup = self._get_on_dup(on_dup)
         can_skip_rollback = init or RAISE not in on_dup
         if can_skip_rollback:
             self._update_no_rollback(on_dup, *args, **kw)

@@ -33,7 +33,7 @@ from weakref import ref
 
 from ._base import _WriteResult, BidictBase
 from ._bidict import bidict
-from ._miss import _MISS
+from ._sntl import _MISS
 
 
 class _Node(object):  # pylint: disable=too-few-public-methods
@@ -96,7 +96,7 @@ class _Node(object):  # pylint: disable=too-few-public-methods
         self._setnxt(state['_nxt'])
 
 
-class _Sentinel(_Node):  # pylint: disable=too-few-public-methods
+class _SentinelNode(_Node):  # pylint: disable=too-few-public-methods
     """Special node in a circular doubly-linked list
     that links the first node with the last node.
     When its next and previous references point back to itself
@@ -109,7 +109,7 @@ class _Sentinel(_Node):  # pylint: disable=too-few-public-methods
         super().__init__(prv or self, nxt or self)
 
     def __repr__(self):  # pragma: no cover
-        return '<SENTINEL>'
+        return '<SNTL>'
 
     def __bool__(self):
         return False
@@ -140,13 +140,14 @@ class OrderedBidictBase(BidictBase):
 
     def __init__(self, *args, **kw):
         """Make a new ordered bidirectional mapping.
-        The signature is the same as that of regular dictionaries.
+        The signature behaves like that of :class:`dict`.
         Items passed in are added in the order they are passed,
-        respecting this bidict type's duplication policies along the way.
+        respecting the :attr:`on_dup` class attribute in the process.
+
         The order in which items are inserted is remembered,
         similar to :class:`collections.OrderedDict`.
         """
-        self._sntl = _Sentinel()
+        self._sntl = _SentinelNode()
 
         # Like unordered bidicts, ordered bidicts also store two backing one-directional mappings
         # `_fwdm` and `_invm`. But rather than mapping `key` to `val` and `val` to `key`
@@ -167,7 +168,7 @@ class OrderedBidictBase(BidictBase):
         """A shallow copy of this ordered bidict."""
         # Fast copy implementation bypassing __init__. See comments in :meth:`BidictBase.copy`.
         copy = self.__class__.__new__(self.__class__)
-        sntl = _Sentinel()
+        sntl = _SentinelNode()
         fwdm = self._fwdm.copy()
         invm = self._invm.copy()
         cur = sntl

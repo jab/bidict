@@ -29,10 +29,31 @@
 """Provides :class:`bidict`."""
 
 from collections.abc import MutableMapping
+from functools import wraps
+from warnings import warn
 
 from ._base import BidictBase
-from ._dup import OVERWRITE, RAISE, _OnDup
-from ._miss import _MISS
+from ._dup import ON_DUP_RAISE, ON_DUP_DROP_OLD, OnDup
+from ._sntl import _MISS
+
+
+# TODO: Remove this compatibility decorator in a future release. pylint: disable=fixme
+def _on_dup_compat(meth):
+    deprecated = ('on_dup_key', 'on_dup_val', 'on_dup_kv')
+    msg = 'The `on_dup_key`, `on_dup_val`, and `on_dup_kv` kwargs are deprecated and ' \
+          'will be removed in a future version of bidict. Use the `on_dup` kwarg instead.'
+
+    @wraps(meth)
+    def wrapper(self, *args, **kw):
+        shim = {s[len('on_dup_'):]: kw.pop(s) for s in deprecated if s in kw}
+        if shim:
+            warn(msg, stacklevel=2)
+            if 'on_dup' in kw:
+                raise TypeError('on_dup replaces the separate on_dup_* kwargs, do not use together')
+            kw['on_dup'] = OnDup(**shim)
+        return meth(self, *args, **kw)
+
+    return wrapper
 
 
 # Extend MutableMapping explicitly because it doesn't implement __subclasshook__, as well as to
@@ -42,17 +63,12 @@ class MutableBidict(BidictBase, MutableMapping):
 
     __slots__ = ()
 
-    __hash__ = None  # since this class is mutable; explicit > implicit.
-
-    _ON_DUP_OVERWRITE = _OnDup(key=OVERWRITE, val=OVERWRITE, kv=OVERWRITE)
-
     def __delitem__(self, key):
         """*x.__delitem__(y)　⟺　del x[y]*"""
         self._pop(key)
 
     def __setitem__(self, key, val):
-        """
-        Set the value for *key* to *val*.
+        """Set the value for *key* to *val*.
 
         If *key* is already associated with *val*, this is a no-op.
 
@@ -65,7 +81,7 @@ class MutableBidict(BidictBase, MutableMapping):
         to protect against accidental removal of the key
         that's currently associated with *val*.
 
-        Use :meth:`put` instead if you want to specify different policy in
+        Use :meth:`put` instead if you want to specify different behavior in
         the case that the provided key or value duplicates an existing one.
         Or use :meth:`forceput` to unconditionally associate *key* with *val*,
         replacing any existing items as necessary to preserve uniqueness.
@@ -77,16 +93,13 @@ class MutableBidict(BidictBase, MutableMapping):
             existing item and *val* duplicates the value of a different
             existing item.
         """
-        on_dup = self._get_on_dup()
-        self._put(key, val, on_dup)
+        self._put(key, val, self.on_dup)
 
-    def put(self, key, val, on_dup_key=RAISE, on_dup_val=RAISE, on_dup_kv=None):
-        """
-        Associate *key* with *val* with the specified duplication policies.
+    @_on_dup_compat
+    def put(self, key, val, on_dup=ON_DUP_RAISE):
+        """Associate *key* with *val*, honoring the :class:`OnDup` given in *on_dup*.
 
-        If *on_dup_kv* is ``None``, the *on_dup_val* policy will be used for it.
-
-        For example, if all given duplication policies are :attr:`~bidict.RAISE`,
+        For example, if *on_dup* is :attr:`~bidict.ON_DUP_RAISE`,
         then *key* will be associated with *val* if and only if
         *key* is not already associated with an existing value and
         *val* is not already associated with an existing key,
@@ -95,29 +108,27 @@ class MutableBidict(BidictBase, MutableMapping):
         If *key* is already associated with *val*, this is a no-op.
 
         :raises bidict.KeyDuplicationError: if attempting to insert an item
-            whose key only duplicates an existing item's, and *on_dup_key* is
+            whose key only duplicates an existing item's, and *on_dup.key* is
             :attr:`~bidict.RAISE`.
 
         :raises bidict.ValueDuplicationError: if attempting to insert an item
-            whose value only duplicates an existing item's, and *on_dup_val* is
+            whose value only duplicates an existing item's, and *on_dup.val* is
             :attr:`~bidict.RAISE`.
 
         :raises bidict.KeyAndValueDuplicationError: if attempting to insert an
             item whose key duplicates one existing item's, and whose value
-            duplicates another existing item's, and *on_dup_kv* is
+            duplicates another existing item's, and *on_dup.kv* is
             :attr:`~bidict.RAISE`.
         """
-        on_dup = self._get_on_dup((on_dup_key, on_dup_val, on_dup_kv))
         self._put(key, val, on_dup)
 
     def forceput(self, key, val):
-        """
-        Associate *key* with *val* unconditionally.
+        """Associate *key* with *val* unconditionally.
 
         Replace any existing mappings containing key *key* or value *val*
         as necessary to preserve uniqueness.
         """
-        self._put(key, val, self._ON_DUP_OVERWRITE)
+        self._put(key, val, ON_DUP_DROP_OLD)
 
     def clear(self):
         """Remove all items."""
@@ -152,23 +163,22 @@ class MutableBidict(BidictBase, MutableMapping):
         return key, val
 
     def update(self, *args, **kw):  # pylint: disable=arguments-differ
-        """Like :meth:`putall` with default duplication policies."""
+        """Like calling :meth:`putall` with *self.on_dup* passed for *on_dup*."""
         if args or kw:
-            self._update(False, None, *args, **kw)
+            self._update(False, self.on_dup, *args, **kw)
 
     def forceupdate(self, *args, **kw):
         """Like a bulk :meth:`forceput`."""
-        self._update(False, self._ON_DUP_OVERWRITE, *args, **kw)
+        self._update(False, ON_DUP_DROP_OLD, *args, **kw)
 
-    def putall(self, items, on_dup_key=RAISE, on_dup_val=RAISE, on_dup_kv=None):
-        """
-        Like a bulk :meth:`put`.
+    @_on_dup_compat
+    def putall(self, items, on_dup=ON_DUP_RAISE):
+        """Like a bulk :meth:`put`.
 
         If one of the given items causes an exception to be raised,
         none of the items is inserted.
         """
         if items:
-            on_dup = self._get_on_dup((on_dup_key, on_dup_val, on_dup_kv))
             self._update(False, on_dup, items)
 
 
