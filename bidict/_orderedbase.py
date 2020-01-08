@@ -29,6 +29,7 @@
 """Provides :class:`OrderedBidictBase`."""
 
 from collections.abc import Mapping
+from copy import copy
 from weakref import ref
 
 from ._base import _WriteResult, BidictBase
@@ -167,10 +168,10 @@ class OrderedBidictBase(BidictBase):
     def copy(self):
         """A shallow copy of this ordered bidict."""
         # Fast copy implementation bypassing __init__. See comments in :meth:`BidictBase.copy`.
-        copy = self.__class__.__new__(self.__class__)
+        cp = self.__class__.__new__(self.__class__)  # pylint: disable=invalid-name
         sntl = _SentinelNode()
-        fwdm = self._fwdm.copy()
-        invm = self._invm.copy()
+        fwdm = copy(self._fwdm)
+        invm = copy(self._invm)
         cur = sntl
         nxt = sntl.nxt
         for (key, val) in self.items():
@@ -178,11 +179,11 @@ class OrderedBidictBase(BidictBase):
             cur.nxt = fwdm[key] = invm[val] = nxt
             cur = nxt
         sntl.prv = nxt
-        copy._sntl = sntl  # pylint: disable=protected-access
-        copy._fwdm = fwdm  # pylint: disable=protected-access
-        copy._invm = invm  # pylint: disable=protected-access
-        copy._init_inv()  # pylint: disable=protected-access
-        return copy
+        cp._sntl = sntl  # pylint: disable=protected-access
+        cp._fwdm = fwdm  # pylint: disable=protected-access
+        cp._invm = invm  # pylint: disable=protected-access
+        cp._init_inv()  # pylint: disable=protected-access
+        return cp
 
     def __getitem__(self, key):
         nodefwd = self._fwdm[key]

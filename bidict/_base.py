@@ -30,6 +30,7 @@
 
 from collections import namedtuple
 from collections.abc import Mapping
+from copy import copy
 from functools import wraps
 from warnings import warn
 from weakref import ref
@@ -380,11 +381,11 @@ class BidictBase(BidirectionalMapping):
         # in copying this bidict's items into the copy instance one at a time. Instead, make whole
         # copies of each of the backing mappings, and make them the backing mappings of the copy,
         # avoiding copying items one at a time.
-        copy = self.__class__.__new__(self.__class__)
-        copy._fwdm = self._fwdm.copy()  # pylint: disable=protected-access
-        copy._invm = self._invm.copy()  # pylint: disable=protected-access
-        copy._init_inv()  # pylint: disable=protected-access
-        return copy
+        cp = self.__class__.__new__(self.__class__)  # pylint: disable=invalid-name
+        cp._fwdm = copy(self._fwdm)  # pylint: disable=protected-access
+        cp._invm = copy(self._invm)  # pylint: disable=protected-access
+        cp._init_inv()  # pylint: disable=protected-access
+        return cp
 
     def __copy__(self):
         """Used for the copy protocol.
