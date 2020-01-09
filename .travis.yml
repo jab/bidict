@@ -94,7 +94,6 @@ after_script:
 matrix:
   allow_failures:
     - env: 'TASK=docs-linkcheck INSTALL_EXTRAS=docs'
-    - env: 'TASK=deploy-if-tag'
   ## fast_finish causes Travis to send a useless daily "build pending" email; not worth the noise.
   # fast_finish: true
   include:
@@ -170,10 +169,12 @@ deploy:
     user: 'jab'
     password:
       secure: 'B9LLgXkTbtjeC/IbH4wh9PEBzvKEAuYo3EBNW5f1xuLqVqtsysIyxJa5ar/FQ4qwUCBwZPFAXFurN3lLzRhb2Tc04YQ0GYVv6f8lkzwrjoWau4iB9Qt/nnvdRa7KryEJvtenHCAnwoEUaADCjkZjwo6fIA0hEOLB6/AYfhfgXYA='
+    skip_existing: true
     on:
       tags: true
-      # Does this deploy all tags to PyPI, not just release tags?
-      # https://docs.travis-ci.com/user/deployment/pypi/ doesn't say.
+      # TODO: Presumably this deploys all tags to PyPI, not just release tags.
+      # Use https://docs.travis-ci.com/user/deployment#conditional-releases-with-on
+      # to only deploy when the tag name matchs vX.Y.Z.
     distributions: 'sdist bdist_wheel'
 
 
