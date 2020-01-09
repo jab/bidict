@@ -26,8 +26,8 @@ click "`Watch <https://help.github.com/en/github/receiving-notifications-about-a
 and choose "Releases".
 
 
-0.19.0 (not yet released)
--------------------------
+0.19.0 (2020-01-09)
+-------------------
 
 * Drop support for Python 2
   :ref:`as promised in v0.18.2 <changelog:0.18.2 (2019-09-08)>`.
