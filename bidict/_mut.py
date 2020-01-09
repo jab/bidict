@@ -29,31 +29,10 @@
 """Provides :class:`bidict`."""
 
 from collections.abc import MutableMapping
-from functools import wraps
-from warnings import warn
 
 from ._base import BidictBase
-from ._dup import ON_DUP_RAISE, ON_DUP_DROP_OLD, OnDup
+from ._dup import ON_DUP_RAISE, ON_DUP_DROP_OLD
 from ._sntl import _MISS
-
-
-# TODO: Remove this compatibility decorator in a future release. pylint: disable=fixme
-def _on_dup_compat(meth):
-    deprecated = ('on_dup_key', 'on_dup_val', 'on_dup_kv')
-    msg = 'The `on_dup_key`, `on_dup_val`, and `on_dup_kv` kwargs are deprecated and ' \
-          'will be removed in a future version of bidict. Use the `on_dup` kwarg instead.'
-
-    @wraps(meth)
-    def wrapper(self, *args, **kw):
-        shim = {s[len('on_dup_'):]: kw.pop(s) for s in deprecated if s in kw}
-        if shim:
-            warn(msg, stacklevel=2)
-            if 'on_dup' in kw:
-                raise TypeError('on_dup replaces the separate on_dup_* kwargs, do not use together')
-            kw['on_dup'] = OnDup(**shim)
-        return meth(self, *args, **kw)
-
-    return wrapper
 
 
 # Extend MutableMapping explicitly because it doesn't implement __subclasshook__, as well as to
@@ -95,7 +74,6 @@ class MutableBidict(BidictBase, MutableMapping):
         """
         self._put(key, val, self.on_dup)
 
-    @_on_dup_compat
     def put(self, key, val, on_dup=ON_DUP_RAISE):
         """Associate *key* with *val*, honoring the :class:`OnDup` given in *on_dup*.
 
@@ -171,7 +149,6 @@ class MutableBidict(BidictBase, MutableMapping):
         """Like a bulk :meth:`forceput`."""
         self._update(False, ON_DUP_DROP_OLD, *args, **kw)
 
-    @_on_dup_compat
     def putall(self, items, on_dup=ON_DUP_RAISE):
         """Like a bulk :meth:`put`.
 

@@ -26,10 +26,25 @@ click "`Watch <https://help.github.com/en/github/receiving-notifications-about-a
 and choose "Releases".
 
 
+0.20.0 (not yet released)
+-------------------------
+
+Remove APIs deprecated in the previous release:
+
+- ``bidict.OVERWRITE`` and ``bidict.IGNORE``.
+
+- The ``on_dup_key``, ``on_dup_val``, and ``on_dup_kv``
+  arguments of
+  of :meth:`~bidict.bidict.put` and :meth:`~bidict.bidict.putall`.
+
+- The ``on_dup_key``, ``on_dup_val``, and ``on_dup_kv``
+  :class:`~bidict.bidict` class attributes.
+
+
 0.19.0 (2020-01-09)
 -------------------
 
-* Drop support for Python 2
+- Drop support for Python 2
   :ref:`as promised in v0.18.2 <changelog:0.18.2 (2019-09-08)>`.
 
   The :mod:`bidict.compat` module has been pruned accordingly.
@@ -37,12 +52,12 @@ and choose "Releases".
   This makes bidict more efficient on Python 3
   and enables further improvement to bidict in the future.
 
-* Deprecate ``bidict.OVERWRITE`` and ``bidict.IGNORE``.
+- Deprecate ``bidict.OVERWRITE`` and ``bidict.IGNORE``.
   A :class:`UserWarning` will now be emitted if these are used.
 
   :attr:`bidict.DROP_OLD` and :attr:`bidict.DROP_NEW` should be used instead.
 
-* Rename ``DuplicationPolicy`` to :class:`~bidict.OnDupAction`
+- Rename ``DuplicationPolicy`` to :class:`~bidict.OnDupAction`
   (and implement it via an :class:`~enum.Enum`).
 
   An :class:`~bidict.OnDupAction` may be one of
@@ -50,20 +65,20 @@ and choose "Releases".
   :attr:`~bidict.DROP_OLD`, or
   :attr:`~bidict.DROP_NEW`.
 
-* Expose the new :class:`~bidict.OnDup` class,
+- Expose the new :class:`~bidict.OnDup` class,
   a three-element :func:`namedtuple <collections.namedtuple>`
   of :class:`~bidict.OnDupAction`\s
   that should be taken upon encountering
   the three kinds of duplication that can occur:
   (*key*, *val*, *kv*).
 
-* Provide the
+- Provide the
   :attr:`~bidict.ON_DUP_DEFAULT`,
   :attr:`~bidict.ON_DUP_RAISE`, and
   :attr:`~bidict.ON_DUP_DROP_OLD`
   :class:`~bidict.OnDup` convenience instances.
 
-* Deprecate the
+- Deprecate the
   ``on_dup_key``, ``on_dup_val``, and ``on_dup_kv`` arguments
   of :meth:`~bidict.bidict.put` and :meth:`~bidict.bidict.putall`.
   A :class:`UserWarning` will now be emitted if these are used.
@@ -78,9 +93,9 @@ and choose "Releases".
 
   See the updated :ref:`basic-usage:Values Must Be Unique` docs for more info.
 
-* Deprecate the
+- Deprecate the
   ``on_dup_key``, ``on_dup_val``, and ``on_dup_kv``
-  bidict class attributes.
+  :class:`~bidict.bidict` class attributes.
   A :class:`UserWarning` will now be emitted if these are used.
 
   These have been subsumed by the new
@@ -89,7 +104,7 @@ and choose "Releases".
 
   See the updated :doc:`extending` docs for example usage.
 
-* Improve the more efficient implementations of
+- Improve the more efficient implementations of
   :meth:`~bidict.BidirectionalMapping.keys`,
   :meth:`~bidict.BidirectionalMapping.values`, and
   :meth:`~bidict.BidirectionalMapping.items`,
@@ -98,12 +113,12 @@ and choose "Releases".
   by delegating to backing :class:`dict`\s
   in the bidict types for which this is possible.
 
-* Move
+- Move
   :meth:`bidict.BidictBase.values` to
   :meth:`bidict.BidirectionalMapping.values`,
   since the implementation is generic.
 
-* No longer use ``__all__`` in :mod:`bidict`'s ``__init__.py``.
+- No longer use ``__all__`` in :mod:`bidict`'s ``__init__.py``.
 
 
 0.18.3 (2019-09-22)

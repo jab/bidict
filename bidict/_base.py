@@ -31,12 +31,10 @@
 from collections import namedtuple
 from collections.abc import Mapping
 from copy import copy
-from functools import wraps
-from warnings import warn
 from weakref import ref
 
 from ._abc import BidirectionalMapping
-from ._dup import ON_DUP_DEFAULT, RAISE, DROP_OLD, DROP_NEW, OnDup
+from ._dup import ON_DUP_DEFAULT, RAISE, DROP_OLD, DROP_NEW
 from ._exc import (
     DuplicationError, KeyDuplicationError, ValueDuplicationError, KeyAndValueDuplicationError)
 from ._sntl import _MISS, _NOOP
@@ -46,24 +44,6 @@ from ._util import _iteritems_args_kw
 _DedupResult = namedtuple('_DedupResult', 'isdupkey isdupval invbyval fwdbykey')
 _WriteResult = namedtuple('_WriteResult', 'key val oldkey oldval')
 _NODUP = _DedupResult(False, False, _MISS, _MISS)
-
-
-# TODO: Remove this compatibility decorator in a future release. pylint: disable=fixme
-def _on_dup_compat(__init__):
-    deprecated = ('on_dup_key', 'on_dup_val', 'on_dup_kv')
-    msg = 'The `on_dup_key`, `on_dup_val`, and `on_dup_kv` class attrs are deprecated and ' \
-          'will be removed in a future version of bidict. Use the `on_dup` class attr instead.'
-
-    @wraps(__init__)
-    def wrapper(self, *args, **kw):
-        cls = self.__class__
-        shim = {s[len('on_dup_'):]: getattr(cls, s) for s in deprecated if hasattr(cls, s)}
-        if shim:
-            warn(msg, stacklevel=2)
-            cls.on_dup = OnDup(**shim)
-        return __init__(self, *args, **kw)
-
-    return wrapper
 
 
 # Since BidirectionalMapping implements __subclasshook__, and BidictBase
@@ -92,7 +72,6 @@ class BidictBase(BidirectionalMapping):
     #: The object used by :meth:`__repr__` for printing the contained items.
     _repr_delegate = dict
 
-    @_on_dup_compat
     def __init__(self, *args, **kw):  # pylint: disable=super-init-not-called
         """Make a new bidirectional dictionary.
         The signature behaves like that of :class:`dict`.

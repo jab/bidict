@@ -61,10 +61,10 @@ from . import compat as _c
 if _c.PY2:
     raise ImportError('Python 3 is required.')
 
-_warn = _partial(_warn, stacklevel=2)  # pylint: disable=invalid-name
+_warn2 = _partial(_warn, stacklevel=2)  # pylint: disable=invalid-name
 
 if (_c.PYMAJOR, _c.PYMINOR) < (3, 5):  # pragma: no cover
-    _warn('This version of bidict is untested on Python < 3.5 and may not work.')
+    _warn2('This version of bidict is untested on Python < 3.5 and may not work.')
 
 # The rest of this file only collects functionality implemented in the rest of the
 # source for the purposes of exporting it under the `bidict` module namespace.
@@ -92,30 +92,6 @@ from .metadata import (
     __author__, __maintainer__, __copyright__, __email__, __credits__, __url__,
     __license__, __status__, __description__, __keywords__, __version__, __version_info__,
 )
-
-
-# Aliases for deprecated constants. TODO: remove in a future release.
-OVERWRITE = DROP_OLD
-IGNORE = DROP_NEW
-
-
-class _BidictModuleType(_ModuleType):  # pylint: disable=too-few-public-methods
-    """Compatibility shim."""
-
-    def __getattribute__(self, name):
-        if name == 'OVERWRITE':
-            _warn('bidict.OVERWRITE has been deprecated, use bidict.DROP_OLD instead.')
-            return DROP_OLD
-        if name == 'IGNORE':
-            _warn('bidict.IGNORE has been deprecated, use bidict.DROP_NEW instead.')
-            return DROP_NEW
-        return object.__getattribute__(self, name)
-
-
-try:
-    _modules[__name__].__class__ = _BidictModuleType
-except TypeError:
-    pass
 
 
 #                             * Code review nav *
