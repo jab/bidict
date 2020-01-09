@@ -12,14 +12,14 @@ from enum import Enum
 
 
 class _Sentinel(Enum):
-    MISS = object()
-    NOOP = object()
+    #: The result of looking up a missing key (or inverse key).
+    MISS = 'MISS'
+    #: No-op.
+    NOOP = 'NOOP'
 
     def __repr__(self):
         return '<%s>' % self.name  # pragma: no cover
 
 
-#: The result of looking up a missing key (or inverse key).
 _MISS = _Sentinel.MISS
-#: No-op.
 _NOOP = _Sentinel.NOOP

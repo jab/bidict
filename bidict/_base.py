@@ -238,23 +238,22 @@ class BidictBase(BidirectionalMapping):
             self._write_item(key, val, dedup_result)
 
     def _dedup_item(self, key, val, on_dup):  # pylint: disable=too-many-branches
-        """
-        Check *key* and *val* for any duplication in self.
+        """Check *key* and *val* for any duplication in self.
 
         Handle any duplication as per the passed in *on_dup*.
 
         (key, val) already present is construed as a no-op, not a duplication.
 
         If duplication is found and the corresponding :class:`~bidict.OnDupAction` is
-        :attr:`RAISE`, raise the appropriate error.
+        :attr:`~bidict.DROP_NEW`, return :obj:`_NOOP`.
 
         If duplication is found and the corresponding :class:`~bidict.OnDupAction` is
-        :attr:`DROP_NEW`, return *None*.
+        :attr:`~bidict.RAISE`, raise the appropriate error.
 
         If duplication is found and the corresponding :class:`~bidict.OnDupAction` is
-        :attr:`DROP_OLD`,
+        :attr:`~bidict.DROP_OLD`,
         or if no duplication is found,
-        return the _DedupResult *(isdupkey, isdupval, oldkey, oldval)*.
+        return the :class:`_DedupResult` *(isdupkey, isdupval, oldkey, oldval)*.
         """
         fwdm = self._fwdm
         invm = self._invm
@@ -302,6 +301,7 @@ class BidictBase(BidirectionalMapping):
         return isdup
 
     def _write_item(self, key, val, dedup_result):
+        # Overridden by _orderedbase.OrderedBidictBase.
         isdupkey, isdupval, oldkey, oldval = dedup_result
         fwdm = self._fwdm
         invm = self._invm
@@ -327,10 +327,10 @@ class BidictBase(BidirectionalMapping):
         else:
             self._update_with_rollback(on_dup, *args, **kw)
 
-    def _update_no_dup_check(self, other, _nodup=_NODUP):
+    def _update_no_dup_check(self, other):
         write_item = self._write_item
         for (key, val) in other.items():
-            write_item(key, val, _nodup)
+            write_item(key, val, _NODUP)
 
     def _update_no_rollback(self, on_dup, *args, **kw):
         put = self._put

@@ -37,7 +37,7 @@ from ._bidict import bidict
 from ._sntl import _MISS
 
 
-class _Node(object):  # pylint: disable=too-few-public-methods
+class _Node:  # pylint: disable=too-few-public-methods
     """A node in a circular doubly-linked list
     used to encode the order of items in an ordered bidict.
 
@@ -203,6 +203,7 @@ class OrderedBidictBase(BidictBase):
         return nodeinv is nodefwd
 
     def _write_item(self, key, val, dedup_result):  # pylint: disable=too-many-locals
+        # Overrides _base.BidictBase.
         fwdm = self._fwdm  # bidict mapping keys to nodes
         invm = self._invm  # bidict mapping vals to nodes
         isdupkey, isdupval, nodeinv, nodefwd = dedup_result
