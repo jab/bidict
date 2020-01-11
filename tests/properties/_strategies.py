@@ -7,14 +7,12 @@
 
 """Strategies for Hypothesis tests."""
 
-import re
 from collections import OrderedDict
 from operator import attrgetter, itemgetter
 from os import getenv
 
 import hypothesis.strategies as st
 from bidict import DROP_NEW, DROP_OLD, RAISE, OnDup, OrderedBidictBase, namedbidict
-from bidict.compat import PY2
 
 from . import _types as t
 
@@ -74,14 +72,9 @@ MUTABLE_BIDICTS = _bidict_strat(MUTABLE_BIDICT_TYPES)
 ORDERED_BIDICTS = _bidict_strat(ORDERED_BIDICT_TYPES)
 
 
-if PY2:
-    _NAMEDBI_VALID_NAME_PAT = re.compile('[A-Za-z_][A-Za-z0-9_]*$')
-    _NAMEDBI_VALID_NAMES = st.from_regex(_NAMEDBI_VALID_NAME_PAT, fullmatch=True)
-    IS_VALID_NAME = _NAMEDBI_VALID_NAME_PAT.match
-else:
-    _ALPHABET = [chr(i) for i in range(0x10ffff) if chr(i).isidentifier()]
-    _NAMEDBI_VALID_NAMES = st.text(_ALPHABET, min_size=1)
-    IS_VALID_NAME = str.isidentifier
+_ALPHABET = [chr(i) for i in range(0x10ffff) if chr(i).isidentifier()]
+_NAMEDBI_VALID_NAMES = st.text(_ALPHABET, min_size=1)
+IS_VALID_NAME = str.isidentifier
 NAMEDBIDICT_NAMES_ALL_VALID = st.lists(_NAMEDBI_VALID_NAMES, min_size=3, max_size=3, unique=True)
 NAMEDBIDICT_NAMES_SOME_INVALID = st.lists(st.text(min_size=1), min_size=3, max_size=3).filter(
     lambda i: not all(IS_VALID_NAME(name) for name in i)
