@@ -3,9 +3,11 @@
    (e.g. rst2html, PyPI's and GitHub's renderers, etc.).
 .. role:: doc
 
+.. Use :doc: rather than :ref: references below for better interop as well.
 
-bidict
-======
+
+``bidict``
+==========
 
 The bidirectional mapping library for Python.
 
@@ -65,8 +67,8 @@ Status
    :alt: Downloads past month
 
 
-Bidict:
-^^^^^^^
+``bidict``:
+^^^^^^^^^^^
 
 - has been used for many years by several teams at
   Google, Venmo, CERN, Bank of America Merrill Lynch, Bloomberg, Two Sigma, and others
@@ -81,10 +83,6 @@ Bidict:
   (including property-based tests and benchmarks)
   run continuously on all supported Python versions and OSes
 
-.. Use a :doc: reference to the Changelog (with a footnote) below
-   rather than a :ref: to the 0.18.2 section
-   to work around GitHub's .rst renderer.
-
 
 Note: Python 3 Now Required
 ~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -92,8 +90,8 @@ Note: Python 3 Now Required
 As promised in the 0.18.2 release (see :doc:`changelog` [#fn-changelog]_),
 **Python 2 is no longer supported**.
 Version 0.18.3
-is the last release of bidict that supports Python 2.
-This makes bidict more efficient on Python 3
+is the last release of ``bidict`` that supports Python 2.
+This makes ``bidict`` more efficient on Python 3
 and enables further improvement to bidict in the future.
 See `python3statement.org <https://python3statement.org>`__
 for more info.
@@ -130,7 +128,7 @@ Community Support
    :target: https://gitter.im/jab/bidict
    :alt: Chat
 
-If you are thinking of using bidict in your work,
+If you are thinking of using ``bidict`` in your work,
 or if you have any questions, comments, or suggestions,
 I'd love to know about your use case
 and provide as much voluntary support for it as possible.
@@ -144,22 +142,22 @@ before creating a new one
 in case your questions or concerns have been adressed there already.
 
 
-Paid Support via Tidelift
--------------------------
+Enterprise-Grade Support via Tidelift
+-------------------------------------
 
 .. image:: https://img.shields.io/badge/tidelift-pro%20support-orange.svg
    :target: https://tidelift.com/subscription/pkg/pypi-bidict?utm_source=pypi-bidict&utm_medium=referral&utm_campaign=readme
    :alt: Paid support available via Tidelift
 
 If your use case requires a greater level of support,
-contractual support for bidict can be obtained through the
+enterprise-grade support for ``bidict`` can be obtained via the
 `Tidelift subscription <https://tidelift.com/subscription/pkg/pypi-bidict?utm_source=pypi-bidict&utm_medium=referral&utm_campaign=readme>`__.
 
 
 Notice of Usage
 ---------------
 
-If you use bidict,
+If you use ``bidict``,
 and especially if your usage or your organization is significant in some way,
 please let me know.
 
@@ -175,7 +173,7 @@ Changelog
 ---------
 
 See the :doc:`changelog` [#fn-changelog]_
-for a history of notable changes to bidict.
+for a history of notable changes to ``bidict``.
 
 
 Release Notifications
@@ -188,20 +186,19 @@ Release Notifications
    :target: https://libraries.io/pypi/bidict
    :alt: Follow on libraries.io
 
-`Subscribe to bidict releases <https://libraries.io/pypi/bidict>`__
-on libraries.io to be notified when new versions of bidict are released.
-Alternatively,
-on `GitHub <https://github.com/jab/bidict>`__,
-click "`Watch <https://help.github.com/en/github/receiving-notifications-about-activity-on-github/watching-and-unwatching-releases-for-a-repository>`__"
-and choose "Releases".
+Subscribe to releases
+`on GitHub <https://github.blog/changelog/2018-11-27-watch-releases/>`__ or
+`libraries.io <https://libraries.io/pypi/bidict>`__
+to be notified when new versions of ``bidict`` are released.
 
 
-Learning from bidict
---------------------
+Learning from ``bidict``
+------------------------
 
-One of the most rewarding things about bidict
-is the outsized amount of advanced Python
-it covers in light of its small codebase.
+One of the best things about ``bidict``
+is that it touches a surprising number of
+interesting Python corners,
+especially given its small size and scope.
 
 Check out :doc:`learning-from-bidict` [#fn-learning]_
 if you're interested in learning more.
@@ -210,25 +207,26 @@ if you're interested in learning more.
 Contributing
 ------------
 
-Bidict is currently a one-person operation
-maintained on a voluntary basis
-with no other sponsorship.
+``bidict`` is currently a one-person operation
+maintained on a voluntary basis.
+
 Your help would be most welcome!
 
 
 Reviewers Wanted!
 ^^^^^^^^^^^^^^^^^
 
-One of the most valuable ways to contribute to bidict
-and to explore some advanced Python [#fn-learning]_
-while you're at it
-is to review bidict's relatively small codebase.
+One of the most valuable ways to contribute to ``bidict`` –
+and to explore some interesting Python corners [#fn-learning]_
+while you're at it –
+is to review the relatively small codebase.
 
 Please create an issue or pull request with any improvements you'd propose
 or any other results you found.
-(Submitting a "Nothing-to-merge" PR with feedback in inline code comments or a
-`Review results <https://github.com/jab/bidict/issues/new?title=Review+results>`__
-issue both work well.)
+Submitting a `draft PR <https://github.blog/2019-02-14-introducing-draft-pull-requests/>`__
+with feedback in inline code comments, or a
+`"Review results" issue <https://github.com/jab/bidict/issues/new?title=Review+results>`__,
+would each work well.
 
 You can also
 +1 `this issue <https://github.com/jab/bidict/issues/63>`__
@@ -242,12 +240,12 @@ Giving Back
 .. duplicated in CONTRIBUTING.rst
    (would use `.. include::` but GitHub doesn't understand it)
 
-Bidict is the product of hundreds of hours of unpaid, voluntary work.
+``bidict`` is the product of hundreds of hours of unpaid, voluntary work.
 
-If bidict has helped you accomplish your work,
+If ``bidict`` has helped you accomplish your work,
 especially work you've been paid for,
 please consider chipping in toward the costs
-of bidict's maintenance and development
+of its maintenance and development
 and/or ask your organization to do the same.
 
 .. image:: https://raw.githubusercontent.com/jab/bidict/master/assets/support-on-gumroad.png
@@ -262,7 +260,7 @@ If you're viewing this on `<https://bidict.readthedocs.io>`__,
 note that multiple versions of the documentation are available,
 and you can choose a different version using the popup menu at the bottom-right.
 Please make sure you're viewing the version of the documentation
-that corresponds to the version of bidict you'd like to use.
+that corresponds to the version of ``bidict`` you'd like to use.
 
 If you're viewing this on GitHub, PyPI, or some other place
 that can't render and link this documentation properly

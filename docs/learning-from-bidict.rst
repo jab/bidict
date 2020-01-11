@@ -1,5 +1,5 @@
-Learning from bidict
---------------------
+Learning from ``bidict``
+------------------------
 
 Below is an outline of some of the more fascinating
 and lesser-known Python corners I got to explore further
@@ -139,7 +139,7 @@ to see this in action.
 Python surprises, gotchas, regrets
 ==================================
 
-- See :ref:`addendum:nan as key`.
+- See :ref:`addendum:\*nan\* as a Key`.
 
 - See :ref:`addendum:Equivalent but distinct \:class\:\`~collections.abc.Hashable\`\\s`.
 
@@ -213,12 +213,12 @@ See `BidictBase.__getstate__()
 Better memory usage through :mod:`weakref`
 ==========================================
 
-A bidict and its inverse use :mod:`weakref`
+A :class:`~bidict.bidict` and its inverse use :mod:`weakref`
 to avoid creating a strong reference cycle,
 so that when you release your last reference to a bidict,
 its memory is reclaimed immediately in CPython
 rather than having to wait for the next garbage collection.
-See :ref:`addendum:Bidict Avoids Reference Cycles`.
+See :ref:`addendum:\`\`bidict\`\` Avoids Reference Cycles`.
 
 The (doubly) linked lists that back ordered bidicts also use weakrefs
 to avoid creating strong reference cycles.
@@ -439,7 +439,7 @@ Python's data model
   See `_base.py <https://github.com/jab/bidict/blob/master/bidict/_bidict.py#L10>`__.
 
 - Overriding :meth:`object.__getattribute__` for custom attribute lookup.
-  See :ref:`extending:Sorted Bidict Recipes`.
+  See :ref:`extending:\`\`SortedBidict\`\` Recipes`.
 
 - Using
   :meth:`object.__getstate__`,
@@ -490,7 +490,7 @@ Other interesting stuff in the standard library
   (but not needed for bidict because there's no way to insert a bidict into itself)
 - :func:`operator.methodcaller`
 - :attr:`platform.python_implementation`
-- See :ref:`addendum:Missing bidicts in Stdlib!`
+- See :ref:`addendum:Missing \`\`bidict\`\`\\s in the Standard Library`
 
 
 Tools

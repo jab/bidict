@@ -4,26 +4,26 @@ Addendum
 Performance
 -----------
 
-bidict strives to be as performant as possible
+:mod:`bidict` strives to be as performant as possible
 while being faithful to its purpose.
 The need for speed
 is balanced with the responsibility
 to protect users from shooting themselves in the foot.
 
 In general,
-accomplishing some task using bidict
+accomplishing some task using :mod:`bidict`
 should have about the same performance
 as keeping two inverse dicts in sync manually.
 The test suite includes benchmarks for common workloads
 to catch any performance regressions.
 
-If you spot a case where bidict's performance could be improved,
+If you spot a case where :mod:`bidict`'s performance could be improved,
 please don't hesitate to
 :doc:`file an issue or submit a pull request <contributors-guide>`.
 
 
-Bidict Avoids Reference Cycles
-------------------------------
+``bidict`` Avoids Reference Cycles
+----------------------------------
 
 A careful reader might notice the following...
 
@@ -38,16 +38,19 @@ A careful reader might notice the following...
    >>> inv.inverse is fwd
    True
 
-...and become concerned that a bidict and its inverse create a reference cycle.
-If this were true, in CPython this would mean that the memory for a bidict
+...and worry that a :class:`~bidict.bidict` and its inverse
+create a reference cycle.
+If this were true,
+in CPython this would mean that the memory for a :class:`~bidict.bidict`
 could not be immediately reclaimed when you retained no more references to it,
 but rather would have to wait for the next gargage collection to kick in
 before it could be reclaimed.
 
-However, under the hood bidict uses a :class:`weakref.ref`
+However, :class:`~bidict.bidict`\s use a :class:`weakref.ref`
 to store the inverse reference in one direction,
 avoiding the strong reference cycle.
-As a result, when you no longer retain any references to a bidict you create,
+As a result, when you no longer retain
+any references to a :class:`~bidict.bidict` you create,
 you can be sure that its refcount in CPython drops to zero,
 and that its memory will therefore be reclaimed immediately.
 
@@ -77,20 +80,21 @@ Terminology
 - "keys" and "values" could perhaps more properly be called
   "primary keys" and "secondary keys" (as in a database),
   or even "forward keys" and "inverse keys", respectively.
-  bidict sticks with the terms "keys" and "values"
+  :mod:`bidict` sticks with the terms "keys" and "values"
   for the sake of familiarity and to avoid potential confusion,
   but technically values are also keys themselves.
 
-  Concretely, this allows bidict to return a set-like (*dict_keys*) object
-  for :meth:`~bidict.BidictBase.values`,
+  Concretely, this allows :class:`~bidict.bidict`\s
+  to return a set-like (*dict_keys*) object
+  for :meth:`~bidict.bidict.values`,
   rather than a non-set-like *dict_values* object.
 
 
-Missing bidicts in Stdlib!
---------------------------
+Missing ``bidict``\s in the Standard Library
+--------------------------------------------
 
 The Python standard library actually contains some examples
-where bidicts could be used for fun and profit
+where :class:`~bidict.bidict`\s could be used for fun and profit
 (depending on your ideas of fun and profit):
 
 - The :mod:`logging` module
@@ -118,11 +122,12 @@ where bidicts could be used for fun and profit
 Caveats
 -------
 
-Non-atomic Mutation
+Non-Atomic Mutation
 ^^^^^^^^^^^^^^^^^^^
 
-As with built-in dicts, mutating operations on a bidict are not atomic.
-If you need to mutate the same bidict from different threads,
+As with built-in dicts,
+mutating operations on a :class:`~bidict.bidict` are not atomic.
+If you need to mutate the same :class:`~bidict.bidict` from different threads,
 use a
 `synchronization primitive <https://docs.python.org/3/library/threading.html#lock-objects>`__
 to coordinate access. [#]_
@@ -168,10 +173,10 @@ is equal to a contained object,
 the contained object will be found,
 even if it is distinct.
 
-With bidict,
+With a :class:`~bidict.bidict`,
 since values function as keys in the inverse mapping,
 this behavior occurs in the inverse direction too,
-and means that a bidict can end up with a different
+and means that a :class:`~bidict.bidict` can end up with a different
 but equivalent key from the corresponding value
 in its own inverse:
 
@@ -185,10 +190,10 @@ in its own inverse:
    bidict({0: 'FALSE'})
 
 
-nan as key
-^^^^^^^^^^
+*nan* as a Key
+^^^^^^^^^^^^^^
 
-In CPython, nan is especially tricky when used as a dictionary key:
+In CPython, *nan* is especially tricky when used as a dictionary key:
 
 .. doctest::
 
@@ -204,12 +209,13 @@ In CPython, nan is especially tricky when used as a dictionary key:
    {nan: 'nan', nan: 'not overwritten'}
 
 In other Python implementations such as PyPy,
-nan behaves just like any other dictionary key.
+*nan* behaves just like any other dictionary key.
 But in CPython, beware of this unexpected behavior,
-which applies to bidicts too.
-bidict contains no special-case logic
-for dealing with nan as a key,
-so the behavior will match dict's in the host environment.
+which applies to :class:`~bidict.bidict`\s too.
+:mod:`bidict` contains no special-case logic
+for dealing with *nan* as a key,
+so the behavior will match :class:`dict`'s
+wherever :mod:`bidict` is running.
 
 See e.g. `these docs
 <https://bitbucket.org/pypy/pypy/src/dafacc4/pypy/doc/cpython_differences.rst?mode=view>`__
@@ -217,5 +223,5 @@ for more info (search the page for "nan").
 
 ----
 
-For more info in this vein,
+For more in this vein,
 check out :doc:`learning-from-bidict`.

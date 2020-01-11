@@ -46,7 +46,7 @@ as well:
    'Hg'
 
 Because inverse items are maintained alongside forward items,
-referencing a bidict's inverse
+referencing a :class:`~bidict.bidict`'s inverse
 is always a constant-time operation.
 
 
@@ -82,7 +82,7 @@ As we know,
 in a bidirectional map,
 not only must keys be unique,
 but values must be unique as well.
-This has immediate implications for bidict's API.
+This has immediate implications for :mod:`bidict`'s API.
 
 Consider the following:
 
@@ -125,7 +125,7 @@ which advises,
 | *Unless explicitly silenced.*
 
 So if you really just want to clobber any existing items,
-all you have to do is say so:
+all you have to do is say so explicitly:
 
 .. doctest::
 
@@ -143,16 +143,12 @@ raise an exception too:
    Traceback (most recent call last):
        ...
    ValueDuplicationError: 1
+
    >>> b = bidict({'one': 1})
-   >>> b.update([('two', 2), ('uno', 1)])
+   >>> b.update([('uno', 1)])
    Traceback (most recent call last):
        ...
    ValueDuplicationError: 1
-
-If an :meth:`~bidict.bidict.update` call raises,
-you can be sure that none of the supplied items were inserted:
-
-.. doctest::
 
    >>> b
    bidict({'one': 1})
@@ -177,10 +173,10 @@ in keeping with dict's behavior:
 
 In summary,
 when attempting to insert an item whose key duplicates an existing item's,
-bidict's default behavior is to allow the insertion,
+:class:`~bidict.bidict`'s default behavior is to allow the insertion,
 overwriting the existing item with the new one.
 When attempting to insert an item whose value duplicates an existing item's,
-bidict's default behavior is to raise.
+:class:`~bidict.bidict`'s default behavior is to raise.
 This design naturally falls out of the behavior of Python's built-in dict,
 and protects against unexpected data loss.
 
@@ -206,34 +202,20 @@ you can use :meth:`~bidict.bidict.put`
 and :meth:`~bidict.bidict.putall`.
 These variants allow you to pass
 an :class:`~bidict.OnDup` instance
-to explicitly specify custom :class:`~bidict.OnDupAction`\s
+to specify custom :class:`~bidict.OnDupAction`\s
 for each type of duplication that can occur.
 
 .. doctest::
 
-   >>> from bidict import OnDup, RAISE, DROP_OLD, DROP_NEW
+   >>> from bidict import OnDup, RAISE
 
-   >>> b = bidict({2: 4})
-   >>> b.put(2, 8, OnDup(key=RAISE, val=DROP_OLD))
+   >>> b = bidict({1: 'one'})
+   >>> b.put(1, 'uno', OnDup(key=RAISE))
    Traceback (most recent call last):
        ...
    KeyDuplicationError: 2
    >>> b
-   bidict({2: 4})
-
-   >>> b.putall([(3, 9), (2, 8)], OnDup(key=RAISE))
-   Traceback (most recent call last):
-       ...
-   KeyDuplicationError: 2
-
-   >>> # (2, 8) was the duplicate item triggering the error, but note
-   >>> # (3, 9) was not added either, i.e. updates fail clean.
-   >>> b
-   bidict({2: 4})
-
-   >>> b.putall([(3, 9), (1, 4)], OnDup(val=DROP_NEW))
-   >>> sorted(b.items())  # Note (1, 4) was dropped as requested:
-   [(2, 4), (3, 9)]
+   bidict({1: 'one'})
 
 :mod:`bidict` provides the
 :attr:`~bidict.ON_DUP_DEFAULT`,
@@ -264,39 +246,68 @@ and the value of another existing item, as in:
 
 .. code-block:: python
 
-   >>> b.putall([(4, 16), (5, 25), (4, 25)])
+   >>> b.putall([(1, 2), (3, 4), (1, 4)], OnDup(key=...))
 
-Because the key and value deduplication actions that are in effect may differ,
-:class:`~bidict.bidict.OnDup`'s *kv* argument
-allows you to indicate how you want to handle this case
+Moreover, the active :class:`~bidict.OnDup`
+may specify one :class:`~bidict.OnDupAction`
+for its :attr:`~bidict.OnDup.key`
+and a different one for its :attr:`~bidict.OnDup.val`.
+
+To account for this,
+:class:`~bidict.OnDup`
+allows you to use its
+:attr:`~bidict.OnDup.kv` field
+to indicate how you want to handle this case
 without ambiguity:
 
 .. doctest::
 
-   >>> on_dup = OnDup(key=DROP_OLD, val=DROP_NEW, kv=RAISE)
-   >>> b.putall([(4, 16), (5, 25), (4, 25)], on_dup)
+   >>> from bidict import DROP_OLD
+   >>> on_dup = OnDup(key=DROP_OLD, val=RAISE, kv=RAISE)
+   >>> b.putall([(1, 2), (3, 4), (1, 4)], on_dup)
    Traceback (most recent call last):
        ...
-   KeyAndValueDuplicationError: (4, 25)
+   KeyAndValueDuplicationError: (1, 4)
 
-If not specified, *kv* defaults to whatever action for *val* is provided.
+If not specified, *kv* defaults to whatever was provided for *val*.
 
-Note that if an entire *(k, v)* item is duplicated exactly,
-the duplicate item will just be ignored,
-no matter what *on_dup* is set to.
-The insertion of an entire duplicate item is construed as a no-op:
+Note that repeated insertions of the same item
+are construed as a no-op and will not raise,
+no matter what the active :class:`~bidict.OnDup` is:
 
 .. doctest::
 
+   >>> b = bidict({1: 'one'})
+   >>> b.put(1, 'one')  # no-op, not a DuplicationError
+   >>> b.putall([(2, 'two'), (2, 'two')])  # The repeat (2, 'two') is also a no-op.
    >>> sorted(b.items())
-   [(2, 4), (3, 9)]
-   >>> b.put(2, 4)  # no-op, not a DuplicationError
-   >>> b.putall([(4, 16), (4, 16)])  # ditto
-   >>> sorted(b.items())
-   [(2, 4), (3, 9), (4, 16)]
+   [(1, 'one'), (2, 'two')]
 
-See the :ref:`extending:YoloBidict Recipe`
+See the :ref:`extending:\`\`YoloBidict\`\` Recipe`
 for another way to customize this behavior.
+
+
+Updates Fail Clean
+++++++++++++++++++
+
+If an update to a :class:`~bidict.bidict` fails,
+you can be sure that it fails clean.
+In other words, a :class:`~bidict.bidict` will never
+apply only part of an update that ultimately fails,
+without restoring itself to the state it was in
+before processing the update:
+
+.. doctest::
+
+   >>> b = bidict({1: 'one', 2: 'two'})
+   >>> b.putall([(3, 'three'), (1, 'uno')])
+   Traceback (most recent call last):
+       ...
+   KeyDuplicationError: 1
+
+   >>> # (1, 'uno') was the problem...
+   >>> b  # ...but (3, 'three') was not added either:
+   bidict({1: 'one', 2: 'two'})
 
 
 Order Matters
@@ -312,7 +323,7 @@ is like inserting each of those items individually in sequence.
 [#fn-fail-clean]_
 
 Therefore, the order of the items provided to the bulk insert operation
-may affect the result:
+is significant to the result:
 
 .. doctest::
 
@@ -340,17 +351,14 @@ may affect the result:
 
 .. [#fn-fail-clean]
 
-   Albeit with an extremely important advantage:
-   bulk insertion *fails clean*.
-   i.e. If a bulk insertion fails,
-   it will leave the bidict in the same state it was before,
-   with none of the provided items inserted.
+   Albeit with the extremely important advantage of
+   :ref:`failing clean <basic-usage:Updates Fail Clean>`.
 
 
 Interop
 +++++++
 
-bidicts interoperate well with other types of mappings.
+:class:`~bidict.bidict`\s interoperate well with other types of mappings.
 For example, they support (efficient) polymorphic equality testing:
 
 .. doctest::
@@ -359,7 +367,7 @@ For example, they support (efficient) polymorphic equality testing:
    True
 
 And converting back and forth works as expected
-(modulo any value duplication, as discussed above):
+(assuming no :ref:`value duplication <basic-usage:Values Must Be Unique>`):
 
 .. doctest::
 
@@ -371,8 +379,9 @@ And converting back and forth works as expected
 See the :ref:`other-bidict-types:Polymorphism` section
 for more interoperability documentation.
 
+----
 
-Hopefully bidict feels right at home
+Hopefully :mod:`bidict` feels right at home
 among the Python built-ins you already know.
 Proceed to :doc:`other-bidict-types`
 for documentation on the remaining bidict variants.

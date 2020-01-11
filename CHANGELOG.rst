@@ -18,12 +18,10 @@ Release Notifications
    :target: https://libraries.io/pypi/bidict
    :alt: Follow on libraries.io
 
-Tip: `Subscribe to bidict releases <https://libraries.io/pypi/bidict>`__
-on libraries.io to be notified when new versions of bidict are released.
-Alternatively,
-`on GitHub <https://github.com/jab/bidict>`__,
-click "`Watch <https://help.github.com/en/github/receiving-notifications-about-activity-on-github/watching-and-unwatching-releases-for-a-repository>`__"
-and choose "Releases".
+Tip: Subscribe to releases
+`on GitHub <https://github.blog/changelog/2018-11-27-watch-releases/>`__ or
+`libraries.io <https://libraries.io/pypi/bidict>`__
+to be notified when new versions of ``bidict`` are released.
 
 
 0.20.0 (not yet released)
@@ -227,14 +225,14 @@ Minor code, interop, and (semi-)private API improvements.
 - Upgrade to latest major
   `sortedcontainers <https://github.com/grantjenks/python-sortedcontainers>`__
   version (from v1 to v2)
-  for the :ref:`extending:Sorted Bidict Recipes`.
+  for the :ref:`extending:\`\`SortedBidict\`\` Recipes`.
 
 - ``bidict.compat.{view,iter}{keys,values,items}`` on Python 2
   no longer assumes the target object implements these methods,
   as they're not actually part of the
   :class:`~collections.abc.Mapping` interface,
   and provides fallback implementations when the methods are unavailable.
-  This allows the :ref:`extending:Sorted Bidict Recipes`
+  This allows the :ref:`extending:\`\`SortedBidict\`\` Recipes`
   to continue to work with sortedcontainers v2 on Python 2.
 
 
@@ -344,7 +342,7 @@ Speedups and memory usage improvements
   in CPython as soon as you no longer hold any references to it,
   rather than having to wait for the next garbage collection.
   See the new
-  :ref:`addendum:Bidict Avoids Reference Cycles`
+  :ref:`addendum:\`\`bidict\`\` Avoids Reference Cycles`
   documentation.
   `#24 <https://github.com/jab/bidict/issues/20>`__
 
@@ -371,7 +369,7 @@ Minor Bugfixes
 - If you create a custom bidict subclass whose ``_fwdm_cls``
   differs from its ``_invm_cls``
   (as in the ``FwdKeySortedBidict`` example
-  from the :ref:`extending:Sorted Bidict Recipes`),
+  from the :ref:`extending:\`\`SortedBidict\`\` Recipes`),
   the inverse bidirectional mapping type
   (with ``_fwdm_cls`` and ``_invm_cls`` swapped)
   is now correctly computed and used automatically

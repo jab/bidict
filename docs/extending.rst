@@ -9,8 +9,8 @@ For this reason,
 Let's look at some examples.
 
 
-YoloBidict Recipe
-#################
+``YoloBidict`` Recipe
+#####################
 
 If you'd like
 :attr:`~bidict.ON_DUP_DROP_OLD`
@@ -92,8 +92,8 @@ A safer example of this type of customization would be something like:
    YodoBidict({'one': 2})
 
 
-Sorted Bidict Recipes
-#####################
+``SortedBidict`` Recipes
+########################
 
 Suppose you need a bidict that maintains its items in sorted order.
 The Python standard library does not include any sorted dict types,
@@ -112,7 +112,7 @@ creating a sorted bidict type is dead simple:
 
    >>> # As an optimization, bidict.bidict includes a mixin class that
    >>> # we can't use here (namely bidict._delegating_mixins._DelegateKeysAndItemsToFwdm),
-   >>> # so extend the parent class, bidict.MutableBidict, instead.
+   >>> # so extend the main parent class, bidict.MutableBidict, instead.
    >>> from bidict import MutableBidict
 
    >>> import sortedcontainers
