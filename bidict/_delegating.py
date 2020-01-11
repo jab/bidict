@@ -18,7 +18,7 @@ class _DelegatingMixin:
     __slots__ = ()
 
     def __iter__(self):
-        """Iterator over the contained items."""
+        """Iterator over the contained keys."""
         return iter(self._fwdm)  # pylint: disable=protected-access
 
     def keys(self):

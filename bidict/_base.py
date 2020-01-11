@@ -378,7 +378,7 @@ class BidictBase(BidirectionalMapping):
         return len(self._fwdm)
 
     def __iter__(self):  # lgtm [py/inheritance/incorrect-overridden-signature]
-        """Iterator over the contained items."""
+        """Iterator over the contained keys."""
         # No default implementation for __iter__ inherited from Mapping ->
         # always delegate to _fwdm.
         return iter(self._fwdm)

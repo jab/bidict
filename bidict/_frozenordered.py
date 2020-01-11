@@ -45,7 +45,7 @@ class FrozenOrderedBidict(OrderedBidictBase):
     # mutation.
     if DICTS_ORDERED:
         def __iter__(self, reverse=False):  # noqa: N802
-            """Iterator over the contained items."""
+            """Iterator over the contained keys in insertion order."""
             if reverse:
                 return super().__iter__(reverse=True)
             return iter(self._fwdm._fwdm)  # pylint: disable=protected-access

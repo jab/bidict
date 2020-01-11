@@ -271,13 +271,13 @@ class OrderedBidictBase(BidictBase):
             assert invm[val] is nodeinv
 
     def __iter__(self, reverse=False):
-        """An iterator over this bidict's items in order."""
+        """Iterator over the contained keys in insertion order."""
         fwdm_inv = self._fwdm.inverse  # pylint: disable=no-member
         for node in self._sntl.__iter__(reverse=reverse):
             yield fwdm_inv[node]
 
     def __reversed__(self):
-        """An iterator over this bidict's items in reverse order."""
+        """Iterator over the contained keys in reverse insertion order."""
         for key in self.__iter__(reverse=True):
             yield key
 
