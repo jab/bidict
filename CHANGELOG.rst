@@ -27,13 +27,14 @@ to be notified when new versions of ``bidict`` are released.
 0.20.0 (not yet released)
 -------------------------
 
+The following breaking changes are expected to affect few if any users.
+
 Remove APIs deprecated in the previous release:
 
 - ``bidict.OVERWRITE`` and ``bidict.IGNORE``.
 
-- The ``on_dup_key``, ``on_dup_val``, and ``on_dup_kv``
-  arguments of
-  of :meth:`~bidict.bidict.put` and :meth:`~bidict.bidict.putall`.
+- The ``on_dup_key``, ``on_dup_val``, and ``on_dup_kv`` arguments of
+  :meth:`~bidict.bidict.put` and :meth:`~bidict.bidict.putall`.
 
 - The ``on_dup_key``, ``on_dup_val``, and ``on_dup_kv``
   :class:`~bidict.bidict` class attributes.
@@ -63,11 +64,10 @@ Remove APIs deprecated in the previous release:
   :attr:`~bidict.DROP_OLD`, or
   :attr:`~bidict.DROP_NEW`.
 
-- Expose the new :class:`~bidict.OnDup` class,
-  a three-element :func:`namedtuple <collections.namedtuple>`
-  of :class:`~bidict.OnDupAction`\s
+- Expose the new :class:`~bidict.OnDup` class
+  to contain the three :class:`~bidict.OnDupAction`\s
   that should be taken upon encountering
-  the three kinds of duplication that can occur:
+  the three kinds of duplication that can occur
   (*key*, *val*, *kv*).
 
 - Provide the
@@ -84,12 +84,14 @@ Remove APIs deprecated in the previous release:
   These have been subsumed by the new *on_dup* argument,
   which takes an :class:`~bidict.OnDup` instance.
 
-  Use it like this: ``bi.put(1, 2, OnDup(key=RAISE))``.
-  Or better yet, pass one of the instances already provided
-  (such as :attr:`~bidict.ON_DUP_RAISE`)
-  instead if possible.
+  Use it like this: ``bi.put(1, 2, OnDup(key=RAISE, val=...))``.
+  Or pass one of the instances already provided,
+  such as :attr:`~bidict.ON_DUP_DROP_OLD`.
+  Or just don't pass an *on_dup* argument
+  to use the default value of :attr:`~bidict.ON_DUP_RAISE`.
 
-  See the updated :ref:`basic-usage:Values Must Be Unique` docs for more info.
+  The :ref:`basic-usage:Values Must Be Unique` docs
+  have been updated accordingly.
 
 - Deprecate the
   ``on_dup_key``, ``on_dup_val``, and ``on_dup_kv``

@@ -31,9 +31,6 @@ document.addEventListener('DOMContentLoaded', function () {
     document.body.append(script);
   }
 
-  addDiv('id', 'codefund');
-  addScript('https://codefund.app/properties/179/funder.js');
-
   addDiv('className', 'rc-scout');
   addScript('https://www.recurse-scout.com/loader.js?t=c17a917136a40c38f5ce6b80adbbfd19');
 });
