@@ -9,10 +9,10 @@
 
 import pytest
 
-from bidict import OrderedBidict, ValueDuplicationError, bidict
+from bidict import OrderedBidict, ValueDuplicationError, bidict, defaultbidict
 
 
-BIDICT_TYPES = (bidict, OrderedBidict)
+BIDICT_TYPES = (bidict, OrderedBidict, defaultbidict)
 
 ELEMENTS = OrderedBidict((
     ('H', 'hydrogen'), ('He', 'helium'),

@@ -10,7 +10,8 @@
 from collections import OrderedDict
 from collections.abc import ItemsView, KeysView, Mapping
 
-from bidict import bidict, OrderedBidict, frozenbidict, FrozenOrderedBidict, namedbidict
+from bidict import bidict, OrderedBidict, frozenbidict, FrozenOrderedBidict, \
+    namedbidict, defaultbidict
 
 
 MyNamedBidict = namedbidict('MyNamedBidict', 'key', 'val')
@@ -19,7 +20,9 @@ MyNamedOrderedBidict = namedbidict('MyNamedOrderedBidict', 'key', 'val', base_ty
 MUTABLE_BIDICT_TYPES = (bidict, OrderedBidict, MyNamedBidict)
 FROZEN_BIDICT_TYPES = (frozenbidict, FrozenOrderedBidict, MyNamedFrozenBidict)
 ORDERED_BIDICT_TYPES = (OrderedBidict, FrozenOrderedBidict, MyNamedOrderedBidict)
-BIDICT_TYPES = tuple(set(MUTABLE_BIDICT_TYPES + FROZEN_BIDICT_TYPES + ORDERED_BIDICT_TYPES))
+DEFAULT_BIDICT_TYPES = (defaultbidict, )
+BIDICT_TYPES = tuple(set(MUTABLE_BIDICT_TYPES + FROZEN_BIDICT_TYPES
+                         + ORDERED_BIDICT_TYPES + DEFAULT_BIDICT_TYPES))
 
 
 class _FrozenDict(KeysView, Mapping):

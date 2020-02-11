@@ -74,6 +74,7 @@ from ._abc import BidirectionalMapping
 from ._base import BidictBase
 from ._mut import MutableBidict
 from ._bidict import bidict
+from ._defaultbidict import defaultbidict
 from ._frozenbidict import frozenbidict
 from ._frozenordered import FrozenOrderedBidict
 from ._named import namedbidict

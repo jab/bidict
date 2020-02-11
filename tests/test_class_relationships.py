@@ -11,7 +11,8 @@ from collections.abc import Hashable, Mapping, MutableMapping
 
 import pytest
 
-from bidict import bidict, frozenbidict, FrozenOrderedBidict, OrderedBidict, BidirectionalMapping
+from bidict import bidict, frozenbidict, FrozenOrderedBidict, OrderedBidict, \
+    BidirectionalMapping, defaultbidict
 
 
 class VirtualBimapSubclass(Mapping):  # pylint: disable=abstract-method
@@ -42,7 +43,7 @@ class AbstractBimap(BidirectionalMapping):  # pylint: disable=abstract-method
     __len__ = NotImplemented
 
 
-BIDICT_TYPES = (bidict, frozenbidict, FrozenOrderedBidict, OrderedBidict)
+BIDICT_TYPES = (bidict, frozenbidict, FrozenOrderedBidict, OrderedBidict, defaultbidict)
 BIMAP_TYPES = BIDICT_TYPES + (VirtualBimapSubclass, AbstractBimap)
 NOT_BIMAP_TYPES = (dict, object)
 MUTABLE_BIDICT_TYPES = (bidict, OrderedBidict)
@@ -102,18 +103,27 @@ def test_issubclass_internal():
     assert not issubclass(bidict, FrozenOrderedBidict)
     assert not issubclass(bidict, OrderedBidict)
     assert not issubclass(bidict, frozenbidict)
+    assert not issubclass(bidict, defaultbidict)
 
     assert not issubclass(FrozenOrderedBidict, OrderedBidict)
     assert not issubclass(FrozenOrderedBidict, bidict)
     assert not issubclass(FrozenOrderedBidict, frozenbidict)
+    assert not issubclass(FrozenOrderedBidict, defaultbidict)
 
     assert not issubclass(OrderedBidict, FrozenOrderedBidict)
     assert not issubclass(OrderedBidict, bidict)
     assert not issubclass(OrderedBidict, frozenbidict)
+    assert not issubclass(OrderedBidict, defaultbidict)
 
     assert not issubclass(frozenbidict, FrozenOrderedBidict)
     assert not issubclass(frozenbidict, OrderedBidict)
     assert not issubclass(frozenbidict, bidict)
+    assert not issubclass(frozenbidict, defaultbidict)
+
+    assert not issubclass(defaultbidict, bidict)
+    assert not issubclass(defaultbidict, FrozenOrderedBidict)
+    assert not issubclass(defaultbidict, OrderedBidict)
+    assert not issubclass(defaultbidict, frozenbidict)
 
 
 def test_abstract_bimap_init_fails():
