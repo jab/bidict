@@ -363,7 +363,7 @@ def test_iteritems_args_kw_raises_on_too_many_args():
 
 
 @given(st.I_PAIRS, st.ODICTS_KW_PAIRS)
-def test_iteritems_args_kw(arg0, kw):
+def iteritems_args_kw(arg0, kw):
     """:func:`bidict._iteritems_args_kw` should work correctly."""
     arg0_1, arg0_2 = tee(arg0)
     it = _iteritems_args_kw(arg0_1, **kw)
