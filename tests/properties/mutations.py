@@ -3,6 +3,7 @@ import pytest_mutagen as mg
 from bidict._base import BidictBase
 from bidict._mut import MutableBidict
 from bidict._orderedbase import OrderedBidictBase
+from bidict._orderedbidict import OrderedBidict
 
 mg.link_to_file("**all**")
 
