@@ -84,8 +84,8 @@ Status
   run continuously on all supported Python versions and OSes
 
 
-Note: Python 3 Now Required
-~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Note: Python 3 Required
+~~~~~~~~~~~~~~~~~~~~~~~
 
 As promised in the 0.18.2 release (see :doc:`changelog` [#fn-changelog]_),
 **Python 2 is no longer supported**.

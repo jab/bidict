@@ -42,7 +42,10 @@ repos:
   hooks:
   - id: pylint
     # Needed to avoid ImportErrors when linting tests (keep in sync with versions in setup.py):
-    additional_dependencies: ["hypothesis<4","pytest<5", "Sphinx<2"]
+    additional_dependencies:
+    - hypothesis < 5
+    - pytest < 6
+    - Sphinx < 3
     args:
     # http://pylint.pycqa.org/en/latest/user_guide/run.html#parallel-execution
     # "If the provided number is 0, then the total number of CPUs will be used."

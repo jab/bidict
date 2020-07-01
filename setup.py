@@ -60,11 +60,11 @@ with c_open(join(CWD, 'README.rst'), encoding='utf-8') as f:
     LONG_DESCRIPTION = f.read()
 
 
-# Manually keep these version pins in sync with those in .travis.yml and .pre-commit-config.yaml.
-
 SETUP_REQS = [
-    'setuptools_scm < 4',
+    'setuptools_scm',
 ]
+
+# Manually keep these version pins in sync with those in .travis.yml and .pre-commit-config.yaml.
 
 SPHINX_REQS = [
     'Sphinx < 3',

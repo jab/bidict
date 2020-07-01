@@ -242,16 +242,22 @@ Key and Value Duplication
 
 Note that it's possible for a given item to duplicate
 the key of one existing item,
-and the value of another existing item, as in:
+and the value of another existing item.
+In the following example,
+the key of the third item duplicates the first item's key,
+and the value of the third item dulicates the second item's value:
 
 .. code-block:: python
 
    >>> b.putall([(1, 2), (3, 4), (1, 4)], OnDup(key=...))
 
-Moreover, the active :class:`~bidict.OnDup`
+What should happen next?
+
+Keep in mind, the active :class:`~bidict.OnDup`
 may specify one :class:`~bidict.OnDupAction`
-for its :attr:`~bidict.OnDup.key`
-and a different one for its :attr:`~bidict.OnDup.val`.
+for :attr:`key duplication <bidict.OnDup.key>`
+and a different :class:`~bidict.OnDupAction`
+for :attr:`value duplication <bidict.OnDup.val>`.
 
 To account for this,
 :class:`~bidict.OnDup`

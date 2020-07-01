@@ -71,8 +71,8 @@ script:  # Run the test suite.
     fi
     # Without this, pypy3 with coverage on Travis is too slow to pass reliably.
     if [[ "$TASK" == "test-linux-pypy3" ]]; then
-      export HYPOTHESIS_MAX_EXAMPLES="100"
-      export HYPOTHESIS_GEN_MAX_SIZE="8"
+      export HYPOTHESIS_MAX_EXAMPLES="50"
+      export HYPOTHESIS_GEN_MAX_SIZE="5"
     fi
     if [[ "$COVERAGE" ]]; then
       export PYTEST_ADDOPTS="${PYTEST_ADDOPTS} --cov=bidict --cov-config=.coveragerc"
