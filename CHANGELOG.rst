@@ -39,6 +39,14 @@ Remove APIs deprecated in the previous release:
 - The ``on_dup_key``, ``on_dup_val``, and ``on_dup_kv``
   :class:`~bidict.bidict` class attributes.
 
+- Remove :meth:`bidict.BidirectionalMapping.__subclasshook__`
+  due to lack of use and maintenance cost.
+
+  Fixes a bug introduced in 0.15.0
+  that caused any class with an ``inverse`` attribute
+  to be incorrectly considered a subclass of :class:`collections.abc.Mapping`.
+  `#111 <https://github.com/jab/bidict/issues/111>`__
+
 
 0.19.0 (2020-01-09)
 -------------------

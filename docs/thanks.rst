@@ -38,7 +38,7 @@ People
   `icon <https://thenounproject.com/term/book/1330481/>`__
   that bidict's logo was derived from.
 
-- Richard Sanger and Zeyi Wang for reporting bugs.
+- Richard Sanger, Zeyi Wang, and Amol Sahsrabudhe for reporting bugs.
 
 
 Projects

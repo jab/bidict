@@ -7,44 +7,29 @@
 
 """Test various issubclass checks."""
 
+import re
 from collections.abc import Hashable, Mapping, MutableMapping
+from collections import OrderedDict
 
 import pytest
 
 from bidict import bidict, frozenbidict, FrozenOrderedBidict, OrderedBidict, BidirectionalMapping
 
 
-class VirtualBimapSubclass(Mapping):  # pylint: disable=abstract-method
-    """Dummy type that implements the BidirectionalMapping interface
-    without explicitly extending it, and so should still be considered a
-    (virtual) subclass if the BidirectionalMapping ABC is working correctly.
-    (See :meth:`BidirectionalMapping.__subclasshook__`.)
-
-    (Not actually a *working* BidirectionalMapping implementation,
-    but doesn't need to be for the purposes of this test.)
-    """
-
-    inverse = NotImplemented
-
-
 class AbstractBimap(BidirectionalMapping):  # pylint: disable=abstract-method
     """Dummy type that explicitly extends BidirectionalMapping
-    but fails to provide a concrete implementation for the
-    :attr:`BidirectionalMapping.inverse` :func:`abc.abstractproperty`.
+    but fails to override the :attr:`BidirectionalMapping.inverse`
+    :func:`abc.abstractproperty`.
 
     As a result, attempting to create an instance of this class
     should result in ``TypeError: Can't instantiate abstract class
     AbstractBimap with abstract methods inverse``
     """
 
-    __getitem__ = NotImplemented
-    __iter__ = NotImplemented
-    __len__ = NotImplemented
-
 
 BIDICT_TYPES = (bidict, frozenbidict, FrozenOrderedBidict, OrderedBidict)
-BIMAP_TYPES = BIDICT_TYPES + (VirtualBimapSubclass, AbstractBimap)
-NOT_BIMAP_TYPES = (dict, object)
+BIMAP_TYPES = BIDICT_TYPES + (AbstractBimap,)
+NOT_BIMAP_TYPES = (dict, OrderedDict, int, object)
 MUTABLE_BIDICT_TYPES = (bidict, OrderedBidict)
 HASHABLE_BIDICT_TYPES = (frozenbidict, FrozenOrderedBidict)
 ORDERED_BIDICT_TYPES = (OrderedBidict, FrozenOrderedBidict)
@@ -52,17 +37,14 @@ ORDERED_BIDICT_TYPES = (OrderedBidict, FrozenOrderedBidict)
 
 @pytest.mark.parametrize('bi_cls', BIMAP_TYPES)
 def test_issubclass_bimap(bi_cls):
-    """All bidict types should subclass :class:`BidirectionalMapping`,
-    and any class conforming to the interface (e.g. VirtualBimapSubclass)
-    should be considered a (virtual) subclass too.
-    """
+    """All bidict types should be considered subclasses of :class:`BidirectionalMapping`."""
     assert issubclass(bi_cls, BidirectionalMapping)
 
 
 @pytest.mark.parametrize('not_bi_cls', NOT_BIMAP_TYPES)
 def test_not_issubclass_not_bimap(not_bi_cls):
-    """Classes that do not conform to :class:`BidirectionalMapping`
-    should not be considered subclasses.
+    """Classes that do not conform to :class:`BidirectionalMapping` interface
+    should not be considered subclasses of it.
     """
     assert not issubclass(not_bi_cls, BidirectionalMapping)
 
@@ -115,11 +97,19 @@ def test_issubclass_internal():
     assert not issubclass(frozenbidict, OrderedBidict)
     assert not issubclass(frozenbidict, bidict)
 
+    # Regression test for #111, Bug in BidirectionalMapping.__subclasshook__():
+    # Any class with an inverse attribute is considered a collections.abc.Mapping
+    OnlyHasInverse = type("OnlyHasInverse", (), {"inverse": ...})
+    assert not issubclass(OnlyHasInverse, Mapping)
+
 
 def test_abstract_bimap_init_fails():
     """See the :class:`AbstractBimap` docstring above."""
-    with pytest.raises(TypeError):
+    with pytest.raises(TypeError) as excinfo:
         AbstractBimap()  # pylint: disable=abstract-class-instantiated
+    assert re.search(
+        "Can't instantiate abstract class AbstractBimap with abstract methods .* inverse",
+        str(excinfo.value))
 
 
 def test_bimap_inverse_notimplemented():

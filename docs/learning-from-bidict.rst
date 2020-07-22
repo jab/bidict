@@ -303,9 +303,11 @@ How to deeply integrate with Python's :mod:`collections` and other built-in APIs
 
   - Override :meth:`~abc.ABCMeta.__subclasshook__`
     to check for the interface you require.
-    See the `implementation
-    <https://github.com/jab/bidict/blob/master/bidict/_abc.py#L10>`__
-    of :class:`~bidict.BidirectionalMapping`.
+    See :class:`~bidict.BidirectionalMapping`'s
+    `old (correct) implementation
+    <https://github.com/jab/bidict/blob/v0.14.2/bidict/_abc.py>`__
+    (this was later removed due to lack of use and maintenance cost
+    when it was discovered that a bug was introduced in v0.15.0).
 
   - Interesting consequence of the ``__subclasshook__()`` design:
     the "subclass" relation becomes intransitive.

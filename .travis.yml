@@ -151,11 +151,11 @@ matrix:
       env: 'TASK=test-linux-cpython-3.6'
 
     ## Test suite on Mac with latest CPython 3 available in Travis's Mac image. Currently this is
-    ## 3.6. Set `python: '3.6'` below so this shows up correctly in the Travis web UI. Must set
+    ## 3.7. Set `python: '3.7'` below so this shows up correctly in the Travis web UI. Must set
     ## `language: 'generic' for Travis Mac builds, in which case changing the `python` value below
     ## has no effect; /usr/local/bin/python3 is always 3.6. TODO: Update the `python` value below
     ## if/when Travis updates their Mac image with a newer Python 3 (only so the web UI is correct).
-    - env: 'TASK=test-mac-cpython-3.6'
+    - env: 'TASK=test-mac-cpython-3.7'
       python: '3.6'
       os: 'osx'
       language: 'generic'
