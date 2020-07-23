@@ -24,8 +24,8 @@ Tip: Subscribe to releases
 to be notified when new versions of ``bidict`` are released.
 
 
-0.20.0 (not yet released)
--------------------------
+0.20.0 (2020-07-23)
+-------------------
 
 The following breaking changes are expected to affect few if any users.
 
