@@ -24,15 +24,7 @@ This abstract base class
 extends :class:`collections.abc.Mapping`
 by adding the
 ":attr:`~bidict.BidirectionalMapping.inverse`"
-:obj:`~abc.abstractproperty`. [#fn-subclasshook]_
-
-.. [#fn-subclasshook]
-   In fact, any :class:`collections.abc.Mapping`
-   that provides an ``inverse`` attribute
-   will be considered a virtual subclass of
-   :class:`bidict.BidirectionalMapping`
-   :meth:`automatically <bidict.BidirectionalMapping.__subclasshook__>`,
-   enabling interoperability with external implementations.
+:obj:`~abc.abstractproperty`.
 
 As you may have noticed,
 :class:`bidict.bidict` is also
