@@ -24,6 +24,12 @@ Tip: Subscribe to releases
 to be notified when new versions of ``bidict`` are released.
 
 
+0.21.0 not yet released
+-----------------------
+
+- Add :class:`bidict.MutableBidirectionalMapping`
+
+
 0.20.0 (2020-07-23)
 -------------------
 

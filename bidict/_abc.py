@@ -29,7 +29,7 @@
 """Provides the :class:`BidirectionalMapping` abstract base class."""
 
 from abc import abstractmethod
-from collections.abc import Mapping
+from collections.abc import Mapping, MutableMapping
 
 
 class BidirectionalMapping(Mapping):  # pylint: disable=abstract-method,no-init
@@ -89,6 +89,13 @@ class BidirectionalMapping(Mapping):  # pylint: disable=abstract-method,no-init
         and supporting set operations.
         """
         return self.inverse.keys()
+
+
+class MutableBidirectionalMapping(BidirectionalMapping, MutableMapping):  # noqa: E501; pylint: disable=line-too-long,abstract-method,no-init
+    """Abstract base class (ABC) for mutable bidirectional mapping types."""
+
+    __slots__ = ()
+
 
 #                             * Code review nav *
 #==============================================================================

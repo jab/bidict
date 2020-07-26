@@ -13,7 +13,7 @@ from collections import OrderedDict
 
 import pytest
 
-from bidict import bidict, frozenbidict, FrozenOrderedBidict, OrderedBidict, BidirectionalMapping
+from bidict import bidict, frozenbidict, FrozenOrderedBidict, OrderedBidict, BidirectionalMapping, MutableBidirectionalMapping  # noqa: E501; pylint: disable=line-too-long
 
 
 class AbstractBimap(BidirectionalMapping):  # pylint: disable=abstract-method
@@ -56,9 +56,17 @@ def test_issubclass_mapping(bi_cls):
 
 
 @pytest.mark.parametrize('bi_cls', MUTABLE_BIDICT_TYPES)
-def test_issubclass_mutablemapping(bi_cls):
-    """All mutable bidict types should be :class:`collections.abc.MutableMapping`s."""
+def test_issubclass_mutable_and_mutable_bidirectional_mapping(bi_cls):
+    """All mutable bidict types should be mutable (bidirectional) mappings."""
     assert issubclass(bi_cls, MutableMapping)
+    assert issubclass(bi_cls, MutableBidirectionalMapping)
+
+
+@pytest.mark.parametrize('bi_cls', HASHABLE_BIDICT_TYPES)
+def test_hashable_not_mutable(bi_cls):
+    """All hashable bidict types should not be mutable (bidirectional) mappings."""
+    assert not issubclass(bi_cls, MutableMapping)
+    assert not issubclass(bi_cls, MutableBidirectionalMapping)
 
 
 @pytest.mark.parametrize('bi_cls', HASHABLE_BIDICT_TYPES)

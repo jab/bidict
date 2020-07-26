@@ -61,7 +61,7 @@ with c_open(join(CWD, 'README.rst'), encoding='utf-8') as f:
 
 
 SETUP_REQS = [
-    'setuptools_scm',
+    'setuptools-scm',
 ]
 
 # Manually keep these version pins in sync with those in .travis.yml and .pre-commit-config.yaml.

@@ -47,13 +47,16 @@ update_graph() {
 
 # Use parentheses instead of braces around body so it runs in a subshell -> cd doesn't leak.
 build_docs() (
-  cd docs
   make clean html
 )
 
 main() {
-  update_graph
-  build_docs
+  cd assets
+    update_graph
+  cd -
+  cd docs
+    build_docs
+  cd -
 }
 
 main

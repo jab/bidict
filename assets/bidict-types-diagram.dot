@@ -13,28 +13,32 @@ digraph G {
   node [fontsize="12", shape="box"]
 
   subgraph ABCs {
-    node [fillcolor="#EFEFEF", color="#666666", fontcolor="#333333", style="filled", fontname="Script12 BT"]
+    node [fillcolor="#EFEFEF", color="#666666", fontcolor="#333333", style="filled", fontname="Cousine Nerd Font Italic"]
     Mapping [label="collections.abc.Mapping"]
     MutableMapping [label="collections.abc.MutableMapping"]
     Hashable [label="collections.abc.Hashable"]
     MutableMapping -> Mapping
     { rank=same Mapping MutableMapping Hashable }
 
-    BidirectionalMapping [label="bidict._abc.BidirectionalMapping", style="filled, bold", fontcolor="black", fontname="Cousine Bold Italic"]
+    BidirectionalMapping [label="bidict._abc.BidirectionalMapping", style="filled, bold", fontcolor="black", fontname="Cousine Nerd Font Bold Italic"]
+    MutableBidirectionalMapping [label="bidict._abc.MutableBidirectionalMapping", style="filled, bold", fontcolor="black", fontname="Cousine Nerd Font Bold Italic"]
     BidirectionalMapping -> Mapping
+    MutableBidirectionalMapping -> BidirectionalMapping
+    MutableBidirectionalMapping -> MutableMapping
   }
 
   subgraph {
-    node [style="bold", fontname="Fira Mono Bold"]
+    node [style="bold", fontname="FiraMono Nerd Font Bold"]
 
     bidict [label="bidict.bidict"]
     frozenbidict [label="bidict.frozenbidict"]
     OrderedBidict [label="bidict.OrderedBidict"]
     FrozenOrderedBidict [label="bidict.FrozenOrderedBidict"]
 
-    bidict -> { BidirectionalMapping, MutableMapping }
-    OrderedBidict -> { BidirectionalMapping, MutableMapping }
+    bidict -> { MutableBidirectionalMapping }
+    OrderedBidict -> { MutableBidirectionalMapping }
     FrozenOrderedBidict -> { BidirectionalMapping, Hashable }
     frozenbidict -> { BidirectionalMapping, Hashable }
+    { rank=same bidict frozenbidict OrderedBidict FrozenOrderedBidict }
   }
 }

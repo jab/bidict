@@ -70,7 +70,7 @@ if (_c.PYMAJOR, _c.PYMINOR) < (3, 5):  # pragma: no cover
 # source for the purposes of exporting it under the `bidict` module namespace.
 # pylint: disable=wrong-import-position
 # flake8: noqa: F401 (imported but unused)
-from ._abc import BidirectionalMapping
+from ._abc import BidirectionalMapping, MutableBidirectionalMapping
 from ._base import BidictBase
 from ._mut import MutableBidict
 from ._bidict import bidict

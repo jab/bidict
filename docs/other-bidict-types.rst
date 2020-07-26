@@ -302,7 +302,7 @@ allowing the creation of e.g. a named frozenbidict type:
    >>> noble = ElMap(He='helium')
    >>> noble.symbol_for['helium']
    'He'
-   >>> hash(noble) is not 'an error'
+   >>> hash(noble) is not TypeError  # does not raise TypeError: unhashable type
    True
    >>> noble['C'] = 'carbon'  # mutation fails
    Traceback (most recent call last):

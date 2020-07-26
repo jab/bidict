@@ -219,8 +219,7 @@ inserting existing items is a no-op (i.e. it doesn't raise)::
     >>> b.putall(
     ...     [('three', 3), ('one', 1)],
     ...     OnDup(key=RAISE, val=RAISE)
-    ... ) is not 'an error'
-    True
+    ... )  # does not raise an error because these items were already contained
     >>> b0 = b.copy()
     >>> b.putall([])  # no-op
     >>> b == b0
