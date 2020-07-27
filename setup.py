@@ -61,24 +61,19 @@ with c_open(join(CWD, 'README.rst'), encoding='utf-8') as f:
 
 
 SETUP_REQS = [
-    'setuptools-scm',
+    'setuptools_scm',
 ]
 
 # Manually keep these version pins in sync with those in .travis.yml and .pre-commit-config.yaml.
 
-SPHINX_REQS = [
-    'Sphinx < 3',
-    # Sphinx's docutils pin has no upper bound. Pin to 0.15.2 pending sphinx-doc/sphinx#6594.
-    # (Pulling 0.15 previously broke "make doctest" with SyntaxError under Python 2.7.)
-    'docutils == 0.15.2',
+DOCS_REQS = [
+    'Sphinx < 4',
 ]
 
-DOCS_REQS = SPHINX_REQS
-
 TEST_REQS = [
-    'hypothesis < 5',
+    'hypothesis < 6',
     'py < 2',
-    'pytest < 6',
+    'pytest < 7',
     'pytest-benchmark >= 3.2.0, < 4',
     'sortedcollections < 2',
     'sortedcontainers < 3',
@@ -90,42 +85,20 @@ TEST_REQS = [
 
 # Split out coverage from test requirements since it slows down the tests.
 COVERAGE_REQS = [
-    'coverage < 5',
+    'coverage < 6',
     'pytest-cov < 3',
 ]
 
-# The following dependencies have a higher chance of suddenly causing CI to fail after updating
-# even between minor versions, so pin to currently-working minor versions. Upgrade to newer
-# minor versions manually to have a chance to fix any resulting breakage before it hits CI.
-FLAKE8_REQ = 'flake8 < 3.8'
-PYDOCSTYLE_REQ = 'pydocstyle < 3.1'
-PYLINT_REQS = [
-    # Pin to exact versions of Pylint and Astroid, which don't follow semver.
-    # See https://github.com/PyCQA/astroid/issues/651#issuecomment-469021040
-    'pylint == 2.4.3',
-    'astroid == 2.3.2',
-]
+PRECOMMIT_REQS = ['pre-commit < 3']
 
-LINT_REQS = [
-    FLAKE8_REQ,
-    PYDOCSTYLE_REQ,
-] + PYLINT_REQS
-
-DEV_REQS = SETUP_REQS + DOCS_REQS + TEST_REQS + COVERAGE_REQS + LINT_REQS + [
-    'pre-commit < 2',
-    'tox < 4',
-]
+DEV_REQS = SETUP_REQS + DOCS_REQS + TEST_REQS + COVERAGE_REQS + PRECOMMIT_REQS + ['tox < 4']
 
 EXTRAS_REQS = dict(
     docs=DOCS_REQS,
     test=TEST_REQS,
     coverage=COVERAGE_REQS,
-    lint=LINT_REQS,
+    precommit=PRECOMMIT_REQS,
     dev=DEV_REQS,
-    sphinx=SPHINX_REQS,
-    flake8=[FLAKE8_REQ],
-    pydocstyle=[PYDOCSTYLE_REQ],
-    pylint=PYLINT_REQS,
 )
 
 setup(

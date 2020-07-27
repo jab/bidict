@@ -53,12 +53,6 @@ install:  # Install our test dependencies.
 
 before_script:
   - 'pip list'
-  - |
-    if [[ "$TASK" == lint-* ]]; then
-      shopt -s globstar
-      export LINT_SRC=**/*.py
-      echo "LINT_SRC:" $LINT_SRC
-    fi
 
 
 script:  # Run the test suite.
@@ -121,23 +115,15 @@ matrix:
       install: 'skip'
       script: 'python3 -O -m doctest -o IGNORE_EXCEPTION_DETAIL -o ELLIPSIS tests/*.txt'
 
-    ## Linting, static analysis, code style.
-    - env: 'TASK=lint-flake8 INSTALL_EXTRAS=flake8'
-      before_install: 'skip'
-      script: 'flake8 $LINT_SRC'
-
-    - env: 'TASK=lint-pylint INSTALL_EXTRAS=pylint,test'
-      before_install: 'skip'
-      script: 'pylint --jobs=0 $LINT_SRC'
-
-    - env: 'TASK=lint-pydocstyle INSTALL_EXTRAS=pydocstyle'
-      before_install: 'skip'
-      script: 'pydocstyle $LINT_SRC'
+    ## Run pre-commit hooks for linting, static analysis, code style, etc.
+    - env: 'TASK=precommit-hooks INSTALL_EXTRAS=precommit'
+      before_script: 'pre-commit install --install-hooks'
+      script: 'pre-commit run --all-files'
 
     ## Misc.
     - env: 'TASK=docs-build INSTALL_EXTRAS=docs'
       before_install: 'skip'
-      script: './build-docs.sh'
+      script: '(cd docs && make html)'
 
     - env: 'TASK=docs-linkcheck INSTALL_EXTRAS=docs'
       before_install: 'skip'
@@ -150,15 +136,15 @@ matrix:
     - python: '3.6'
       env: 'TASK=test-linux-cpython-3.6'
 
-    ## Test suite on Mac with latest CPython 3 available in Travis's Mac image. Currently this is
-    ## 3.7. Set `python: '3.7'` below so this shows up correctly in the Travis web UI. Must set
-    ## `language: 'generic' for Travis Mac builds, in which case changing the `python` value below
-    ## has no effect; /usr/local/bin/python3 is always 3.6. TODO: Update the `python` value below
-    ## if/when Travis updates their Mac image with a newer Python 3 (only so the web UI is correct).
-    - env: 'TASK=test-mac-cpython-3.7'
-      python: '3.6'
-      os: 'osx'
+    ## Test suite on Mac with latest system Python 3 available in Travis's Mac image.
+    ## Must set `language: generic` for this to work (otherwise Travis attempts to download
+    ## a non-system Python version which fails with a 404). Setting `python: '3.7'` below
+    ## actually has no effect (the Python version comes from the system Python) other than
+    ## to show the right version in the Travis web UI (must keep up-to-date manually).
+    - os: 'osx'
       language: 'generic'
+      python: '3.7'
+      env: 'TASK=test-mac-cpython-3.7'
 
     ## Try Travis's new Windows support once it supports Python?
     ### - env: 'TASK=test-windows-cpython-3.x'

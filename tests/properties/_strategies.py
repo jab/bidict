@@ -45,7 +45,7 @@ HASHABLES = ATOMS
 # TUPLES = st.lists(ATOMS).map(tuple)
 # TUPLES |= st.recursive(TUPLES, lambda i: st.lists(i).map(tuple))
 # HASHABLES |= TUPLES
-ODICTS_KW_PAIRS = st.dictionaries(TEXT, HASHABLES, OrderedDict, max_size=MAX)
+ODICTS_KW_PAIRS = st.dictionaries(TEXT, HASHABLES, dict_class=OrderedDict, max_size=MAX)
 PAIRS = st.tuples(HASHABLES, HASHABLES)
 L_PAIRS = st.lists(PAIRS, max_size=MAX)
 I_PAIRS = st.iterables(PAIRS, max_size=MAX)
@@ -54,7 +54,7 @@ L_PAIRS_NODUP = st.lists(PAIRS, unique_by=FST_SND, max_size=MAX)
 I_PAIRS_NODUP = st.iterables(PAIRS, unique_by=FST_SND, max_size=MAX)
 DIFF_ITEMS = st.lists(L_PAIRS_NODUP.map(frozenset), min_size=2, max_size=2, unique=True)
 SAME_ITEMS_DIFF_ORDER = st.tuples(
-    st.lists(PAIRS, unique_by=FST_SND, min_size=2, max_size=MAX), st.randoms()
+    st.lists(PAIRS, unique_by=FST_SND, min_size=2, max_size=MAX), st.randoms(use_true_random=False)
 ).map(
     lambda i: (i[0], i[1].sample(i[0], len(i[0])))  # (seq, shuffled seq)
 ).filter(lambda i: i[0] != i[1])

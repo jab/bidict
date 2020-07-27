@@ -1,6 +1,6 @@
 repos:
 - repo: https://github.com/pre-commit/pre-commit-hooks
-  rev: v2.1.0
+  rev: v3.1.0
   hooks:
   - id: trailing-whitespace
   - id: end-of-file-fixer
@@ -9,17 +9,20 @@ repos:
   # This stopped working so comment out for now (started applying to files that didn't need it):
   # - id: fix-encoding-pragma
   - id: check-yaml
-  # Keep in sync with flake8 version in setup.py --
-  # check https://github.com/pre-commit/pre-commit-hooks/blob/master/setup.py
-  # for the version of flake8 that is included with this pre-commit repo.
-  - id: flake8
 
-- repo: https://github.com/chewse/pre-commit-mirrors-pydocstyle
-  # Keep in sync with pydocstyle version in setup.py
-  rev: v2.1.1
+- repo: https://github.com/pycqa/pydocstyle
+  rev: 5.0.2
   hooks:
   - id: pydocstyle
     exclude: bidict/_version.py
+
+- repo: https://github.com/pycqa/flake8
+  # Keep in sync with flake8 version in setup.py --
+  # check https://github.com/pre-commit/pre-commit-hooks/blob/master/setup.py
+  # for the version of flake8 that is included with this pre-commit repo.
+  rev: 3.8.3
+  hooks:
+  - id: flake8
 
 - repo: https://github.com/Lucas-C/pre-commit-hooks
   rev: v1.1.6
@@ -38,21 +41,20 @@ repos:
 
 - repo: https://github.com/pre-commit/mirrors-pylint
   # Keep in sync with pylint version in setup.py
-  rev: v2.2.2
+  rev: v2.5.3
   hooks:
   - id: pylint
     # Needed to avoid ImportErrors when linting tests (keep in sync with versions in setup.py):
     additional_dependencies:
-    - hypothesis < 5
-    - pytest < 6
-    - Sphinx < 3
+    - hypothesis < 6
+    - pytest < 7
+    - Sphinx < 4
     args:
     # http://pylint.pycqa.org/en/latest/user_guide/run.html#parallel-execution
     # "If the provided number is 0, then the total number of CPUs will be used."
     - --jobs=0
 
 - repo: https://github.com/jumanjihouse/pre-commit-hooks
-  rev: 1.10.2
+  rev: 2.1.4
   hooks:
   - id: shellcheck
-  - id: shfmt

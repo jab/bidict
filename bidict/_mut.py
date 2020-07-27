@@ -137,7 +137,7 @@ class MutableBidict(BidictBase, MutableBidirectionalMapping):
         del self._invm[val]
         return key, val
 
-    def update(self, *args, **kw):  # pylint: disable=arguments-differ
+    def update(self, *args, **kw):  # pylint: disable=signature-differs
         """Like calling :meth:`putall` with *self.on_dup* passed for *on_dup*."""
         if args or kw:
             self._update(False, self.on_dup, *args, **kw)
