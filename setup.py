@@ -31,29 +31,18 @@ See python3statement.org for more info.
 
 if sys.version_info < (3,):
     sys.exit(PY2_ERR)
-elif sys.version_info < (3, 5):
-    warn('This version of bidict is untested on Python < 3.5 and may not work.')
+elif sys.version_info < (3, 6):
+    warn('This version of bidict is untested on Python < 3.6 and may not work.')
 
+from importlib.util import module_from_spec, spec_from_file_location  # noqa: E402,E501; pylint: disable=wrong-import-order,wrong-import-position
 
 CWD = abspath(dirname(__file__))
 
 # Get bidict's package metadata from ./bidict/metadata.py.
 METADATA_PATH = join(CWD, 'bidict', 'metadata.py')
-try:
-    from importlib.util import module_from_spec, spec_from_file_location
-except ImportError:  # Python < 3.5
-    try:
-        from importlib.machinery import SourceFileLoader
-    except ImportError:  # Python < 3.3 - treat as Python 2 (otherwise unsupported).
-        from imp import load_source
-        METADATA = load_source('metadata', METADATA_PATH)
-    else:  # Python 3.3 or 3.4
-        LOADER = SourceFileLoader('metadata', METADATA_PATH)
-        METADATA = LOADER.load_module('metadata')  # pylint: disable=deprecated-method
-else:
-    SPEC = spec_from_file_location('metadata', METADATA_PATH)
-    METADATA = module_from_spec(SPEC)
-    SPEC.loader.exec_module(METADATA)
+SPEC = spec_from_file_location('metadata', METADATA_PATH)
+METADATA = module_from_spec(SPEC)
+SPEC.loader.exec_module(METADATA)
 
 
 with c_open(join(CWD, 'README.rst'), encoding='utf-8') as f:
@@ -124,7 +113,6 @@ setup(
         'License :: OSI Approved :: Mozilla Public License 2.0 (MPL 2.0)',
         'Operating System :: OS Independent',
         'Programming Language :: Python :: 3 :: Only',
-        'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',

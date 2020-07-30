@@ -26,24 +26,27 @@
 #==============================================================================
 
 
-"""Provides :class:`OrderedBidict`."""
+"""Provide :class:`OrderedBidict`."""
 
+from typing import Tuple
+
+from ._abc import KT, VT
 from ._mut import MutableBidict
 from ._orderedbase import OrderedBidictBase
 
 
-class OrderedBidict(OrderedBidictBase, MutableBidict):
+class OrderedBidict(OrderedBidictBase[KT, VT], MutableBidict[KT, VT]):
     """Mutable bidict type that maintains items in insertion order."""
 
     __slots__ = ()
 
-    def clear(self):
+    def clear(self) -> None:
         """Remove all items."""
         self._fwdm.clear()
         self._invm.clear()
         self._sntl.nxt = self._sntl.prv = self._sntl
 
-    def popitem(self, last=True):  # pylint: disable=arguments-differ
+    def popitem(self, last=True) -> Tuple[KT, VT]:  # pylint: disable=arguments-differ
         """*x.popitem() → (k, v)*
 
         Remove and return the most recently added item as a (key, value) pair
@@ -57,7 +60,7 @@ class OrderedBidict(OrderedBidictBase, MutableBidict):
         val = self._pop(key)
         return key, val
 
-    def move_to_end(self, key, last=True):
+    def move_to_end(self, key: KT, last=True) -> None:
         """Move an existing key to the beginning or end of this ordered bidict.
 
         The item is moved to the end if *last* is True, else to the beginning.

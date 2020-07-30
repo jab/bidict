@@ -26,13 +26,19 @@
 #==============================================================================
 
 
-"""Provides the :class:`BidirectionalMapping` abstract base class."""
+"""Provide the :class:`BidirectionalMapping` abstract base class."""
 
 from abc import abstractmethod
-from collections.abc import Mapping, MutableMapping
+from typing import AbstractSet, Iterator, Mapping, MutableMapping, Tuple, TypeVar
 
 
-class BidirectionalMapping(Mapping):  # pylint: disable=abstract-method,no-init
+KT = TypeVar('KT')
+VT = TypeVar('VT')
+
+
+# pylint: disable=abstract-method,no-init
+
+class BidirectionalMapping(Mapping[KT, VT]):
     """Abstract base class (ABC) for bidirectional mapping types.
 
     Extends :class:`collections.abc.Mapping` primarily by adding the
@@ -46,7 +52,7 @@ class BidirectionalMapping(Mapping):  # pylint: disable=abstract-method,no-init
 
     @property
     @abstractmethod
-    def inverse(self):
+    def inverse(self) -> 'BidirectionalMapping[VT, KT]':
         """The inverse of this bidirectional mapping instance.
 
         *See also* :attr:`bidict.BidictBase.inverse`, :attr:`bidict.BidictBase.inv`
@@ -60,7 +66,7 @@ class BidirectionalMapping(Mapping):  # pylint: disable=abstract-method,no-init
         # clear there's no reason to call this implementation (e.g. via super() after overriding).
         raise NotImplementedError
 
-    def __inverted__(self):
+    def __inverted__(self) -> Iterator[Tuple[VT, KT]]:
         """Get an iterator over the items in :attr:`inverse`.
 
         This is functionally equivalent to iterating over the items in the
@@ -76,7 +82,7 @@ class BidirectionalMapping(Mapping):  # pylint: disable=abstract-method,no-init
         """
         return iter(self.inverse.items())
 
-    def values(self):
+    def values(self) -> AbstractSet[VT]:  # type: ignore[override]
         """A set-like object providing a view on the contained values.
 
         Override the implementation inherited from
@@ -91,7 +97,7 @@ class BidirectionalMapping(Mapping):  # pylint: disable=abstract-method,no-init
         return self.inverse.keys()
 
 
-class MutableBidirectionalMapping(BidirectionalMapping, MutableMapping):  # noqa: E501; pylint: disable=line-too-long,abstract-method,no-init
+class MutableBidirectionalMapping(BidirectionalMapping[KT, VT], MutableMapping[KT, VT]):
     """Abstract base class (ABC) for mutable bidirectional mapping types."""
 
     __slots__ = ()

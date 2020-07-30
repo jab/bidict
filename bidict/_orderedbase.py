@@ -26,18 +26,18 @@
 #==============================================================================
 
 
-"""Provides :class:`OrderedBidictBase`."""
+"""Provide :class:`OrderedBidictBase`."""
 
-from collections.abc import Mapping
 from copy import copy
+from typing import Any, Iterator, Mapping
 from weakref import ref
 
-from ._base import _WriteResult, BidictBase
+from ._base import _DedupResult, _WriteResult, BidictBase, KT, VT, T
 from ._bidict import bidict
 from ._sntl import _MISS
 
 
-class _Node:  # pylint: disable=too-few-public-methods
+class _Node:
     """A node in a circular doubly-linked list
     used to encode the order of items in an ordered bidict.
 
@@ -97,7 +97,7 @@ class _Node:  # pylint: disable=too-few-public-methods
         self._setnxt(state['_nxt'])
 
 
-class _SentinelNode(_Node):  # pylint: disable=too-few-public-methods
+class _SentinelNode(_Node):
     """Special node in a circular doubly-linked list
     that links the first node with the last node.
     When its next and previous references point back to itself
@@ -128,7 +128,7 @@ class _SentinelNode(_Node):  # pylint: disable=too-few-public-methods
             node = getattr(node, attr)
 
 
-class OrderedBidictBase(BidictBase):
+class OrderedBidictBase(BidictBase[KT, VT]):
     """Base class implementing an ordered :class:`BidirectionalMapping`."""
 
     __slots__ = ('_sntl',)
@@ -139,7 +139,7 @@ class OrderedBidictBase(BidictBase):
     #: The object used by :meth:`__repr__` for printing the contained items.
     _repr_delegate = list
 
-    def __init__(self, *args, **kw):
+    def __init__(self, *args, **kw) -> None:
         """Make a new ordered bidirectional mapping.
         The signature behaves like that of :class:`dict`.
         Items passed in are added in the order they are passed,
@@ -160,15 +160,15 @@ class OrderedBidictBase(BidictBase):
         # are inherited and are able to be reused without modification.
         super().__init__(*args, **kw)
 
-    def _init_inv(self):
+    def _init_inv(self) -> None:
         super()._init_inv()
         self.inverse._sntl = self._sntl  # pylint: disable=protected-access
 
     # Can't reuse BidictBase.copy since ordered bidicts have different internal structure.
-    def copy(self):
+    def copy(self: T) -> T:
         """A shallow copy of this ordered bidict."""
         # Fast copy implementation bypassing __init__. See comments in :meth:`BidictBase.copy`.
-        cp = self.__class__.__new__(self.__class__)  # pylint: disable=invalid-name
+        cp = self.__class__.__new__(self.__class__)
         sntl = _SentinelNode()
         fwdm = copy(self._fwdm)
         invm = copy(self._invm)
@@ -185,12 +185,12 @@ class OrderedBidictBase(BidictBase):
         cp._init_inv()  # pylint: disable=protected-access
         return cp
 
-    def __getitem__(self, key):
+    def __getitem__(self, key: KT) -> VT:
         nodefwd = self._fwdm[key]
         val = self._invm.inverse[nodefwd]  # pylint: disable=no-member
         return val
 
-    def _pop(self, key):
+    def _pop(self, key: KT) -> VT:
         nodefwd = self._fwdm.pop(key)
         val = self._invm.inverse.pop(nodefwd)  # pylint: disable=no-member
         nodefwd.prv.nxt = nodefwd.nxt
@@ -198,11 +198,11 @@ class OrderedBidictBase(BidictBase):
         return val
 
     @staticmethod
-    def _already_have(key, val, nodeinv, nodefwd):  # pylint: disable=arguments-differ
+    def _already_have(key: KT, val: VT, nodeinv: _Node, nodefwd: _Node) -> bool:  # pylint: disable=arguments-differ
         # Overrides _base.BidictBase.
         return nodeinv is nodefwd
 
-    def _write_item(self, key, val, dedup_result):  # pylint: disable=too-many-locals
+    def _write_item(self, key: KT, val: VT, dedup_result: _DedupResult) -> None:  # pylint: disable=too-many-locals
         # Overrides _base.BidictBase.
         fwdm = self._fwdm  # bidict mapping keys to nodes
         invm = self._invm  # bidict mapping vals to nodes
@@ -247,7 +247,7 @@ class OrderedBidictBase(BidictBase):
             fwdm[key] = nodeinv
         return _WriteResult(key, val, oldkey, oldval)
 
-    def _undo_write(self, dedup_result, write_result):  # pylint: disable=too-many-locals
+    def _undo_write(self, dedup_result: _DedupResult, write_result: _DedupResult) -> None:  # pylint: disable=too-many-locals
         fwdm = self._fwdm
         invm = self._invm
         isdupkey, isdupval, nodeinv, nodefwd = dedup_result
@@ -270,18 +270,18 @@ class OrderedBidictBase(BidictBase):
             fwdm[oldkey] = nodeinv
             assert invm[val] is nodeinv
 
-    def __iter__(self, reverse=False):
+    def __iter__(self, reverse=False) -> Iterator[KT]:
         """Iterator over the contained keys in insertion order."""
         fwdm_inv = self._fwdm.inverse  # pylint: disable=no-member
         for node in self._sntl.__iter__(reverse=reverse):
             yield fwdm_inv[node]
 
-    def __reversed__(self):
+    def __reversed__(self) -> Iterator[KT]:
         """Iterator over the contained keys in reverse insertion order."""
         for key in self.__iter__(reverse=True):
             yield key
 
-    def equals_order_sensitive(self, other):
+    def equals_order_sensitive(self, other: Any) -> bool:
         """Order-sensitive equality check.
 
         *See also* :ref:`eq-order-insensitive`

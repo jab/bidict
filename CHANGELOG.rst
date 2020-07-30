@@ -27,7 +27,13 @@ to be notified when new versions of ``bidict`` are released.
 0.21.0 not yet released
 -----------------------
 
-- Add :class:`bidict.MutableBidirectionalMapping`
+- Add :class:`bidict.MutableBidirectionalMapping`.
+
+- Add type hints.
+
+- Drop support for Python 3.5.
+
+- Remove the ``bidict.compat`` module.
 
 
 0.20.0 (2020-07-23)
@@ -60,7 +66,7 @@ Remove APIs deprecated in the previous release:
 - Drop support for Python 2
   :ref:`as promised in v0.18.2 <changelog:0.18.2 (2019-09-08)>`.
 
-  The :mod:`bidict.compat` module has been pruned accordingly.
+  The ``bidict.compat`` module has been pruned accordingly.
 
   This makes bidict more efficient on Python 3
   and enables further improvement to bidict in the future.
@@ -176,7 +182,7 @@ Remove APIs deprecated in the previous release:
   rather than an ``inv`` attribute for a class to qualify as a virtual subclass.
   This breaking change is expected to affect few if any users.
 
-- Add Python 2/3-compatible :attr:`bidict.compat.collections_abc` alias.
+- Add Python 2/3-compatible ``bidict.compat.collections_abc`` alias.
 
 - Stop testing Python 3.4 on CI,
   and warn when Python 3 < 3.5 is detected
@@ -708,7 +714,7 @@ This release includes multiple API simplifications and improvements.
   e.g. ``bidict()`` rather than ``bidict({})`` and
   ``orderedbidict()`` rather than ``orderedbidict([])``.
 
-- Add :attr:`bidict.compat.PYPY` and
+- Add ``bidict.compat.PYPY`` and
   remove unused ``bidict.compat.izip_longest``.
 
 0.12.0 (2016-07-03)
@@ -773,16 +779,16 @@ This release includes multiple API simplifications and improvements.
 
 - Add
 
-  - :func:`bidict.compat.viewkeys`
-  - :func:`bidict.compat.viewvalues`
-  - :func:`bidict.compat.iterkeys`
-  - :func:`bidict.compat.itervalues`
+  - ``bidict.compat.viewkeys``
+  - ``bidict.compat.viewvalues``
+  - ``bidict.compat.iterkeys``
+  - ``bidict.compat.itervalues``
   - ``bidict.compat.izip``
   - ``bidict.compat.izip_longest``
 
   to complement the existing
-  :func:`~bidict.compat.iteritems` and
-  :func:`~bidict.compat.viewitems`
+  ``bidict.compat.iteritems`` and
+  ``bidict.compat.viewitems``
   compatibility helpers.
 
 - More efficient implementations of
@@ -942,7 +948,7 @@ Breaking API Changes
 ++++++++++++++++++++
 
 - Move ``bidict.iteritems()`` and ``bidict.viewitems()``
-  to new :mod:`bidict.compat` module.
+  to new ``bidict.compat`` module.
 
 - Move :class:`bidict.inverted`
   to new ``bidict.util`` module

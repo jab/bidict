@@ -10,6 +10,11 @@ repos:
   # - id: fix-encoding-pragma
   - id: check-yaml
 
+#- repo: https://github.com/pre-commit/mirrors-mypy
+#  rev: '0.782'
+#  hooks:
+#  - id: mypy
+
 - repo: https://github.com/pycqa/pydocstyle
   rev: 5.0.2
   hooks:
@@ -25,7 +30,7 @@ repos:
   - id: flake8
 
 - repo: https://github.com/Lucas-C/pre-commit-hooks
-  rev: v1.1.6
+  rev: v1.1.9
   hooks:
   - id: forbid-crlf
   - id: remove-crlf
@@ -40,7 +45,6 @@ repos:
   #   - --license-filepath=.LICENSE_HEADER
 
 - repo: https://github.com/pre-commit/mirrors-pylint
-  # Keep in sync with pylint version in setup.py
   rev: v2.5.3
   hooks:
   - id: pylint

@@ -6,7 +6,7 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 
-"""Provides sentinels used internally in bidict."""
+"""Provide sentinels used internally in bidict."""
 
 from enum import Enum
 
@@ -14,12 +14,9 @@ from enum import Enum
 class _Sentinel(Enum):
     #: The result of looking up a missing key (or inverse key).
     MISS = 'MISS'
-    #: No-op.
-    NOOP = 'NOOP'
 
     def __repr__(self):
-        return '<%s>' % self.name  # pragma: no cover
+        return f'<{self.name}>'  # pragma: no cover
 
 
 _MISS = _Sentinel.MISS
-_NOOP = _Sentinel.NOOP

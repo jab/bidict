@@ -6,7 +6,7 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 
-"""Provides :class:`OnDup` and related functionality."""
+"""Provide :class:`OnDup` and related functionality."""
 
 
 from collections import namedtuple
@@ -24,7 +24,7 @@ class OnDupAction(Enum):
     DROP_NEW = 'DROP_NEW'
 
     def __repr__(self):
-        return '<bidict.%s>' % self.name  # pragma: no cover
+        return f'<bidict.{self.name}>'  # pragma: no cover
 
 
 RAISE = OnDupAction.RAISE

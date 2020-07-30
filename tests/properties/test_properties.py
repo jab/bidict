@@ -14,6 +14,7 @@ from copy import deepcopy
 from collections import OrderedDict
 from collections.abc import Iterable
 from itertools import tee
+from platform import python_implementation
 from weakref import ref
 
 import pytest
@@ -25,13 +26,12 @@ from bidict import (
     OrderedBidictBase, OrderedBidict, bidict, namedbidict,
     inverted,
 )
-from bidict.compat import PYPY
 from bidict._util import _iteritems_args_kw  # pylint: disable=protected-access
 
 from . import _strategies as st
 
 
-# pylint: disable=invalid-name
+PYPY = python_implementation() == 'PyPy'
 
 
 @given(st.BIDICTS, st.NON_MAPPINGS)
@@ -319,7 +319,7 @@ def test_slots(bi_cls):
     for cls in bi_cls.__mro__:
         if cls in stop_at:
             break
-        slots = cls.__dict__.get('__slots__')
+        slots = getattr(cls, '__slots__', None)
         assert slots is not None, 'Expected %r to define __slots__' % cls
         for slot in slots:
             seen_at = cls_by_slot.get(slot)

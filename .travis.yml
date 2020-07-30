@@ -27,6 +27,10 @@ before_install:  # Ensure we have the required versions of Python and Pip.
   - 'echo "TRAVIS_PULL_REQUEST_SHA: $TRAVIS_PULL_REQUEST_SHA"'
   - 'echo "TRAVIS_COMMIT: $TRAVIS_COMMIT"'
   - 'git --no-pager log -n2'
+  - 'pwd'
+  - 'ls -la'
+  - 'ls -la .hypothesis'
+  - 'ls -la ~/.cache'
   # Travis does a shallow (--depth=50) clone by default.
   # Clone the full history as requested by setuptools_scm.
   - 'travis_retry git fetch --unshallow'
@@ -105,10 +109,6 @@ matrix:
     - python: 'pypy3'
       env: 'TASK=test-linux-pypy3 COVERAGE=1'
 
-    ## Test suite on Linux with Python 3.5, where dicts are unordered -> enable coverage.
-    - python: '3.5'
-      env: 'TASK=test-linux-cpython-3.5 COVERAGE=1'
-
     ## Make sure there are no relied-on side effects in assert statements.
     - env: 'TASK=test-with-optimization-flag'
       before_install: 'skip'
@@ -171,7 +171,7 @@ before_cache:
 cache:
   directories:
     - '"$HOME"/.cache/pip'
-    - '"$HOME"/.hypothesis'
+    - '.hypothesis'
 
 
 notifications:

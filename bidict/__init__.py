@@ -50,21 +50,11 @@ if you are reading this elsewhere.
 """
 
 # Use private aliases to not re-export these publicly (for Sphinx automodule with imported-members).
-from functools import partial as _partial
-from types import ModuleType as _ModuleType
-from sys import modules as _modules
-from warnings import warn as _warn
-
-from . import compat as _c
+from sys import version_info as _version_info
 
 
-if _c.PY2:
-    raise ImportError('Python 3 is required.')
-
-_warn2 = _partial(_warn, stacklevel=2)  # pylint: disable=invalid-name
-
-if (_c.PYMAJOR, _c.PYMINOR) < (3, 5):  # pragma: no cover
-    _warn2('This version of bidict is untested on Python < 3.5 and may not work.')
+if _version_info < (3, 6):  # pragma: no cover
+    raise ImportError('Python 3.6+ is required.')
 
 # The rest of this file only collects functionality implemented in the rest of the
 # source for the purposes of exporting it under the `bidict` module namespace.

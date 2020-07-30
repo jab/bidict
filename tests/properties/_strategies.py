@@ -17,8 +17,6 @@ from bidict import DROP_NEW, DROP_OLD, RAISE, OnDup, OrderedBidictBase, namedbid
 from . import _types as t
 
 
-# pylint: disable=invalid-name
-
 MAX = int(getenv('HYPOTHESIS_GEN_MAX_SIZE', '0')) or None
 
 BIDICT_TYPES = st.sampled_from(t.BIDICT_TYPES)
