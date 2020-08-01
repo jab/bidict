@@ -34,7 +34,7 @@ if sys.version_info < (3,):
 elif sys.version_info < (3, 6):
     warn('This version of bidict is untested on Python < 3.6 and may not work.')
 
-from importlib.util import module_from_spec, spec_from_file_location  # noqa: E402,E501; pylint: disable=wrong-import-order,wrong-import-position
+from importlib.util import module_from_spec, spec_from_file_location
 
 CWD = abspath(dirname(__file__))
 
@@ -42,7 +42,7 @@ CWD = abspath(dirname(__file__))
 METADATA_PATH = join(CWD, 'bidict', 'metadata.py')
 SPEC = spec_from_file_location('metadata', METADATA_PATH)
 METADATA = module_from_spec(SPEC)
-SPEC.loader.exec_module(METADATA)
+SPEC.loader.exec_module(METADATA)  # type: ignore
 
 
 with c_open(join(CWD, 'README.rst'), encoding='utf-8') as f:
@@ -57,6 +57,7 @@ SETUP_REQS = [
 
 DOCS_REQS = [
     'Sphinx < 4',
+    'sphinx-autodoc-typehints < 2',
 ]
 
 TEST_REQS = [
@@ -69,7 +70,7 @@ TEST_REQS = [
     # pytest's doctest support doesn't support Sphinx extensions
     # (https://www.sphinx-doc.org/en/latest/usage/extensions/doctest.html)
     # so †est the code in the Sphinx docs using Sphinx's own doctest support.
-    DOCS_REQS,
+    *DOCS_REQS,
 ]
 
 # Split out coverage from test requirements since it slows down the tests.
@@ -80,7 +81,7 @@ COVERAGE_REQS = [
 
 PRECOMMIT_REQS = ['pre-commit < 3']
 
-DEV_REQS = SETUP_REQS + DOCS_REQS + TEST_REQS + COVERAGE_REQS + PRECOMMIT_REQS + ['tox < 4']
+DEV_REQS = SETUP_REQS + TEST_REQS + COVERAGE_REQS + PRECOMMIT_REQS + ['tox < 4']
 
 EXTRAS_REQS = dict(
     docs=DOCS_REQS,
@@ -97,16 +98,17 @@ setup(
         'local_scheme': 'dirty-tag',
         'write_to': 'bidict/_version.py',
     },
-    author=METADATA.__author__,
-    author_email=METADATA.__email__,
-    description=METADATA.__description__,
+    author=METADATA.__author__,  # type: ignore
+    author_email=METADATA.__email__,  # type: ignore
+    description=METADATA.__description__,  # type: ignore
     long_description=LONG_DESCRIPTION,
-    keywords=METADATA.__keywords__,
-    url=METADATA.__url__,
-    license=METADATA.__license__,
+    long_description_content_type='text/x-rst',
+    keywords=METADATA.__keywords__,  # type: ignore
+    url=METADATA.__url__,  # type: ignore
+    license=METADATA.__license__,  # type: ignore
     packages=['bidict'],
     zip_safe=False,  # Don't zip. (We're zip-safe but prefer not to.)
-    python_requires='>=3',
+    python_requires='>=3.6',
     classifiers=[
         'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',

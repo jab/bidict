@@ -58,7 +58,6 @@ if _version_info < (3, 6):  # pragma: no cover
 
 # The rest of this file only collects functionality implemented in the rest of the
 # source for the purposes of exporting it under the `bidict` module namespace.
-# pylint: disable=wrong-import-position
 # flake8: noqa: F401 (imported but unused)
 from ._abc import BidirectionalMapping, MutableBidirectionalMapping
 from ._base import BidictBase
@@ -69,19 +68,24 @@ from ._frozenordered import FrozenOrderedBidict
 from ._named import namedbidict
 from ._orderedbase import OrderedBidictBase
 from ._orderedbidict import OrderedBidict
-from ._dup import (
-    ON_DUP_DEFAULT, ON_DUP_RAISE, ON_DUP_DROP_OLD,
-    RAISE, DROP_OLD, DROP_NEW, OnDup, OnDupAction,
-)
-from ._exc import (
-    BidictException,
-    DuplicationError, KeyDuplicationError, ValueDuplicationError, KeyAndValueDuplicationError,
-)
-from ._util import inverted
+from ._dup import ON_DUP_DEFAULT, ON_DUP_RAISE, ON_DUP_DROP_OLD, RAISE, DROP_OLD, DROP_NEW, OnDup, OnDupAction
+from ._exc import BidictException, DuplicationError, KeyDuplicationError, ValueDuplicationError, KeyAndValueDuplicationError
+from ._iter import inverted
 from .metadata import (
     __author__, __maintainer__, __copyright__, __email__, __credits__, __url__,
     __license__, __status__, __description__, __keywords__, __version__, __version_info__,
 )
+
+# Set __module__ of re-exported classes to the 'bidict' top-level module name
+# so that private/internal submodules are not exposed to users e.g. in repr  strings.
+_locals = tuple(locals().items())
+for _name, _obj in _locals:  # pragma: no cover
+    if not getattr(_obj, '__module__', '').startswith('bidict.'):
+        continue
+    try:
+        _obj.__module__ = 'bidict'
+    except AttributeError as exc:  # raised when __module__ is read-only (as in OnDup)
+        pass
 
 
 #                             * Code review nav *

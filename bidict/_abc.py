@@ -28,17 +28,13 @@
 
 """Provide the :class:`BidirectionalMapping` abstract base class."""
 
+import typing as _t
 from abc import abstractmethod
-from typing import AbstractSet, Iterator, Mapping, MutableMapping, Tuple, TypeVar
+
+from ._typing import KT, VT
 
 
-KT = TypeVar('KT')
-VT = TypeVar('VT')
-
-
-# pylint: disable=abstract-method,no-init
-
-class BidirectionalMapping(Mapping[KT, VT]):
+class BidirectionalMapping(_t.Mapping[KT, VT]):
     """Abstract base class (ABC) for bidirectional mapping types.
 
     Extends :class:`collections.abc.Mapping` primarily by adding the
@@ -66,7 +62,7 @@ class BidirectionalMapping(Mapping[KT, VT]):
         # clear there's no reason to call this implementation (e.g. via super() after overriding).
         raise NotImplementedError
 
-    def __inverted__(self) -> Iterator[Tuple[VT, KT]]:
+    def __inverted__(self) -> _t.Iterator[_t.Tuple[VT, KT]]:
         """Get an iterator over the items in :attr:`inverse`.
 
         This is functionally equivalent to iterating over the items in the
@@ -82,7 +78,7 @@ class BidirectionalMapping(Mapping[KT, VT]):
         """
         return iter(self.inverse.items())
 
-    def values(self) -> AbstractSet[VT]:  # type: ignore[override]
+    def values(self) -> _t.AbstractSet[VT]:  # type: ignore  # https://github.com/python/typeshed/issues/4435
         """A set-like object providing a view on the contained values.
 
         Override the implementation inherited from
@@ -97,7 +93,7 @@ class BidirectionalMapping(Mapping[KT, VT]):
         return self.inverse.keys()
 
 
-class MutableBidirectionalMapping(BidirectionalMapping[KT, VT], MutableMapping[KT, VT]):
+class MutableBidirectionalMapping(BidirectionalMapping[KT, VT], _t.MutableMapping[KT, VT]):
     """Abstract base class (ABC) for mutable bidirectional mapping types."""
 
     __slots__ = ()

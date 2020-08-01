@@ -3,11 +3,12 @@ Learning from ``bidict``
 
 Below is an outline of some of the more fascinating
 and lesser-known Python corners I got to explore further
-thanks to working on bidict.
+thanks to working on :mod:`bidict`.
 
-If you are interested in learning more about any of the following,
-I highly encourage you to
-`read bidict's code <https://github.com/jab/bidict/blob/master/bidict/__init__.py#L10>`__.
+If you would like to learn more about any of the topics below,
+you may find `reading bidict's code
+<https://github.com/jab/bidict/blob/master/bidict/__init__.py#L10>`__
+particularly interesting.
 
 I've sought to optimize the code not just for correctness and performance,
 but also to make for a clear and enjoyable read,
@@ -21,7 +22,8 @@ it's brought me. 😊
 Python syntax hacks
 ===================
 
-Bidict used to support (ab)using a specialized form of Python's :ref:`slice <slicings>` syntax
+:mod:`bidict` used to support
+(ab)using a specialized form of Python's :ref:`slice <slicings>` syntax
 for getting and setting keys by value:
 
 .. code-block:: python
@@ -40,7 +42,8 @@ and `#19 <https://github.com/jab/bidict/issues/19>`__ for why this was dropped.
 Code structure
 ==============
 
-Bidicts come in every combination of mutable, immutable, ordered, and unordered types,
+:class:`~bidict.bidict`\s come in every combination of
+mutable, immutable, ordered, and unordered types,
 implementing Python's various
 :class:`relevant <collections.abc.Mapping>`
 :class:`collections <collections.abc.MutableMapping>`
@@ -147,7 +150,7 @@ Python surprises, gotchas, regrets
   that contain the same items but in a different order?
   What about when comparing with an unordered mapping?
 
-  Check out what Python's :class:`~collections.OrderedDict` does,
+  Check out what Python's :class:`collections.OrderedDict` does,
   and the surprising results:
 
   .. code-block:: python
@@ -234,8 +237,7 @@ you can subclass a :func:`~collections.namedtuple` class.
 Just make sure to include ``__slots__ = ()``,
 or you'll lose a lot of the performance benefits.
 
-``_marker.py`` contains a small example.
-Here's a larger one:
+Here's an example:
 
 .. doctest::
 
@@ -298,8 +300,7 @@ How to deeply integrate with Python's :mod:`collections` and other built-in APIs
   ``issubclass(Foo, Hashable)`` will always be True,
   no need to explicitly subclass via ``class Foo(Hashable): ...``
 
-- How to make your own open ABC like :class:`~collections.abc.Hashable`,
-  i.e. how does :class:`~bidict.BidirectionalMapping` work?
+- How to make your own open ABC like :class:`~collections.abc.Hashable`?
 
   - Override :meth:`~abc.ABCMeta.__subclasshook__`
     to check for the interface you require.
@@ -315,12 +316,8 @@ How to deeply integrate with Python's :mod:`collections` and other built-in APIs
     :class:`list` is a subclass of :class:`object`,
     but :class:`list` is not a subclass of :class:`~collections.abc.Hashable`.
 
-- What if we needed to add a second metaclass
-  in addition to :class:`~bidict.BidirectionalMapping`
-  (e.g. to conditionally implement an optimized version of some methods
-  based on the type of ``_fwmd_cls``,
-  as ``_delegating.py`` currently does without a metaclass)?
-  Would have to be careful to avoid
+- What if you needed to derive from a second metaclass?
+  Be careful to avoid
   "TypeError: metaclass conflict: the metaclass of a derived class
   must be a (non-strict) subclass of the metaclasses of all its bases".
   See the great write-up in
@@ -329,14 +326,14 @@ How to deeply integrate with Python's :mod:`collections` and other built-in APIs
 - :class:`collections.abc.Mapping` and
   :class:`collections.abc.MutableMapping`
   don't implement :meth:`~abc.ABCMeta.__subclasshook__`,
-  so must either explicitly subclass
-  (if you want to inherit any of their implementations)
+  so you must either explicitly subclass them
+  (in which case you inherit their concrete method implementations)
   or use :meth:`abc.ABCMeta.register`
-  (to register as a virtual subclass without inheriting any implementation)
+  (to register as a virtual subclass without inheriting any of the implementation).
 
-- Notice we have :class:`collections.abc.Reversible`
+- Notice that Python provides :class:`collections.abc.Reversible`
   but no ``collections.abc.Ordered`` or ``collections.abc.OrderedMapping``.
-  Proposed in `bpo-28912 <https://bugs.python.org/issue28912>`__ but rejected.
+  This was proposed in `bpo-28912 <https://bugs.python.org/issue28912>`__ but rejected.
   Would have been useful for bidict's ``__repr__()`` implementation (see ``_base.py``),
   and potentially for interop with other ordered mapping implementations
   such as `SortedDict <http://www.grantjenks.com/docs/sortedcontainers/sorteddict.html>`__.
@@ -468,7 +465,7 @@ Portability
     attribute off the borrowed method to avoid getting
     ``TypeError: unbound method ...() must be called with ... instance as first argument``
 
-    See the `implementation <https://github.com/jab/bidict/blob/master/bidict/_frozenordered.py#L10>`__
+    See the `old implementation <https://github.com/jab/bidict/blob/v0.18.3/bidict/_frozenordered.py#L10>`__
     of :class:`~bidict.FrozenOrderedBidict`.
 
 - CPython vs. PyPy
@@ -491,7 +488,6 @@ Other interesting stuff in the standard library
 - :mod:`reprlib` and :func:`reprlib.recursive_repr`
   (but not needed for bidict because there's no way to insert a bidict into itself)
 - :func:`operator.methodcaller`
-- :attr:`platform.python_implementation`
 - See :ref:`addendum:Missing \`\`bidict\`\`\\s in the Standard Library`
 
 

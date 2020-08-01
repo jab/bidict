@@ -44,17 +44,16 @@ People
 Projects
 ========
 
-- `Tidelift <https://tidelift.com>`__
+- `Tidelift <https://tidelift.com/>`__
 - `Pytest <https://docs.pytest.org/en/latest/>`__
 - `Coverage <https://coverage.readthedocs.io/en/latest/>`__
 - `hypothesis <https://hypothesis.readthedocs.io/en/latest/>`__
 - `pytest-benchmark <https://github.com/ionelmc/pytest-benchmark>`__
 - `Sphinx <http://www.sphinx-doc.org/en/stable/>`__
 - `Travis <https://travis-ci.org/>`__
-- `Readthedocs <https://readthedocs.org>`__
-- `Codecov <https://codecov.io>`__
-- `lgtm <https://lgtm.com/>`__
+- `Readthedocs <https://readthedocs.org/>`__
+- `Codecov <https://codecov.io/>`__
 - `Pylint <https://www.pylint.org/>`__
-- `Flake8 <http://flake8.pycqa.org>`__
-- `Alabaster <https://alabaster.readthedocs.io>`__
+- `Flake8 <http://flake8.pycqa.org/>`__
+- `Alabaster <https://alabaster.readthedocs.io/>`__
 - `setuptools_scm <https://github.com/pypa/setuptools_scm>`__

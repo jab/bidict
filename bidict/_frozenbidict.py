@@ -27,7 +27,10 @@
 
 """Provide :class:`frozenbidict`, an immutable, hashable bidirectional mapping type."""
 
-from ._delegating import _DelegatingBidict, KT, VT, ItemsView
+import typing as _t
+
+from ._delegating import _DelegatingBidict
+from ._typing import KT, VT
 
 
 class frozenbidict(_DelegatingBidict[KT, VT]):
@@ -35,11 +38,18 @@ class frozenbidict(_DelegatingBidict[KT, VT]):
 
     __slots__ = ()
 
+    # Work around lack of support for higher-kinded types in mypy.
+    # Ref: https://github.com/python/typing/issues/548#issuecomment-621571821
+    # Remove this and similar type stubs from other classes if support is ever added.
+    if _t.TYPE_CHECKING:  # pragma: no cover
+        @property
+        def inverse(self) -> 'frozenbidict[VT, KT]': ...
+
     def __hash__(self) -> int:
         """The hash of this bidict as determined by its items."""
         if getattr(self, '_hash', None) is None:
-            self._hash = ItemsView(self)._hash()  # pylint: disable=attribute-defined-outside-init
-        return self._hash
+            self._hash = _t.ItemsView(self)._hash()  # type: ignore
+        return self._hash  # type: ignore
 
 
 #                             * Code review nav *

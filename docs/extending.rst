@@ -101,21 +101,16 @@ but the excellent
 `sortedcontainers <http://www.grantjenks.com/docs/sortedcontainers/>`__ and
 `sortedcollections <http://www.grantjenks.com/docs/sortedcollections/>`__
 libraries do.
-Armed with these along with bidict's
-:attr:`~bidict.BidictBase._fwdm_cls`
-and
-:attr:`~bidict.BidictBase._invm_cls`
-attributes,
-creating a sorted bidict type is dead simple:
+
+Armed with these, along with :class:`~bidict.BidictBase`'s
+:attr:`~bidict.BidictBase._fwdm_cls` (forward mapping class) and
+:attr:`~bidict.BidictBase._invm_cls` (inverse mapping class) attributes,
+creating a sorted bidict is simple:
 
 .. doctest::
 
-   >>> # As an optimization, bidict.bidict includes a mixin class that
-   >>> # we can't use here (namely bidict._delegating_mixins._DelegateKeysAndItemsToFwdm),
-   >>> # so extend the main parent class, bidict.MutableBidict, instead.
    >>> from bidict import MutableBidict
-
-   >>> import sortedcontainers
+   >>> from sortedcontainers import SortedDict
 
    >>> class SortedBidict(MutableBidict):
    ...     """A sorted bidict whose forward items stay sorted by their keys,
@@ -124,9 +119,9 @@ creating a sorted bidict type is dead simple:
    ...     in different orders.
    ...     """
    ...     __slots__ = ()
-   ...     _fwdm_cls = sortedcontainers.SortedDict
-   ...     _invm_cls = sortedcontainers.SortedDict
-   ...     _repr_delegate = list
+   ...     _fwdm_cls = SortedDict
+   ...     _invm_cls = SortedDict
+   ...     _repr_delegate = list  # only used for list-style repr
 
    >>> b = SortedBidict({'Tokyo': 'Japan', 'Cairo': 'Egypt'})
    >>> b
@@ -134,12 +129,10 @@ creating a sorted bidict type is dead simple:
 
    >>> b['Lima'] = 'Peru'
 
-   >>> # b stays sorted by its keys:
-   >>> list(b.items())
+   >>> list(b.items())  # stays sorted by key
    [('Cairo', 'Egypt'), ('Lima', 'Peru'), ('Tokyo', 'Japan')]
 
-   >>> # b.inverse stays sorted by *its* keys (b's values)
-   >>> list(b.inverse.items())
+   >>> list(b.inverse.items())  # .inverse stays sorted by *its* keys (b's values)
    [('Egypt', 'Cairo'), ('Japan', 'Tokyo'), ('Peru', 'Lima')]
 
 
@@ -149,52 +142,85 @@ will yield their items in *the same* order:
 
 .. doctest::
 
-   >>> import sortedcollections
+   >>> from sortedcollections import ValueSortedDict
 
    >>> class KeySortedBidict(MutableBidict):
    ...     __slots__ = ()
-   ...     _fwdm_cls = sortedcontainers.SortedDict
-   ...     _invm_cls = sortedcollections.ValueSortedDict
+   ...     _fwdm_cls = SortedDict
+   ...     _invm_cls = ValueSortedDict
    ...     _repr_delegate = list
 
-   >>> element_by_atomic_number = KeySortedBidict({
-   ...     3: 'lithium', 1: 'hydrogen', 2: 'helium'})
+   >>> elem_by_atomicnum = KeySortedBidict({
+   ...     6: 'carbon', 1: 'hydrogen', 2: 'helium'})
 
-   >>> # stays sorted by key:
-   >>> element_by_atomic_number
-   KeySortedBidict([(1, 'hydrogen'), (2, 'helium'), (3, 'lithium')])
+   >>> list(elem_by_atomicnum.items())  # stays sorted by key
+   [(1, 'hydrogen'), (2, 'helium'), (6, 'carbon')]
 
-   >>> # .inverse stays sorted by value:
-   >>> list(element_by_atomic_number.inverse.items())
-   [('hydrogen', 1), ('helium', 2), ('lithium', 3)]
+   >>> list(elem_by_atomicnum.inverse.items())  # .inverse stays sorted by value
+   [('hydrogen', 1), ('helium', 2), ('carbon', 6)]
 
-   >>> element_by_atomic_number[4] = 'beryllium'
+   >>> elem_by_atomicnum[4] = 'beryllium'
 
-   >>> list(element_by_atomic_number.inverse.items())
-   [('hydrogen', 1), ('helium', 2), ('lithium', 3), ('beryllium', 4)]
+   >>> list(elem_by_atomicnum.inverse.items())
+   [('hydrogen', 1), ('helium', 2), ('beryllium', 4), ('carbon', 6)]
 
-   >>> # This works because a bidict whose _fwdm_cls differs from its _invm_cls computes
-   >>> # its inverse class -- which (note) is not actually the same class as the original,
-   >>> # as it needs to have its _fwdm_cls and _invm_cls swapped -- automatically.
-   >>> # You can see this if you inspect the inverse bidict:
-   >>> element_by_atomic_number.inverse  # Note the different class, which was auto-generated:
-   KeySortedBidictInv([('hydrogen', 1), ('helium', 2), ('lithium', 3), ('beryllium', 4)])
-   >>> ValueSortedBidict = element_by_atomic_number.inverse.__class__
-   >>> ValueSortedBidict._fwdm_cls
-   <class 'sortedcollections.recipes.ValueSortedDict'>
-   >>> ValueSortedBidict._invm_cls
-   <class 'sortedcontainers.sorteddict.SortedDict'>
 
-   >>> # Round trips work as expected:
-   >>> atomic_number_by_element = ValueSortedBidict(element_by_atomic_number.inverse)
-   >>> atomic_number_by_element
-   KeySortedBidictInv([('hydrogen', 1), ('helium', 2), ('lithium', 3), ('beryllium', 4)])
-   >>> KeySortedBidict(atomic_number_by_element.inverse) == element_by_atomic_number
+Dynamic Inverse Class Generation
+::::::::::::::::::::::::::::::::
+
+When a bidict class's
+:attr:`~bidict.BidictBase._fwdm_cls` and
+:attr:`~bidict.BidictBase._invm_cls`
+are the same,
+the bidict class is its own inverse class.
+(This is the case for all the
+:ref:`bidict classes <other-bidict-types:Bidict Types Diagram>`
+that come with :mod:`bidict`.)
+
+However, when a bidict's
+:attr:`~bidict.BidictBase._fwdm_cls` and
+:attr:`~bidict.BidictBase._invm_cls` differ,
+as in the ``KeySortedBidict`` example above,
+the inverse class of the bidict
+needs to have its
+:attr:`~bidict.BidictBase._fwdm_cls` and
+:attr:`~bidict.BidictBase._invm_cls` swapped.
+
+:class:`~bidict.BidictBase` detects this
+and dynamically computes the correct inverse class for you automatically.
+
+You can see this if you inspect ``KeySortedBidict``'s inverse bidict:
+
+   >>> elem_by_atomicnum.inverse.__class__.__name__
+   'KeySortedBidictInv'
+
+Notice that :class:`~bidict.BidictBase` automatically created a
+``KeySortedBidictInv`` class and used it for the inverse bidict.
+
+As expected, ``KeySortedBidictInv``'s
+:attr:`~bidict.BidictBase._fwdm_cls` and
+:attr:`~bidict.BidictBase._invm_cls`
+are the opposite of ``KeySortedBidict``'s:
+
+   >>> elem_by_atomicnum.inverse._fwdm_cls.__name__
+   'ValueSortedDict'
+   >>> elem_by_atomicnum.inverse._invm_cls.__name__
+   'SortedDict'
+
+:class:`~bidict.BidictBase` also ensures that round trips work as expected:
+
+   >>> KeySortedBidictInv = elem_by_atomicnum.inverse.__class__  # i.e. a value-sorted bidict
+   >>> atomicnum_by_elem = KeySortedBidictInv(elem_by_atomicnum.inverse)
+   >>> atomicnum_by_elem
+   KeySortedBidictInv([('hydrogen', 1), ('helium', 2), ('beryllium', 4), ('carbon', 6)])
+   >>> KeySortedBidict(atomicnum_by_elem.inverse) == elem_by_atomicnum
    True
 
-   >>> # One other useful trick:
-   >>> # To pass method calls through to the _fwdm SortedDict when not present
-   >>> # on the bidict instance, provide a custom __getattribute__ method:
+You can even play tricks with attribute lookup redirection here too.
+For example, to pass attribute access through to the backing ``_fwdm`` mapping
+when an attribute is not provided by the bidict class itself,
+you can override :meth:`~object.__getattribute__` as follows:
+
    >>> def __getattribute__(self, name):
    ...     try:
    ...         return object.__getattribute__(self, name)
@@ -203,11 +229,16 @@ will yield their items in *the same* order:
 
    >>> KeySortedBidict.__getattribute__ = __getattribute__
 
-   >>> # bidict has no .peekitem attr, so the call is passed through to _fwdm:
-   >>> element_by_atomic_number.peekitem()
-   (4, 'beryllium')
-   >>> element_by_atomic_number.inverse.peekitem()
-   ('beryllium', 4)
+Now, even though this ``KeySortedBidict`` itself provides no ``peekitem`` attribute,
+the following call still succeeds
+because it's passed through to the backing ``SortedDict``:
 
+   >>> elem_by_atomicnum.peekitem()
+   (6, 'carbon')
+
+
+This goes to show how simple it can be
+to compose your own bidirectional mapping types
+out of the building blocks that :mod:`bidict` provides.
 
 Next proceed to :doc:`other-functionality`.

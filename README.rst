@@ -39,9 +39,6 @@ Status
    .. image:: https://img.shields.io/lgtm/alerts/github/jab/bidict.svg
       :target: https://lgtm.com/projects/g/jab/bidict/
       :alt: LGTM alerts
-   .. image:: https://api.codacy.com/project/badge/Grade/6628756a73254cd895656348236833b8
-      :target: https://www.codacy.com/app/jab/bidict
-      :alt: Codacy grade
    .. image:: https://bestpractices.coreinfrastructure.org/projects/2354/badge
       :target: https://bestpractices.coreinfrastructure.org/en/projects/2354
       :alt: CII best practices badge
@@ -62,24 +59,25 @@ Status
    :target: https://raw.githubusercontent.com/jab/bidict/master/LICENSE
    :alt: License
 
-.. image:: https://img.shields.io/badge/dynamic/json.svg?label=downloads&url=https%3A%2F%2Fpypistats.org%2Fapi%2Fpackages%2Fbidict%2Frecent%3Fperiod%3Dmonth&query=%24.data.last_month&colorB=blue&suffix=%2fmonth
-   :target: https://pypistats.org/packages/bidict
-   :alt: Downloads past month
+.. image:: https://static.pepy.tech/badge/bidict
+   :target: https://pepy.tech/project/bidict
+   :alt: PyPI Downloads
 
 
 ``bidict``:
 ^^^^^^^^^^^
 
 - has been used for many years by several teams at
-  Google, Venmo, CERN, Bank of America Merrill Lynch, Bloomberg, Two Sigma, and others
+  **Google, Venmo, CERN, Bank of America Merrill Lynch, Bloomberg, Two Sigma,** and many others
 - has carefully designed APIs for
-  safety, simplicity, flexibility, and ergonomics
-- is fast, lightweight, and has no runtime dependencies other than Python's standard library
-- integrates natively with Python’s collections interfaces
-- is implemented in concise, well-factored, pure (PyPy-compatible) Python code
-  optimized both for reading and learning from [#fn-learning]_
-  as well as for running efficiently
-- has extensive docs and test coverage
+  **safety, simplicity, flexibility, and ergonomics**
+- is **fast, lightweight, and has no runtime dependencies** other than Python's standard library
+- **integrates natively** with Python’s ``collections.abc`` interfaces
+- provides **type hints** for all public APIs
+- is implemented in **concise, well-factored, pure (PyPy-compatible) Python code**
+  that is **optimized for running efficiently**
+  as well as for **reading and learning** [#fn-learning]_
+- has **extensive docs and test coverage**
   (including property-based tests and benchmarks)
   run continuously on all supported Python versions and OSes
 

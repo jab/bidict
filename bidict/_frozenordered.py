@@ -27,32 +27,42 @@
 
 """Provide :class:`FrozenOrderedBidict`, an immutable, hashable, ordered bidict."""
 
+import typing as _t
+
 from ._frozenbidict import frozenbidict
 from ._orderedbase import OrderedBidictBase
+from ._typing import KT, VT
 
 
-class FrozenOrderedBidict(OrderedBidictBase):
+class FrozenOrderedBidict(OrderedBidictBase[KT, VT]):
     """Hashable, immutable, ordered bidict type."""
 
     __slots__ = ()
     __hash__ = frozenbidict.__hash__
 
+    if _t.TYPE_CHECKING:  # pragma: no cover
+        @property
+        def inverse(self) -> 'FrozenOrderedBidict[VT, KT]': ...
+
     # Assume the Python implementation's dict type is ordered (e.g. PyPy or CPython >= 3.6), so we
-    # can # delegate to `_fwdm` and `_invm` for faster implementations of several methods. Both
+    # can delegate to `_fwdm` and `_invm` for faster implementations of several methods. Both
     # `_fwdm` and `_invm` will always be initialized with the provided items in the correct order,
     # and since `FrozenOrderedBidict` is immutable, their respective orders can't get out of sync
     # after a mutation.
-    def __iter__(self, reverse=False):  # noqa: N802
+    def __iter__(self) -> _t.Iterator[KT]:
         """Iterator over the contained keys in insertion order."""
+        return self._iter()
+
+    def _iter(self, *, reverse: bool = False) -> _t.Iterator[KT]:
         if reverse:
-            return super().__iter__(reverse=True)
+            return super()._iter(reverse=True)
         return iter(self._fwdm._fwdm)
 
-    def keys(self):
+    def keys(self) -> _t.KeysView[KT]:
         """A set-like object providing a view on the contained keys."""
         return self._fwdm._fwdm.keys()
 
-    def values(self):
+    def values(self) -> _t.KeysView[VT]:  # type: ignore
         """A set-like object providing a view on the contained values."""
         return self._invm._fwdm.keys()
 

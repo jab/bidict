@@ -11,9 +11,9 @@ bidict
    :imported-members:
    :member-order: bysource
    :special-members:
+   :private-members:
    :show-inheritance:
    :undoc-members:
-   :exclude-members: __abstractmethods__,__dict__,__module__,__weakref__
    :inherited-members:
 
 .. autodata:: bidict.RAISE
@@ -24,8 +24,8 @@ bidict
 .. autodata:: bidict.ON_DUP_DROP_OLD
 
 
-.. autofunction:: bidict._util._iteritems_mapping_or_iterable
-.. autofunction:: bidict._util._iteritems_args_kw
+.. autofunction:: bidict._iter._iteritems_mapping_or_iterable
+.. autofunction:: bidict._iter._iteritems_args_kw
 
 .. attribute:: __version__
 
@@ -34,12 +34,3 @@ bidict
 .. attribute:: __version_info__
 
    The version of bidict represented as a tuple.
-
-
-bidict.compat
--------------
-
-.. automodule:: bidict.compat
-   :members:
-   :member-order: bysource
-   :undoc-members:

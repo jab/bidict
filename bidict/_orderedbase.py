@@ -28,13 +28,13 @@
 
 """Provide :class:`OrderedBidictBase`."""
 
+import typing as _t
 from copy import copy
-from typing import Any, Iterator, Mapping
 from weakref import ref
 
-from ._base import _DedupResult, _WriteResult, BidictBase, KT, VT, T
+from ._base import _NONE, _DedupResult, _WriteResult, BidictBase, BT
 from ._bidict import bidict
-from ._sntl import _MISS
+from ._typing import KT, VT, IterItems, MapOrIterItems
 
 
 class _Node:
@@ -56,33 +56,33 @@ class _Node:
 
     __slots__ = ('_prv', '_nxt', '__weakref__')
 
-    def __init__(self, prv=None, nxt=None):
+    def __init__(self, prv: '_Node' = None, nxt: '_Node' = None) -> None:
         self._setprv(prv)
         self._setnxt(nxt)
 
-    def __repr__(self):  # pragma: no cover
+    def __repr__(self) -> str:  # pragma: no cover
         clsname = self.__class__.__name__
         prv = id(self.prv)
         nxt = id(self.nxt)
         return f'{clsname}(prv={prv}, self={id(self)}, nxt={nxt})'
 
-    def _getprv(self):
+    def _getprv(self) -> '_t.Optional[_Node]':
         return self._prv() if isinstance(self._prv, ref) else self._prv
 
-    def _setprv(self, prv):
+    def _setprv(self, prv: '_t.Optional[_Node]') -> None:
         self._prv = prv and ref(prv)
 
     prv = property(_getprv, _setprv)
 
-    def _getnxt(self):
+    def _getnxt(self) -> '_t.Optional[_Node]':
         return self._nxt() if isinstance(self._nxt, ref) else self._nxt
 
-    def _setnxt(self, nxt):
+    def _setnxt(self, nxt: '_t.Optional[_Node]') -> None:
         self._nxt = nxt and ref(nxt)
 
     nxt = property(_getnxt, _setnxt)
 
-    def __getstate__(self):
+    def __getstate__(self) -> dict:
         """Return the instance state dictionary
         but with weakrefs converted to strong refs
         so that it can be pickled.
@@ -91,7 +91,7 @@ class _Node:
         """
         return dict(_prv=self.prv, _nxt=self.nxt)
 
-    def __setstate__(self, state):
+    def __setstate__(self, state: dict) -> None:
         """Set the instance state from *state*."""
         self._setprv(state['_prv'])
         self._setnxt(state['_nxt'])
@@ -106,16 +106,16 @@ class _SentinelNode(_Node):
 
     __slots__ = ()
 
-    def __init__(self, prv=None, nxt=None):
+    def __init__(self, prv: _Node = None, nxt: _Node = None) -> None:
         super().__init__(prv or self, nxt or self)
 
-    def __repr__(self):  # pragma: no cover
+    def __repr__(self) -> str:  # pragma: no cover
         return '<SNTL>'
 
-    def __bool__(self):
+    def __bool__(self) -> bool:
         return False
 
-    def __iter__(self, reverse=False):
+    def _iter(self, *, reverse: bool = False) -> _t.Iterator[_Node]:
         """Iterator yielding nodes in the requested order,
         i.e. traverse the linked list via :attr:`nxt`
         (or :attr:`prv` if *reverse* is truthy)
@@ -133,13 +133,19 @@ class OrderedBidictBase(BidictBase[KT, VT]):
 
     __slots__ = ('_sntl',)
 
-    _fwdm_cls = bidict
-    _invm_cls = bidict
+    _fwdm_cls = bidict  # type: ignore
+    _invm_cls = bidict  # type: ignore
 
     #: The object used by :meth:`__repr__` for printing the contained items.
-    _repr_delegate = list
+    _repr_delegate = list  # type: ignore
 
-    def __init__(self, *args, **kw) -> None:
+    @_t.overload
+    def __init__(self, __arg: _t.Mapping[KT, VT], **kw: VT) -> None: ...
+    @_t.overload
+    def __init__(self, __arg: IterItems[KT, VT], **kw: VT) -> None: ...
+    @_t.overload
+    def __init__(self, **kw: VT) -> None: ...
+    def __init__(self, *args: MapOrIterItems[KT, VT], **kw: VT) -> None:
         """Make a new ordered bidirectional mapping.
         The signature behaves like that of :class:`dict`.
         Items passed in are added in the order they are passed,
@@ -160,12 +166,18 @@ class OrderedBidictBase(BidictBase[KT, VT]):
         # are inherited and are able to be reused without modification.
         super().__init__(*args, **kw)
 
+    if _t.TYPE_CHECKING:  # pragma: no cover
+        @property
+        def inverse(self) -> 'OrderedBidictBase[VT, KT]': ...
+        _fwdm: bidict[KT, _Node]  # type: ignore
+        _invm: bidict[VT, _Node]  # type: ignore
+
     def _init_inv(self) -> None:
         super()._init_inv()
         self.inverse._sntl = self._sntl
 
     # Can't reuse BidictBase.copy since ordered bidicts have different internal structure.
-    def copy(self: T) -> T:
+    def copy(self: BT) -> BT:
         """A shallow copy of this ordered bidict."""
         # Fast copy implementation bypassing __init__. See comments in :meth:`BidictBase.copy`.
         cp = self.__class__.__new__(self.__class__)
@@ -183,7 +195,9 @@ class OrderedBidictBase(BidictBase[KT, VT]):
         cp._fwdm = fwdm
         cp._invm = invm
         cp._init_inv()
-        return cp
+        return cp  # type: ignore
+
+    __copy__ = copy
 
     def __getitem__(self, key: KT) -> VT:
         nodefwd = self._fwdm[key]
@@ -198,11 +212,11 @@ class OrderedBidictBase(BidictBase[KT, VT]):
         return val
 
     @staticmethod
-    def _already_have(key: KT, val: VT, nodeinv: _Node, nodefwd: _Node) -> bool:  # pylint: disable=arguments-differ
+    def _already_have(key: KT, val: VT, nodeinv: _Node, nodefwd: _Node) -> bool:  # type: ignore
         # Overrides _base.BidictBase.
         return nodeinv is nodefwd
 
-    def _write_item(self, key: KT, val: VT, dedup_result: _DedupResult) -> None:  # pylint: disable=too-many-locals
+    def _write_item(self, key: KT, val: VT, dedup_result: _DedupResult) -> _WriteResult:
         # Overrides _base.BidictBase.
         fwdm = self._fwdm  # bidict mapping keys to nodes
         invm = self._invm  # bidict mapping vals to nodes
@@ -213,12 +227,12 @@ class OrderedBidictBase(BidictBase[KT, VT]):
             last = sntl.prv
             node = _Node(last, sntl)
             last.nxt = sntl.prv = fwdm[key] = invm[val] = node
-            oldkey = oldval = _MISS
+            oldkey = oldval = _NONE
         elif isdupkey and isdupval:
             # Key and value duplication across two different nodes.
             assert nodefwd is not nodeinv
-            oldval = invm.inverse[nodefwd]
-            oldkey = fwdm.inverse[nodeinv]
+            oldval = invm.inverse[nodefwd]  # type: ignore
+            oldkey = fwdm.inverse[nodeinv]  # type: ignore
             assert oldkey != key
             assert oldval != val
             # We have to collapse nodefwd and nodeinv into a single node, i.e. drop one of them.
@@ -228,26 +242,26 @@ class OrderedBidictBase(BidictBase[KT, VT]):
             # Don't remove nodeinv's references to its neighbors since
             # if the update fails, we'll need them to undo this write.
             # Update fwdm and invm.
-            tmp = fwdm.pop(oldkey)
+            tmp = fwdm.pop(oldkey)  # type: ignore
             assert tmp is nodeinv
-            tmp = invm.pop(oldval)
+            tmp = invm.pop(oldval)  # type: ignore
             assert tmp is nodefwd
             fwdm[key] = invm[val] = nodefwd
         elif isdupkey:
-            oldval = invm.inverse[nodefwd]
-            oldkey = _MISS
-            oldnodeinv = invm.pop(oldval)
+            oldval = invm.inverse[nodefwd]  # type: ignore
+            oldkey = _NONE
+            oldnodeinv = invm.pop(oldval)  # type: ignore
             assert oldnodeinv is nodefwd
             invm[val] = nodefwd
         else:  # isdupval
-            oldkey = fwdm.inverse[nodeinv]
-            oldval = _MISS
-            oldnodefwd = fwdm.pop(oldkey)
+            oldkey = fwdm.inverse[nodeinv]  # type: ignore
+            oldval = _NONE
+            oldnodefwd = fwdm.pop(oldkey)  # type: ignore
             assert oldnodefwd is nodeinv
             fwdm[key] = nodeinv
         return _WriteResult(key, val, oldkey, oldval)
 
-    def _undo_write(self, dedup_result: _DedupResult, write_result: _DedupResult) -> None:  # pylint: disable=too-many-locals
+    def _undo_write(self, dedup_result: _DedupResult, write_result: _WriteResult) -> None:
         fwdm = self._fwdm
         invm = self._invm
         isdupkey, isdupval, nodeinv, nodefwd = dedup_result
@@ -270,24 +284,26 @@ class OrderedBidictBase(BidictBase[KT, VT]):
             fwdm[oldkey] = nodeinv
             assert invm[val] is nodeinv
 
-    def __iter__(self, reverse=False) -> Iterator[KT]:
+    def __iter__(self) -> _t.Iterator[KT]:
         """Iterator over the contained keys in insertion order."""
+        return self._iter()
+
+    def _iter(self, *, reverse: bool = False) -> _t.Iterator[KT]:
         fwdm_inv = self._fwdm.inverse
-        for node in self._sntl.__iter__(reverse=reverse):
+        for node in self._sntl._iter(reverse=reverse):
             yield fwdm_inv[node]
 
-    def __reversed__(self) -> Iterator[KT]:
+    def __reversed__(self) -> _t.Iterator[KT]:
         """Iterator over the contained keys in reverse insertion order."""
-        for key in self.__iter__(reverse=True):
-            yield key
+        yield from self._iter(reverse=True)
 
-    def equals_order_sensitive(self, other: Any) -> bool:
+    def equals_order_sensitive(self, other: object) -> bool:
         """Order-sensitive equality check.
 
         *See also* :ref:`eq-order-insensitive`
         """
         # Same short-circuit as BidictBase.__eq__. Factoring out not worth function call overhead.
-        if not isinstance(other, Mapping) or len(self) != len(other):
+        if not isinstance(other, _t.Mapping) or len(self) != len(other):
             return False
         return all(i == j for (i, j) in zip(self.items(), other.items()))
 

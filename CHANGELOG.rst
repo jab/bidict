@@ -24,16 +24,70 @@ Tip: Subscribe to releases
 to be notified when new versions of ``bidict`` are released.
 
 
-0.21.0 not yet released
------------------------
+0.21.0 (not yet released)
+-------------------------
 
-- Add :class:`bidict.MutableBidirectionalMapping`.
+- :mod:`bidict` now provides
+  `type hints <https://www.python.org/dev/peps/pep-0484/>`__! ⌨️ ✅
 
-- Add type hints.
+  Adding type hints to :mod:`bidict` poses particularly interesting challenges
+  due to the combination of generic types,
+  dynamically-generated types
+  (such as :ref:`inverse bidict classes <extending:Dynamic Inverse Class Generation>`
+  and :func:`namedbidicts <bidict.namedbidict>`),
+  and complicating optimizations
+  such as the use of slots and weakrefs.
 
-- Drop support for Python 3.5.
+  It didn't take long to hit bugs and missing features
+  in the state of the art for type hinting in Python today,
+  e.g. no support for higher-kinded types
+  (`python/typing#548 <https://github.com/python/typing/issues/548#issuecomment-621195693>`__),
+  too-narrow type hints for :class:`collections.abc.Mapping`
+  (`python/typeshed#4435 <https://github.com/python/typeshed/issues/4435>`__),
+  a :class:`typing.Generic` bug in Python 3.6
+  (`BPO-41451 <https://bugs.python.org/issue41451>`__), etc.
 
-- Remove the ``bidict.compat`` module.
+  That said, this release should provide a solid foundation
+  for code using :mod:`bidict` that enables static type checking.
+
+  As always, if you spot any opportunities to improve :mod:`bidict`
+  (including its new type hints),
+  please don't hesitate to submit a PR!
+
+- Add :class:`bidict.MutableBidirectionalMapping` ABC.
+
+  The :ref:`other-bidict-types:Bidict Types Diagram` has been updated accordingly.
+
+- Drop support for Python 3.5,
+  which reaches end of life on 2020-09-13,
+  represents a tiny percentage of bidict downloads on
+  `PyPI Stats <https://pypistats.org/packages/bidict>`__,
+  and lacks support for
+  `variable type hint syntax <https://www.python.org/dev/peps/pep-0526/>`__,
+  `ordered dicts <https://stackoverflow.com/a/39980744>`__,
+  and :attr:`object.__init_subclass__`.
+
+- Remove the no-longer-needed ``bidict.compat`` module.
+
+- Move :ref:`inverse bidict class access <extending:Dynamic Inverse Class Generation>`
+  from a property to an attribute set in
+  :attr:`~bidict.BidictBase.__init_subclass__`,
+  to save function call overhead on repeated access.
+
+- :meth:`bidict.OrderedBidictBase.__iter__` no longer accepts
+  a ``reverse`` keyword argument so that it matches the signature of
+  :meth:`container.__iter__`.
+
+- Set the ``__module__`` attribute of various :mod:`bidict` types
+  (using :func:`sys._getframe` when necessary)
+  so that private, internal modules are not exposed
+  e.g. in classes' repr strings.
+
+- :func:`~bidict.namedbidict` now immediately raises :class:`TypeError`
+  if the provided ``base_type`` does not provide
+  ``_isinv`` or :meth:`~object.__getstate__`,
+  rather than succeeding with a class whose instances may raise
+  :class:`AttributeError` when these attributes are accessed.
 
 
 0.20.0 (2020-07-23)
@@ -332,7 +386,7 @@ Misc
 
 Minor code and efficiency improvements to
 :func:`~bidict.inverted` and
-:func:`~bidict._util._iteritems_args_kw`
+:func:`~bidict._iter._iteritems_args_kw`
 (formerly ``bidict.pairs()``).
 
 
@@ -341,7 +395,7 @@ Minor Breaking API Changes
 
 The following breaking changes are expected to affect few if any users.
 
-- Rename ``bidict.pairs()`` → :func:`bidict._util._iteritems_args_kw`.
+- Rename ``bidict.pairs()`` → ``bidict._util._iteritems_args_kw``.
 
 
 0.15.0 (2018-03-29)
