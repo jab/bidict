@@ -13,7 +13,8 @@ from collections import OrderedDict
 
 import pytest
 
-from bidict import bidict, frozenbidict, FrozenOrderedBidict, OrderedBidict, BidirectionalMapping, MutableBidirectionalMapping  # noqa: E501; pylint: disable=line-too-long
+from bidict import (
+    bidict, frozenbidict, FrozenOrderedBidict, OrderedBidict, BidirectionalMapping, MutableBidirectionalMapping)
 
 
 class AbstractBimap(BidirectionalMapping):  # pylint: disable=abstract-method
@@ -125,4 +126,4 @@ def test_bimap_inverse_notimplemented():
     with pytest.raises(NotImplementedError):
         # Can't instantiate a BidirectionalMapping that hasn't overridden the abstract methods of
         # the interface, so only way to call this implementation is on the class.
-        BidirectionalMapping.inverse.fget(bidict())  # pylint: disable=no-member
+        BidirectionalMapping.inverse.fget(bidict())

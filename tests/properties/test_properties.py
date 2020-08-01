@@ -26,7 +26,7 @@ from bidict import (
     OrderedBidictBase, OrderedBidict, bidict, namedbidict,
     inverted,
 )
-from bidict._util import _iteritems_args_kw  # pylint: disable=protected-access
+from bidict._util import _iteritems_args_kw
 
 from . import _strategies as st
 
@@ -247,14 +247,14 @@ def test_namedbidict_raises_on_invalid_base_type(names, invalid_base_type):
 @given(st.NAMEDBIDICTS)
 def test_namedbidict(nb):
     """Test :func:`bidict.namedbidict` custom accessors."""
-    valfor = getattr(nb, nb._valname + '_for')  # pylint: disable=protected-access
-    keyfor = getattr(nb, nb._keyname + '_for')  # pylint: disable=protected-access
+    valfor = getattr(nb, nb._valname + '_for')
+    keyfor = getattr(nb, nb._keyname + '_for')
     assert all(valfor[key] == val for (key, val) in nb.items())
     assert all(keyfor[val] == key for (key, val) in nb.items())
     # The same custom accessors should work on the inverse.
     inv = nb.inv
-    valfor = getattr(inv, nb._valname + '_for')  # pylint: disable=protected-access
-    keyfor = getattr(inv, nb._keyname + '_for')  # pylint: disable=protected-access
+    valfor = getattr(inv, nb._valname + '_for')
+    keyfor = getattr(inv, nb._keyname + '_for')
     assert all(valfor[key] == val for (key, val) in nb.items())
     assert all(keyfor[val] == key for (key, val) in nb.items())
 
@@ -266,8 +266,8 @@ def test_bidict_isinv_getstate(bi):
     """
     # Nothing to assert; making sure these calls don't raise is sufficient.
     # pylint: disable=pointless-statement
-    bi._isinv  # pylint: disable=pointless-statement,protected-access
-    bi.__getstate__()  # pylint: disable=pointless-statement
+    bi._isinv
+    bi.__getstate__()
 
 
 # Skip this test on PyPy where reference counting isn't used to free objects immediately. See:
@@ -303,7 +303,7 @@ def test_refcycle_orderedbidict_nodes(ob_cls, init_items):
     gc.disable()
     try:
         ob = ob_cls(init_items)
-        node_refs = [ref(node) for node in ob._fwdm.values()]  # pylint: disable=protected-access
+        node_refs = [ref(node) for node in ob._fwdm.values()]
         assert all(r() is not None for r in node_refs)
         del ob
         assert all(r() is None for r in node_refs)

@@ -35,11 +35,10 @@ class frozenbidict(_DelegatingBidict[KT, VT]):
 
     __slots__ = ()
 
-    def __hash__(self) -> int:  # lgtm [py/equals-hash-mismatch]
+    def __hash__(self) -> int:
         """The hash of this bidict as determined by its items."""
         if getattr(self, '_hash', None) is None:
-            # pylint: disable=protected-access,attribute-defined-outside-init
-            self._hash = ItemsView(self)._hash()
+            self._hash = ItemsView(self)._hash()  # pylint: disable=attribute-defined-outside-init
         return self._hash
 
 

@@ -79,7 +79,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         #: The backing :class:`~collections.abc.Mapping`
         #: storing the inverse mapping data (*value* → *key*).
         self._invm = self._invm_cls()
-        self._init_inv()  # lgtm [py/init-calls-subclass]
+        self._init_inv()
         if args or kw:
             self._update(True, self.on_dup, *args, **kw)
 
@@ -91,13 +91,13 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         # _fwdm and _invm can be assigned to this bidict's _invm and _fwdm. Store it in self._inv,
         # which holds a strong reference to a bidict's inverse, if one is available.
         self._inv = inv = inv_cls.__new__(inv_cls)
-        inv._fwdm = self._invm  # pylint: disable=protected-access
-        inv._invm = self._fwdm  # pylint: disable=protected-access
+        inv._fwdm = self._invm
+        inv._invm = self._fwdm
         # Only give the inverse a weak reference to this bidict to avoid creating a reference cycle,
         # stored in the _invweak attribute. See also the docs in
         # :ref:`addendum:Bidict Avoids Reference Cycles`
-        inv._inv = None  # pylint: disable=protected-access
-        inv._invweak = ref(self)  # pylint: disable=protected-access
+        inv._inv = None
+        inv._invweak = ref(self)
         # Since this bidict has a strong reference to its inverse already, set its _invweak to None.
         self._invweak = None
 
@@ -352,9 +352,9 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         # copies of each of the backing mappings, and make them the backing mappings of the copy,
         # avoiding copying items one at a time.
         cp = self.__class__.__new__(self.__class__)
-        cp._fwdm = copy(self._fwdm)  # pylint: disable=protected-access
-        cp._invm = copy(self._invm)  # pylint: disable=protected-access
-        cp._init_inv()  # pylint: disable=protected-access
+        cp._fwdm = copy(self._fwdm)
+        cp._invm = copy(self._invm)
+        cp._init_inv()
         return cp
 
     def __copy__(self: T) -> T:
@@ -368,7 +368,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         """The number of contained items."""
         return len(self._fwdm)
 
-    def __iter__(self) -> Iterator[KT]:  # lgtm [py/inheritance/incorrect-overridden-signature]
+    def __iter__(self) -> Iterator[KT]:
         """Iterator over the contained keys."""
         return iter(self._fwdm)
 

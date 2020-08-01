@@ -23,16 +23,16 @@ class _DelegatingBidict(BidictBase[KT, VT]):
 
     def __iter__(self) -> Iterator[KT]:
         """Iterator over the contained keys."""
-        return iter(self._fwdm)  # pylint: disable=protected-access
+        return iter(self._fwdm)
 
     def keys(self) -> KeysView[KT]:
         """A set-like object providing a view on the contained keys."""
-        return self._fwdm.keys()  # pylint: disable=protected-access
+        return self._fwdm.keys()
 
     def values(self) -> KeysView[VT]:
         """A set-like object providing a view on the contained values."""
-        return self._invm.keys()  # pylint: disable=protected-access
+        return self._invm.keys()
 
     def items(self) -> ItemsView[KT, VT]:
         """A set-like object providing a view on the contained items."""
-        return self._fwdm.items()  # pylint: disable=protected-access
+        return self._fwdm.items()

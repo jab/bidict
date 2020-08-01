@@ -162,7 +162,7 @@ class OrderedBidictBase(BidictBase[KT, VT]):
 
     def _init_inv(self) -> None:
         super()._init_inv()
-        self.inverse._sntl = self._sntl  # pylint: disable=protected-access
+        self.inverse._sntl = self._sntl
 
     # Can't reuse BidictBase.copy since ordered bidicts have different internal structure.
     def copy(self: T) -> T:
@@ -179,20 +179,20 @@ class OrderedBidictBase(BidictBase[KT, VT]):
             cur.nxt = fwdm[key] = invm[val] = nxt
             cur = nxt
         sntl.prv = nxt
-        cp._sntl = sntl  # pylint: disable=protected-access
-        cp._fwdm = fwdm  # pylint: disable=protected-access
-        cp._invm = invm  # pylint: disable=protected-access
-        cp._init_inv()  # pylint: disable=protected-access
+        cp._sntl = sntl
+        cp._fwdm = fwdm
+        cp._invm = invm
+        cp._init_inv()
         return cp
 
     def __getitem__(self, key: KT) -> VT:
         nodefwd = self._fwdm[key]
-        val = self._invm.inverse[nodefwd]  # pylint: disable=no-member
+        val = self._invm.inverse[nodefwd]
         return val
 
     def _pop(self, key: KT) -> VT:
         nodefwd = self._fwdm.pop(key)
-        val = self._invm.inverse.pop(nodefwd)  # pylint: disable=no-member
+        val = self._invm.inverse.pop(nodefwd)
         nodefwd.prv.nxt = nodefwd.nxt
         nodefwd.nxt.prv = nodefwd.prv
         return val
@@ -217,8 +217,8 @@ class OrderedBidictBase(BidictBase[KT, VT]):
         elif isdupkey and isdupval:
             # Key and value duplication across two different nodes.
             assert nodefwd is not nodeinv
-            oldval = invm.inverse[nodefwd]  # pylint: disable=no-member
-            oldkey = fwdm.inverse[nodeinv]  # pylint: disable=no-member
+            oldval = invm.inverse[nodefwd]
+            oldkey = fwdm.inverse[nodeinv]
             assert oldkey != key
             assert oldval != val
             # We have to collapse nodefwd and nodeinv into a single node, i.e. drop one of them.
@@ -234,13 +234,13 @@ class OrderedBidictBase(BidictBase[KT, VT]):
             assert tmp is nodefwd
             fwdm[key] = invm[val] = nodefwd
         elif isdupkey:
-            oldval = invm.inverse[nodefwd]  # pylint: disable=no-member
+            oldval = invm.inverse[nodefwd]
             oldkey = _MISS
             oldnodeinv = invm.pop(oldval)
             assert oldnodeinv is nodefwd
             invm[val] = nodefwd
         else:  # isdupval
-            oldkey = fwdm.inverse[nodeinv]  # pylint: disable=no-member
+            oldkey = fwdm.inverse[nodeinv]
             oldval = _MISS
             oldnodefwd = fwdm.pop(oldkey)
             assert oldnodefwd is nodeinv
@@ -272,7 +272,7 @@ class OrderedBidictBase(BidictBase[KT, VT]):
 
     def __iter__(self, reverse=False) -> Iterator[KT]:
         """Iterator over the contained keys in insertion order."""
-        fwdm_inv = self._fwdm.inverse  # pylint: disable=no-member
+        fwdm_inv = self._fwdm.inverse
         for node in self._sntl.__iter__(reverse=reverse):
             yield fwdm_inv[node]
 

@@ -78,8 +78,8 @@ def namedbidict(typename, keyname, valname, base_type=bidict):
     names = dict(typename=typename, bname=bname, keyname=keyname, valname=valname)
     fdoc = '{typename} forward {bname}: {keyname} → {valname}'.format(**names)
     idoc = '{typename} inverse {bname}: {valname} → {keyname}'.format(**names)
-    setattr(_Named, fname, property(_Named._getfwd, doc=fdoc))  # pylint: disable=protected-access
-    setattr(_Named, iname, property(_Named._getinv, doc=idoc))  # pylint: disable=protected-access
+    setattr(_Named, fname, property(_Named._getfwd, doc=fdoc))
+    setattr(_Named, iname, property(_Named._getinv, doc=idoc))
 
     _Named.__qualname__ = _Named.__qualname__[:-len(_Named.__name__)] + typename
     _Named.__name__ = typename

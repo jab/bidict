@@ -46,15 +46,15 @@ class FrozenOrderedBidict(OrderedBidictBase):
         """Iterator over the contained keys in insertion order."""
         if reverse:
             return super().__iter__(reverse=True)
-        return iter(self._fwdm._fwdm)  # pylint: disable=protected-access
+        return iter(self._fwdm._fwdm)
 
     def keys(self):
         """A set-like object providing a view on the contained keys."""
-        return self._fwdm._fwdm.keys()  # pylint: disable=protected-access
+        return self._fwdm._fwdm.keys()
 
     def values(self):
         """A set-like object providing a view on the contained values."""
-        return self._invm._fwdm.keys()  # pylint: disable=protected-access
+        return self._invm._fwdm.keys()
 
     # We can't delegate for items because values in `_fwdm` are nodes.
 
