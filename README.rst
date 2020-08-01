@@ -76,6 +76,7 @@ Status
   safety, simplicity, flexibility, and ergonomics
 - is fast, lightweight, and has no runtime dependencies other than Python's standard library
 - integrates natively with Python’s collections interfaces
+- provides type hints for all public APIs
 - is implemented in concise, well-factored, pure (PyPy-compatible) Python code
   optimized both for reading and learning from [#fn-learning]_
   as well as for running efficiently

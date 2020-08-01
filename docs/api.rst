@@ -34,12 +34,3 @@ bidict
 .. attribute:: __version_info__
 
    The version of bidict represented as a tuple.
-
-
-bidict.compat
--------------
-
-.. automodule:: bidict.compat
-   :members:
-   :member-order: bysource
-   :undoc-members:

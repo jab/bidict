@@ -8,9 +8,10 @@
 
 """Provide :class:`_DelegatingBidict`."""
 
-from typing import Iterator, KeysView, ItemsView
+import typing as _t
 
-from ._base import BidictBase, KT, VT
+from ._base import BidictBase
+from ._typing import KT, VT
 
 
 class _DelegatingBidict(BidictBase[KT, VT]):
@@ -21,18 +22,18 @@ class _DelegatingBidict(BidictBase[KT, VT]):
 
     __slots__ = ()
 
-    def __iter__(self) -> Iterator[KT]:
+    def __iter__(self) -> _t.Iterator[KT]:
         """Iterator over the contained keys."""
         return iter(self._fwdm)
 
-    def keys(self) -> KeysView[KT]:
+    def keys(self) -> _t.KeysView[KT]:
         """A set-like object providing a view on the contained keys."""
         return self._fwdm.keys()
 
-    def values(self) -> KeysView[VT]:
+    def values(self) -> _t.KeysView[VT]:  # type: ignore
         """A set-like object providing a view on the contained values."""
         return self._invm.keys()
 
-    def items(self) -> ItemsView[KT, VT]:
+    def items(self) -> _t.ItemsView[KT, VT]:
         """A set-like object providing a view on the contained items."""
         return self._fwdm.items()

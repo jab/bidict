@@ -8,12 +8,12 @@
 """Types for Hypothoses tests."""
 
 from collections import OrderedDict
-from collections.abc import ItemsView, KeysView, Mapping
+from collections.abc import KeysView, ItemsView, Mapping
 
-from bidict import bidict, OrderedBidict, frozenbidict, FrozenOrderedBidict, namedbidict
+from bidict import FrozenOrderedBidict, OrderedBidict, bidict, frozenbidict, namedbidict
 
 
-MyNamedBidict = namedbidict('MyNamedBidict', 'key', 'val')
+MyNamedBidict = namedbidict('MyNamedBidict', 'key', 'val', base_type=bidict)
 MyNamedFrozenBidict = namedbidict('MyNamedFrozenBidict', 'key', 'val', base_type=frozenbidict)
 MyNamedOrderedBidict = namedbidict('MyNamedOrderedBidict', 'key', 'val', base_type=OrderedBidict)
 MUTABLE_BIDICT_TYPES = (bidict, OrderedBidict, MyNamedBidict)
@@ -24,14 +24,14 @@ BIDICT_TYPES = tuple(set(MUTABLE_BIDICT_TYPES + FROZEN_BIDICT_TYPES + ORDERED_BI
 
 class _FrozenDict(KeysView, Mapping):
 
-    def __init__(self, *args, **kw):  # pylint: disable=super-init-not-called
+    def __init__(self, *args, **kw):
         self._mapping = dict(*args, **kw)
 
     def __getitem__(self, key):
         return self._mapping[key]
 
     def __hash__(self):
-        return ItemsView(self._mapping)._hash()  # pylint: disable=protected-access
+        return ItemsView(self._mapping)._hash()
 
 
 NON_BIDICT_MAPPING_TYPES = (dict, OrderedDict, _FrozenDict)

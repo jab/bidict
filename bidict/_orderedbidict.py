@@ -28,11 +28,11 @@
 
 """Provide :class:`OrderedBidict`."""
 
-from typing import Tuple
+import typing as _t
 
-from ._abc import KT, VT
 from ._mut import MutableBidict
 from ._orderedbase import OrderedBidictBase
+from ._typing import KT, VT
 
 
 class OrderedBidict(OrderedBidictBase[KT, VT], MutableBidict[KT, VT]):
@@ -40,13 +40,17 @@ class OrderedBidict(OrderedBidictBase[KT, VT], MutableBidict[KT, VT]):
 
     __slots__ = ()
 
+    if _t.TYPE_CHECKING:  # pragma: no cover
+        @property
+        def inverse(self) -> 'OrderedBidict[VT, KT]': ...
+
     def clear(self) -> None:
         """Remove all items."""
         self._fwdm.clear()
         self._invm.clear()
         self._sntl.nxt = self._sntl.prv = self._sntl
 
-    def popitem(self, last=True) -> Tuple[KT, VT]:  # pylint: disable=arguments-differ
+    def popitem(self, last: bool = True) -> _t.Tuple[KT, VT]:
         """*x.popitem() → (k, v)*
 
         Remove and return the most recently added item as a (key, value) pair
@@ -56,11 +60,11 @@ class OrderedBidict(OrderedBidictBase[KT, VT], MutableBidict[KT, VT]):
         """
         if not self:
             raise KeyError('mapping is empty')
-        key = next((reversed if last else iter)(self))
+        key = next((reversed if last else iter)(self))  # type: ignore
         val = self._pop(key)
         return key, val
 
-    def move_to_end(self, key: KT, last=True) -> None:
+    def move_to_end(self, key: KT, last: bool = True) -> None:
         """Move an existing key to the beginning or end of this ordered bidict.
 
         The item is moved to the end if *last* is True, else to the beginning.
@@ -72,15 +76,15 @@ class OrderedBidict(OrderedBidictBase[KT, VT], MutableBidict[KT, VT]):
         node.nxt.prv = node.prv
         sntl = self._sntl
         if last:
-            last = sntl.prv
-            node.prv = last
+            lastnode = sntl.prv
+            node.prv = lastnode
             node.nxt = sntl
-            sntl.prv = last.nxt = node
+            sntl.prv = lastnode.nxt = node
         else:
-            first = sntl.nxt
+            firstnode = sntl.nxt
             node.prv = sntl
-            node.nxt = first
-            sntl.nxt = first.prv = node
+            node.nxt = firstnode
+            sntl.nxt = firstnode.prv = node
 
 
 #                             * Code review nav *

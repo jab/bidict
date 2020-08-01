@@ -28,18 +28,22 @@
 
 """Provide :class:`bidict`."""
 
-from typing import Any, Tuple
+import typing as _t
 
-from ._abc import MutableBidirectionalMapping, KT, VT
+from ._abc import MutableBidirectionalMapping
 from ._base import BidictBase
-from ._dup import ON_DUP_RAISE, ON_DUP_DROP_OLD
-from ._sntl import _MISS
+from ._dup import OnDup, ON_DUP_RAISE, ON_DUP_DROP_OLD
+from ._typing import _NONE, KT, VT, ODT, MapOrIterItems
 
 
 class MutableBidict(BidictBase[KT, VT], MutableBidirectionalMapping[KT, VT]):
     """Base class for mutable bidirectional mappings."""
 
     __slots__ = ()
+
+    if _t.TYPE_CHECKING:  # pragma: no cover
+        @property
+        def inverse(self) -> 'MutableBidict[VT, KT]': ...
 
     def __delitem__(self, key: KT) -> None:
         """*x.__delitem__(y)　⟺　del x[y]*"""
@@ -73,7 +77,7 @@ class MutableBidict(BidictBase[KT, VT], MutableBidirectionalMapping[KT, VT]):
         """
         self._put(key, val, self.on_dup)
 
-    def put(self, key: KT, val: VT, on_dup=ON_DUP_RAISE) -> None:
+    def put(self, key: KT, val: VT, on_dup: OnDup = ON_DUP_RAISE) -> None:
         """Associate *key* with *val*, honoring the :class:`OnDup` given in *on_dup*.
 
         For example, if *on_dup* is :attr:`~bidict.ON_DUP_RAISE`,
@@ -112,7 +116,11 @@ class MutableBidict(BidictBase[KT, VT], MutableBidirectionalMapping[KT, VT]):
         self._fwdm.clear()
         self._invm.clear()
 
-    def pop(self, key: KT, default=_MISS) -> Any:
+    @_t.overload  # type: ignore
+    def pop(self, key: KT) -> VT: ...  # pragma: no cover
+    @_t.overload
+    def pop(self, key: KT, default: ODT = _NONE) -> _t.Union[VT, ODT]: ...  # pragma: no cover
+    def pop(self, key: KT, default: ODT = _NONE) -> _t.Union[VT, ODT]:
         """*x.pop(k[, d]) → v*
 
         Remove specified key and return the corresponding value.
@@ -122,11 +130,11 @@ class MutableBidict(BidictBase[KT, VT], MutableBidirectionalMapping[KT, VT]):
         try:
             return self._pop(key)
         except KeyError:
-            if default is _MISS:
+            if default is _NONE:
                 raise
             return default
 
-    def popitem(self) -> Tuple[KT, VT]:
+    def popitem(self) -> _t.Tuple[KT, VT]:
         """*x.popitem() → (k, v)*
 
         Remove and return some item as a (key, value) pair.
@@ -139,16 +147,16 @@ class MutableBidict(BidictBase[KT, VT], MutableBidirectionalMapping[KT, VT]):
         del self._invm[val]
         return key, val
 
-    def update(self, *args, **kw) -> None:  # pylint: disable=signature-differs
+    def update(self, *args: MapOrIterItems[KT, VT], **kw: VT) -> None:
         """Like calling :meth:`putall` with *self.on_dup* passed for *on_dup*."""
         if args or kw:
             self._update(False, self.on_dup, *args, **kw)
 
-    def forceupdate(self, *args, **kw) -> None:
+    def forceupdate(self, *args: MapOrIterItems[KT, VT], **kw: VT) -> None:
         """Like a bulk :meth:`forceput`."""
         self._update(False, ON_DUP_DROP_OLD, *args, **kw)
 
-    def putall(self, items, on_dup=ON_DUP_RAISE) -> None:
+    def putall(self, items: MapOrIterItems[KT, VT], on_dup: OnDup = ON_DUP_RAISE) -> None:
         """Like a bulk :meth:`put`.
 
         If one of the given items causes an exception to be raised,

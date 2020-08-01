@@ -11,11 +11,13 @@
 from collections.abc import Mapping
 from itertools import chain, repeat
 
+from ._typing import KT, VT, IterItems, MapOrIterItems
+
 
 _NULL_IT = repeat(None, 0)  # repeat 0 times -> raise StopIteration from the start
 
 
-def _iteritems_mapping_or_iterable(arg):
+def _iteritems_mapping_or_iterable(arg: MapOrIterItems[KT, VT]) -> IterItems[KT, VT]:
     """Yield the items in *arg*.
 
     If *arg* is a :class:`~collections.abc.Mapping`, return an iterator over its items.
@@ -24,7 +26,7 @@ def _iteritems_mapping_or_iterable(arg):
     return iter(arg.items() if isinstance(arg, Mapping) else arg)
 
 
-def _iteritems_args_kw(*args, **kw):
+def _iteritems_args_kw(*args: MapOrIterItems[KT, VT], **kw: VT) -> IterItems[KT, VT]:
     """Yield the items from the positional argument (if given) and then any from *kw*.
 
     :raises TypeError: if more than one positional argument is given.
@@ -39,11 +41,11 @@ def _iteritems_args_kw(*args, **kw):
             itemchain = _iteritems_mapping_or_iterable(arg)
     if kw:
         iterkw = iter(kw.items())
-        itemchain = chain(itemchain, iterkw) if itemchain else iterkw
-    return itemchain or _NULL_IT
+        itemchain = chain(itemchain, iterkw) if itemchain else iterkw  # type: ignore
+    return itemchain or _NULL_IT  # type: ignore
 
 
-def inverted(arg):
+def inverted(arg: MapOrIterItems[KT, VT]) -> IterItems[VT, KT]:
     """Yield the inverse items of the provided object.
 
     If *arg* has a :func:`callable` ``__inverted__`` attribute,
@@ -56,5 +58,5 @@ def inverted(arg):
     """
     inv = getattr(arg, '__inverted__', None)
     if callable(inv):
-        return inv()
+        return inv()  # type: ignore
     return ((val, key) for (key, val) in _iteritems_mapping_or_iterable(arg))

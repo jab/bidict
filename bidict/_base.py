@@ -28,25 +28,23 @@
 
 """Provide :class:`BidictBase`."""
 
+import typing as _t
 from collections import namedtuple
 from copy import copy
-from typing import Any, Iterator, List, Mapping, Optional, Tuple, TypeVar
 from weakref import ref
 
-from ._abc import KT, VT, BidirectionalMapping
+from ._abc import BidirectionalMapping
 from ._dup import ON_DUP_DEFAULT, RAISE, DROP_OLD, DROP_NEW, OnDup
-from ._exc import (
-    DuplicationError, KeyDuplicationError, ValueDuplicationError, KeyAndValueDuplicationError)
-from ._sntl import _MISS
+from ._exc import DuplicationError, KeyDuplicationError, ValueDuplicationError, KeyAndValueDuplicationError
+from ._typing import _NONE, KT, VT, OKT, OVT, MapOrIterItems
 from ._util import _iteritems_args_kw
 
 
-_DedupResult = namedtuple('_DedupResult', 'isdupkey isdupval invbyval fwdbykey')
 _WriteResult = namedtuple('_WriteResult', 'key val oldkey oldval')
-_NODUP = _DedupResult(False, False, _MISS, _MISS)
+_DedupResult = namedtuple('_DedupResult', 'isdupkey isdupval invbyval fwdbykey')
+_NODUP = _DedupResult(False, False, _NONE, _NONE)
 
-
-T = TypeVar('T', bound='BidictBase')
+BT = _t.TypeVar('BT', bound='BidictBase')  # typevar for BidictBase.copy
 
 
 class BidictBase(BidirectionalMapping[KT, VT]):
@@ -67,7 +65,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
     #: The object used by :meth:`__repr__` for printing the contained items.
     _repr_delegate = dict
 
-    def __init__(self, *args, **kw) -> None:  # pylint: disable=super-init-not-called
+    def __init__(self, *args: MapOrIterItems[KT, VT], **kw: VT) -> None:
         """Make a new bidirectional dictionary.
         The signature behaves like that of :class:`dict`.
         Items passed in are added in the order they are passed,
@@ -75,15 +73,15 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         """
         #: The backing :class:`~collections.abc.Mapping`
         #: storing the forward mapping data (*key* → *value*).
-        self._fwdm = self._fwdm_cls()
+        self._fwdm: _t.Dict[KT, VT] = self._fwdm_cls()
         #: The backing :class:`~collections.abc.Mapping`
         #: storing the inverse mapping data (*value* → *key*).
-        self._invm = self._invm_cls()
+        self._invm: _t.Dict[VT, KT] = self._invm_cls()
         self._init_inv()
         if args or kw:
             self._update(True, self.on_dup, *args, **kw)
 
-    def _init_inv(self):
+    def _init_inv(self) -> None:
         # Compute the type for this bidict's inverse bidict (will be different from this
         # bidict's type if _fwdm_cls and _invm_cls are different).
         inv_cls = self._inv_cls()
@@ -102,21 +100,21 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         self._invweak = None
 
     @classmethod
-    def _inv_cls(cls):
+    def _inv_cls(cls) -> '_t.Type[BidictBase[VT, KT]]':
         """The inverse of this bidict type, i.e. one with *_fwdm_cls* and *_invm_cls* swapped."""
         if cls._fwdm_cls is cls._invm_cls:
-            return cls
+            return cls  # type: ignore
         if not getattr(cls, '_inv_cls_', None):
-            class _Inv(cls):
+            class _Inv(cls):  # type: ignore
                 _fwdm_cls = cls._invm_cls
                 _invm_cls = cls._fwdm_cls
                 _inv_cls_ = cls
             _Inv.__name__ = cls.__name__ + 'Inv'
-            cls._inv_cls_ = _Inv
-        return cls._inv_cls_
+            cls._inv_cls_ = _Inv  # type: ignore
+        return cls._inv_cls_  # type: ignore
 
     @property
-    def _isinv(self):
+    def _isinv(self) -> bool:
         return self._inv is None
 
     @property
@@ -125,9 +123,10 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         # Resolve and return a strong reference to the inverse bidict.
         # One may be stored in self._inv already.
         if self._inv is not None:
-            return self._inv
+            return self._inv  # type: ignore
         # Otherwise a weakref is stored in self._invweak. Try to get a strong ref from it.
-        inv = self._invweak()  # pylint: disable=not-callable
+        assert self._invweak is not None
+        inv = self._invweak()
         if inv is not None:
             return inv
         # Refcount of referent must have dropped to zero, as in `bidict().inv.inv`. Init a new one.
@@ -137,7 +136,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
     #: Alias for :attr:`inverse`.
     inv = inverse
 
-    def __getstate__(self):
+    def __getstate__(self) -> dict:
         """Needed to enable pickling due to use of :attr:`__slots__` and weakrefs.
 
         *See also* :meth:`object.__getstate__`
@@ -153,7 +152,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         state.pop('__weakref__', None)  # Not added back in __setstate__. Python manages this one.
         return state
 
-    def __setstate__(self, state):
+    def __setstate__(self, state: dict) -> None:
         """Implemented because use of :attr:`__slots__` would prevent unpickling otherwise.
 
         *See also* :meth:`object.__setstate__`
@@ -172,7 +171,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
     # The inherited Mapping.__eq__ implementation would work, but it's implemented in terms of an
     # inefficient ``dict(self.items()) == dict(other.items())`` comparison, so override it with a
     # more efficient implementation.
-    def __eq__(self, other: Any) -> bool:
+    def __eq__(self, other: _t.Any) -> bool:
         """*x.__eq__(other)　⟺　x == other*
 
         Equivalent to *dict(x.items()) == dict(other.items())*
@@ -186,10 +185,10 @@ class BidictBase(BidirectionalMapping[KT, VT]):
 
         *See also* :meth:`bidict.FrozenOrderedBidict.equals_order_sensitive`
         """
-        if not isinstance(other, Mapping) or len(self) != len(other):
+        if not isinstance(other, _t.Mapping) or len(self) != len(other):
             return False
         selfget = self.get
-        return all(selfget(k, _MISS) == v for (k, v) in other.items())
+        return all(selfget(k, _NONE) == v for (k, v) in other.items())  # type: ignore
 
     # The following methods are mutating and so are not public. But they are implemented in this
     # non-mutable base class (rather than the mutable `bidict` subclass) because they are used here
@@ -206,7 +205,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         if dedup_result is not None:
             self._write_item(key, val, dedup_result)
 
-    def _dedup_item(self, key: KT, val: VT, on_dup: OnDup) -> Optional[_DedupResult]:
+    def _dedup_item(self, key: KT, val: VT, on_dup: OnDup) -> _t.Optional[_DedupResult]:
         """Check *key* and *val* for any duplication in self.
 
         Handle any duplication as per the passed in *on_dup*.
@@ -224,13 +223,12 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         or if no duplication is found,
         return the :class:`_DedupResult` *(isdupkey, isdupval, oldkey, oldval)*.
         """
-        # pylint: disable=too-many-branches
         fwdm = self._fwdm
         invm = self._invm
-        oldval = fwdm.get(key, _MISS)
-        oldkey = invm.get(val, _MISS)
-        isdupkey = oldval is not _MISS
-        isdupval = oldkey is not _MISS
+        oldval: OVT = fwdm.get(key, _NONE)
+        oldkey: OKT = invm.get(val, _NONE)
+        isdupkey = oldval is not _NONE
+        isdupval = oldkey is not _NONE
         dedup_result = _DedupResult(isdupkey, isdupval, oldkey, oldval)
         if isdupkey and isdupval:
             if self._already_have(key, val, oldkey, oldval):
@@ -264,7 +262,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         return dedup_result
 
     @staticmethod
-    def _already_have(key: KT, val: VT, oldkey: KT, oldval: VT) -> bool:
+    def _already_have(key: KT, val: VT, oldkey: OKT, oldval: OVT) -> bool:
         # Overridden by _orderedbase.OrderedBidictBase.
         isdup = oldkey == key
         assert isdup == (oldval == val), f'{key} {val} {oldkey} {oldval}'
@@ -283,13 +281,13 @@ class BidictBase(BidirectionalMapping[KT, VT]):
             del fwdm[oldkey]
         return _WriteResult(key, val, oldkey, oldval)
 
-    def _update(self, init: bool, on_dup: OnDup, *args, **kw) -> None:
+    def _update(self, init: bool, on_dup: OnDup, *args: MapOrIterItems[KT, VT], **kw: VT) -> None:
         # args[0] may be a generator that yields many items, so process input in a single pass.
         if not args and not kw:
             return
         can_skip_dup_check = not self and not kw and isinstance(args[0], BidirectionalMapping)
         if can_skip_dup_check:
-            self._update_no_dup_check(args[0])
+            self._update_no_dup_check(args[0])  # type: ignore
             return
         can_skip_rollback = init or RAISE not in on_dup
         if can_skip_rollback:
@@ -297,19 +295,19 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         else:
             self._update_with_rollback(on_dup, *args, **kw)
 
-    def _update_no_dup_check(self, other: Mapping) -> None:
+    def _update_no_dup_check(self, other: BidirectionalMapping[KT, VT]) -> None:
         write_item = self._write_item
         for (key, val) in other.items():
             write_item(key, val, _NODUP)
 
-    def _update_no_rollback(self, on_dup: OnDup, *args, **kw) -> None:
+    def _update_no_rollback(self, on_dup: OnDup, *args: MapOrIterItems[KT, VT], **kw: VT) -> None:
         put = self._put
         for (key, val) in _iteritems_args_kw(*args, **kw):
             put(key, val, on_dup)
 
-    def _update_with_rollback(self, on_dup: OnDup, *args, **kw) -> None:
+    def _update_with_rollback(self, on_dup: OnDup, *args: MapOrIterItems[KT, VT], **kw: VT) -> None:
         """Update, rolling back on failure."""
-        writes: List[Tuple[_DedupResult, _WriteResult]] = []
+        writes: _t.List[_t.Tuple[_DedupResult, _WriteResult]] = []
         append_write = writes.append
         dedup_item = self._dedup_item
         write_item = self._write_item
@@ -344,7 +342,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
             if not isdupkey:
                 del fwdm[key]
 
-    def copy(self: T) -> T:
+    def copy(self: BT) -> BT:
         """A shallow copy."""
         # Could just ``return self.__class__(self)`` here instead, but the below is faster. It uses
         # __new__ to create a copy instance while bypassing its __init__, which would result
@@ -355,9 +353,9 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         cp._fwdm = copy(self._fwdm)
         cp._invm = copy(self._invm)
         cp._init_inv()
-        return cp
+        return cp  # type: ignore
 
-    def __copy__(self: T) -> T:
+    def __copy__(self: BT) -> BT:
         """Used for the copy protocol.
 
         *See also* the :mod:`copy` module
@@ -368,7 +366,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         """The number of contained items."""
         return len(self._fwdm)
 
-    def __iter__(self) -> Iterator[KT]:
+    def __iter__(self) -> _t.Iterator[KT]:
         """Iterator over the contained keys."""
         return iter(self._fwdm)
 
@@ -377,7 +375,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         return self._fwdm[key]
 
 
-# Work around https://bugs.python.org/issue41451
+# Work around weakref slot with Generics bug on Python 3.6 (https://bugs.python.org/issue41451):
 BidictBase.__slots__.remove('__weakref__')
 
 #                             * Code review nav *

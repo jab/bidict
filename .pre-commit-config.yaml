@@ -10,10 +10,10 @@ repos:
   # - id: fix-encoding-pragma
   - id: check-yaml
 
-#- repo: https://github.com/pre-commit/mirrors-mypy
-#  rev: '0.782'
-#  hooks:
-#  - id: mypy
+- repo: https://github.com/pre-commit/mirrors-mypy
+  rev: v0.782
+  hooks:
+  - id: mypy
 
 - repo: https://github.com/pycqa/pydocstyle
   rev: 5.0.2
@@ -53,10 +53,6 @@ repos:
     - hypothesis < 6
     - pytest < 7
     - Sphinx < 4
-    args:
-    # http://pylint.pycqa.org/en/latest/user_guide/run.html#parallel-execution
-    # "If the provided number is 0, then the total number of CPUs will be used."
-    - --jobs=0
 
 - repo: https://github.com/jumanjihouse/pre-commit-hooks
   rev: 2.1.4

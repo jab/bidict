@@ -123,7 +123,6 @@ def test_bijectivity(bi):
 @given(st.BI_AND_CMPDICT_FROM_SAME_ITEMS, st.ARGS_BY_METHOD)
 def test_consistency_after_method_call(bi_and_cmp_dict, args_by_method):
     """A bidict should be left in a consistent state after calling any method, even if it raises."""
-    # pylint: disable=too-many-locals
     bi_orig, cmp_dict_orig = bi_and_cmp_dict
     for (_, methodname), args in args_by_method.items():
         if not hasattr(bi_orig, methodname):
@@ -214,11 +213,9 @@ def test_orderedbidict_reversed(ob_and_od):
 @given(st.FROZEN_BIDICTS)
 def test_frozenbidicts_hashable(bi):
     """Frozen bidicts can be hashed and inserted into sets and mappings."""
-    # Nothing to assert; making sure these calls don't raise is sufficient.
-    # pylint: disable=pointless-statement
-    hash(bi)
-    {bi}
-    {bi: bi}
+    assert hash(bi)
+    assert {bi}
+    assert {bi: bi}
 
 
 @given(st.NAMEDBIDICT_NAMES_SOME_INVALID)
@@ -264,10 +261,8 @@ def test_bidict_isinv_getstate(bi):
     """All bidicts should provide ``_isinv`` and ``__getstate__``
     (or else they won't fully work as a *base_type* for :func:`namedbidict`).
     """
-    # Nothing to assert; making sure these calls don't raise is sufficient.
-    # pylint: disable=pointless-statement
-    bi._isinv
-    bi.__getstate__()
+    bi._isinv  # pylint: disable=pointless-statement
+    assert bi.__getstate__()
 
 
 # Skip this test on PyPy where reference counting isn't used to free objects immediately. See:

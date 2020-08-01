@@ -27,13 +27,26 @@ to be notified when new versions of ``bidict`` are released.
 0.21.0 not yet released
 -----------------------
 
-- Add :class:`bidict.MutableBidirectionalMapping`.
-
 - Add type hints.
+
+- Add :class:`bidict.MutableBidirectionalMapping` ABC.
 
 - Drop support for Python 3.5.
 
-- Remove the ``bidict.compat`` module.
+- Remove the no-longer-needed ``bidict.compat`` module.
+
+- :meth:`bidict.OrderedBidictBase.__iter__` no longer accepts
+  a ``reverse`` keyword argument so that it matches the signature of
+  :meth:`container.__iter__`.
+
+- Set the ``__module__`` attribute of several :mod:`bidict` classes
+  for simpler repr strings.
+
+- :func:`~bidict.namedbidict` now immediately raises :class:`TypeError`
+  if the provided ``base_type`` does not provide
+  ``_isinv`` or :meth:`~object.__getstate__`,
+  rather than succeeding with a class whose instances may raise
+  :class:`AttributeError` when these attributes are accessed.
 
 
 0.20.0 (2020-07-23)

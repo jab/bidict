@@ -23,8 +23,8 @@ class OnDupAction(Enum):
     #: Keep existing items and drop new items.
     DROP_NEW = 'DROP_NEW'
 
-    def __repr__(self):
-        return f'<bidict.{self.name}>'  # pragma: no cover
+    def __repr__(self) -> str:
+        return f'<{self.name}>'  # pragma: no cover
 
 
 RAISE = OnDupAction.RAISE
@@ -42,7 +42,7 @@ class OnDup(namedtuple('_OnDup', 'key val kv')):
 
     __slots__ = ()
 
-    def __new__(cls, key=DROP_OLD, val=RAISE, kv=RAISE):
+    def __new__(cls, key: OnDupAction = DROP_OLD, val: OnDupAction = RAISE, kv: OnDupAction = RAISE) -> 'OnDup':
         """Override to provide user-friendly default values."""
         return super().__new__(cls, key, val, kv or val)
 
