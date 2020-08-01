@@ -64,7 +64,7 @@ class _Node:
         clsname = self.__class__.__name__
         prv = id(self.prv)
         nxt = id(self.nxt)
-        return '%s(prv=%s, self=%s, nxt=%s)' % (clsname, prv, id(self), nxt)
+        return f'{clsname}(prv={prv}, self={id(self)}, nxt={nxt})'
 
     def _getprv(self):
         return self._prv() if isinstance(self._prv, ref) else self._prv

@@ -134,7 +134,7 @@ def test_consistency_after_method_call(bi_and_cmp_dict, args_by_method):
             result = method(*args)
         except (KeyError, BidictException) as exc:
             # Call should fail clean, i.e. bi should be in the same state it was before the call.
-            assertmsg = '%r did not fail clean: %r' % (method, exc)
+            assertmsg = f'{method!r} did not fail clean: {exc!r}'
             assert bi == bi_orig, assertmsg
             assert bi.inv == bi_orig.inv, assertmsg
         else:
@@ -147,7 +147,7 @@ def test_consistency_after_method_call(bi_and_cmp_dict, args_by_method):
                     coll = list if isinstance(bi, OrderedBidictBase) else set
                     result = coll(result)
                     cmp_result = coll(cmp_result)
-                assert result == cmp_result, 'methodname=%s, args=%r' % (methodname, args)
+                assert result == cmp_result, f'methodname={methodname}, args={args!r}'
         # Whether the call failed or succeeded, bi should pass consistency checks.
         assert len(bi) == sum(1 for _ in bi.items())
         assert len(bi.inv) == sum(1 for _ in bi.inv.items())
@@ -320,10 +320,10 @@ def test_slots(bi_cls):
         if cls in stop_at:
             break
         slots = getattr(cls, '__slots__', None)
-        assert slots is not None, 'Expected %r to define __slots__' % cls
+        assert slots is not None, f'Expected {cls!r} to define __slots__'
         for slot in slots:
             seen_at = cls_by_slot.get(slot)
-            assert not seen_at, '%r repeats slot %r declared first by %r' % (seen_at, slot, cls)
+            assert not seen_at, f'{seen_at!r} repeats slot {slot!r} declared first by {cls!r}'
             cls_by_slot[slot] = cls
 
 

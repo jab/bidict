@@ -31,7 +31,7 @@ def _iteritems_args_kw(*args, **kw):
     """
     args_len = len(args)
     if args_len > 1:
-        raise TypeError('Expected at most 1 positional argument, got %d' % args_len)
+        raise TypeError(f'Expected at most 1 positional argument, got {args_len}')
     itemchain = None
     if args:
         arg = args[0]

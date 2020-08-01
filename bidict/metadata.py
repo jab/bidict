@@ -27,7 +27,7 @@ except (ImportError, ValueError, SystemError):  # pragma: no cover
 try:
     __version_info__ = tuple(int(p) if i < 3 else p for (i, p) in enumerate(__version__.split('.')))
 except Exception:  # noqa: E722; pragma: no cover; pylint: disable=broad-except
-    __vesion_info__ = (0, 0, 0, 'PARSE FAILURE: __version__=%s' % __version__)
+    __vesion_info__ = (0, 0, 0, f'PARSE FAILURE: __version__={__version__!r}')
 
 __author__ = 'Joshua Bronson'
 __maintainer__ = 'Joshua Bronson'
