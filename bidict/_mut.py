@@ -26,7 +26,7 @@
 #==============================================================================
 
 
-"""Provide :class:`bidict`."""
+"""Provide :class:`MutableBidict`."""
 
 import typing as _t
 
