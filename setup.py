@@ -65,6 +65,7 @@ TEST_REQS = [
     'py < 2',
     'pytest < 7',
     'pytest-benchmark >= 3.2.0, < 4',
+    'pytest-mutagen < 2',
     'sortedcollections < 2',
     'sortedcontainers < 3',
     # pytest's doctest support doesn't support Sphinx extensions

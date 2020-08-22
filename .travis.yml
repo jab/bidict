@@ -75,6 +75,9 @@ script:  # Run the test suite.
     if [[ "$COVERAGE" ]]; then
       export PYTEST_ADDOPTS="${PYTEST_ADDOPTS} --cov=bidict --cov-config=.coveragerc"
     fi
+    if [[ "$MUTAGEN" ]]; then
+      export PYTEST_ADDOPTS="${PYTEST_ADDOPTS} --collect-only --mutate --quick-mut"
+    fi
     python3 ./run_tests.py
 
 
@@ -108,6 +111,10 @@ matrix:
 
     - python: 'pypy3'
       env: 'TASK=test-linux-pypy3 COVERAGE=1'
+
+    ## Mutation tests.
+    - python: '3.8'
+      env: 'TASK=test-mutagen MUTAGEN=1'
 
     ## Make sure there are no relied-on side effects in assert statements.
     - env: 'TASK=test-with-optimization-flag'

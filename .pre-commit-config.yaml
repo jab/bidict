@@ -52,6 +52,7 @@ repos:
     additional_dependencies:
     - hypothesis < 6
     - pytest < 7
+    - pytest-mutagen < 2
     - Sphinx < 4
 
 - repo: https://github.com/jumanjihouse/pre-commit-hooks
