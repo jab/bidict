@@ -31,7 +31,10 @@ from bidict._iter import _iteritems_args_kw
 from . import _strategies as st
 
 
-PYPY = python_implementation() == 'PyPy'
+require_cpython_gc = pytest.mark.skipif(
+    python_implementation() != 'CPython',
+    reason='Requires CPython GC behavior',
+)
 
 
 @given(st.BIDICTS, st.NON_MAPPINGS)
@@ -265,16 +268,13 @@ def test_bidict_isinv_getstate(bi):
     assert bi.__getstate__()
 
 
-# Skip this test on PyPy where reference counting isn't used to free objects immediately. See:
-# https://bitbucket.org/pypy/pypy/src/dafacc4/pypy/doc/cpython_differences.rst?mode=view
-# "It also means that weak references may stay alive for a bit longer than expected."
-@pytest.mark.skipif(PYPY, reason='objects with 0 refcount are not freed immediately on PyPy')
+@require_cpython_gc
 @given(bi_cls=st.BIDICT_TYPES)
-def test_refcycle_bidict_inverse(bi_cls):
-    """When you release your last strong reference to a bidict,
-    there are no remaining strong references to it
-    (e.g. no reference cycle was created between it and its inverse)
-    allowing the memory to be reclaimed immediately.
+def test_bidicts_freed_on_zero_refcount(bi_cls):
+    """On CPython, the moment you have no more (strong) references to a bidict,
+    there are no remaining (internal) strong references to it
+    (i.e. no reference cycle was created between it and its inverse),
+    allowing the memory to be reclaimed immediately, even with GC disabled.
     """
     gc.disable()
     try:
@@ -287,12 +287,12 @@ def test_refcycle_bidict_inverse(bi_cls):
         gc.enable()
 
 
-# See comment about skipping `test_refcycle_bidict_inverse` above.
-@pytest.mark.skipif(PYPY, reason='objects with 0 refcount are not freed immediately on PyPy')
+@require_cpython_gc
 @given(ob_cls=st.ORDERED_BIDICT_TYPES, init_items=st.I_PAIRS_NODUP)
-def test_refcycle_orderedbidict_nodes(ob_cls, init_items):
-    """When you release your last strong reference to an ordered bidict,
+def test_orderedbidict_nodes_freed_on_zero_refcount(ob_cls, init_items):
+    """On CPython, the moment you have no more references to an ordered bidict,
     the refcount of each of its internal nodes drops to 0
+    (i.e. the linked list of nodes does not create a reference cycle),
     allowing the memory to be reclaimed immediately.
     """
     gc.disable()

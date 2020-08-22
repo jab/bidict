@@ -218,7 +218,7 @@ so the behavior will match :class:`dict`'s
 wherever :mod:`bidict` is running.
 
 See e.g. `these docs
-<https://bitbucket.org/pypy/pypy/src/dafacc4/pypy/doc/cpython_differences.rst?mode=view>`__
+<https://doc.pypy.org/en/latest/cpython_differences.html>`__
 for more info (search the page for "nan").
 
 ----

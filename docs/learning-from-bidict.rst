@@ -468,18 +468,18 @@ Portability
     See the `old implementation <https://github.com/jab/bidict/blob/v0.18.3/bidict/_frozenordered.py#L10>`__
     of :class:`~bidict.FrozenOrderedBidict`.
 
-- CPython vs. PyPy
+- CPython vs. PyPy (and other Python implementations)
+
+  - See https://doc.pypy.org/en/latest/cpython_differences.html
 
   - gc / weakref
 
+  - Hence ``test_bidicts_freed_on_zero_refcount()``
+    in `test_properties.py
+    <https://github.com/jab/bidict/blob/master/tests/properties/test_properties.py>`__
+    is skipped outside CPython.
+
   - primitives' identities, nan, etc.
-
-    - https://bitbucket.org/pypy/pypy/src/dafacc4/pypy/doc/cpython_differences.rst?mode=view
-
-    - Hence ``test_no_reference_cycles()``
-      in `test_properties.py
-      <https://github.com/jab/bidict/blob/master/tests/properties/test_properties.py>`__
-      is skipped on PyPy.
 
 
 Other interesting stuff in the standard library

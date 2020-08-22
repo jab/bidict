@@ -24,8 +24,8 @@ Tip: Subscribe to releases
 to be notified when new versions of ``bidict`` are released.
 
 
-0.21.0 (not yet released)
--------------------------
+0.21.0 (2020-08-22)
+-------------------
 
 - :mod:`bidict` now provides
   `type hints <https://www.python.org/dev/peps/pep-0484/>`__! ⌨️ ✅
@@ -40,7 +40,7 @@ to be notified when new versions of ``bidict`` are released.
 
   It didn't take long to hit bugs and missing features
   in the state of the art for type hinting in Python today,
-  e.g. no support for higher-kinded types
+  e.g. missing higher-kinded types support
   (`python/typing#548 <https://github.com/python/typing/issues/548#issuecomment-621195693>`__),
   too-narrow type hints for :class:`collections.abc.Mapping`
   (`python/typeshed#4435 <https://github.com/python/typeshed/issues/4435>`__),
