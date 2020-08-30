@@ -79,7 +79,7 @@ Status
   as well as for **reading and learning** [#fn-learning]_
 - has **extensive docs and test coverage**
   (including property-based tests and benchmarks)
-  run continuously on all supported Python versions and OSes
+  run continuously on all supported Python versions
 
 
 Note: Python 3 Required
@@ -164,7 +164,7 @@ You can:
 - `star bidict on GitHub <https://github.com/jab/bidict>`__
 - `create an issue <https://github.com/jab/bidict/issues/new?title=Notice+of+Usage&body=I+am+using+bidict+for...>`__
 - leave a message in the `chat room <https://gitter.im/jab/bidict>`__
-- `email me <mailto:jab@math.brown.edu?subject=bidict&body=I%20am%20using%20bidict%20for...>`__
+- `email me <mailto:jabronson@gmail.com?subject=bidict&body=I%20am%20using%20bidict%20for...>`__
 
 
 Changelog

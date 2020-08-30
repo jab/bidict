@@ -117,7 +117,7 @@ Other Ways to Contribute
   :alt: Chip in via Gumroad
 
 .. image:: https://img.shields.io/badge/PayPal-Chip%20in-blue.svg
-  :target: https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=jab%40math%2ebrown%2eedu&lc=US&item_name=Support%20bidict&button_subtype=services&currency_code=USD&bn=PP%2dBuyNowBF%3aPaypal%2dBuy%2520a%2520Drink%2dblue%2esvg%3aNonHosted
+  :target: https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=jabronson%40gmail%2ecom&lc=US&item_name=Support%20bidict&button_subtype=services&currency_code=USD&bn=PP%2dBuyNowBF%3aPaypal%2dBuy%2520a%2520Drink%2dblue%2esvg%3aNonHosted
   :alt: Chip in via PayPal
 
 .. 2020-1-1: bountysource.com domain expired, commented out here + removed from .github/FUNDING.yml
