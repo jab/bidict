@@ -1,8 +1,3 @@
-# TODO: switch to appveyor for all CI now that windows, linux, and mac (with python) are available?
-# https://www.appveyor.com/docs/build-environment/
-# https://www.appveyor.com/docs/macos-images-software/
-# etc.
-
 language: 'python'
 
 # Default version used for jobs that don't override it.
@@ -67,8 +62,8 @@ script:  # Run the test suite.
       export HYPOTHESIS_GEN_MAX_SIZE="32"
       export HYPOTHESIS_DEADLINE="500"
     fi
-    # Without this, pypy3 with coverage on Travis is too slow to pass reliably.
-    if [[ "$TASK" == "test-linux-pypy3" ]]; then
+    if [[ "$TASK" == "test-pypy3" ]]; then
+      # Without these, pypy3 on Travis is too slow to pass Hypothesis' health checks reliably:
       export HYPOTHESIS_MAX_EXAMPLES="50"
       export HYPOTHESIS_GEN_MAX_SIZE="5"
     fi
@@ -102,12 +97,13 @@ matrix:
 
     # Travis runs jobs in the order defined below -> order jobs by priority.
 
-    ## Test suite on Linux with latest CPython and PyPy 2 and 3 -> enable coverage.
+    ## Test suite with latest stable CPython available on Travis. Enable coverage.
     - python: '3.8'
-      env: 'TASK=test-linux-cpython-3.8 COVERAGE=1'
+      env: 'TASK=test-cpython-3.8 COVERAGE=1'
 
+    ## Test suite with latest PyPy3 available on Travis.
     - python: 'pypy3'
-      env: 'TASK=test-linux-pypy3 COVERAGE=1'
+      env: 'TASK=test-pypy3'
 
     ## Make sure there are no relied-on side effects in assert statements.
     - env: 'TASK=test-with-optimization-flag'
@@ -129,26 +125,12 @@ matrix:
       before_install: 'skip'
       script: '(cd docs && make linkcheck)'
 
-    ## Remaining CPython versions on Linux.
+    ## Remaining supported CPython versions.
     - python: '3.7'
-      env: 'TASK=test-linux-cpython-3.7'
+      env: 'TASK=test-cpython-3.7'
 
     - python: '3.6'
-      env: 'TASK=test-linux-cpython-3.6'
-
-    ## Test suite on Mac with latest system Python 3 available in Travis's Mac image.
-    ## Must set `language: generic` for this to work (otherwise Travis attempts to download
-    ## a non-system Python version which fails with a 404). Setting `python: '3.7'` below
-    ## actually has no effect (the Python version comes from the system Python) other than
-    ## to show the right version in the Travis web UI (must keep up-to-date manually).
-    - os: 'osx'
-      language: 'generic'
-      python: '3.7'
-      env: 'TASK=test-mac-cpython-3.7'
-
-    ## Try Travis's new Windows support once it supports Python?
-    ### - env: 'TASK=test-windows-cpython-3.x'
-    ###   os: 'windows'
+      env: 'TASK=test-cpython-3.6'
 
 deploy:
   - provider: 'pypi'
@@ -179,4 +161,4 @@ notifications:
     urls:
       - 'https://webhooks.gitter.im/e/bf64fb45a633c0935b9b'
   email:
-    recipients: 'jab@math.brown.edu'
+    recipients: 'jabronson@gmail.com'

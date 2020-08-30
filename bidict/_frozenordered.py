@@ -40,7 +40,7 @@ class FrozenOrderedBidict(OrderedBidictBase[KT, VT]):
     __slots__ = ()
     __hash__ = frozenbidict.__hash__
 
-    if _t.TYPE_CHECKING:  # pragma: no cover
+    if _t.TYPE_CHECKING:
         @property
         def inverse(self) -> 'FrozenOrderedBidict[VT, KT]': ...
 

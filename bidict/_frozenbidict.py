@@ -41,7 +41,7 @@ class frozenbidict(_DelegatingBidict[KT, VT]):
     # Work around lack of support for higher-kinded types in mypy.
     # Ref: https://github.com/python/typing/issues/548#issuecomment-621571821
     # Remove this and similar type stubs from other classes if support is ever added.
-    if _t.TYPE_CHECKING:  # pragma: no cover
+    if _t.TYPE_CHECKING:
         @property
         def inverse(self) -> 'frozenbidict[VT, KT]': ...
 

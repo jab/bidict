@@ -21,7 +21,7 @@ VDT = _t.Union[VT, DT]
 
 
 class _BareReprMeta(type):
-    def __repr__(cls) -> str:  # pragma: no cover
+    def __repr__(cls) -> str:
         return f'<{cls.__name__}>'
 
 

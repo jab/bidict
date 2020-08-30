@@ -60,7 +60,7 @@ class _Node:
         self._setprv(prv)
         self._setnxt(nxt)
 
-    def __repr__(self) -> str:  # pragma: no cover
+    def __repr__(self) -> str:
         clsname = self.__class__.__name__
         prv = id(self.prv)
         nxt = id(self.nxt)
@@ -109,7 +109,7 @@ class _SentinelNode(_Node):
     def __init__(self, prv: _Node = None, nxt: _Node = None) -> None:
         super().__init__(prv or self, nxt or self)
 
-    def __repr__(self) -> str:  # pragma: no cover
+    def __repr__(self) -> str:
         return '<SNTL>'
 
     def __bool__(self) -> bool:
@@ -166,7 +166,7 @@ class OrderedBidictBase(BidictBase[KT, VT]):
         # are inherited and are able to be reused without modification.
         super().__init__(*args, **kw)
 
-    if _t.TYPE_CHECKING:  # pragma: no cover
+    if _t.TYPE_CHECKING:
         @property
         def inverse(self) -> 'OrderedBidictBase[VT, KT]': ...
         _fwdm: bidict[KT, _Node]  # type: ignore

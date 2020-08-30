@@ -244,24 +244,21 @@ class BidictBase(BidirectionalMapping[KT, VT]):
                 raise KeyAndValueDuplicationError(key, val)
             if on_dup.kv is DROP_NEW:
                 return None
-            if on_dup.kv is not DROP_OLD:  # pragma: no cover
-                raise ValueError(on_dup.kv)
+            assert on_dup.kv is DROP_OLD
             # Fall through to the return statement on the last line.
         elif isdupkey:
             if on_dup.key is RAISE:
                 raise KeyDuplicationError(key)
             if on_dup.key is DROP_NEW:
                 return None
-            if on_dup.key is not DROP_OLD:  # pragma: no cover
-                raise ValueError(on_dup.key)
+            assert on_dup.key is DROP_OLD
             # Fall through to the return statement on the last line.
         elif isdupval:
             if on_dup.val is RAISE:
                 raise ValueDuplicationError(val)
             if on_dup.val is DROP_NEW:
                 return None
-            if on_dup.val is not DROP_OLD:  # pragma: no cover
-                raise ValueError(on_dup.val)
+            assert on_dup.val is DROP_OLD
             # Fall through to the return statement on the last line.
         # else neither isdupkey nor isdupval.
         return dedup_result

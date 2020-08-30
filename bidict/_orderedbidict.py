@@ -40,7 +40,7 @@ class OrderedBidict(OrderedBidictBase[KT, VT], MutableBidict[KT, VT]):
 
     __slots__ = ()
 
-    if _t.TYPE_CHECKING:  # pragma: no cover
+    if _t.TYPE_CHECKING:
         @property
         def inverse(self) -> 'OrderedBidict[VT, KT]': ...
 

@@ -32,7 +32,7 @@ except Exception:  # pragma: no cover
 __author__ = 'Joshua Bronson'
 __maintainer__ = 'Joshua Bronson'
 __copyright__ = 'Copyright 2009-2020 Joshua Bronson'
-__email__ = 'jab@math.brown.edu'
+__email__ = 'jabronson@gmail.com'
 
 # See: ../docs/thanks.rst
 __credits__ = [i.strip() for i in """

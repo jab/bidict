@@ -24,7 +24,7 @@ class OnDupAction(Enum):
     DROP_NEW = 'DROP_NEW'
 
     def __repr__(self) -> str:
-        return f'<{self.name}>'  # pragma: no cover
+        return f'<{self.name}>'
 
 
 RAISE = OnDupAction.RAISE

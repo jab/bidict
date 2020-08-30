@@ -1,11 +1,11 @@
 [run]
 branch=True
 source=bidict
-omit=
-  setup.py
 
 [report]
 precision = 1
 exclude_lines =
   pragma: no cover
-  return NotImplemented
+  def __repr__
+  @.*overload
+  if .*TYPE_CHECKING

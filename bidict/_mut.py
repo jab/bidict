@@ -41,7 +41,7 @@ class MutableBidict(BidictBase[KT, VT], MutableBidirectionalMapping[KT, VT]):
 
     __slots__ = ()
 
-    if _t.TYPE_CHECKING:  # pragma: no cover
+    if _t.TYPE_CHECKING:
         @property
         def inverse(self) -> 'MutableBidict[VT, KT]': ...
 
