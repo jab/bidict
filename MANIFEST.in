@@ -14,6 +14,7 @@ include pytest.ini
 include tox.ini
 include docs/_static/custom.css
 include docs/_static/bidict-types-diagram.dot
+include bidict/py.typed
 recursive-include docs *.py
 recursive-include docs *.rst
 recursive-include docs Makefile
