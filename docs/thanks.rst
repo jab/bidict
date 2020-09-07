@@ -31,6 +31,8 @@ People
 
 - Jozef Knaperek for the bugfix.
 
+- Igor Nehoroshev for contributing the py.typed marker.
+
 - Bernát Gábor for pyproject.toml support.
 
 - Muhammad Faisal for the
