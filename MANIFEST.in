@@ -2,6 +2,7 @@
 
 include LICENSE
 include pyproject.toml
+include *.py
 include *.rst
 include *.sh
 include *.yaml
@@ -10,14 +11,16 @@ include .editorconfig
 include .pylintrc
 include .LICENSE_HEADER
 include .coveragerc
+include mypy.ini
 include pytest.ini
 include tox.ini
 include docs/_static/custom.css
 include docs/_static/bidict-types-diagram.dot
 include bidict/py.typed
+recursive-include assets *.*
+recursive-include docs/_static *.*
 recursive-include docs *.py
 recursive-include docs *.rst
-recursive-include docs Makefile
-recursive-include docs/_static *.png
 recursive-include tests *.py
 recursive-include tests *.txt
+recursive-include docs Makefile

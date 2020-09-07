@@ -24,11 +24,18 @@ Tip: Subscribe to releases
 to be notified when new versions of ``bidict`` are released.
 
 
-0.21.1 (2020-09-07)
+0.21.2 (2020-09-07)
 -------------------
 
 - Include `py.typed <https://www.python.org/dev/peps/pep-0561/#packaging-type-information>`__
   file to mark :mod:`bidict` as type hinted.
+
+
+0.21.1 (2020-09-07)
+-------------------
+
+This release was yanked and replaced with the 0.21.2 release,
+which actually provides the intended changes.
 
 
 0.21.0 (2020-08-22)
