@@ -107,7 +107,7 @@ setup(
     url=METADATA.__url__,  # type: ignore
     license=METADATA.__license__,  # type: ignore
     packages=['bidict'],
-    package_data={'bidict': ['py.typed']},
+    include_package_data=True,
     zip_safe=False,  # Don't zip. (We're zip-safe but prefer not to.)
     python_requires='>=3.6',
     classifiers=[
