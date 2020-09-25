@@ -1,6 +1,7 @@
 [run]
-branch=True
-source=bidict
+branch = True
+source = bidict
+dynamic_context = test_function
 
 [report]
 precision = 1
