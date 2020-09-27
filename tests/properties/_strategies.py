@@ -32,27 +32,27 @@ ON_DUP = st.tuples(ON_DUP_ACTIONS, ON_DUP_ACTIONS, ON_DUP_ACTIONS).map(OnDup._ma
 
 TEXT = st.text()
 BOOLEANS = st.booleans()
+# Combine a few different strategies together that generate atomic values
+# that can be used to initialize test bidicts with. Including only None, bools, and ints
+# provides enough coverage; including more just slows down example generation.
 ATOMS = st.none() | BOOLEANS | st.integers()
-## Uncomment the following to mix in floats and text. Leaving commented out since it
-## slows example generation without actually finding more falsifying examples.
-# ATOMS != st.floats(allow_nan=False) | TEXT
+PAIRS = st.tuples(ATOMS, ATOMS)
 NON_MAPPINGS = ATOMS | st.iterables(ATOMS)
-HASHABLES = ATOMS
-## Uncomment the following to mix in tuples (of tuples...) of ATOMS. Leaving commented
-## out since it slows example generation without finding more falsifying examples.
-# TUPLES = st.lists(ATOMS).map(tuple)
-# TUPLES |= st.recursive(TUPLES, lambda i: st.lists(i).map(tuple))
-# HASHABLES |= TUPLES
-ODICTS_KW_PAIRS = st.dictionaries(TEXT, HASHABLES, dict_class=OrderedDict, max_size=MAX)
-PAIRS = st.tuples(HASHABLES, HASHABLES)
+ODICTS_KW_PAIRS = st.dictionaries(TEXT, ATOMS, dict_class=OrderedDict, max_size=MAX)
 L_PAIRS = st.lists(PAIRS, max_size=MAX)
 I_PAIRS = st.iterables(PAIRS, max_size=MAX)
 FST_SND = (itemgetter(0), itemgetter(1))
 L_PAIRS_NODUP = st.lists(PAIRS, unique_by=FST_SND, max_size=MAX)
 I_PAIRS_NODUP = st.iterables(PAIRS, unique_by=FST_SND, max_size=MAX)
-DIFF_ITEMS = st.lists(L_PAIRS_NODUP.map(frozenset), min_size=2, max_size=2, unique=True)
+# Reserve a disjoint set of atoms as a source of values guaranteed not to have been
+# inserted into a test bidict already.
+DIFF_ATOMS = st.characters()
+DIFF_PAIRS = st.tuples(DIFF_ATOMS, DIFF_ATOMS)
+L_DIFF_PAIRS_NODUP = st.lists(DIFF_PAIRS, unique_by=FST_SND, min_size=1, max_size=MAX)
+DIFF_ITEMS = st.tuples(L_PAIRS_NODUP, L_DIFF_PAIRS_NODUP)
+RANDOMS = st.randoms(use_true_random=False)
 SAME_ITEMS_DIFF_ORDER = st.tuples(
-    st.lists(PAIRS, unique_by=FST_SND, min_size=2, max_size=MAX), st.randoms(use_true_random=False)
+    st.lists(PAIRS, unique_by=FST_SND, min_size=2, max_size=MAX), RANDOMS
 ).map(
     lambda i: (i[0], i[1].sample(i[0], len(i[0])))  # (seq, shuffled seq)
 ).filter(lambda i: i[0] != i[1])
@@ -108,9 +108,9 @@ BI_AND_CMPDICT_FROM_SAME_ITEMS = st.tuples(BIDICT_TYPES, L_PAIRS_NODUP).map(
 )
 
 NO_ARGS = st.just(())
-IM_ARG = st.tuples(HASHABLES)
+IM_ARG = st.tuples(ATOMS)
 IP_ARG = st.tuples(I_PAIRS)
-TWO_IM_ARGS = st.tuples(HASHABLES, HASHABLES)
+TWO_IM_ARGS = st.tuples(ATOMS, ATOMS)
 
 ARGS_BY_METHOD = st.fixed_dictionaries({
     # mutating
@@ -131,7 +131,7 @@ ARGS_BY_METHOD = st.fixed_dictionaries({
     (2, '__setitem__'): TWO_IM_ARGS,
     (2, 'put'): TWO_IM_ARGS,
     (2, 'forceput'): TWO_IM_ARGS,
-    (2, 'move_to_end'): st.tuples(HASHABLES, BOOLEANS),
+    (2, 'move_to_end'): st.tuples(ATOMS, BOOLEANS),
     # non-mutating
     # 0-arity
     (0, '__copy__'): NO_ARGS,

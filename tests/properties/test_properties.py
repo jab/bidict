@@ -18,13 +18,14 @@ from platform import python_implementation
 from weakref import ref
 
 import pytest
-from hypothesis import example, given
+from hypothesis import assume, example, given
 
 from bidict import (
     BidictException,
     DROP_OLD, RAISE, OnDup,
     OrderedBidictBase, OrderedBidict, bidict, namedbidict,
     inverted,
+    KeyDuplicationError, ValueDuplicationError, KeyAndValueDuplicationError,
 )
 from bidict._iter import _iteritems_args_kw
 
@@ -114,6 +115,44 @@ def test_unequal_order_sensitive_non_mapping(ob, not_a_mapping):
     """
     assert not ob.equals_order_sensitive(not_a_mapping)
     assert not ob.inv.equals_order_sensitive(not_a_mapping)
+
+
+@given(st.MUTABLE_BIDICTS, st.DIFF_ATOMS, st.RANDOMS)
+def test_setitem_with_dup_val_raises(bi, new_key, rand):
+    """Setting an item whose value duplicates that of an existing item should raise ValueDuplicationError."""
+    ln = len(bi)
+    assume(ln > 2)
+    for b in (bi, bi.inv):
+        existing_val = rand.choice(list(b.inv))
+        with pytest.raises(ValueDuplicationError):
+            b[new_key] = existing_val
+        assert len(b) == len(b.inv) == ln
+
+
+@given(st.MUTABLE_BIDICTS, st.RANDOMS)
+def test_setitem_with_dup_key_val_raises(bi, rand):
+    """Setting an item whose key and val duplicate two different existing items raises KeyAndValueDuplicationError."""
+    ln = len(bi)
+    assume(ln > 2)
+    for b in (bi, bi.inv):
+        existing_items = rand.sample(list(b.items()), 2)
+        existing_key = existing_items[0][0]
+        existing_val = existing_items[1][1]
+        with pytest.raises(KeyAndValueDuplicationError):
+            b[existing_key] = existing_val
+        assert len(b) == len(b.inv) == ln
+
+
+@given(st.MUTABLE_BIDICTS, st.DIFF_ATOMS, st.RANDOMS)
+def test_put_with_dup_key_raises(bi, new_val, rand):
+    """Putting an item whose key duplicates that of an existing item should raise KeyDuplicationError."""
+    ln = len(bi)
+    assume(ln > 2)
+    for b in (bi, bi.inv):
+        existing_key = rand.choice(list(b))
+        with pytest.raises(KeyDuplicationError):
+            b.put(existing_key, new_val)
+        assert len(b) == len(b.inv) == ln
 
 
 @given(st.BIDICTS)
