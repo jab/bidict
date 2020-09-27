@@ -19,12 +19,14 @@ from weakref import ref
 
 import pytest
 from hypothesis import example, given
+from hypothesis.strategies import floats, booleans
 
 from bidict import (
     BidictException,
     DROP_OLD, RAISE, OnDup,
     OrderedBidictBase, OrderedBidict, bidict, namedbidict,
     inverted,
+    KeyDuplicationError, ValueDuplicationError, KeyAndValueDuplicationError,
 )
 from bidict._iter import _iteritems_args_kw
 
@@ -114,6 +116,46 @@ def test_unequal_order_sensitive_non_mapping(ob, not_a_mapping):
     """
     assert not ob.equals_order_sensitive(not_a_mapping)
     assert not ob.inv.equals_order_sensitive(not_a_mapping)
+
+
+@given(st.MUTABLE_BIDICTS, booleans())
+def test_dup_valueError(bi, val):
+    """raise value dup error"""
+    val2 = not val
+    for b in (bi, bi.inv):
+        if val in b.inv.keys(): b.inv.pop(val)
+        b[val] = val
+        with pytest.raises(ValueDuplicationError):
+            b[val2] = val
+        assert len(b) == len(b.inv)
+
+
+@given(st.MUTABLE_BIDICTS, booleans())
+def test_dup_keyError(bi, val):
+    """raise key dup errors"""
+    val2 = not val
+    for b in (bi, bi.inv):
+        # keyError
+        if val in b.inv.keys(): b.inv.pop(val)
+        b[val] = val
+        with pytest.raises(KeyDuplicationError):
+            # must be a diffirent value
+            b.put(val, val2, OnDup(key=RAISE))
+        assert len(b) == len(b.inv)
+
+
+@given(st.MUTABLE_BIDICTS, booleans())
+def test_dup_keyAndValueError(bi, val):
+    """raise keyAndValue dup errors"""
+    val2 = not val
+    for b in (bi, bi.inv):
+        if val in b.inv.keys(): b.inv.pop(val)
+        if (val2) in b.inv.keys(): b.inv.pop(val2)
+        b[val] = val
+        b[val2] = val2
+        with pytest.raises(KeyAndValueDuplicationError):
+            b.put(val, val2, OnDup(key=RAISE))
+        assert len(b) == len(b.inv)
 
 
 @given(st.BIDICTS)
