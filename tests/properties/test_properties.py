@@ -123,6 +123,13 @@ def test_bijectivity(bi):
         assert all(b.inv[v] == k for (k, v) in b.items())
 
 
+@given(st.MUTABLE_BIDICTS)
+def test_cleared_bidicts_have_no_items(bi):
+    bi.clear()
+    assert not bi
+    assert len(bi) == 0
+
+
 @given(st.BI_AND_CMPDICT_FROM_SAME_ITEMS, st.ARGS_BY_METHOD)
 def test_consistency_after_method_call(bi_and_cmp_dict, args_by_method):
     """A bidict should be left in a consistent state after calling any method, even if it raises."""
