@@ -102,8 +102,9 @@ matrix:
       env: 'TASK=test-cpython-3.8 COVERAGE=1'
 
     ## Test suite with latest PyPy3 available on Travis.
-    - python: 'pypy3'
-      env: 'TASK=test-pypy3'
+    ## Disable since hypothesis tests with PyPy on Travis are so flaky.
+    ##- python: 'pypy3'
+    ##  env: 'TASK=test-pypy3'
 
     ## Make sure there are no relied-on side effects in assert statements.
     - env: 'TASK=test-with-optimization-flag'
