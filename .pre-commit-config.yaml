@@ -45,7 +45,7 @@ repos:
   #   - --license-filepath=.LICENSE_HEADER
 
 - repo: https://github.com/pre-commit/mirrors-pylint
-  rev: v2.5.3
+  rev: v2.6.0
   hooks:
   - id: pylint
     # Needed to avoid ImportErrors when linting tests (keep in sync with versions in setup.py):

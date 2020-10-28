@@ -1,10 +1,9 @@
 language: 'python'
 
 # Default version used for jobs that don't override it.
-python: '3.8'
+python: '3.9'
 
-# TODO: Update to 'bionic' once all the Python versions we test with are available for it.
-dist: 'xenial'
+dist: 'focal'
 
 
 # https://docs.travis-ci.com/user/customizing-the-build/
@@ -98,8 +97,8 @@ matrix:
     # Travis runs jobs in the order defined below -> order jobs by priority.
 
     ## Test suite with latest stable CPython available on Travis. Enable coverage.
-    - python: '3.8'
-      env: 'TASK=test-cpython-3.8 COVERAGE=1'
+    - python: '3.9'
+      env: 'TASK=test-cpython-3.9 COVERAGE=1'
 
     ## Test suite with latest PyPy3 available on Travis.
     ## Disable since hypothesis tests with PyPy on Travis are so flaky.
@@ -114,6 +113,9 @@ matrix:
 
     ## Run pre-commit hooks for linting, static analysis, code style, etc.
     - env: 'TASK=precommit-hooks INSTALL_EXTRAS=precommit'
+      # Fails under Python 3.9 due to a bug in Pylint, so use Python 3.8 for now. Ref:
+      # https://github.com/PyCQA/pylint/issues/1498#issuecomment-717978456
+      python: '3.8'
       before_script: 'pre-commit install --install-hooks'
       script: 'pre-commit run --all-files'
 
@@ -127,6 +129,9 @@ matrix:
       script: '(cd docs && make linkcheck)'
 
     ## Remaining supported CPython versions.
+    - python: '3.8'
+      env: 'TASK=test-cpython-3.8'
+
     - python: '3.7'
       env: 'TASK=test-cpython-3.7'
 
