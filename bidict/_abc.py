@@ -39,11 +39,6 @@ class BidirectionalMapping(Mapping):  # pylint: disable=abstract-method,no-init
     which implementors of :class:`BidirectionalMapping`
     should override to return a reference to the inverse
     :class:`BidirectionalMapping` instance.
-
-    Implements :attr:`__subclasshook__` such that any
-    :class:`~collections.abc.Mapping` that also provides
-    :attr:`~BidirectionalMapping.inverse`
-    will be considered a (virtual) subclass of this ABC.
     """
 
     __slots__ = ()
@@ -78,25 +73,6 @@ class BidirectionalMapping(Mapping):  # pylint: disable=abstract-method,no-init
         *See also* :func:`bidict.inverted`
         """
         return iteritems(self.inverse)
-
-    @classmethod
-    def __subclasshook__(cls, C):  # noqa: N803 (argument name should be lowercase)
-        """Check if *C* is a :class:`~collections.abc.Mapping`
-        that also provides an ``inverse`` attribute,
-        thus conforming to the :class:`BidirectionalMapping` interface,
-        in which case it will be considered a (virtual) C
-        even if it doesn't explicitly extend it.
-        """
-        if cls is not BidirectionalMapping:  # lgtm [py/comparison-using-is]
-            return NotImplemented
-        if not Mapping.__subclasshook__(C):
-            return NotImplemented
-        mro = getattr(C, '__mro__', None)
-        if mro is None:  # Python 2 old-style class
-            return NotImplemented
-        if not any(B.__dict__.get('inverse') for B in mro):
-            return NotImplemented
-        return True
 
 
 #                             * Code review nav *

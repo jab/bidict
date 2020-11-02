@@ -46,14 +46,6 @@ _WriteResult = namedtuple('_WriteResult', 'key val oldkey oldval')
 _NODUP = _DedupResult(False, False, _MISS, _MISS)
 
 
-# Since BidirectionalMapping implements __subclasshook__, and BidictBase
-# provides all the required attributes that the __subclasshook__ checks for,
-# BidictBase would be a (virtual) subclass of BidirectionalMapping even if
-# it didn't subclass it explicitly. But subclassing BidirectionalMapping
-# explicitly allows BidictBase to inherit any useful implementations that
-# BidirectionalMapping provides that aren't part of the required interface,
-# such as its `__inverted__` implementation and `inverse` alias.
-
 class BidictBase(BidirectionalMapping):
     """Base class implementing :class:`BidirectionalMapping`."""
 

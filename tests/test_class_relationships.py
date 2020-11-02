@@ -11,6 +11,7 @@ try:
     from collections.abc import Hashable
 except ImportError:  # Python < 3
     from collections import Hashable
+from collections import OrderedDict
 
 import pytest
 
@@ -20,19 +21,6 @@ from bidict.compat import Mapping, MutableMapping, PY2
 
 class OldStyleClass:  # pylint: disable=no-init,too-few-public-methods
     """In Python 2 this is an old-style class (not derived from object)."""
-
-
-class VirtualBimapSubclass(Mapping):  # pylint: disable=abstract-method
-    """Dummy type that implements the BidirectionalMapping interface
-    without explicitly extending it, and so should still be considered a
-    (virtual) subclass if the BidirectionalMapping ABC is working correctly.
-    (See :meth:`BidirectionalMapping.__subclasshook__`.)
-
-    (Not actually a *working* BidirectionalMapping implementation,
-    but doesn't need to be for the purposes of this test.)
-    """
-
-    inverse = NotImplemented
 
 
 class AbstractBimap(BidirectionalMapping):  # pylint: disable=abstract-method
@@ -51,8 +39,8 @@ class AbstractBimap(BidirectionalMapping):  # pylint: disable=abstract-method
 
 
 BIDICT_TYPES = (bidict, frozenbidict, FrozenOrderedBidict, OrderedBidict)
-BIMAP_TYPES = BIDICT_TYPES + (VirtualBimapSubclass, AbstractBimap)
-NOT_BIMAP_TYPES = (dict, object, OldStyleClass)
+BIMAP_TYPES = BIDICT_TYPES + (AbstractBimap,)
+NOT_BIMAP_TYPES = (dict, OrderedDict, int, object, OldStyleClass)
 MUTABLE_BIDICT_TYPES = (bidict, OrderedBidict)
 HASHABLE_BIDICT_TYPES = (frozenbidict, FrozenOrderedBidict)
 ORDERED_BIDICT_TYPES = (OrderedBidict, FrozenOrderedBidict)
@@ -60,10 +48,7 @@ ORDERED_BIDICT_TYPES = (OrderedBidict, FrozenOrderedBidict)
 
 @pytest.mark.parametrize('bi_cls', BIMAP_TYPES)
 def test_issubclass_bimap(bi_cls):
-    """All bidict types should subclass :class:`BidirectionalMapping`,
-    and any class conforming to the interface (e.g. VirtualBimapSubclass)
-    should be considered a (virtual) subclass too.
-    """
+    """All bidict types should be considered subclasses of :class:`BidirectionalMapping`."""
     assert issubclass(bi_cls, BidirectionalMapping)
 
 
@@ -126,6 +111,11 @@ def test_issubclass_internal():
     assert not issubclass(frozenbidict, FrozenOrderedBidict)
     assert not issubclass(frozenbidict, OrderedBidict)
     assert not issubclass(frozenbidict, bidict)
+
+    # Regression test for #111, Bug in BidirectionalMapping.__subclasshook__():
+    # Any class with an inverse attribute is considered a collections.abc.Mapping
+    OnlyHasInverse = type('OnlyHasInverse', (), {'inverse': Ellipsis})
+    assert not issubclass(OnlyHasInverse, Mapping)
 
 
 def test_abstract_bimap_init_fails():

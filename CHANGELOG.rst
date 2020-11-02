@@ -26,6 +26,14 @@ click "`Watch <https://help.github.com/en/articles/watching-and-unwatching-relea
 and choose "Releases".
 
 
+0.18.4 (2020-11-02)
+-------------------
+
+- Backport fix from v0.20.0
+  that removes :meth:`bidict.BidirectionalMapping.__subclasshook__`
+  due to lack of use and maintenance cost.
+
+
 0.18.3 (2019-09-22)
 -------------------
 

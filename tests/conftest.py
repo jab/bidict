@@ -8,14 +8,13 @@
 """Set up hypothesis."""
 
 from os import getenv
-from hypothesis import HealthCheck, settings, unlimited
+from hypothesis import HealthCheck, settings
 
 
 MAX_EXAMPLES_DEFAULT = 200
 SETTINGS = {
     'max_examples': int(getenv('HYPOTHESIS_MAX_EXAMPLES') or MAX_EXAMPLES_DEFAULT),
     'deadline': None,
-    'timeout': unlimited,
     'suppress_health_check': (HealthCheck.too_slow,),
 }
 settings.register_profile('custom', **SETTINGS)

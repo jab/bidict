@@ -44,7 +44,7 @@ with c_open(join(CWD, 'README.rst'), encoding='utf-8') as f:
 # Manually keep these version pins in sync with those in .travis.yml and .pre-commit-config.yaml.
 
 SETUP_REQS = [
-    'setuptools_scm < 4',
+    'setuptools_scm',
 ]
 
 SPHINX_REQS = [
@@ -81,10 +81,8 @@ COVERAGE_REQS = [
 FLAKE8_REQ = 'flake8 < 3.8'
 PYDOCSTYLE_REQ = 'pydocstyle < 3.1'
 PYLINT_REQS = [
-    # Pin to exact versions of Pylint and Astroid, which don't follow semver.
-    # See https://github.com/PyCQA/astroid/issues/651#issuecomment-469021040
-    'pylint == 2.2.3',
-    'astroid == 2.1.0',
+    'pylint',
+    'astroid',
 ]
 
 LINT_REQS = [
