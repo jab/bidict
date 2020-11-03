@@ -141,10 +141,6 @@ matrix:
       before_install: 'skip'
       script: 'flake8 $LINT_SRC'
 
-    - env: 'TASK=lint-pylint INSTALL_EXTRAS=pylint,test'
-      before_install: 'skip'
-      script: 'pylint --jobs=0 $LINT_SRC'
-
     - env: 'TASK=lint-pydocstyle INSTALL_EXTRAS=pydocstyle'
       before_install: 'skip'
       script: 'pydocstyle $LINT_SRC'
