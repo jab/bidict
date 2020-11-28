@@ -87,7 +87,7 @@ Note: Python 3 Required
 
 As promised in the 0.18.2 release (see :doc:`changelog` [#fn-changelog]_),
 **Python 2 is no longer supported**.
-Version 0.18.3
+Version 0.18.4
 is the last release of ``bidict`` that supports Python 2.
 This makes ``bidict`` more efficient on Python 3
 and enables further improvement to bidict in the future.

@@ -1,17 +1,18 @@
 # Tip: pip install check-manifest && check-manifest -uv
 
+include .LICENSE_HEADER
 include LICENSE
-include pyproject.toml
 include *.py
 include *.rst
 include *.sh
 include *.yaml
 include *.yml
-include .editorconfig
-include .pylintrc
-include .LICENSE_HEADER
 include .coveragerc
+include .editorconfig
+include .pre-commit-config.yaml
+include .pylintrc
 include mypy.ini
+include pyproject.toml
 include pytest.ini
 include tox.ini
 include docs/_static/custom.css
@@ -21,6 +22,7 @@ recursive-include assets *.*
 recursive-include docs/_static *.*
 recursive-include docs *.py
 recursive-include docs *.rst
+recursive-include docs Makefile
+recursive-include requirements *.*
 recursive-include tests *.py
 recursive-include tests *.txt
-recursive-include docs Makefile

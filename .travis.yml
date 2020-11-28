@@ -10,7 +10,7 @@ dist: 'focal'
 # "Without the top-level env, no job will be allowed to fail."
 env:
   global:
-    - 'INSTALL_EXTRAS=test'
+    - 'REQUIREMENTS=tests.txt'
     # Tweak Hypothesis params so tests pass reliably since Travis workers are slow.
     - 'HYPOTHESIS_MAX_EXAMPLES=100'  # See tests/conftest.py
     - 'HYPOTHESIS_DEADLINE=300'
@@ -42,14 +42,13 @@ before_install:  # Ensure we have the required versions of Python and Pip.
 
 install:  # Install our test dependencies.
   - |
-    [[ "$COVERAGE" ]] && INSTALL_EXTRAS+=",coverage"
-    install_cmd="pip install -U --upgrade-strategy=eager ."
-    [[ "$INSTALL_EXTRAS" ]] && install_cmd+="[$INSTALL_EXTRAS]"
+    install_cmd="pip install -r requirements/${REQUIREMENTS}"
     echo "install_cmd: $install_cmd"
     travis_retry $install_cmd
 
 
 before_script:
+  - 'cat requirements/${REQUIREMENTS}'
   - 'pip list'
 
 
@@ -68,6 +67,8 @@ script:  # Run the test suite.
     fi
     if [[ "$COVERAGE" ]]; then
       export PYTEST_ADDOPTS="${PYTEST_ADDOPTS} --cov=bidict --cov-config=.coveragerc"
+    else
+      export PYTEST_ADDOPTS="--no-cov"
     fi
     python3 ./run_tests.py
 
@@ -85,7 +86,7 @@ after_script:
 
 matrix:
   allow_failures:
-    - env: 'TASK=docs-linkcheck INSTALL_EXTRAS=docs'
+    - env: 'TASK=docs-linkcheck REQUIREMENTS=docs.txt'
   ## fast_finish causes Travis to send a useless daily "build pending" email; not worth the noise.
   # fast_finish: true
   include:
@@ -107,25 +108,21 @@ matrix:
 
     ## Make sure there are no relied-on side effects in assert statements.
     - env: 'TASK=test-with-optimization-flag'
-      before_install: 'skip'
       install: 'skip'
       script: 'python3 -O -m doctest -o IGNORE_EXCEPTION_DETAIL -o ELLIPSIS tests/*.txt'
 
     ## Run pre-commit hooks for linting, static analysis, code style, etc.
-    - env: 'TASK=precommit-hooks INSTALL_EXTRAS=precommit'
+    - env: 'TASK=precommit-hooks REQUIREMENTS=precommit.txt'
       # Fails under Python 3.9 due to a bug in Pylint, so use Python 3.8 for now. Ref:
       # https://github.com/PyCQA/pylint/issues/1498#issuecomment-717978456
       python: '3.8'
-      before_script: 'pre-commit install --install-hooks'
-      script: 'pre-commit run --all-files'
+      script: 'pre-commit install --install-hooks && pre-commit run --all-files'
 
     ## Misc.
-    - env: 'TASK=docs-build INSTALL_EXTRAS=docs'
-      before_install: 'skip'
+    - env: 'TASK=docs-build REQUIREMENTS=docs.txt'
       script: '(cd docs && make html)'
 
-    - env: 'TASK=docs-linkcheck INSTALL_EXTRAS=docs'
-      before_install: 'skip'
+    - env: 'TASK=docs-linkcheck REQUIREMENTS=docs.txt'
       script: '(cd docs && make linkcheck)'
 
     ## Remaining supported CPython versions.

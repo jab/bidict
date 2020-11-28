@@ -39,17 +39,21 @@ Getting Started
 Making Changes
 --------------
 
-- Before making changes, please install the extra packages required for development:
-  ``pip install -e .[dev]``
+- Before making changes, please
+  (create a `virtualenv <http://virtualenv.pypa.io>`__ and)
+  install the extra packages required for development:
+  ``pip install -r requirements/dev.txt``
 
   We use `EditorConfig <https://editorconfig.org/>`__
   and `pre-commit <https://pre-commit.com/>`__
   to help achieve uniform style and quality standards
   across a diversity of development environments.
 
-  pre-commit gets installed when you run ``pip install -e .[dev]``
+  pre-commit gets installed when you run the command above
   and ensures that various code checks are run before every commit
   (look in ``.pre-commit-config.yaml`` to see which hooks are run).
+  Ensure the configured hooks are installed by running
+  ``pre-commit install --install-hooks``.
 
   EditorConfig allows us to provide a single ``.editorconfig`` file
   to configure settings like indentation consistently

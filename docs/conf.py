@@ -48,11 +48,7 @@ extensions = [
     'sphinx.ext.intersphinx',
     'sphinx.ext.viewcode',
     'sphinx.ext.todo',
-    'sphinx_autodoc_typehints',
 ]
-
-# https://github.com/agronholm/sphinx-autodoc-typehints#options
-set_type_checking_flag = True
 
 intersphinx_mapping = {'python': ('https://docs.python.org/3', None)}
 #todo_include_todos = True
@@ -312,6 +308,7 @@ linkcheck_ignore = [
     r'https://codecov\.io/.*',  # gives 405 for HEAD requests
     r'https://pypistats\.org/.*',  # unreliable
     # alternative links for readers on GitHub (which don't work on readthedocs.io):
+    r'CHANGELOG\.rst',
     r'CODE_OF_CONDUCT\.rst',
     r'docs/intro\.rst',
     r'docs/learning-from-bidict\.rst',
@@ -320,6 +317,9 @@ linkcheck_timeout = 10  # 5s default too low
 
 # http://www.sphinx-doc.org/en/stable/ext/autosectionlabel.html#configuration
 autosectionlabel_prefix_document = True
+
+# https://www.sphinx-doc.org/en/3.x/usage/extensions/autodoc.html#confval-autodoc_typehints
+autodoc_typehints = 'description'
 
 # http://www.sphinx-doc.org/en/master/usage/extensions/doctest.html
 doctest_global_setup = """

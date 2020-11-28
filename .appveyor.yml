@@ -11,7 +11,7 @@ build_script:
   - "echo %APPVEYOR_REPO_COMMIT%"
   - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;;%PATH%"
   - "python --version"
-  - "pip install -U --upgrade-strategy=eager -e .[test]"
+  - "pip install -r requirements/tests.txt"
   - "pip list"
 
 test_script:

@@ -11,7 +11,6 @@ Ref: https://github.com/pypa/sampleproject/blob/master/setup.py
 """
 
 import sys
-from codecs import open as c_open
 from os.path import abspath, dirname, join
 from warnings import warn
 
@@ -20,7 +19,7 @@ from setuptools import setup
 
 PY2_ERR = """
 This version of bidict does not support Python 2.
-Either use bidict 0.18.3,
+Either use bidict 0.18.4,
 the last release with Python 2 support,
 or use Python 3.
 
@@ -44,52 +43,8 @@ SPEC = spec_from_file_location('metadata', METADATA_PATH)
 METADATA = module_from_spec(SPEC)
 SPEC.loader.exec_module(METADATA)  # type: ignore
 
-
-with c_open(join(CWD, 'README.rst'), encoding='utf-8') as f:
+with open(join(CWD, 'README.rst'), encoding='utf-8') as f:
     LONG_DESCRIPTION = f.read()
-
-
-SETUP_REQS = [
-    'setuptools_scm',
-]
-
-# Manually keep these version pins in sync with those in .travis.yml and .pre-commit-config.yaml.
-
-DOCS_REQS = [
-    'Sphinx < 4',
-    'sphinx-autodoc-typehints < 2',
-]
-
-TEST_REQS = [
-    'hypothesis < 6',
-    'py < 2',
-    'pytest < 7',
-    'pytest-benchmark >= 3.2.0, < 4',
-    'sortedcollections < 2',
-    'sortedcontainers < 3',
-    # pytest's doctest support doesn't support Sphinx extensions
-    # (https://www.sphinx-doc.org/en/latest/usage/extensions/doctest.html)
-    # so †est the code in the Sphinx docs using Sphinx's own doctest support.
-    *DOCS_REQS,
-]
-
-# Split out coverage from test requirements since it slows down the tests.
-COVERAGE_REQS = [
-    'coverage < 6',
-    'pytest-cov < 3',
-]
-
-PRECOMMIT_REQS = ['pre-commit < 3']
-
-DEV_REQS = SETUP_REQS + TEST_REQS + COVERAGE_REQS + PRECOMMIT_REQS + ['tox < 4']
-
-EXTRAS_REQS = dict(
-    docs=DOCS_REQS,
-    test=TEST_REQS,
-    coverage=COVERAGE_REQS,
-    precommit=PRECOMMIT_REQS,
-    dev=DEV_REQS,
-)
 
 setup(
     name='bidict',
@@ -97,6 +52,7 @@ setup(
         'version_scheme': 'guess-next-dev',
         'local_scheme': 'dirty-tag',
         'write_to': 'bidict/_version.py',
+        'parentdir_prefix_version': 'bidict-',
     },
     author=METADATA.__author__,  # type: ignore
     author_email=METADATA.__email__,  # type: ignore
@@ -123,8 +79,5 @@ setup(
         'Programming Language :: Python :: Implementation :: PyPy',
         'Topic :: Software Development :: Libraries :: Python Modules',
     ],
-    setup_requires=SETUP_REQS,  # required so pip < 10 install works (no PEP-517/518 support)
-    # for more details see https://www.python.org/dev/peps/pep-0518/#rationale
-    tests_require=TEST_REQS,
-    extras_require=EXTRAS_REQS,
+    setup_requires=['setuptools_scm'],
 )

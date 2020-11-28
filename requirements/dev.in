@@ -1,0 +1,6 @@
+-r docs.in
+-r precommit.in
+-r tests.in
+check-manifest
+pip-tools
+tox
