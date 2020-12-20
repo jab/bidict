@@ -9,7 +9,7 @@ attrs==20.3.0             # via hypothesis, pytest
 babel==2.9.0              # via sphinx
 certifi==2020.11.8        # via requests
 chardet==3.0.4            # via requests
-coverage==5.3             # via -r tests.in, pytest-cov
+coverage==5.3.1           # via -r tests.in, pytest-cov
 docutils==0.16            # via sphinx
 hypothesis==5.41.4        # via -r tests.in
 idna==2.10                # via requests
