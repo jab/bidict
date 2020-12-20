@@ -18,7 +18,7 @@ coverage==5.3.1           # via -r tests.in, pytest-cov
 distlib==0.3.1            # via virtualenv
 docutils==0.16            # via sphinx
 filelock==3.0.12          # via tox, virtualenv
-hypothesis==5.41.4        # via -r tests.in
+hypothesis==5.43.3        # via -r tests.in
 identify==1.5.10          # via pre-commit
 idna==2.10                # via requests
 imagesize==1.2.0          # via sphinx
