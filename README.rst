@@ -27,9 +27,9 @@ Status
    :target: https://bidict.readthedocs.io/en/master/
    :alt: Documentation
 
-.. image:: https://api.travis-ci.org/jab/bidict.svg?branch=master
-   :target: https://travis-ci.org/jab/bidict
-   :alt: Travis-CI build status
+.. image:: https://github.com/jab/bidict/workflows/Tests/badge.svg
+   :target: https://github.com/jab/bidict/actions
+   :alt: GitHub Actions CI status
 
 .. image:: https://codecov.io/gh/jab/bidict/branch/master/graph/badge.svg
    :target: https://codecov.io/gh/jab/bidict
@@ -45,9 +45,6 @@ Status
    .. image:: https://img.shields.io/badge/tidelift-pro%20support-orange.svg
       :target: https://tidelift.com/subscription/pkg/pypi-bidict?utm_source=pypi-bidict&utm_medium=referral&utm_campaign=docs
       :alt: Paid support available via Tidelift
-   .. image:: https://ci.appveyor.com/api/projects/status/gk133415udncwto3/branch/master?svg=true
-      :target: https://ci.appveyor.com/project/jab/bidict
-      :alt: AppVeyor (Windows) build status
    .. image:: https://img.shields.io/pypi/pyversions/bidict.svg
       :target: https://pypi.org/project/bidict
       :alt: Supported Python versions

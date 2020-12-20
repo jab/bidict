@@ -22,7 +22,6 @@ __license__
 __status__
 __url__
 __version__
-__version_info__
 """.split()
 
 

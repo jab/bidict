@@ -24,6 +24,12 @@ Tip: Subscribe to releases
 to be notified when new versions of ``bidict`` are released.
 
 
+0.21.3 (not yet released)
+-------------------------
+
+- Remove ``bidict.__version_info__`` attribute.
+
+
 0.21.2 (2020-09-07)
 -------------------
 
@@ -391,7 +397,7 @@ Speedups and memory usage improvements
 Misc
 ++++
 
-- Add :attr:`bidict.__version_info__` attribute
+- Add ``bidict.__version_info__`` attribute
   to complement :attr:`bidict.__version__`.
 
 
