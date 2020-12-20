@@ -32,7 +32,7 @@ pip-tools==5.4.0          # via -r dev.in
 pluggy==0.13.1            # via pytest, tox
 pre-commit==2.9.3         # via -r precommit.in
 py-cpuinfo==7.0.0         # via pytest-benchmark
-py==1.9.0                 # via -r tests.in, pytest, tox
+py==1.10.0                # via -r tests.in, pytest, tox
 pygments==2.7.2           # via sphinx
 pyparsing==2.4.7          # via packaging
 pytest-benchmark==3.2.3   # via -r tests.in
