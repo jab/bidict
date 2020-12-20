@@ -20,7 +20,7 @@ markupsafe==1.1.1         # via jinja2
 packaging==20.5           # via pytest, sphinx
 pluggy==0.13.1            # via pytest
 py-cpuinfo==7.0.0         # via pytest-benchmark
-py==1.9.0                 # via -r tests.in, pytest
+py==1.10.0                # via -r tests.in, pytest
 pygments==2.7.2           # via sphinx
 pyparsing==2.4.7          # via packaging
 pytest-benchmark==3.2.3   # via -r tests.in
