@@ -25,7 +25,7 @@ pygments==2.7.2           # via sphinx
 pyparsing==2.4.7          # via packaging
 pytest-benchmark==3.2.3   # via -r tests.in
 pytest-cov==2.10.1        # via -r tests.in
-pytest==6.1.2             # via -r tests.in, pytest-benchmark, pytest-cov
+pytest==6.2.1             # via -r tests.in, pytest-benchmark, pytest-cov
 pytz==2020.4              # via babel
 requests==2.25.0          # via sphinx
 snowballstemmer==2.0.0    # via sphinx
