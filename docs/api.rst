@@ -30,7 +30,3 @@ bidict
 .. attribute:: __version__
 
    The version of bidict represented as a string.
-
-.. attribute:: __version_info__
-
-   The version of bidict represented as a tuple.

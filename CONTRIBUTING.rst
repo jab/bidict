@@ -74,10 +74,9 @@ Making Changes
   (see ``envlist`` in ``tox.ini`` for the complete list).
   If you do not have all the referenced Python versions available locally,
   you can also push the changes on your branch to GitHub
-  to automatically trigger a new `Travis-CI <https://travis-ci.org>`__ build,
+  to automatically trigger a new
+  `GitHub Actions <https://github.com/jab/bidict/actions>`__ build,
   which should run the tests for all supported Python versions.
-  You should be able to see the results at ``travis-ci.org/<user>/bidict``,
-  where ``<user>`` is the GitHub username you used to fork bidict.
 
 - Create a concise but comprehensive commit message in the following style::
 

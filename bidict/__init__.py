@@ -73,11 +73,11 @@ from ._exc import BidictException, DuplicationError, KeyDuplicationError, ValueD
 from ._iter import inverted
 from .metadata import (
     __author__, __maintainer__, __copyright__, __email__, __credits__, __url__,
-    __license__, __status__, __description__, __keywords__, __version__, __version_info__,
+    __license__, __status__, __description__, __keywords__, __version__,
 )
 
 # Set __module__ of re-exported classes to the 'bidict' top-level module name
-# so that private/internal submodules are not exposed to users e.g. in repr  strings.
+# so that private/internal submodules are not exposed to users e.g. in repr strings.
 _locals = tuple(locals().items())
 for _name, _obj in _locals:  # pragma: no cover
     if not getattr(_obj, '__module__', '').startswith('bidict.'):
