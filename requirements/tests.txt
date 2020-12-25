@@ -31,7 +31,7 @@ requests==2.25.0          # via sphinx
 snowballstemmer==2.0.0    # via sphinx
 sortedcollections==1.2.1  # via -r tests.in
 sortedcontainers==2.3.0   # via -r tests.in, hypothesis, sortedcollections
-sphinx==3.4.0             # via -r docs.in
+sphinx==3.4.1             # via -r docs.in
 sphinxcontrib-applehelp==1.0.2  # via sphinx
 sphinxcontrib-devhelp==1.0.2  # via sphinx
 sphinxcontrib-htmlhelp==1.0.3  # via sphinx
