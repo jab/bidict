@@ -28,7 +28,7 @@ markupsafe==1.1.1         # via jinja2
 nodeenv==1.5.0            # via pre-commit
 packaging==20.5           # via build, pytest, sphinx, tox
 pep517==0.9.1             # via build
-pip-tools==5.4.0          # via -r dev.in
+pip-tools==5.5.0          # via -r dev.in
 pluggy==0.13.1            # via pytest, tox
 pre-commit==2.9.3         # via -r dev.in
 py-cpuinfo==7.0.0         # via pytest-benchmark
@@ -41,7 +41,7 @@ pytest==6.2.1             # via -r tests.in, pytest-benchmark, pytest-cov
 pytz==2020.4              # via babel
 pyyaml==5.3.1             # via pre-commit
 requests==2.25.0          # via sphinx
-six==1.15.0               # via pip-tools, tox, virtualenv
+six==1.15.0               # via tox, virtualenv
 snowballstemmer==2.0.0    # via sphinx
 sortedcollections==1.2.1  # via -r tests.in
 sortedcontainers==2.3.0   # via -r tests.in, hypothesis, sortedcollections
