@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# Copyright 2009-2020 Joshua Bronson. All Rights Reserved.
+# Copyright 2009-2021 Joshua Bronson. All Rights Reserved.
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -29,7 +29,7 @@ else:  # pragma: no cover
 
 __author__ = 'Joshua Bronson'
 __maintainer__ = 'Joshua Bronson'
-__copyright__ = 'Copyright 2009-2020 Joshua Bronson'
+__copyright__ = 'Copyright 2009-2021 Joshua Bronson'
 __email__ = 'jabronson@gmail.com'
 
 # See: ../docs/thanks.rst
