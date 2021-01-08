@@ -11,7 +11,7 @@ certifi==2020.11.8        # via requests
 chardet==3.0.4            # via requests
 coverage==5.3.1           # via -r tests.in, pytest-cov
 docutils==0.16            # via sphinx
-hypothesis==5.43.4        # via -r tests.in
+hypothesis==5.49.0        # via -r tests.in
 idna==2.10                # via requests
 imagesize==1.2.0          # via sphinx
 iniconfig==1.1.1          # via pytest
