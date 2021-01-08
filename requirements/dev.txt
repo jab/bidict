@@ -12,7 +12,7 @@ build==0.1.0              # via check-manifest
 certifi==2020.11.8        # via requests
 cfgv==3.2.0               # via pre-commit
 chardet==3.0.4            # via requests
-check-manifest==0.45      # via -r dev.in
+check-manifest==0.46      # via -r dev.in
 click==7.1.2              # via pip-tools
 coverage==5.3.1           # via -r tests.in, pytest-cov
 distlib==0.3.1            # via virtualenv
