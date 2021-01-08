@@ -29,7 +29,7 @@ pytest==6.2.1             # via -r tests.in, pytest-benchmark, pytest-cov
 pytz==2020.4              # via babel
 requests==2.25.0          # via sphinx
 snowballstemmer==2.0.0    # via sphinx
-sortedcollections==1.2.1  # via -r tests.in
+sortedcollections==1.2.3  # via -r tests.in
 sortedcontainers==2.3.0   # via -r tests.in, hypothesis, sortedcollections
 sphinx==3.4.1             # via -r docs.in
 sphinxcontrib-applehelp==1.0.2  # via sphinx
