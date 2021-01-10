@@ -215,6 +215,14 @@ Remove APIs deprecated in the previous release:
 - No longer use ``__all__`` in :mod:`bidict`'s ``__init__.py``.
 
 
+0.18.4 (2020-11-02)
+-------------------
+
+- Backport fix from v0.20.0
+  that removes :meth:`bidict.BidirectionalMapping.__subclasshook__`
+  due to lack of use and maintenance cost.
+
+
 0.18.3 (2019-09-22)
 -------------------
 

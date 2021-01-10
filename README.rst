@@ -6,8 +6,8 @@
 .. Use :doc: rather than :ref: references below for better interop as well.
 
 
-``bidict``
-==========
+bidict
+======
 
 The bidirectional mapping library for Python.
 
@@ -60,9 +60,13 @@ Status
    :target: https://pepy.tech/project/bidict
    :alt: PyPI Downloads
 
+.. image:: https://img.shields.io/badge/GitHub-sponsor-ff69b4
+  :target: https://github.com/sponsors/jab
+  :alt: Sponsor through GitHub
 
-``bidict``:
-^^^^^^^^^^^
+
+bidict:
+^^^^^^^
 
 - has been used for many years by several teams at
   **Google, Venmo, CERN, Bank of America Merrill Lynch, Bloomberg, Two Sigma,** and many others
@@ -77,19 +81,6 @@ Status
 - has **extensive docs and test coverage**
   (including property-based tests and benchmarks)
   run continuously on all supported Python versions
-
-
-Note: Python 3 Required
-~~~~~~~~~~~~~~~~~~~~~~~
-
-As promised in the 0.18.2 release (see :doc:`changelog` [#fn-changelog]_),
-**Python 2 is no longer supported**.
-Version 0.18.4
-is the last release of ``bidict`` that supports Python 2.
-This makes ``bidict`` more efficient on Python 3
-and enables further improvement to bidict in the future.
-See `python3statement.org <https://python3statement.org>`__
-for more info.
 
 
 Installation
@@ -116,47 +107,40 @@ head to the :doc:`intro` [#fn-intro]_
 and proceed from there.
 
 
-Community Support
------------------
+Voluntary Community Support
+---------------------------
 
-.. image:: https://img.shields.io/badge/chat-on%20gitter-5AB999.svg?logo=gitter-white
+.. image:: https://img.shields.io/badge/gitter-chat-5AB999.svg?logo=gitter-white
    :target: https://gitter.im/jab/bidict
    :alt: Chat
 
-If you are thinking of using ``bidict`` in your work,
-or if you have any questions, comments, or suggestions,
-I'd love to know about your use case
-and provide as much voluntary support for it as possible.
-
 Please feel free to leave a message in the
-`chatroom <https://gitter.im/jab/bidict>`__
-or open a new issue on GitHub.
+`bidict chatroom <https://gitter.im/jab/bidict>`__
+or open a new issue on GitHub
+for voluntary community support.
 You can search through
 `existing issues <https://github.com/jab/bidict/issues>`__
 before creating a new one
-in case your questions or concerns have been adressed there already.
+in case your issue has been adressed already.
 
 
-Enterprise-Grade Support via Tidelift
--------------------------------------
+Enterprise Support
+------------------
 
-.. image:: https://img.shields.io/badge/tidelift-pro%20support-orange.svg
+.. image:: https://img.shields.io/badge/tidelift-enterprise%20support-orange.svg
    :target: https://tidelift.com/subscription/pkg/pypi-bidict?utm_source=pypi-bidict&utm_medium=referral&utm_campaign=readme
-   :alt: Paid support available via Tidelift
+   :alt: Enterprise support via Tidelift
 
-If your use case requires a greater level of support,
-enterprise-grade support for ``bidict`` can be obtained via the
+Enterprise-level support for bidict can be obtained via the
 `Tidelift subscription <https://tidelift.com/subscription/pkg/pypi-bidict?utm_source=pypi-bidict&utm_medium=referral&utm_campaign=readme>`__.
 
 
 Notice of Usage
 ---------------
 
-If you use ``bidict``,
+If you use bidict,
 and especially if your usage or your organization is significant in some way,
-please let me know.
-
-You can:
+please let me know in any of the following ways:
 
 - `star bidict on GitHub <https://github.com/jab/bidict>`__
 - `create an issue <https://github.com/jab/bidict/issues/new?title=Notice+of+Usage&body=I+am+using+bidict+for...>`__
@@ -168,7 +152,7 @@ Changelog
 ---------
 
 See the :doc:`changelog` [#fn-changelog]_
-for a history of notable changes to ``bidict``.
+for a history of notable changes to bidict.
 
 
 Release Notifications
@@ -181,16 +165,16 @@ Release Notifications
    :target: https://libraries.io/pypi/bidict
    :alt: Follow on libraries.io
 
-Subscribe to releases
+Watch releases
 `on GitHub <https://github.blog/changelog/2018-11-27-watch-releases/>`__ or
 `libraries.io <https://libraries.io/pypi/bidict>`__
-to be notified when new versions of ``bidict`` are released.
+to be notified when new versions of bidict are released.
 
 
-Learning from ``bidict``
-------------------------
+Learning from bidict
+--------------------
 
-One of the best things about ``bidict``
+One of the best things about bidict
 is that it touches a surprising number of
 interesting Python corners,
 especially given its small size and scope.
@@ -202,50 +186,42 @@ if you're interested in learning more.
 Contributing
 ------------
 
-``bidict`` is currently a one-person operation
+bidict is currently a one-person operation
 maintained on a voluntary basis.
 
 Your help would be most welcome!
+See the :doc:`contributors-guide` [#fn-contributing]_
+for more information.
 
 
-Reviewers Wanted!
-^^^^^^^^^^^^^^^^^
-
-One of the most valuable ways to contribute to ``bidict`` –
-and to explore some interesting Python corners [#fn-learning]_
-while you're at it –
-is to review the relatively small codebase.
-
-Please create an issue or pull request with any improvements you'd propose
-or any other results you found.
-Submitting a `draft PR <https://github.blog/2019-02-14-introducing-draft-pull-requests/>`__
-with feedback in inline code comments, or a
-`"Review results" issue <https://github.com/jab/bidict/issues/new?title=Review+results>`__,
-would each work well.
-
-You can also
-+1 `this issue <https://github.com/jab/bidict/issues/63>`__
-to sign up to give feedback on future proposed changes
-that are in need of a reviewer.
-
-
-Giving Back
-^^^^^^^^^^^
+Sponsoring
+^^^^^^^^^^
 
 .. duplicated in CONTRIBUTING.rst
    (would use `.. include::` but GitHub doesn't understand it)
 
-``bidict`` is the product of hundreds of hours of unpaid, voluntary work.
+.. image:: https://img.shields.io/badge/GitHub-sponsor-ff69b4
+  :target: https://github.com/sponsors/jab
+  :alt: Sponsor through GitHub
 
-If ``bidict`` has helped you accomplish your work,
+Bidict is the product of thousands of hours of my unpaid work
+over the 12+ years I've been maintaining it.
+
+If bidict has helped you accomplish your work,
 especially work you've been paid for,
-please consider chipping in toward the costs
-of its maintenance and development
-and/or ask your organization to do the same.
+it's easy to
+`sponsor me through GitHub <https://github.com/sponsors/jab>`__.
 
-.. image:: https://raw.githubusercontent.com/jab/bidict/master/assets/support-on-gumroad.png
-   :target: https://gumroad.com/l/bidict
-   :alt: Support bidict
+Choose a tier and GitHub handles everything else.
+The sponsorship just goes on your regular GitHub bill;
+there's nothing extra to do.
+You can also sponsor me through
+`Gumroad <https://gumroad.com/l/bidict>`__ or
+`PayPal <https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=jabronson%40gmail%2ecom&lc=US&item_name=Sponsor%20bidict%20(name%20a%20fair%20price)>`__.
+
+Read more about
+`companies supporting open source developers
+<https://www.cognitect.com/blog/supporting-open-source-developers>`__.
 
 
 Finding Documentation
@@ -255,7 +231,7 @@ If you're viewing this on `<https://bidict.readthedocs.io>`__,
 note that multiple versions of the documentation are available,
 and you can choose a different version using the popup menu at the bottom-right.
 Please make sure you're viewing the version of the documentation
-that corresponds to the version of ``bidict`` you'd like to use.
+that corresponds to the version of bidict you'd like to use.
 
 If you're viewing this on GitHub, PyPI, or some other place
 that can't render and link this documentation properly
@@ -267,6 +243,8 @@ try these alternate links instead:
 .. [#fn-changelog] `<CHANGELOG.rst>`__ | `<https://bidict.readthedocs.io/changelog.html>`__
 
 .. [#fn-intro] `<docs/intro.rst>`__ | `<https://bidict.readthedocs.io/intro.html>`__
+
+.. [#fn-contributing] `<docs/contributors-guide.rst>`__ | `<https://bidict.readthedocs.io/contributors-guide.html>`__
 
 
 ----

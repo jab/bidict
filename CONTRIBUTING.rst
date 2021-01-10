@@ -112,54 +112,42 @@ Submitting Changes
   Expect nothing less of any project.
 
 
-Other Ways to Contribute
-------------------------
+Sponsoring
+----------
 
-.. image:: https://img.shields.io/badge/Gumroad-Chip%20in-orange.svg
+.. image:: https://img.shields.io/badge/GitHub-sponsor-ff69b4
+  :target: https://github.com/sponsors/jab
+  :alt: Sponsor through GitHub
+
+.. image:: https://img.shields.io/badge/Gumroad-sponsor-55a0a4.svg
   :target: https://gumroad.com/l/bidict
-  :alt: Chip in via Gumroad
+  :alt: Sponsor through Gumroad
 
-.. image:: https://img.shields.io/badge/PayPal-Chip%20in-blue.svg
-  :target: https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=jabronson%40gmail%2ecom&lc=US&item_name=Support%20bidict&button_subtype=services&currency_code=USD&bn=PP%2dBuyNowBF%3aPaypal%2dBuy%2520a%2520Drink%2dblue%2esvg%3aNonHosted
-  :alt: Chip in via PayPal
-
-.. 2020-1-1: bountysource.com domain expired, commented out here + removed from .github/FUNDING.yml
-   image:: https://img.shields.io/badge/Bountysource-Chip%20in-brightgreen.svg
-  :target: https://www.bountysource.com/teams/bidict
-  :alt: Chip in via Bountysource
+.. image:: https://img.shields.io/badge/PayPal-sponsor-blue.svg
+  :target: https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=jabronson%40gmail%2ecom&lc=US&item_name=Sponsor%20bidict%20(name%20a%20fair%20price)
+  :alt: Sponsor through PayPal
 
 .. duplicated in README.rst
    (would use `.. include::` but GitHub doesn't understand it)
 
-Bidict is the product of hundreds of hours of unpaid, voluntary work.
+Bidict is the product of thousands of hours of my unpaid work
+over the 12+ years I've been maintaining it.
 
 If bidict has helped you accomplish your work,
 especially work you've been paid for,
-please consider chipping in toward the costs
-of bidict's maintenance and development
-and/or ask your organization to do the same.
-Any amount contributed is gratefully received.
+it's easy to
+`sponsor me through GitHub <https://github.com/sponsors/jab>`__.
 
-Besides chipping in financially,
-filing issues,
-and submitting pull requests,
-there are other ways to contribute.
+Choose a tier and GitHub handles everything else.
+The sponsorship just goes on your regular GitHub bill;
+there's nothing extra to do.
+You can also sponsor me through
+`Gumroad <https://gumroad.com/l/bidict>`__ or
+`PayPal <https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=jabronson%40gmail%2ecom&lc=US&item_name=Sponsor%20bidict%20(name%20a%20fair%20price)>`__.
 
-- If you read the code and learned something new,
-  please :ref:`let me know <home:Notice of Usage>` [#fn-let-me-know]_.
-
-- If you're using bidict in a project you work on,
-  please post about your experience and send me a link.
-
-- If you come across other people who could find bidict useful,
-  please spread the word.
-
-
-**Please support bidict:**
-
-.. image:: https://raw.githubusercontent.com/jab/bidict/master/assets/support-on-gumroad.png
-  :target: https://gumroad.com/l/bidict
-  :alt: Support bidict
+Read more about
+`companies supporting open source developers
+<https://www.cognitect.com/blog/supporting-open-source-developers>`__.
 
 
 Code of Conduct

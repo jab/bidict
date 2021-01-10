@@ -139,7 +139,7 @@ html_theme_options = dict(
     page_width='1000px',
     show_powered_by=False,
     show_relbar_bottom=True,
-    donate_url='https://gumroad.com/l/bidict',
+    donate_url='https://github.com/sponsors/jab',
     tidelift_url='https://tidelift.com/subscription/pkg/pypi-bidict?utm_source=pypi-bidict&utm_medium=referral&utm_campaign=docs',
 )
 
