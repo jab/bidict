@@ -56,7 +56,7 @@ sphinxcontrib-jsmath==1.0.1  # via sphinx
 sphinxcontrib-qthelp==1.0.3  # via sphinx
 sphinxcontrib-serializinghtml==1.1.4  # via sphinx
 toml==0.10.2              # via build, check-manifest, pre-commit, pytest, tox
-tox==3.20.1               # via -r dev.in
+tox==3.21.1               # via -r dev.in
 urllib3==1.26.2           # via requests
 virtualenv==20.2.2        # via pre-commit, tox
 
