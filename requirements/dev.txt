@@ -26,7 +26,7 @@ check-manifest==0.46
     # via -r dev.in
 click==7.1.2
     # via pip-tools
-coverage==5.3.1
+coverage==5.4
     # via
     #   -r tests.in
     #   pytest-cov
