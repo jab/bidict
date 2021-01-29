@@ -72,7 +72,7 @@ pluggy==0.13.1
     #   tox
 pprintpp==0.4.0
     # via pytest-icdiff
-pre-commit==2.9.3
+pre-commit==2.10.0
     # via -r dev.in
 py-cpuinfo==7.0.0
     # via pytest-benchmark
