@@ -51,8 +51,3 @@ repos:
   #   # Renamed LICENSE_HEADER -> .LICENSE_HEADER to avoid confusing licensee
   #   # (https://github.com/benbalter/licensee - what GitHub uses to detect license)
   #   - --license-filepath=.LICENSE_HEADER
-
-- repo: https://github.com/jumanjihouse/pre-commit-hooks
-  rev: 2.1.4
-  hooks:
-  - id: shellcheck
