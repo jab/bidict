@@ -14,7 +14,7 @@ attrs==20.3.0
     #   pytest
 babel==2.9.0
     # via sphinx
-build==0.1.0
+build==0.2.1
     # via check-manifest
 certifi==2020.12.5
     # via requests
@@ -38,7 +38,7 @@ filelock==3.0.12
     # via
     #   tox
     #   virtualenv
-hypothesis==6.1.0
+hypothesis==6.2.0
     # via -r tests.in
 icdiff==1.9.1
     # via pytest-icdiff
@@ -50,7 +50,7 @@ imagesize==1.2.0
     # via sphinx
 iniconfig==1.1.1
     # via pytest
-jinja2==2.11.2
+jinja2==2.11.3
     # via sphinx
 markupsafe==1.1.1
     # via jinja2
@@ -72,7 +72,7 @@ pluggy==0.13.1
     #   tox
 pprintpp==0.4.0
     # via pytest-icdiff
-pre-commit==2.10.0
+pre-commit==2.10.1
     # via -r dev.in
 py-cpuinfo==7.0.0
     # via pytest-benchmark
@@ -81,7 +81,7 @@ py==1.10.0
     #   -r tests.in
     #   pytest
     #   tox
-pygments==2.7.4
+pygments==2.8.0
     # via sphinx
 pyparsing==2.4.7
     # via packaging
@@ -97,7 +97,7 @@ pytest==6.2.2
     #   pytest-benchmark
     #   pytest-cov
     #   pytest-icdiff
-pytz==2020.5
+pytz==2021.1
     # via babel
 pyyaml==5.4.1
     # via pre-commit
@@ -116,7 +116,7 @@ sortedcontainers==2.3.0
     #   -r tests.in
     #   hypothesis
     #   sortedcollections
-sphinx==3.4.3
+sphinx==3.5.1
     # via -r docs.in
 sphinxcontrib-applehelp==1.0.2
     # via sphinx
@@ -137,11 +137,11 @@ toml==0.10.2
     #   pre-commit
     #   pytest
     #   tox
-tox==3.21.3
+tox==3.22.0
     # via -r dev.in
 urllib3==1.26.3
     # via requests
-virtualenv==20.4.0
+virtualenv==20.4.2
     # via
     #   pre-commit
     #   tox
