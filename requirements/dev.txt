@@ -38,7 +38,7 @@ filelock==3.0.12
     # via
     #   tox
     #   virtualenv
-hypothesis==6.2.0
+hypothesis==6.4.3
     # via -r tests.in
 icdiff==1.9.1
     # via pytest-icdiff
