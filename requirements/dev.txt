@@ -116,7 +116,7 @@ sortedcontainers==2.3.0
     #   -r tests.in
     #   hypothesis
     #   sortedcollections
-sphinx==3.5.1
+sphinx==3.5.2
     # via -r docs.in
 sphinxcontrib-applehelp==1.0.2
     # via sphinx

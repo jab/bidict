@@ -34,7 +34,7 @@ requests==2.25.1
     # via sphinx
 snowballstemmer==2.1.0
     # via sphinx
-sphinx==3.5.1
+sphinx==3.5.2
     # via -r docs.in
 sphinxcontrib-applehelp==1.0.2
     # via sphinx
