@@ -34,7 +34,7 @@ requests==2.25.1
     # via sphinx
 snowballstemmer==2.1.0
     # via sphinx
-sphinx==3.5.2
+sphinx==3.5.3
     # via -r docs.in
 sphinxcontrib-applehelp==1.0.2
     # via sphinx
@@ -48,7 +48,7 @@ sphinxcontrib-qthelp==1.0.3
     # via sphinx
 sphinxcontrib-serializinghtml==1.1.4
     # via sphinx
-urllib3==1.26.3
+urllib3==1.26.4
     # via requests
 
 # The following packages are considered to be unsafe in a requirements file:
