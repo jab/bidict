@@ -56,9 +56,6 @@ from sys import version_info as _version_info
 if _version_info < (3, 6):  # pragma: no cover
     raise ImportError('Python 3.6+ is required.')
 
-# The rest of this file only collects functionality implemented in the rest of the
-# source for the purposes of exporting it under the `bidict` module namespace.
-# flake8: noqa: F401 (imported but unused)
 from ._abc import BidirectionalMapping, MutableBidirectionalMapping
 from ._base import BidictBase
 from ._mut import MutableBidict
@@ -84,7 +81,7 @@ for _name, _obj in _locals:  # pragma: no cover
         continue
     try:
         _obj.__module__ = 'bidict'
-    except AttributeError as exc:  # raised when __module__ is read-only (as in OnDup)
+    except AttributeError:  # raised when __module__ is read-only (as in OnDup)
         pass
 
 

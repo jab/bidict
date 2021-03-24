@@ -23,6 +23,7 @@ jobs:
           - {name: '3.7', python: '3.7', os: ubuntu-latest, tox: py37}
           - {name: '3.6', python: '3.6', os: ubuntu-latest, tox: py36}
           - {name: PyPy3, python: pypy3, os: ubuntu-latest, tox: pypy3}
+          - {name: lint, python: '3.9', os: ubuntu-latest, tox: lint}
         # Handled by https://docs.readthedocs.io/en/stable/guides/autobuild-docs-for-pull-requests.html
         # - {name: Docs, python: '3.9', os: ubuntu-latest, tox: docs}
     steps:
@@ -56,9 +57,11 @@ jobs:
         with:
           path: ~/.cache/pre-commit
           key: pre-commit|${{ env.PY }}|${{ hashFiles('.pre-commit-config.yaml') }}
-        if: matrix.tox == 'style'
+        if: matrix.tox == 'lint'
       - run: pip install tox
       - run: tox -e ${{ matrix.tox }}
       # https://github.com/codecov/codecov-action
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v1
+        # coverage only enabled for "py39" env in tox.ini
+        if: matrix.tox == 'py39'

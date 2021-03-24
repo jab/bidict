@@ -27,15 +27,13 @@ repos:
   - id: flake8
 
 # https://pre-commit.com/#repository-local-hooks
-# Enable once the next release (which supports Python 3.9) is out:
-# https://github.com/PyCQA/pylint/pull/3890#issuecomment-731585934
-#- repo: local
-#  hooks:
-#  - id: pylint
-#    name: pylint
-#    entry: pylint
-#    language: system
-#    types: [python]
+- repo: local
+  hooks:
+  - id: pylint
+    name: pylint
+    entry: pylint
+    language: system
+    types: [python]
 
 - repo: https://github.com/Lucas-C/pre-commit-hooks
   rev: v1.1.9
