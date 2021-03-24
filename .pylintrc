@@ -1,16 +1,21 @@
 # https://docs.pylint.org/en/latest/technical_reference/features.html
 
 [MASTER]
-ignore=_version.py conf.py
-jobs=0
+jobs = 0
+ignore =
+  conf.py,
+  run_tests.py,
+  _version.py,
 
 [MESSAGES CONTROL]
-disable=
+disable =
   abstract-method,
   arguments-differ,
   attribute-defined-outside-init,
   bad-continuation,
   broad-except,
+  duplicate-code,
+  import-error,
   invalid-name,
   isinstance-second-argument-not-valid-type,  # https://github.com/PyCQA/pylint/issues/3507
   line-too-long,

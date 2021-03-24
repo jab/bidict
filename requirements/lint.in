@@ -1,0 +1,5 @@
+pre-commit
+pylint
+# pylint runs against tests/*.py which import pytest and hypothesis
+pytest
+hypothesis
