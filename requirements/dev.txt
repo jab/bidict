@@ -40,7 +40,7 @@ filelock==3.0.12
     # via
     #   tox
     #   virtualenv
-hypothesis==6.8.1
+hypothesis==6.8.2
     # via
     #   -r lint.in
     #   -r tests.in
