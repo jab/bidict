@@ -11,7 +11,7 @@ bidict
 
 The bidirectional mapping library for Python.
 
-.. image:: https://raw.githubusercontent.com/jab/bidict/master/assets/logo-sm.png
+.. image:: https://raw.githubusercontent.com/jab/bidict/main/assets/logo-sm.png
    :target: https://bidict.readthedocs.io/
    :alt: bidict logo
 
@@ -23,15 +23,15 @@ Status
    :target: https://pypi.org/project/bidict
    :alt: Latest release
 
-.. image:: https://img.shields.io/readthedocs/bidict/master.svg
-   :target: https://bidict.readthedocs.io/en/master/
+.. image:: https://img.shields.io/readthedocs/bidict/main.svg
+   :target: https://bidict.readthedocs.io/en/main/
    :alt: Documentation
 
 .. image:: https://github.com/jab/bidict/workflows/Tests/badge.svg
    :target: https://github.com/jab/bidict/actions
    :alt: GitHub Actions CI status
 
-.. image:: https://codecov.io/gh/jab/bidict/branch/master/graph/badge.svg
+.. image:: https://codecov.io/gh/jab/bidict/branch/main/graph/badge.svg
    :target: https://codecov.io/gh/jab/bidict
    :alt: Test coverage
 
@@ -53,7 +53,7 @@ Status
       :alt: Supported Python implementations
 
 .. image:: https://img.shields.io/pypi/l/bidict.svg
-   :target: https://raw.githubusercontent.com/jab/bidict/master/LICENSE
+   :target: https://raw.githubusercontent.com/jab/bidict/main/LICENSE
    :alt: License
 
 .. image:: https://static.pepy.tech/badge/bidict

@@ -60,8 +60,8 @@ Making Changes
   across a variety of supported editors.
   See https://editorconfig.org/#download to install the plugin for your editor.
 
-- Create a topic branch off of master for your changes:
-  ``git checkout -b <topic> master``
+- Create a topic branch off of main for your changes:
+  ``git checkout -b <topic> main``
 
 - Make commits of logical units.
 
