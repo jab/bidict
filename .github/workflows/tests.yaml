@@ -4,10 +4,10 @@ on:
     - cron: "0 11 * * 5"
   push:
     branches:
-      - master
+      - main
   pull_request:
     branches:
-      - master
+      - main
 jobs:
   tests:
     name: ${{ matrix.name }}

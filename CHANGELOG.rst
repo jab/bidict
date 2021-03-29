@@ -1015,7 +1015,7 @@ Breaking API Changes
 ---------------------
 
 - Add this changelog,
-  `Contributors' Guide <https://github.com/jab/bidict/blob/master/CONTRIBUTING.rst>`__,
+  `Contributors' Guide <https://github.com/jab/bidict/blob/main/CONTRIBUTING.rst>`__,
   `Gitter chat room <https://gitter.im/jab/bidict>`__,
   and other community-oriented improvements.
 

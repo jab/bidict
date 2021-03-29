@@ -7,7 +7,7 @@
 
 """A setuptools-based setup module.
 
-Ref: https://github.com/pypa/sampleproject/blob/master/setup.py
+Ref: https://github.com/pypa/sampleproject/blob/main/setup.py
 """
 
 import sys

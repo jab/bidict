@@ -7,7 +7,7 @@ thanks to working on :mod:`bidict`.
 
 If you would like to learn more about any of the topics below,
 you may find `reading bidict's code
-<https://github.com/jab/bidict/blob/master/bidict/__init__.py#L10>`__
+<https://github.com/jab/bidict/blob/main/bidict/__init__.py#L10>`__
 particularly interesting.
 
 I've sought to optimize the code not just for correctness and performance,
@@ -57,14 +57,14 @@ has been one of the most fun parts of working on bidict.
 
 To see how this is done, check out this code:
 
-- `_base.py <https://github.com/jab/bidict/blob/master/bidict/_base.py#L10>`__
-- `_delegating.py <https://github.com/jab/bidict/blob/master/bidict/_delegating.py#L12>`__
-- `_frozenbidict.py <https://github.com/jab/bidict/blob/master/bidict/_frozenbidict.py#L10>`__
-- `_mut.py <https://github.com/jab/bidict/blob/master/bidict/_mut.py#L10>`__
-- `_bidict.py <https://github.com/jab/bidict/blob/master/bidict/_bidict.py#L10>`__
-- `_orderedbase.py <https://github.com/jab/bidict/blob/master/bidict/_orderedbase.py#L10>`__
-- `_frozenordered.py <https://github.com/jab/bidict/blob/master/bidict/_frozenordered.py#L10>`__
-- `_orderedbidict.py <https://github.com/jab/bidict/blob/master/bidict/_orderedbidict.py#L10>`__
+- `_base.py <https://github.com/jab/bidict/blob/main/bidict/_base.py#L10>`__
+- `_delegating.py <https://github.com/jab/bidict/blob/main/bidict/_delegating.py#L12>`__
+- `_frozenbidict.py <https://github.com/jab/bidict/blob/main/bidict/_frozenbidict.py#L10>`__
+- `_mut.py <https://github.com/jab/bidict/blob/main/bidict/_mut.py#L10>`__
+- `_bidict.py <https://github.com/jab/bidict/blob/main/bidict/_bidict.py#L10>`__
+- `_orderedbase.py <https://github.com/jab/bidict/blob/main/bidict/_orderedbase.py#L10>`__
+- `_frozenordered.py <https://github.com/jab/bidict/blob/main/bidict/_frozenordered.py#L10>`__
+- `_orderedbidict.py <https://github.com/jab/bidict/blob/main/bidict/_orderedbidict.py#L10>`__
 
 Data structures are amazing
 ===========================
@@ -105,7 +105,7 @@ Stay for the rare, exotic bidirectional mapping breeds you'll rarely see at home
    It turns out that dicts aren't enough—the backing mappings must actually be
    (unordered) bidicts themselves!
 
-Check out `_orderedbase.py <https://github.com/jab/bidict/blob/master/bidict/_orderedbase.py#L10>`__
+Check out `_orderedbase.py <https://github.com/jab/bidict/blob/main/bidict/_orderedbase.py#L10>`__
 to see this in action.
 
 
@@ -135,7 +135,7 @@ if it weren't for property-based testing, enabled by the amazing
 It's game-changing.
 
 Check out `bidict's property-based tests
-<https://github.com/jab/bidict/blob/master/tests/properties/test_properties.py>`__
+<https://github.com/jab/bidict/blob/main/tests/properties/test_properties.py>`__
 to see this in action.
 
 
@@ -210,7 +210,7 @@ Using :ref:`slots` dramatically reduces memory usage in CPython
 and speeds up attribute access to boot.
 Must be careful with pickling and weakrefs though!
 See `BidictBase.__getstate__()
-<https://github.com/jab/bidict/blob/master/bidict/_base.py>`__.
+<https://github.com/jab/bidict/blob/main/bidict/_base.py>`__.
 
 
 Better memory usage through :mod:`weakref`
@@ -273,7 +273,7 @@ Here's an example:
 ==============================================================
 
 See the `implementation
-<https://github.com/jab/bidict/blob/master/bidict/_named.py>`__
+<https://github.com/jab/bidict/blob/main/bidict/_named.py>`__
 of :func:`~bidict.namedbidict`.
 
 
@@ -395,7 +395,7 @@ Python's data model
   Must implement :meth:`~object.__hash__` such that
   ``a == b ⇒ hash(a) == hash(b)``.
   See the :meth:`object.__hash__` and :meth:`object.__eq__` docs, and
-  the `implementation <https://github.com/jab/bidict/blob/master/bidict/_frozenbidict.py#L10>`__
+  the `implementation <https://github.com/jab/bidict/blob/main/bidict/_frozenbidict.py#L10>`__
   of :class:`~bidict.frozenbidict`.
 
   - Consider :class:`~bidict.FrozenOrderedBidict`:
@@ -435,7 +435,7 @@ Python's data model
 
 - Using :meth:`~object.__new__` to bypass default object initialization,
   e.g. for better :meth:`~bidict.bidict.copy` performance.
-  See `_base.py <https://github.com/jab/bidict/blob/master/bidict/_bidict.py#L10>`__.
+  See `_base.py <https://github.com/jab/bidict/blob/main/bidict/_bidict.py#L10>`__.
 
 - Overriding :meth:`object.__getattribute__` for custom attribute lookup.
   See :ref:`extending:\`\`SortedBidict\`\` Recipes`.
@@ -476,7 +476,7 @@ Portability
 
   - Hence ``test_bidicts_freed_on_zero_refcount()``
     in `test_properties.py
-    <https://github.com/jab/bidict/blob/master/tests/properties/test_properties.py>`__
+    <https://github.com/jab/bidict/blob/main/tests/properties/test_properties.py>`__
     is skipped outside CPython.
 
   - primitives' identities, nan, etc.
