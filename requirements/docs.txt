@@ -12,7 +12,7 @@ certifi==2020.12.5
     # via requests
 chardet==4.0.0
     # via requests
-docutils==0.16
+docutils==0.17
     # via sphinx
 idna==2.10
     # via requests
