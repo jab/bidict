@@ -36,7 +36,7 @@ packaging==20.9
     # via pytest
 pluggy==0.13.1
     # via pytest
-pre-commit==2.11.1
+pre-commit==2.12.0
     # via -r lint.in
 py==1.10.0
     # via pytest
