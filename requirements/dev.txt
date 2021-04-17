@@ -84,7 +84,7 @@ pluggy==0.13.1
     #   tox
 pprintpp==0.4.0
     # via pytest-icdiff
-pre-commit==2.11.1
+pre-commit==2.12.1
     # via
     #   -r dev.in
     #   -r lint.in
