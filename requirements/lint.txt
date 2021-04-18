@@ -6,7 +6,7 @@
 #
 appdirs==1.4.4
     # via virtualenv
-astroid==2.5.2
+astroid==2.5.3
     # via pylint
 attrs==20.3.0
     # via
@@ -18,9 +18,9 @@ distlib==0.3.1
     # via virtualenv
 filelock==3.0.12
     # via virtualenv
-hypothesis==6.8.4
+hypothesis==6.10.0
     # via -r lint.in
-identify==2.2.2
+identify==2.2.3
     # via pre-commit
 iniconfig==1.1.1
     # via pytest
@@ -30,13 +30,13 @@ lazy-object-proxy==1.6.0
     # via astroid
 mccabe==0.6.1
     # via pylint
-nodeenv==1.5.0
+nodeenv==1.6.0
     # via pre-commit
 packaging==20.9
     # via pytest
 pluggy==0.13.1
     # via pytest
-pre-commit==2.11.1
+pre-commit==2.12.1
     # via -r lint.in
 py==1.10.0
     # via pytest
@@ -44,7 +44,7 @@ pylint==2.7.4
     # via -r lint.in
 pyparsing==2.4.7
     # via packaging
-pytest==6.2.2
+pytest==6.2.3
     # via -r lint.in
 pyyaml==5.4.1
     # via pre-commit
