@@ -121,7 +121,7 @@ for voluntary community support.
 You can search through
 `existing issues <https://github.com/jab/bidict/issues>`__
 before creating a new one
-in case your issue has been adressed already.
+in case your issue has been addressed already.
 
 
 Enterprise Support

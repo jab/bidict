@@ -100,7 +100,7 @@ the key and value we wanted to set
 already had any previous associations
 and remove them as necessary.
 
-In general, if we want to store the assocation *k* ⟷ *v*,
+In general, if we want to store the association *k* ⟷ *v*,
 but we may have already stored the associations *k* ⟷ *V* or *K* ⟷ *v*,
 a correct implementation using the single dict approach
 would require code like this:

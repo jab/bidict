@@ -43,7 +43,7 @@ create a reference cycle.
 If this were true,
 in CPython this would mean that the memory for a :class:`~bidict.bidict`
 could not be immediately reclaimed when you retained no more references to it,
-but rather would have to wait for the next gargage collection to kick in
+but rather would have to wait for the next garbage collection to kick in
 before it could be reclaimed.
 
 However, :class:`~bidict.bidict`\s use a :class:`weakref.ref`
