@@ -21,13 +21,13 @@ repos:
   - id: mypy
 
 - repo: https://github.com/pycqa/pydocstyle
-  rev: 5.1.1
+  rev: 6.0.0
   hooks:
   - id: pydocstyle
     exclude: bidict/_version.py
 
 - repo: https://github.com/pycqa/flake8
-  rev: 3.8.4
+  rev: 3.9.1
   hooks:
   - id: flake8
 
@@ -41,7 +41,7 @@ repos:
     types: [python]
 
 - repo: https://github.com/Lucas-C/pre-commit-hooks
-  rev: v1.1.9
+  rev: v1.1.10
   hooks:
   - id: forbid-crlf
   - id: remove-crlf
