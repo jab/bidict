@@ -6,7 +6,7 @@
 #
 appdirs==1.4.4
     # via virtualenv
-astroid==2.5.3
+astroid==2.5.6
     # via pylint
 attrs==20.3.0
     # via
@@ -18,9 +18,9 @@ distlib==0.3.1
     # via virtualenv
 filelock==3.0.12
     # via virtualenv
-hypothesis==6.10.0
+hypothesis==6.10.1
     # via -r lint.in
-identify==2.2.3
+identify==2.2.4
     # via pre-commit
 iniconfig==1.1.1
     # via pytest
@@ -40,7 +40,7 @@ pre-commit==2.12.1
     # via -r lint.in
 py==1.10.0
     # via pytest
-pylint==2.7.4
+pylint==2.8.2
     # via -r lint.in
 pyparsing==2.4.7
     # via packaging
@@ -57,7 +57,7 @@ toml==0.10.2
     #   pre-commit
     #   pylint
     #   pytest
-virtualenv==20.4.3
+virtualenv==20.4.4
     # via pre-commit
 wrapt==1.12.1
     # via astroid
