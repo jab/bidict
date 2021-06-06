@@ -101,24 +101,23 @@ already had any previous associations
 and remove them as necessary.
 
 In general, if we want to store the association *k* ⟷ *v*,
-but we may have already stored the associations *k* ⟷ *V* or *K* ⟷ *v*,
-a correct implementation using the single dict approach
+but we may have already stored the associations *k* ⟷ *v′* or *k′* ⟷ *v*,
+a correct implementation using the single-dict approach
 would require code like this:
 
 .. doctest::
 
-   >>> d = {'k': 'V', 'V': 'k'}
+   >>> d = {'H': 'hydrogen', 'hydrogen': 'H'}
 
    >>> def update(d, key, val):
-   ...     _sentinel = object()
-   ...     oldval = d.pop(key, _sentinel)
+   ...     oldval = d.pop(key, object())
    ...     d.pop(oldval, None)
-   ...     oldkey = d.pop(val, _sentinel)
+   ...     oldkey = d.pop(val, object())
    ...     d.pop(oldkey, None)
    ...     d.update({key: val, val: key})
 
-   >>> update(d, 'k', 'v')
-   >>> d == {'k': 'v', 'v': 'k'}
+   >>> update(d, 'H', 'hydrogène')
+   >>> d == {'H': 'hydrogène', 'hydrogène': 'H'}
    True
 
 
@@ -126,8 +125,8 @@ With :mod:`bidict`, we can instead just write:
 
 .. doctest::
 
-   >>> b = bidict({'k': 'V'})
-   >>> b['k'] = 'v'
+   >>> b = bidict({'H': 'hydrogen'})
+   >>> b['H'] = 'hydrogène'
 
 And :mod:`bidict` takes care of all the fussy details,
 leaving us with just what we wanted:
@@ -135,10 +134,10 @@ leaving us with just what we wanted:
 .. doctest::
 
    >>> b
-   bidict({'k': 'v'})
+   bidict({'H': 'hydrogène'})
 
    >>> b.inverse
-   bidict({'v': 'k'})
+   bidict({'hydrogène': 'H'})
 
 
 Even more important...
@@ -164,20 +163,20 @@ and no way to tell which was which.
 
 .. doctest::
 
-   >>> # Compare this...
-   >>> sorted(d.keys())    # also gives values
-   ['k', 'v']
-   >>> sorted(d.values())  # also gives keys
-   ['k', 'v']
+   >>> # Compare the single-dict approach:
+   >>> set(d.keys()) == {'H', 'hydrogène'}  # .keys() also gives values
+   True
+   >>> set(d.values()) == {'H', 'hydrogène'}  # .values() also gives keys
+   True
 
-   >>> # ...to this:
-   >>> sorted(b.keys())    # just the keys
-   ['k']
-   >>> sorted(b.values())  # just the values
-   ['v']
+   >>> # ...to using a bidict:
+   >>> b.keys() == {'H'}  # just the keys
+   True
+   >>> b.values() == {'hydrogène'}  # just the values
+   True
 
 In short,
-to model a bidirectional mapping,
+to model a bidirectional mapping correctly and unambiguously,
 we need two separate one-directional mappings,
 one for the forward associations and one for the inverse,
 that are kept in sync as the associations change.
@@ -198,9 +197,11 @@ Additional Functionality
 Besides the standard :class:`bidict.bidict` type,
 the :mod:`bidict` module provides other bidirectional mapping variants:
 :class:`~bidict.frozenbidict`,
-:class:`~bidict.OrderedBidict`
+:class:`~bidict.OrderedBidict`,
 :class:`~bidict.FrozenOrderedBidict`, and
 :func:`~bidict.namedbidict`.
-These and remaining functionality will be covered in later sections.
+
+These, and :mod:`bidict`'s other functionality,
+will be covered in later sections.
 
 *But first, let's look at a few more details of* :doc:`basic-usage`.
