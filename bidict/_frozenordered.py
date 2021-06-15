@@ -37,7 +37,7 @@ from ._typing import KT, VT
 class FrozenOrderedBidict(OrderedBidictBase[KT, VT]):
     """Hashable, immutable, ordered bidict type."""
 
-    __slots__ = ()
+    __slots__ = ('_hash',)
     __hash__ = frozenbidict.__hash__
 
     if _t.TYPE_CHECKING:

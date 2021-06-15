@@ -50,7 +50,7 @@ BT = _t.TypeVar('BT', bound='BidictBase')  # typevar for BidictBase.copy
 class BidictBase(BidirectionalMapping[KT, VT]):
     """Base class implementing :class:`BidirectionalMapping`."""
 
-    __slots__ = ['_fwdm', '_invm', '_inv', '_invweak', '_hash', '__weakref__']
+    __slots__ = ['_fwdm', '_invm', '_inv', '_invweak', '__weakref__']
 
     #: The default :class:`~bidict.OnDup`
     #: that governs behavior when a provided item
