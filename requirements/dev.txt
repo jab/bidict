@@ -76,7 +76,7 @@ pep517==0.10.0
     # via
     #   build
     #   pip-tools
-pip-tools==6.1.0
+pip-tools==6.2.0
     # via -r dev.in
 pluggy==0.13.1
     # via
@@ -88,25 +88,19 @@ pre-commit==2.13.0
     # via
     #   -r dev.in
     #   -r lint.in
-py-cpuinfo==8.0.0
-    # via pytest-benchmark
 py==1.10.0
     # via
     #   -r tests.in
     #   pytest
     #   tox
+py-cpuinfo==8.0.0
+    # via pytest-benchmark
 pygments==2.9.0
     # via sphinx
 pylint==2.8.3
     # via -r lint.in
 pyparsing==2.4.7
     # via packaging
-pytest-benchmark==3.4.1
-    # via -r tests.in
-pytest-cov==2.12.1
-    # via -r tests.in
-pytest-icdiff==0.5
-    # via -r tests.in
 pytest==6.2.4
     # via
     #   -r lint.in
@@ -114,6 +108,12 @@ pytest==6.2.4
     #   pytest-benchmark
     #   pytest-cov
     #   pytest-icdiff
+pytest-benchmark==3.4.1
+    # via -r tests.in
+pytest-cov==2.12.1
+    # via -r tests.in
+pytest-icdiff==0.5
+    # via -r tests.in
 pytz==2021.1
     # via babel
 pyyaml==5.4.1
@@ -165,6 +165,8 @@ virtualenv==20.4.7
     # via
     #   pre-commit
     #   tox
+wheel==0.36.2
+    # via pip-tools
 wrapt==1.12.1
     # via astroid
 
