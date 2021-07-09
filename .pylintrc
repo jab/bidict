@@ -11,6 +11,7 @@ ignore =
 disable =
   abstract-method,
   arguments-differ,
+  arguments-renamed,
   attribute-defined-outside-init,
   bad-continuation,
   broad-except,

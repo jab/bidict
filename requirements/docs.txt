@@ -22,7 +22,7 @@ jinja2==3.0.1
     # via sphinx
 markupsafe==2.0.1
     # via jinja2
-packaging==20.9
+packaging==21.0
     # via sphinx
 pygments==2.9.0
     # via sphinx
@@ -34,7 +34,7 @@ requests==2.25.1
     # via sphinx
 snowballstemmer==2.1.0
     # via sphinx
-sphinx==4.0.2
+sphinx==4.0.3
     # via -r docs.in
 sphinxcontrib-applehelp==1.0.2
     # via sphinx
@@ -48,7 +48,7 @@ sphinxcontrib-qthelp==1.0.3
     # via sphinx
 sphinxcontrib-serializinghtml==1.1.5
     # via sphinx
-urllib3==1.26.5
+urllib3==1.26.6
     # via requests
 
 # The following packages are considered to be unsafe in a requirements file:

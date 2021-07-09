@@ -8,7 +8,7 @@ alabaster==0.7.12
     # via sphinx
 appdirs==1.4.4
     # via virtualenv
-astroid==2.5.6
+astroid==2.6.2
     # via pylint
 attrs==21.2.0
     # via
@@ -16,7 +16,7 @@ attrs==21.2.0
     #   pytest
 babel==2.9.1
     # via sphinx
-build==0.4.0
+build==0.5.1
     # via check-manifest
 certifi==2021.5.30
     # via requests
@@ -40,13 +40,13 @@ filelock==3.0.12
     # via
     #   tox
     #   virtualenv
-hypothesis==6.13.14
+hypothesis==6.14.1
     # via
     #   -r lint.in
     #   -r tests.in
 icdiff==1.9.1
     # via pytest-icdiff
-identify==2.2.9
+identify==2.2.10
     # via pre-commit
 idna==2.10
     # via requests
@@ -54,7 +54,7 @@ imagesize==1.2.0
     # via sphinx
 iniconfig==1.1.1
     # via pytest
-isort==5.8.0
+isort==5.9.2
     # via pylint
 jinja2==3.0.1
     # via sphinx
@@ -66,7 +66,7 @@ mccabe==0.6.1
     # via pylint
 nodeenv==1.6.0
     # via pre-commit
-packaging==20.9
+packaging==21.0
     # via
     #   build
     #   pytest
@@ -76,7 +76,7 @@ pep517==0.10.0
     # via
     #   build
     #   pip-tools
-pip-tools==6.1.0
+pip-tools==6.2.0
     # via -r dev.in
 pluggy==0.13.1
     # via
@@ -97,7 +97,7 @@ py==1.10.0
     #   tox
 pygments==2.9.0
     # via sphinx
-pylint==2.8.3
+pylint==2.9.3
     # via -r lint.in
 pyparsing==2.4.7
     # via packaging
@@ -133,7 +133,7 @@ sortedcontainers==2.4.0
     #   -r tests.in
     #   hypothesis
     #   sortedcollections
-sphinx==4.0.2
+sphinx==4.0.3
     # via -r docs.in
 sphinxcontrib-applehelp==1.0.2
     # via sphinx
@@ -159,12 +159,14 @@ toml==0.10.2
     #   tox
 tox==3.23.1
     # via -r dev.in
-urllib3==1.26.5
+urllib3==1.26.6
     # via requests
 virtualenv==20.4.7
     # via
     #   pre-commit
     #   tox
+wheel==0.36.2
+    # via pip-tools
 wrapt==1.12.1
     # via astroid
 
