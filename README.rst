@@ -11,7 +11,7 @@ bidict
 
 The bidirectional mapping library for Python.
 
-.. image:: https://raw.githubusercontent.com/jab/bidict/main/assets/logo-sm.png
+.. image:: https://raw.githubusercontent.com/jab/bidict/main/assets/logo-sm-white-bg.jpg
    :target: https://bidict.readthedocs.io/
    :alt: bidict logo
 
