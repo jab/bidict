@@ -44,28 +44,28 @@ pluggy==0.13.1
     # via pytest
 pprintpp==0.4.0
     # via pytest-icdiff
-py-cpuinfo==8.0.0
-    # via pytest-benchmark
 py==1.10.0
     # via
     #   -r tests.in
     #   pytest
+py-cpuinfo==8.0.0
+    # via pytest-benchmark
 pygments==2.9.0
     # via sphinx
 pyparsing==2.4.7
     # via packaging
-pytest-benchmark==3.4.1
-    # via -r tests.in
-pytest-cov==2.12.1
-    # via -r tests.in
-pytest-icdiff==0.5
-    # via -r tests.in
 pytest==6.2.4
     # via
     #   -r tests.in
     #   pytest-benchmark
     #   pytest-cov
     #   pytest-icdiff
+pytest-benchmark==3.4.1
+    # via -r tests.in
+pytest-cov==2.12.1
+    # via -r tests.in
+pytest-icdiff==0.5
+    # via -r tests.in
 pytz==2021.1
     # via babel
 requests==2.25.1
@@ -79,7 +79,7 @@ sortedcontainers==2.4.0
     #   -r tests.in
     #   hypothesis
     #   sortedcollections
-sphinx==4.0.3
+sphinx==4.1.2
     # via -r docs.in
 sphinxcontrib-applehelp==1.0.2
     # via sphinx
