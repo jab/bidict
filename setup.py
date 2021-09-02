@@ -48,12 +48,6 @@ with open(join(CWD, 'README.rst'), encoding='utf-8') as f:
 
 setup(
     name='bidict',
-    use_scm_version={
-        'version_scheme': 'guess-next-dev',
-        'local_scheme': 'dirty-tag',
-        'write_to': 'bidict/_version.py',
-        'parentdir_prefix_version': 'bidict-',
-    },
     author=METADATA.__author__,  # type: ignore
     author_email=METADATA.__email__,  # type: ignore
     description=METADATA.__description__,  # type: ignore

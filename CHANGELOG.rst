@@ -27,6 +27,8 @@ to be notified when new versions of ``bidict`` are released.
 0.21.3 (not yet released)
 -------------------------
 
+- Drop setuptools_scm as a setup_requires dependency.
+
 - Remove ``bidict.__version_info__`` attribute.
 
 
