@@ -4,27 +4,27 @@
 #
 #    pip-compile lint.in
 #
-appdirs==1.4.4
-    # via virtualenv
-astroid==2.6.2
+astroid==2.7.3
     # via pylint
 attrs==21.2.0
     # via
     #   hypothesis
     #   pytest
-cfgv==3.3.0
+backports.entry-points-selectable==1.1.0
+    # via virtualenv
+cfgv==3.3.1
     # via pre-commit
 distlib==0.3.2
     # via virtualenv
 filelock==3.0.12
     # via virtualenv
-hypothesis==6.14.1
+hypothesis==6.17.4
     # via -r lint.in
-identify==2.2.10
+identify==2.2.13
     # via pre-commit
 iniconfig==1.1.1
     # via pytest
-isort==5.9.2
+isort==5.9.3
     # via pylint
 lazy-object-proxy==1.6.0
     # via astroid
@@ -34,17 +34,21 @@ nodeenv==1.6.0
     # via pre-commit
 packaging==21.0
     # via pytest
-pluggy==0.13.1
+platformdirs==2.3.0
+    # via
+    #   pylint
+    #   virtualenv
+pluggy==1.0.0
     # via pytest
-pre-commit==2.13.0
+pre-commit==2.14.1
     # via -r lint.in
 py==1.10.0
     # via pytest
-pylint==2.9.3
+pylint==2.10.2
     # via -r lint.in
 pyparsing==2.4.7
     # via packaging
-pytest==6.2.4
+pytest==6.2.5
     # via -r lint.in
 pyyaml==5.4.1
     # via pre-commit
@@ -57,7 +61,10 @@ toml==0.10.2
     #   pre-commit
     #   pylint
     #   pytest
-virtualenv==20.4.7
+virtualenv==20.7.2
     # via pre-commit
 wrapt==1.12.1
     # via astroid
+
+# The following packages are considered to be unsafe in a requirements file:
+# setuptools

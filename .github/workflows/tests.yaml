@@ -16,17 +16,19 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - {name: '3.10', python: '3.10.0-beta.4', os: ubuntu-latest, tox: py310}
-        # - {name: Windows, python: '3.9', os: windows-latest, tox: py39}
-        # - {name: Mac, python: '3.9', os: macos-latest, tox: py39}
+          # See the following link for all available Python versions:
+          # https://raw.githubusercontent.com/actions/python-versions/main/versions-manifest.json
+          - {name: '3.10', python: '3.10.0-rc.1', os: ubuntu-latest, tox: py310}
           - {name: '3.9', python: '3.9', os: ubuntu-latest, tox: py39}
           - {name: '3.8', python: '3.8', os: ubuntu-latest, tox: py38}
           - {name: '3.7', python: '3.7', os: ubuntu-latest, tox: py37}
           - {name: '3.6', python: '3.6', os: ubuntu-latest, tox: py36}
           - {name: PyPy3, python: pypy3, os: ubuntu-latest, tox: pypy3}
+          # - {name: Windows, python: '3.9', os: windows-latest, tox: py39}
+          # - {name: Mac, python: '3.9', os: macos-latest, tox: py39}
           - {name: lint, python: '3.9', os: ubuntu-latest, tox: lint}
-        # Handled by https://docs.readthedocs.io/en/stable/guides/autobuild-docs-for-pull-requests.html
-        # - {name: Docs, python: '3.9', os: ubuntu-latest, tox: docs}
+          # Handled by https://docs.readthedocs.io/en/stable/guides/autobuild-docs-for-pull-requests.html
+          # - {name: Docs, python: '3.9', os: ubuntu-latest, tox: docs}
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
