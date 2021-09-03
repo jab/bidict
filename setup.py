@@ -75,5 +75,4 @@ setup(
         'Topic :: Software Development :: Libraries :: Python Modules',
         'Typing :: Typed',
     ],
-    setup_requires=['setuptools_scm'],
 )
