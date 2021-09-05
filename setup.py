@@ -40,6 +40,8 @@ CWD = abspath(dirname(__file__))
 # Get bidict's package metadata from ./bidict/metadata.py.
 METADATA_PATH = join(CWD, 'bidict', 'metadata.py')
 SPEC = spec_from_file_location('metadata', METADATA_PATH)
+if not SPEC:
+    raise FileNotFoundError('bidict/metadata.py')
 METADATA = module_from_spec(SPEC)
 SPEC.loader.exec_module(METADATA)  # type: ignore
 

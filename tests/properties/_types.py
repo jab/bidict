@@ -8,7 +8,7 @@
 """Types for Hypothoses tests."""
 
 from collections import OrderedDict
-from collections.abc import KeysView, ItemsView, Mapping
+from collections.abc import KeysView, ItemsView, Mapping, Reversible
 
 from bidict import FrozenOrderedBidict, OrderedBidict, bidict, frozenbidict, namedbidict
 
@@ -20,7 +20,9 @@ MUTABLE_BIDICT_TYPES = (bidict, OrderedBidict, MyNamedBidict)
 FROZEN_BIDICT_TYPES = (frozenbidict, FrozenOrderedBidict, MyNamedFrozenBidict)
 ORDERED_BIDICT_TYPES = (OrderedBidict, FrozenOrderedBidict, MyNamedOrderedBidict)
 BIDICT_TYPES = tuple(set(MUTABLE_BIDICT_TYPES + FROZEN_BIDICT_TYPES + ORDERED_BIDICT_TYPES))
-REVERSIBLE_BIDICT_TYPES = ORDERED_BIDICT_TYPES
+# When support is dropped for Python < 3.8, all bidict types will be reversible,
+# and we can remove the following and just use BIDICT_TYPES instead:
+REVERSIBLE_BIDICT_TYPES = BIDICT_TYPES if issubclass(bidict, Reversible) else ORDERED_BIDICT_TYPES  # Py<3.8
 
 
 class _FrozenDict(KeysView, Mapping):

@@ -34,9 +34,19 @@ to be notified when new versions of ``bidict`` are released.
   bidicts that are not :class:`bidict.OrderedBidict`\s preserve a deterministic ordering
   (just like dicts do in Python 3.6+), so all bidicts can now provide this method.
 
-- Drop setuptools_scm as a setup_requires dependency.
+- Take better advantage of the fact that dicts are reversible in Python 3.8+.
 
-- Remove ``bidict.__version_info__`` attribute.
+  This allows even non-:class:`~bidict.OrderedBidict`\s to efficiently provide a
+  :meth:`~bidict.BidictBase.__reversed__` implementation, which they now do.
+
+  As a result, if you are using Python 3.8+,
+  :class:`~bidict.frozenbidict` now gives you everything that
+  :class:`~bidict.FrozenOrderedBidict` gives you with less space overhead.
+
+- Drop `setuptools_scm <https://github.com/pypa/setuptools_scm>`__
+  as a ``setup_requires`` dependency.
+
+- Remove the ``bidict.__version_info__`` attribute.
 
 
 0.21.2 (2020-09-07)

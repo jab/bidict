@@ -4,29 +4,21 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-Test for consistency in ordered bidicts after handling duplicate keys/values
-(when passing python's -O flag, this would previously fail
-due to reliance on side effects in assert statements)::
+Test for consistency in ordered bidicts after handling duplicate keys/values::
 
     >>> from bidict import OrderedBidict, DuplicationError, RAISE, DROP_OLD, OnDup
     >>> b = OrderedBidict([(0, 1)])
-    >>> exc = None
-    >>> try:
-    ...     b.update([(0, 2), (3, 4), (5, 4)])
-    ... except DuplicationError as e:
-    ...     exc = e
-    >>> exc is not None
-    True
+    >>> b.update([(0, 2), (3, 4), (5, 4)])
+    Traceback (most recent call last):
+        ...
+    ValueDuplicationError: 4
     >>> len(b.inv)
     1
 
-    >>> exc = None
-    >>> try:
-    ...     b.putall([(2, 1), (2, 3)], OnDup(key=RAISE, val=DROP_OLD))
-    ... except DuplicationError as e:
-    ...     exc = e
-    >>> exc is not None
-    True
+    >>> b.putall([(2, 1), (2, 3)], OnDup(key=RAISE, val=DROP_OLD))
+    Traceback (most recent call last):
+        ...
+    KeyDuplicationError: 2
     >>> len(b)
     1
 

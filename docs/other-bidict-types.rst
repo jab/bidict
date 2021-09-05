@@ -193,65 +193,58 @@ He later said that making OrderedDict's ``__eq__()``
 intransitive was a mistake.
 
 
-What if my Python version has order-preserving dicts?
-#####################################################
+What about order-preserving dicts?
+##################################
 
 In PyPy as well as CPython ≥ 3.6,
 :class:`dict` preserves insertion order.
-If you are using one of these versions of Python,
-you may wonder whether you can get away with
+Given that, can you get away with
 using a regular :class:`bidict.bidict`
 in places where you need
-an insertion order-preserving bidirectional mapping.
+an insertion order-preserving bidirectional mapping?
 
-In general the answer is no,
-particularly if you need to be able to change existing associations
-in the bidirectional mapping while preserving order correctly.
-
-Consider this example using a regular :class:`~bidict.bidict`
-with an order-preserving :class:`dict` version of Python:
+Consider this example:
 
 .. doctest::
-   :pyversion: >= 3.6
 
     >>> b = bidict([(1, -1), (2, -2), (3, -3)])
     >>> b[2] = 'UPDATED'
     >>> b
     bidict({1: -1, 2: 'UPDATED', 3: -3})
-    >>> b.inverse  # oops:
+    >>> b.inverse
     bidict({-1: 1, -3: 3, 'UPDATED': 2})
 
 When the value associated with the key ``2`` was changed,
 the corresponding item stays in place in the forward mapping,
 but moves to the end of the inverse mapping.
 Since regular :class:`~bidict.bidict`\s
-provide no guarantees about order preservation
+provide weaker ordering guarantees
 (which allows for a more efficient implementation),
-non-order-preserving behavior
-(as in the example above)
-is exactly what you get.
+it's possible to see behavior like in the example above
+after certain sequences of mutations.
 
-If you never mutate a bidict
-(or are even using a :class:`~bidict.frozenbidict`)
-and you're running a version of Python
-with order-preserving :class:`dict`\s,
-then you'll find that the order of the items
-in your bidict and its inverse happens to be preserved.
-However, you won't get the additional order-specific APIs
-(such as
-:meth:`~bidict.OrderedBidict.move_to_end`,
-:meth:`~bidict.OrderedBidict.equals_order_sensitive`, and
-:meth:`~bidict.OrderedBidict.__reversed__` –
-indeed the lack of a ``dict.__reversed__`` API
-is what stops us from making
-:class:`~bidict.FrozenOrderedBidict` an alias of
-:class:`~bidict.frozenbidict` on dict-order-preserving Pythons,
-as this would mean
-:meth:`FrozenOrderedBidict.__reversed__() <bidict.FrozenOrderedBidict.__reversed__>`
-would have to be O(n) in space complexity).
+That said, if you depend on preserving insertion order,
+a non-:class:`~bidict.OrderedBidict` may be sufficient if:
 
-If you need order-preserving behavior guaranteed,
-then :class:`~bidict.OrderedBidict` is your best choice.
+* you're never mutating it, or
+
+* you're only mutating by removing and/or adding whole new items,
+  never changing just the key or value of an existing item, or
+
+* you're only changing existing items in the forward direction
+  (i.e. changing values by key, rather than changing keys by value),
+  and only depend on the order in the forward bidict,
+  not the order of the items in its inverse.
+
+On the other hand, if your code is actually depending on the order,
+using an :meth:`~bidict.OrderedBidict` makes for clearer code.
+
+This will also give you additional order-specific APIs, such as
+:meth:`~bidict.OrderedBidict.move_to_end` and
+:meth:`popitem(last=False) <bidict.OrderedBidict.popitem>`.
+(And also
+:meth:`~bidict.OrderedBidict.__reversed__` on Python < 3.8.
+On Python 3.8+, all bidicts are :class:`~collections.abc.Reversible`.)
 
 
 :class:`~bidict.FrozenOrderedBidict`
@@ -261,8 +254,18 @@ then :class:`~bidict.OrderedBidict` is your best choice.
 is an immutable ordered bidict type.
 It's like an :class:`~bidict.OrderedBidict`
 without the mutating APIs,
-or equivalently like an order-preserving
+or equivalently like a :class:`reversible <collections.abc.Reversible>`
 :class:`~bidict.frozenbidict`.
+
+(As of Python 3.6,
+:class:`~bidict.frozenbidict`\s are order-preserving, because
+`dicts are order-preserving <What about order-preserving dicts>`__,
+but :class:`~bidict.frozenbidict`\s are not reversible
+until Python 3.8+, where dicts became reversible.)
+
+If you are using Python 3.8+,
+:class:`~bidict.frozenbidict` gives you everything that
+:class:`~bidict.FrozenOrderedBidict` gives you with less space overhead.
 
 
 :func:`~bidict.namedbidict`
@@ -318,7 +321,6 @@ However, this check is too specific, and will fail for many
 types that implement the :class:`~collections.abc.Mapping` interface:
 
 .. doctest::
-   :pyversion: >= 3.3
 
    >>> from collections import ChainMap
    >>> issubclass(ChainMap, dict)
@@ -338,7 +340,6 @@ from the :mod:`collections` module
 that are provided for this purpose:
 
 .. doctest::
-   :pyversion: >= 3.3
 
    >>> issubclass(ChainMap, Mapping)
    True

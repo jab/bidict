@@ -383,6 +383,14 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         """*x.__getitem__(key)　⟺　x[key]*"""
         return self._fwdm[key]
 
+    # On Python 3.8+, dicts are reversible, so even non-Ordered bidicts can provide an efficient
+    # __reversed__ implementation. (On Python < 3.8, they cannot.) Once support is dropped for
+    # Python < 3.8, can remove the following if statement to provide __reversed__ unconditionally.
+    if hasattr(_fwdm_cls, '__reversed__'):  # pragma: no cover
+        def __reversed__(self) -> _t.Iterator[KT]:
+            """Iterator over the contained keys in reverse order."""
+            return reversed(self._fwdm)
+
 
 # Work around weakref slot with Generics bug on Python 3.6 (https://bugs.python.org/issue41451):
 BidictBase.__slots__.remove('__weakref__')
