@@ -31,10 +31,14 @@ to be notified when new versions of ``bidict`` are released.
   not just :class:`~bidict.OrderedBidict`\s.
 
   Since support for Python < 3.6 was dropped in v0.21.0,
-  dicts provide a deterministic ordering on all supported Python versions,
+  :class:`dict`\s provide a deterministic ordering
+  on all supported Python versions,
   and as a result, all bidicts do too.
   So now even non-:class:`Ordered <bidict.OrderedBidict>` bidicts
   might as well provide :meth:`~bidict.BidictBase.equals_order_sensitive`.
+
+  See the updated
+  :ref:`other-bidict-types:What about order-preserving dicts?` docs for more info.
 
 - Take better advantage of the fact that dicts became
   :class:`reversible <collections.abc.Reversible>` in Python 3.8.
