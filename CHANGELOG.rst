@@ -28,22 +28,25 @@ to be notified when new versions of ``bidict`` are released.
 -------------------
 
 - All bidicts now provide the :meth:`~bidict.BidictBase.equals_order_sensitive` method,
-  not just :class:`bidict.OrderedBidict`\s.
+  not just :class:`~bidict.OrderedBidict`\s.
 
   Since support for Python < 3.6 was dropped in v0.21.0,
-  non-:class:`Ordered <bidict.OrderedBidict>` bidicts preserve a deterministic ordering
-  on all supported Python versions,
-  so all bidicts can now provide :meth:`~bidict.BidictBase.equals_order_sensitive`.
+  dicts provide a deterministic ordering on all supported Python versions,
+  and as a result, all bidicts do too.
+  So now even non-:class:`Ordered <bidict.OrderedBidict>` bidicts
+  might as well provide :meth:`~bidict.BidictBase.equals_order_sensitive`.
 
-- Take better advantage of the fact that dicts are reversible in Python 3.8+.
+- Take better advantage of the fact that dicts became
+  :class:`reversible <collections.abc.Reversible>` in Python 3.8.
 
-  This allows even non-:class:`Ordered <bidict.OrderedBidict>` bidicts
-  to efficiently provide a :meth:`~bidict.BidictBase.__reversed__` implementation,
-  which they now do.
+  Specifically, now even non-:class:`Ordered <bidict.OrderedBidict>` bidicts
+  provide a :meth:`~bidict.BidictBase.__reversed__` implementation on Python 3.8+,
+  since it can piggyback off the efficient :meth:`dict.__reversed__` implementation.
 
   As a result, if you are using Python 3.8+,
   :class:`~bidict.frozenbidict` now gives you everything that
-  :class:`~bidict.FrozenOrderedBidict` gives you with less space overhead.
+  :class:`~bidict.FrozenOrderedBidict` gives you,
+  but with less space overhead.
 
 - Drop `setuptools_scm <https://github.com/pypa/setuptools_scm>`__
   as a ``setup_requires`` dependency.
