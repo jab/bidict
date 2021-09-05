@@ -13,7 +13,6 @@
 __pycache__
 _build
 bidict.egg-info
-bidict/_version.py
 build
 coverage.xml
 dist

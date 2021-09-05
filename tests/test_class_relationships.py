@@ -8,7 +8,8 @@
 """Test various issubclass checks."""
 
 import re
-from collections.abc import Hashable, Mapping, MutableMapping
+import sys
+from collections.abc import Hashable, Mapping, MutableMapping, Reversible
 from collections import OrderedDict
 
 import pytest
@@ -127,3 +128,12 @@ def test_bimap_inverse_notimplemented():
         # Can't instantiate a BidirectionalMapping that hasn't overridden the abstract methods of
         # the interface, so only way to call this implementation is on the class.
         BidirectionalMapping.inverse.fget(bidict())
+
+def test_bidict_reversible_matches_dict_reversible():
+    """Reversibility of bidict matches dict's on all supported Python versions."""
+    assert issubclass(bidict, Reversible) == issubclass(dict, Reversible)
+
+@pytest.mark.skipif(sys.version_info < (3, 8), reason='reversible bidicts require Python 3.8+')
+def test_bidict_reversible():
+    """All bidicts are Reversible on Python 3.8+."""
+    assert issubclass(bidict, Reversible)

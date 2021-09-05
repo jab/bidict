@@ -4,14 +4,14 @@ on:
     tags:
       # To publish a test release to test.pypi.org,
       # create and push a tag as follows:
-      #     git tag -a 0.21.3.dev27 -m "Tag 0.21.3.dev27 for release to test.pypi.org"
+      #     git tag -a 0.21.3.rc1 -m "Tag 0.21.3.rc1 for release to test.pypi.org"
       #     git push --tags
       # Go to https://github.com/jab/bidict/actions?query=workflow%3A%22Release+to+Test+PyPI%22
       # and watch for a new run of this workflow to publish to test.pypi.org.
       # IMPORTANT: Run the following to clean up after:
-      #     git tag -d 0.21.3.dev27
-      #     git push origin :0.21.3.dev27
-      - "[0-9]+.[0-9]+.[0-9]+.dev[0-9]+"
+      #     git tag -d 0.21.3.rc1
+      #     git push origin :0.21.3.rc1
+      - "[0-9]+.[0-9]+.[0-9]+.rc[0-9]+"
 jobs:
   build:
     runs-on: ubuntu-latest
