@@ -297,16 +297,6 @@ class OrderedBidictBase(BidictBase[KT, VT]):
         """Iterator over the contained keys in reverse insertion order."""
         yield from self._iter(reverse=True)
 
-    def equals_order_sensitive(self, other: object) -> bool:
-        """Order-sensitive equality check.
-
-        *See also* :ref:`eq-order-insensitive`
-        """
-        # Same short-circuit as BidictBase.__eq__. Factoring out not worth function call overhead.
-        if not isinstance(other, _t.Mapping) or len(self) != len(other):
-            return False
-        return all(i == j for (i, j) in zip(self.items(), other.items()))
-
 
 #                             * Code review nav *
 #==============================================================================

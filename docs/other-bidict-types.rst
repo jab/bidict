@@ -178,20 +178,17 @@ are always order-insensitive:
    True
 
 For order-sensitive equality tests, use
-:meth:`~bidict.FrozenOrderedBidict.equals_order_sensitive`:
+:meth:`~bidict.BidictBase.equals_order_sensitive`:
 
 .. doctest::
 
    >>> o1.equals_order_sensitive(o2)
    False
-   >>> from collections import OrderedDict
-   >>> od = OrderedDict(o2)
-   >>> o1.equals_order_sensitive(od)
-   False
 
 Note that this differs from the behavior of
 :class:`collections.OrderedDict`\'s ``__eq__()``,
-by recommendation of Raymond Hettinger (the author) himself.
+by recommendation of Raymond Hettinger
+(the author of :class:`~collections.OrderedDict`) himself.
 He later said that making OrderedDict's ``__eq__()``
 intransitive was a mistake.
 
@@ -385,29 +382,6 @@ Besides the above, there are several other collections ABCs
 whose interfaces are implemented by various bidict types.
 Have a look through the :mod:`collections.abc` documentation
 if you're interested.
-
-One thing you might notice is that there is no
-``Ordered`` or ``OrderedMapping`` ABC.
-However, Python 3.6 introduced the :class:`collections.abc.Reversible` ABC.
-Since being reversible implies having an ordering,
-you could check for reversibility instead.
-For example:
-
-.. doctest::
-   :pyversion: >= 3.6
-
-   >>> from collections.abc import Reversible
-
-   >>> def is_reversible_mapping(cls):
-   ...     return issubclass(cls, Reversible) and issubclass(cls, Mapping)
-   ...
-
-   >>> is_reversible_mapping(OrderedBidict)
-   True
-
-   >>> is_reversible_mapping(OrderedDict)
-   True
-
 
 For more you can do with :mod:`bidict`,
 check out :doc:`extending` next.

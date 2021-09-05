@@ -195,6 +195,16 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         selfget = self.get
         return all(selfget(k, _NONE) == v for (k, v) in other.items())  # type: ignore
 
+    def equals_order_sensitive(self, other: object) -> bool:
+        """Order-sensitive equality check.
+
+        *See also* :ref:`eq-order-insensitive`
+        """
+        # Same short-circuit as in __eq__ above. Factoring out not worth function call overhead.
+        if not isinstance(other, _t.Mapping) or len(self) != len(other):
+            return False
+        return all(i == j for (i, j) in zip(self.items(), other.items()))
+
     # The following methods are mutating and so are not public. But they are implemented in this
     # non-mutable base class (rather than the mutable `bidict` subclass) because they are used here
     # during initialization (starting with the `_update` method). (Why is this? Because `__init__`
