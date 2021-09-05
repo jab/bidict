@@ -55,7 +55,7 @@ def test_unequal_to_mapping_with_different_items(bi_and_map_from_diff_items):
     assert not bi == mapping
 
 
-@given(st.BI_AND_MAP_FROM_SAME_ITEMS)
+@given(st.BI_AND_MAP_FROM_SAME_ND_ITEMS)
 def test_equal_to_mapping_with_same_items(bi_and_map_from_same_items):
     """Bidicts should be equal to mappings created from the same non-duplicating items.
 
@@ -69,7 +69,7 @@ def test_equal_to_mapping_with_same_items(bi_and_map_from_same_items):
     assert not bi.inv != mapping_inv
 
 
-@given(st.HBI_AND_HMAP_FROM_SAME_ITEMS)
+@given(st.HBI_AND_HMAP_FROM_SAME_ND_ITEMS)
 def test_equal_hashables_have_same_hash(hashable_bidict_and_mapping):
     """Hashable bidicts and hashable mappings that are equal should hash to the same value."""
     bi, mapping = hashable_bidict_and_mapping
@@ -77,16 +77,16 @@ def test_equal_hashables_have_same_hash(hashable_bidict_and_mapping):
     assert hash(bi) == hash(mapping)
 
 
-@given(st.OBI_AND_OMAP_FROM_SAME_ITEMS)
-def test_equals_order_sensitive(ob_and_om):
+@given(st.BI_AND_MAP_FROM_SAME_ND_ITEMS)
+def test_equals_order_sensitive(bi_and_map_from_same_items):
     """Ordered bidicts should be order-sensitive-equal to ordered mappings with same nondup items.
 
     The bidict's inverse and the ordered mapping's inverse should also be order-sensitive-equal.
     """
-    ob, om = ob_and_om
-    assert ob.equals_order_sensitive(om)
-    om_inv = OrderedDict((v, k) for (k, v) in om.items())
-    assert ob.inv.equals_order_sensitive(om_inv)
+    bi, mapping = bi_and_map_from_same_items
+    assert bi.equals_order_sensitive(mapping)
+    mapping_inv = {v: k for (k, v) in mapping.items()}
+    assert bi.inv.equals_order_sensitive(mapping_inv)
 
 
 @given(st.OBI_AND_OMAP_FROM_SAME_ITEMS_DIFF_ORDER)
@@ -236,27 +236,18 @@ def test_putall_same_as_put_for_each_item(bi, items, on_dup):
     assert check.inv == expect.inv
 
 
-@given(st.BI_AND_CMPDICT_FROM_SAME_ITEMS)
-def test_iter(bi_and_cmp_dict):
-    """:meth:`bidict.BidictBase.__iter__` should yield all the keys in a bidict."""
-    bi, cmp_dict = bi_and_cmp_dict
-    assert set(bi) == cmp_dict.keys()
+@given(st.BI_AND_MAP_FROM_SAME_ND_ITEMS)
+def test_bidict_iter(bi_and_mapping):
+    """iter(bi) should yield the keys in a bidict in insertion order."""
+    bi, mapping = bi_and_mapping
+    assert all(i == j for (i, j) in zip(bi, mapping))
 
 
-@given(st.OBI_AND_OD_FROM_SAME_ITEMS)
-def test_orderedbidict_iter(ob_and_od):
-    """Ordered bidict __iter__ should yield all the keys in an ordered bidict in the right order."""
-    ob, od = ob_and_od
-    assert all(i == j for (i, j) in zip(ob, od))
-
-
-@given(st.OBI_AND_OD_FROM_SAME_ITEMS)
-def test_orderedbidict_reversed(ob_and_od):
-    """:meth:`bidict.OrderedBidictBase.__reversed__` should yield all the keys
-    in an ordered bidict in the reverse-order they were inserted.
-    """
-    ob, od = ob_and_od
-    assert all(i == j for (i, j) in zip(reversed(ob), reversed(od)))
+@given(st.RBI_AND_RMAP_FROM_SAME_ND_ITEMS)
+def test_bidict_reversed(rb_and_rd):
+    """reversed(bi) should yield the keys in a bidict in reverse insertion order."""
+    rb, rd = rb_and_rd
+    assert all(i == j for (i, j) in zip(reversed(rb), reversed(rd)))
 
 
 @given(st.FROZEN_BIDICTS)
@@ -427,19 +418,10 @@ def test_inverted_pairs(pairs):
     assert list(inverted(inverted(pairs))) == pairs
 
 
-@given(st.BI_AND_CMPDICT_FROM_SAME_ITEMS)
-def test_inverted_bidict(bi_and_cmp_dict):
-    """:func:`bidict.inverted` should yield the inverse items of a bidict."""
-    bi, cmp_dict = bi_and_cmp_dict
-    cmp_dict_inv = OrderedDict((v, k) for (k, v) in cmp_dict.items())
-    assert set(inverted(bi)) == cmp_dict_inv.items() == bi.inv.items()
-    assert set(inverted(inverted(bi))) == cmp_dict.items() == bi.inv.inv.items()
-
-
-@given(st.OBI_AND_OD_FROM_SAME_ITEMS)
-def test_inverted_orderedbidict(ob_and_od):
+@given(st.BI_AND_MAP_FROM_SAME_ND_ITEMS)
+def test_inverted_bidict(bi_and_mapping):
     """:func:`bidict.inverted` should yield the inverse items of an ordered bidict."""
-    ob, od = ob_and_od
-    od_inv = OrderedDict((v, k) for (k, v) in od.items())
-    assert all(i == j for (i, j) in zip(inverted(ob), od_inv.items()))
-    assert all(i == j for (i, j) in zip(inverted(inverted(ob)), od.items()))
+    bi, mapping = bi_and_mapping
+    mapping_inv = {v: k for (k, v) in mapping.items()}
+    assert all(i == j for (i, j) in zip(inverted(bi), mapping_inv.items()))
+    assert all(i == j for (i, j) in zip(inverted(inverted(bi)), mapping.items()))

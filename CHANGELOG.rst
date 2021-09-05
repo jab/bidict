@@ -27,6 +27,13 @@ to be notified when new versions of ``bidict`` are released.
 0.21.3 (not yet released)
 -------------------------
 
+- All bidicts now provide the :meth:`~bidict.BidictBase.equals_order_sensitive` method,
+  not just :class:`bidict.OrderedBidict`\s.
+
+  Since support for Python < 3.6 was dropped in v0.21.0,
+  bidicts that are not :class:`bidict.OrderedBidict`\s preserve a deterministic ordering
+  (just like dicts do in Python 3.6+), so all bidicts can now provide this method.
+
 - Drop setuptools_scm as a setup_requires dependency.
 
 - Remove ``bidict.__version_info__`` attribute.

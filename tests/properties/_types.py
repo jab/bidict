@@ -20,6 +20,7 @@ MUTABLE_BIDICT_TYPES = (bidict, OrderedBidict, MyNamedBidict)
 FROZEN_BIDICT_TYPES = (frozenbidict, FrozenOrderedBidict, MyNamedFrozenBidict)
 ORDERED_BIDICT_TYPES = (OrderedBidict, FrozenOrderedBidict, MyNamedOrderedBidict)
 BIDICT_TYPES = tuple(set(MUTABLE_BIDICT_TYPES + FROZEN_BIDICT_TYPES + ORDERED_BIDICT_TYPES))
+REVERSIBLE_BIDICT_TYPES = ORDERED_BIDICT_TYPES
 
 
 class _FrozenDict(KeysView, Mapping):

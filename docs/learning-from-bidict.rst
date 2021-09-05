@@ -192,8 +192,9 @@ Python surprises, gotchas, regrets
   but it's too late now to fix.
 
   Fortunately, it wasn't too late for bidict to learn from this.
-  Hence :ref:`eq-order-insensitive` for ordered bidicts,
-  and their separate :meth:`~bidict.FrozenOrderedBidict.equals_order_sensitive` method.
+  Hence :ref:`eq-order-insensitive` even for ordered bidicts.
+  For an order-sensitive equality check, bidict provides the separate
+  :meth:`~bidict.BidictBase.equals_order_sensitive` method.
 
 - If you define a custom :meth:`~object.__eq__` on a class,
   it will *not* be used for ``!=`` comparisons on Python 2 automatically;

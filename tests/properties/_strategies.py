@@ -23,6 +23,7 @@ BIDICT_TYPES = st.sampled_from(t.BIDICT_TYPES)
 MUTABLE_BIDICT_TYPES = st.sampled_from(t.MUTABLE_BIDICT_TYPES)
 FROZEN_BIDICT_TYPES = st.sampled_from(t.FROZEN_BIDICT_TYPES)
 ORDERED_BIDICT_TYPES = st.sampled_from(t.ORDERED_BIDICT_TYPES)
+REVERSIBLE_BIDICT_TYPES = st.sampled_from(t.REVERSIBLE_BIDICT_TYPES)
 MAPPING_TYPES = st.sampled_from(t.MAPPING_TYPES)
 NON_BIDICT_MAPPING_TYPES = st.sampled_from(t.NON_BIDICT_MAPPING_TYPES)
 ORDERED_MAPPING_TYPES = st.sampled_from(t.ORDERED_MAPPING_TYPES)
@@ -70,12 +71,11 @@ MUTABLE_BIDICTS = _bidict_strat(MUTABLE_BIDICT_TYPES)
 ORDERED_BIDICTS = _bidict_strat(ORDERED_BIDICT_TYPES)
 
 
-_ALPHABET = [chr(i) for i in range(0x10ffff) if chr(i).isidentifier()]
+_ALPHABET = tuple(chr(i) for i in range(0x10ffff) if chr(i).isidentifier())
 _NAMEDBI_VALID_NAMES = st.text(_ALPHABET, min_size=1)
-IS_VALID_NAME = str.isidentifier
 NAMEDBIDICT_NAMES_ALL_VALID = st.lists(_NAMEDBI_VALID_NAMES, min_size=3, max_size=3, unique=True)
 NAMEDBIDICT_NAMES_SOME_INVALID = st.lists(st.text(min_size=1), min_size=3, max_size=3).filter(
-    lambda i: not all(IS_VALID_NAME(name) for name in i)
+    lambda i: not all(str.isidentifier(name) for name in i)
 )
 NAMEDBIDICT_TYPES = st.tuples(NAMEDBIDICT_NAMES_ALL_VALID, BIDICT_TYPES).map(
     lambda i: namedbidict(*i[0], base_type=i[1])
@@ -83,16 +83,17 @@ NAMEDBIDICT_TYPES = st.tuples(NAMEDBIDICT_NAMES_ALL_VALID, BIDICT_TYPES).map(
 NAMEDBIDICTS = _bidict_strat(NAMEDBIDICT_TYPES)
 
 
-def _bi_and_map(bi_types, map_types, init_items=L_PAIRS_NODUP):
-    return st.tuples(bi_types, map_types, init_items).map(
+def _bi_and_map(bi_types, builtin_map_types=MAPPING_TYPES, init_items=L_PAIRS_NODUP):
+    """Given bidict types and builtin mapping types, return a pair of each type created from init_items."""
+    return st.tuples(bi_types, builtin_map_types, init_items).map(
         lambda i: (i[0](i[2]), i[1](i[2]))
     )
 
 
-BI_AND_MAP_FROM_SAME_ITEMS = _bi_and_map(BIDICT_TYPES, MAPPING_TYPES)
-OBI_AND_OD_FROM_SAME_ITEMS = _bi_and_map(ORDERED_BIDICT_TYPES, st.just(OrderedDict))
-OBI_AND_OMAP_FROM_SAME_ITEMS = _bi_and_map(ORDERED_BIDICT_TYPES, ORDERED_MAPPING_TYPES)
-HBI_AND_HMAP_FROM_SAME_ITEMS = _bi_and_map(FROZEN_BIDICT_TYPES, HASHABLE_MAPPING_TYPES)
+BI_AND_MAP_FROM_SAME_ND_ITEMS = _bi_and_map(BIDICT_TYPES)
+# Update the following when we drop support for Python < 3.8. On 3.8+, all mappings are reversible.
+RBI_AND_RMAP_FROM_SAME_ND_ITEMS = _bi_and_map(REVERSIBLE_BIDICT_TYPES, st.just(OrderedDict))
+HBI_AND_HMAP_FROM_SAME_ND_ITEMS = _bi_and_map(FROZEN_BIDICT_TYPES, HASHABLE_MAPPING_TYPES)
 
 _unpack = lambda i: (i[0](i[2][0]), i[1](i[2][1]))  # noqa: E731
 BI_AND_MAP_FROM_DIFF_ITEMS = st.tuples(BIDICT_TYPES, MAPPING_TYPES, DIFF_ITEMS).map(_unpack)
