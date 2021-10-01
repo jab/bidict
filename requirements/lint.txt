@@ -4,7 +4,7 @@
 #
 #    pip-compile lint.in
 #
-astroid==2.7.3
+astroid==2.8.0
     # via pylint
 attrs==21.2.0
     # via
@@ -44,7 +44,7 @@ pre-commit==2.14.1
     # via -r lint.in
 py==1.10.0
     # via pytest
-pylint==2.10.2
+pylint==2.11.1
     # via -r lint.in
 pyparsing==2.4.7
     # via packaging
@@ -61,6 +61,10 @@ toml==0.10.2
     #   pre-commit
     #   pylint
     #   pytest
+typing-extensions==3.10.0.2
+    # via
+    #   astroid
+    #   pylint
 virtualenv==20.7.2
     # via pre-commit
 wrapt==1.12.1

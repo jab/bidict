@@ -6,7 +6,7 @@
 #
 alabaster==0.7.12
     # via sphinx
-astroid==2.7.3
+astroid==2.8.0
     # via pylint
 attrs==21.2.0
     # via
@@ -92,25 +92,19 @@ pre-commit==2.14.1
     # via
     #   -r dev.in
     #   -r lint.in
-py-cpuinfo==8.0.0
-    # via pytest-benchmark
 py==1.10.0
     # via
     #   -r tests.in
     #   pytest
     #   tox
+py-cpuinfo==8.0.0
+    # via pytest-benchmark
 pygments==2.10.0
     # via sphinx
-pylint==2.10.2
+pylint==2.11.1
     # via -r lint.in
 pyparsing==2.4.7
     # via packaging
-pytest-benchmark==3.4.1
-    # via -r tests.in
-pytest-cov==2.12.1
-    # via -r tests.in
-pytest-icdiff==0.5
-    # via -r tests.in
 pytest==6.2.5
     # via
     #   -r lint.in
@@ -118,6 +112,12 @@ pytest==6.2.5
     #   pytest-benchmark
     #   pytest-cov
     #   pytest-icdiff
+pytest-benchmark==3.4.1
+    # via -r tests.in
+pytest-cov==2.12.1
+    # via -r tests.in
+pytest-icdiff==0.5
+    # via -r tests.in
 pytz==2021.1
     # via babel
 pyyaml==5.4.1
@@ -137,7 +137,7 @@ sortedcontainers==2.4.0
     #   -r tests.in
     #   hypothesis
     #   sortedcollections
-sphinx==4.1.2  # TODO: Enable Sphinx in tox.ini for 3.10 once there's a compatible version of Sphinx
+sphinx==4.1.2
     # via -r docs.in
 sphinxcontrib-applehelp==1.0.2
     # via sphinx
@@ -165,6 +165,10 @@ tomli==1.2.1
     #   pep517
 tox==3.24.3
     # via -r dev.in
+typing-extensions==3.10.0.2
+    # via
+    #   astroid
+    #   pylint
 urllib3==1.26.6
     # via requests
 virtualenv==20.7.2
