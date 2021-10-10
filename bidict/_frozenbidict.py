@@ -38,6 +38,8 @@ class frozenbidict(_DelegatingBidict[KT, VT]):
 
     __slots__ = ('_hash',)
 
+    _hash: int
+
     # Work around lack of support for higher-kinded types in mypy.
     # Ref: https://github.com/python/typing/issues/548#issuecomment-621571821
     # Remove this and similar type stubs from other classes if support is ever added.
@@ -48,8 +50,8 @@ class frozenbidict(_DelegatingBidict[KT, VT]):
     def __hash__(self) -> int:
         """The hash of this bidict as determined by its items."""
         if getattr(self, '_hash', None) is None:
-            self._hash = _t.ItemsView(self)._hash()  # type: ignore
-        return self._hash  # type: ignore
+            self._hash = _t.ItemsView(self)._hash()  # type: ignore [attr-defined]
+        return self._hash
 
 
 #                             * Code review nav *

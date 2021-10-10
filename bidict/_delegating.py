@@ -28,12 +28,12 @@ class _DelegatingBidict(BidictBase[KT, VT]):
 
     def keys(self) -> _t.KeysView[KT]:
         """A set-like object providing a view on the contained keys."""
-        return self._fwdm.keys()
+        return self._fwdm.keys()  # type: ignore [return-value]
 
-    def values(self) -> _t.KeysView[VT]:  # type: ignore  # https://github.com/python/typeshed/issues/4435
+    def values(self) -> _t.KeysView[VT]:  # type: ignore [override]  # https://github.com/python/typeshed/issues/4435
         """A set-like object providing a view on the contained values."""
-        return self._invm.keys()
+        return self._invm.keys()  # type: ignore [return-value]
 
     def items(self) -> _t.ItemsView[KT, VT]:
         """A set-like object providing a view on the contained items."""
-        return self._fwdm.items()
+        return self._fwdm.items()  # type: ignore [return-value]

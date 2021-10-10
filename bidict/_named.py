@@ -51,15 +51,15 @@ def namedbidict(
     if not all(map(str.isidentifier, names)) or keyname == valname:
         raise ValueError(names)
 
-    class _Named(base_type):  # type: ignore
+    class _Named(base_type):  # type: ignore [valid-type,misc]
 
         __slots__ = ()
 
         def _getfwd(self) -> '_Named':
-            return self.inverse if self._isinv else self  # type: ignore
+            return self.inverse if self._isinv else self  # type: ignore [no-any-return]
 
         def _getinv(self) -> '_Named':
-            return self if self._isinv else self.inverse  # type: ignore
+            return self if self._isinv else self.inverse  # type: ignore [no-any-return]
 
         @property
         def _keyname(self) -> str:
@@ -82,7 +82,7 @@ def namedbidict(
 
     _Named.__name__ = typename
     _Named.__qualname__ = typename
-    _Named.__module__ = _getframe(1).f_globals.get('__name__')  # type: ignore
+    _Named.__module__ = _getframe(1).f_globals.get('__name__')  # type: ignore [assignment]
     return _Named
 
 

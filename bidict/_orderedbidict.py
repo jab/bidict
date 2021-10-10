@@ -60,7 +60,9 @@ class OrderedBidict(OrderedBidictBase[KT, VT], MutableBidict[KT, VT]):
         """
         if not self:
             raise KeyError('mapping is empty')
-        key = next((reversed if last else iter)(self))  # type: ignore
+        itfn: _t.Callable = reversed if last else iter  # type: ignore [assignment]
+        it = itfn(self)
+        key = next(it)
         val = self._pop(key)
         return key, val
 
