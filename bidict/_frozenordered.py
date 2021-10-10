@@ -60,11 +60,11 @@ class FrozenOrderedBidict(OrderedBidictBase[KT, VT]):
 
     def keys(self) -> _t.KeysView[KT]:
         """A set-like object providing a view on the contained keys."""
-        return self._fwdm._fwdm.keys()
+        return self._fwdm._fwdm.keys()  # type: ignore [return-value]
 
-    def values(self) -> _t.KeysView[VT]:  # type: ignore
+    def values(self) -> _t.KeysView[VT]:  # type: ignore [override]
         """A set-like object providing a view on the contained values."""
-        return self._invm._fwdm.keys()
+        return self._invm._fwdm.keys()  # type: ignore [return-value]
 
     # We can't delegate for items because values in `_fwdm` are nodes.
 

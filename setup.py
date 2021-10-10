@@ -43,21 +43,21 @@ SPEC = spec_from_file_location('metadata', METADATA_PATH)
 if not SPEC:
     raise FileNotFoundError('bidict/metadata.py')
 METADATA = module_from_spec(SPEC)
-SPEC.loader.exec_module(METADATA)  # type: ignore
+SPEC.loader.exec_module(METADATA)  # type: ignore [union-attr]
 
 with open(join(CWD, 'README.rst'), encoding='utf-8') as f:
     LONG_DESCRIPTION = f.read()
 
 setup(
     name='bidict',
-    author=METADATA.__author__,  # type: ignore
-    author_email=METADATA.__email__,  # type: ignore
-    description=METADATA.__description__,  # type: ignore
+    author=METADATA.__author__,  # type: ignore [attr-defined]
+    author_email=METADATA.__email__,  # type: ignore [attr-defined]
+    description=METADATA.__description__,  # type: ignore [attr-defined]
     long_description=LONG_DESCRIPTION,
     long_description_content_type='text/x-rst',
-    keywords=METADATA.__keywords__,  # type: ignore
-    url=METADATA.__url__,  # type: ignore
-    license=METADATA.__license__,  # type: ignore
+    keywords=METADATA.__keywords__,  # type: ignore [attr-defined]
+    url=METADATA.__url__,  # type: ignore [attr-defined]
+    license=METADATA.__license__,  # type: ignore [attr-defined]
     packages=['bidict'],
     include_package_data=True,
     zip_safe=False,  # Don't zip. (We're zip-safe but prefer not to.)
@@ -72,6 +72,7 @@ setup(
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
+        'Programming Language :: Python :: 3.10',
         'Programming Language :: Python :: Implementation :: CPython',
         'Programming Language :: Python :: Implementation :: PyPy',
         'Topic :: Software Development :: Libraries :: Python Modules',

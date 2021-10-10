@@ -32,9 +32,10 @@ import typing as _t
 from copy import copy
 from weakref import ref
 
+from ._abc import MutableBidirectionalMapping
 from ._base import _NONE, _DedupResult, _WriteResult, BidictBase, BT
 from ._bidict import bidict
-from ._typing import KT, VT, IterItems, MapOrIterItems
+from ._typing import KT, VT, OKT, OVT, IterItems, MapOrIterItems
 
 
 class _Node:
@@ -133,11 +134,13 @@ class OrderedBidictBase(BidictBase[KT, VT]):
 
     __slots__ = ('_sntl',)
 
-    _fwdm_cls = bidict  # type: ignore
-    _invm_cls = bidict  # type: ignore
+    _fwdm_cls: _t.Type[MutableBidirectionalMapping[KT, _Node]] = bidict
+    _invm_cls: _t.Type[MutableBidirectionalMapping[VT, _Node]] = bidict
+    _fwdm: bidict[KT, _Node]  # type: ignore [assignment]
+    _invm: bidict[VT, _Node]  # type: ignore [assignment]
 
     #: The object used by :meth:`__repr__` for printing the contained items.
-    _repr_delegate = list  # type: ignore
+    _repr_delegate = list
 
     @_t.overload
     def __init__(self, __arg: _t.Mapping[KT, VT], **kw: VT) -> None: ...
@@ -169,8 +172,6 @@ class OrderedBidictBase(BidictBase[KT, VT]):
     if _t.TYPE_CHECKING:
         @property
         def inverse(self) -> 'OrderedBidictBase[VT, KT]': ...
-        _fwdm: bidict[KT, _Node]  # type: ignore
-        _invm: bidict[VT, _Node]  # type: ignore
 
     def _init_inv(self) -> None:
         super()._init_inv()
@@ -180,7 +181,7 @@ class OrderedBidictBase(BidictBase[KT, VT]):
     def copy(self: BT) -> BT:
         """A shallow copy of this ordered bidict."""
         # Fast copy implementation bypassing __init__. See comments in :meth:`BidictBase.copy`.
-        cp = self.__class__.__new__(self.__class__)
+        cp: BT = self.__class__.__new__(self.__class__)
         sntl = _SentinelNode()
         fwdm = copy(self._fwdm)
         invm = copy(self._invm)
@@ -191,11 +192,11 @@ class OrderedBidictBase(BidictBase[KT, VT]):
             cur.nxt = fwdm[key] = invm[val] = nxt
             cur = nxt
         sntl.prv = nxt
-        cp._sntl = sntl
+        cp._sntl = sntl  # type: ignore [attr-defined]
         cp._fwdm = fwdm
         cp._invm = invm
         cp._init_inv()
-        return cp  # type: ignore
+        return cp
 
     __copy__ = copy
 
@@ -212,7 +213,7 @@ class OrderedBidictBase(BidictBase[KT, VT]):
         return val
 
     @staticmethod
-    def _already_have(key: KT, val: VT, nodeinv: _Node, nodefwd: _Node) -> bool:  # type: ignore
+    def _already_have(key: KT, val: VT, nodeinv: _Node, nodefwd: _Node) -> bool:  # type: ignore [override]
         # Overrides _base.BidictBase.
         return nodeinv is nodefwd
 
@@ -227,12 +228,13 @@ class OrderedBidictBase(BidictBase[KT, VT]):
             last = sntl.prv
             node = _Node(last, sntl)
             last.nxt = sntl.prv = fwdm[key] = invm[val] = node
-            oldkey = oldval = _NONE
+            oldkey: OKT = _NONE
+            oldval: OVT = _NONE
         elif isdupkey and isdupval:
             # Key and value duplication across two different nodes.
             assert nodefwd is not nodeinv
-            oldval = invm.inverse[nodefwd]  # type: ignore
-            oldkey = fwdm.inverse[nodeinv]  # type: ignore
+            oldval = invm.inverse[nodefwd]
+            oldkey = fwdm.inverse[nodeinv]
             assert oldkey != key
             assert oldval != val
             # We have to collapse nodefwd and nodeinv into a single node, i.e. drop one of them.
@@ -242,21 +244,21 @@ class OrderedBidictBase(BidictBase[KT, VT]):
             # Don't remove nodeinv's references to its neighbors since
             # if the update fails, we'll need them to undo this write.
             # Update fwdm and invm.
-            tmp = fwdm.pop(oldkey)  # type: ignore
+            tmp = fwdm.pop(oldkey)
             assert tmp is nodeinv
-            tmp = invm.pop(oldval)  # type: ignore
+            tmp = invm.pop(oldval)
             assert tmp is nodefwd
             fwdm[key] = invm[val] = nodefwd
         elif isdupkey:
-            oldval = invm.inverse[nodefwd]  # type: ignore
+            oldval = invm.inverse[nodefwd]
             oldkey = _NONE
-            oldnodeinv = invm.pop(oldval)  # type: ignore
+            oldnodeinv = invm.pop(oldval)
             assert oldnodeinv is nodefwd
             invm[val] = nodefwd
         else:  # isdupval
-            oldkey = fwdm.inverse[nodeinv]  # type: ignore
+            oldkey = fwdm.inverse[nodeinv]
             oldval = _NONE
-            oldnodefwd = fwdm.pop(oldkey)  # type: ignore
+            oldnodefwd = fwdm.pop(oldkey)
             assert oldnodefwd is nodeinv
             fwdm[key] = nodeinv
         return _WriteResult(key, val, oldkey, oldval)

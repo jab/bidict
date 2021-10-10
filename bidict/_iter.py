@@ -10,12 +10,12 @@
 
 import typing as _t
 from collections.abc import Mapping
-from itertools import chain, repeat
+from itertools import chain
 
 from ._typing import KT, VT, IterItems, MapOrIterItems
 
 
-_NULL_IT = repeat(None, 0)  # repeat 0 times -> raise StopIteration from the start
+_NULL_IT: IterItems = iter(())
 
 
 def _iteritems_mapping_or_iterable(arg: MapOrIterItems[KT, VT]) -> IterItems[KT, VT]:
@@ -35,15 +35,15 @@ def _iteritems_args_kw(*args: MapOrIterItems[KT, VT], **kw: VT) -> IterItems[KT,
     args_len = len(args)
     if args_len > 1:
         raise TypeError(f'Expected at most 1 positional argument, got {args_len}')
-    itemchain = None
+    it: IterItems = ()
     if args:
         arg = args[0]
         if arg:
-            itemchain = _iteritems_mapping_or_iterable(arg)
+            it = _iteritems_mapping_or_iterable(arg)
     if kw:
         iterkw = iter(kw.items())
-        itemchain = chain(itemchain, iterkw) if itemchain else iterkw  # type: ignore
-    return itemchain or _NULL_IT  # type: ignore
+        it = chain(it, iterkw) if it else iterkw
+    return it or _NULL_IT
 
 
 @_t.overload
@@ -63,5 +63,5 @@ def inverted(arg: MapOrIterItems[KT, VT]) -> IterItems[VT, KT]:
     """
     inv = getattr(arg, '__inverted__', None)
     if callable(inv):
-        return inv()  # type: ignore
+        return inv()  # type: ignore [no-any-return]
     return ((val, key) for (key, val) in _iteritems_mapping_or_iterable(arg))
