@@ -6,7 +6,7 @@
 #
 alabaster==0.7.12
     # via sphinx
-astroid==2.8.0
+astroid==2.8.2
     # via pylint
 attrs==21.2.0
     # via
@@ -18,17 +18,17 @@ backports.entry-points-selectable==1.1.0
     # via virtualenv
 build==0.7.0
     # via check-manifest
-certifi==2021.5.30
+certifi==2021.10.8
     # via requests
 cfgv==3.3.1
     # via pre-commit
-charset-normalizer==2.0.6
+charset-normalizer==2.0.7
     # via requests
 check-manifest==0.47
     # via -r dev.in
-click==8.0.1
+click==8.0.3
     # via pip-tools
-coverage[toml]==6.0
+coverage[toml]==6.0.2
     # via
     #   -r tests.in
     #   pytest-cov
@@ -40,7 +40,7 @@ filelock==3.3.0
     # via
     #   tox
     #   virtualenv
-hypothesis==6.23.1
+hypothesis==6.23.2
     # via
     #   -r lint.in
     #   -r tests.in
@@ -48,7 +48,7 @@ icdiff==2.0.4
     # via pytest-icdiff
 identify==2.3.0
     # via pre-commit
-idna==3.2
+idna==3.3
     # via requests
 imagesize==1.2.0
     # via sphinx
@@ -76,7 +76,7 @@ pep517==0.11.0
     # via
     #   build
     #   pip-tools
-pip-tools==6.3.0
+pip-tools==6.4.0
     # via -r dev.in
 platformdirs==2.4.0
     # via
@@ -120,7 +120,7 @@ pytest-icdiff==0.5
     # via -r tests.in
 pytz==2021.3
     # via babel
-pyyaml==5.4.1
+pyyaml==6.0
     # via pre-commit
 requests==2.26.0
     # via sphinx
