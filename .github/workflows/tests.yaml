@@ -65,6 +65,9 @@ jobs:
       - run: tox -e ${{ matrix.tox }}
       # https://github.com/codecov/codecov-action
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v1
+        uses: codecov/codecov-action@v2
         # coverage only enabled for "py39" env in tox.ini
         if: matrix.tox == 'py39'
+        with:
+          verbose: true
+          fail_ci_if_error: true

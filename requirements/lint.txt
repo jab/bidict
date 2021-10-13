@@ -4,7 +4,7 @@
 #
 #    pip-compile lint.in
 #
-astroid==2.8.0
+astroid==2.8.2
     # via pylint
 attrs==21.2.0
     # via
@@ -18,7 +18,7 @@ distlib==0.3.3
     # via virtualenv
 filelock==3.3.0
     # via virtualenv
-hypothesis==6.23.1
+hypothesis==6.23.2
     # via -r lint.in
 identify==2.3.0
     # via pre-commit
@@ -50,7 +50,7 @@ pyparsing==2.4.7
     # via packaging
 pytest==6.2.5
     # via -r lint.in
-pyyaml==5.4.1
+pyyaml==6.0
     # via pre-commit
 six==1.16.0
     # via virtualenv
