@@ -71,10 +71,10 @@ API documentation for more information.
 ------------------------------
 
 :class:`bidict.OrderedBidict`
-is a mutable :class:`~bidict.BidirectionalMapping`
+is a :class:`~bidict.MutableBidirectionalMapping`
 that preserves the ordering of its items,
 and offers some additional ordering-related APIs
-that non-:class:`Ordered <bidict.OrderedBidict>` bidicts can't offer.
+that non-ordered bidicts can't offer.
 It's like a bidirectional version of :class:`collections.OrderedDict`.
 
 .. doctest::
@@ -96,7 +96,7 @@ It's like a bidirectional version of :class:`collections.OrderedDict`.
    >>> last_item
    ('Be', 'beryllium')
 
-Additional ordering-related APIs
+Additional ordering-related, mutating APIs
 modeled after :class:`~collections.OrderedDict`, e.g.
 :meth:`popitem(last=False) <bidict.OrderedBidict.popitem>` and
 :meth:`~bidict.OrderedBidict.move_to_end`,
@@ -203,9 +203,12 @@ What about order-preserving dicts?
 In PyPy as well as CPython 3.6+,
 :class:`dict` preserves insertion order.
 Given that, can you get away with
-using a non-:class:`Ordered <bidict.OrderedBidict>` :class:`bidict.bidict`
+using a non-ordered bidict
 in places where you need
-an order-preserving bidirectional mapping?
+an order-preserving bidirectional mapping
+(assuming you don't need the additional ordering-related, mutating APIs
+offered by :class:`~bidict.OrderedBidict`
+like :meth:`~bidict.OrderedBidict.move_to_end`)?
 
 Consider this example:
 
@@ -224,22 +227,25 @@ Consider this example:
     OrderedBidict([(-1, 1), ('UPDATED', 2), (-3, 3)])
 
 When the value associated with the key ``2``
-in the non-:class:`Ordered <bidict.OrderedBidict>` bidict ``b`` was changed,
+in the non-ordered bidict ``b`` was changed,
 the corresponding item stays in place in the forward mapping,
 but moves to the end of the inverse mapping.
-Since non-:class:`Ordered <bidict.OrderedBidict>` :class:`~bidict.bidict`\s
+Since non-ordered bidicts
 provide weaker ordering guarantees
 (which allows for a more efficient implementation),
 it's possible to see behavior like in the example above
 after certain sequences of mutations.
 
 That said, if you depend on preserving insertion order,
-a non-:class:`Ordered <bidict.OrderedBidict>` bidict may be sufficient if:
+a non-ordered bidict may be sufficient if:
 
-* you're never mutating it, or
+* you'll never mutate it
+  (in which case, use a :class:`~bidict.frozenbidict`),
+  or:
 
-* you're only mutating by removing and/or adding whole new items,
-  never changing just the key or value of an existing item, or
+* you only mutate by removing and/or adding whole new items,
+  never changing just the key or value of an existing item,
+  or:
 
 * you're only changing existing items in the forward direction
   (i.e. changing values by key, rather than changing keys by value),
@@ -247,14 +253,19 @@ a non-:class:`Ordered <bidict.OrderedBidict>` bidict may be sufficient if:
   not the order of the items in its inverse.
 
 On the other hand, if your code is actually depending on the order,
-using an :meth:`~bidict.OrderedBidict` makes for clearer code.
+using an ordered bidict explicitly makes for clearer code.
 
-This will also give you additional order-specific APIs, such as
+:class:`~bidict.OrderedBidict` also gives you
+additional ordering-related mutating APIs, such as
 :meth:`~bidict.OrderedBidict.move_to_end` and
-:meth:`popitem(last=False) <bidict.OrderedBidict.popitem>`.
-(And also
-:meth:`~bidict.OrderedBidict.__reversed__` on Python < 3.8.
-On Python 3.8+, all bidicts are :class:`reversible <collections.abc.Reversible>`.)
+:meth:`popitem(last=False) <bidict.OrderedBidict.popitem>`,
+should you ever need them.
+
+(And on Python < 3.8,
+:class:`~bidict.OrderedBidict` also gives you
+:meth:`~bidict.OrderedBidict.__reversed__`.
+On Python 3.8+, all bidicts are :class:`reversible <collections.abc.Reversible>`
+as of :ref:`v0.21.3 <changelog>`.)
 
 
 :class:`~bidict.FrozenOrderedBidict`

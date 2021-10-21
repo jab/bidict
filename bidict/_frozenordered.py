@@ -35,7 +35,18 @@ from ._typing import KT, VT
 
 
 class FrozenOrderedBidict(OrderedBidictBase[KT, VT]):
-    """Hashable, immutable, ordered bidict type."""
+    """Hashable, immutable, ordered bidict type.
+
+    Like a hashable :class:`bidict.OrderedBidict`
+    without the mutating APIs, or like a
+    reversible :class:`bidict.frozenbidict` even on Python < 3.8.
+    (All bidicts are order-preserving when never mutated, so frozenbidict is
+    already order-preserving, but only on Python 3.8+, where dicts are
+    reversible, are all bidicts (including frozenbidict) also reversible.)
+
+    If you are using Python 3.8+, frozenbidict gives you everything that
+    FrozenOrderedBidict gives you, but with less space overhead.
+    """
 
     __slots__ = ('_hash',)
     __hash__ = frozenbidict.__hash__
