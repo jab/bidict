@@ -59,8 +59,8 @@ class BidictBase(BidirectionalMapping[KT, VT]):
     #: *See also* :ref:`basic-usage:Values Must Be Unique`, :doc:`extending`
     on_dup = ON_DUP_DEFAULT
 
-    _fwdm_cls: _t.Type[_t.MutableMapping[KT, _t.Any]] = dict  #: class of the backing forward mapping
-    _invm_cls: _t.Type[_t.MutableMapping[VT, _t.Any]] = dict  #: class of the backing inverse mapping
+    _fwdm_cls: _t.Type[_t.MutableMapping[KT, VT]] = dict  #: class of the backing forward mapping
+    _invm_cls: _t.Type[_t.MutableMapping[VT, KT]] = dict  #: class of the backing inverse mapping
 
     #: The object used by :meth:`__repr__` for printing the contained items.
     _repr_delegate: _t.Callable = dict

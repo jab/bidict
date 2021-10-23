@@ -134,8 +134,8 @@ class OrderedBidictBase(BidictBase[KT, VT]):
 
     __slots__ = ('_sntl',)
 
-    _fwdm_cls: _t.Type[MutableBidirectionalMapping[KT, _Node]] = bidict
-    _invm_cls: _t.Type[MutableBidirectionalMapping[VT, _Node]] = bidict
+    _fwdm_cls: _t.Type[MutableBidirectionalMapping[KT, _Node]] = bidict  # type: ignore [assignment]
+    _invm_cls: _t.Type[MutableBidirectionalMapping[VT, _Node]] = bidict  # type: ignore [assignment]
     _fwdm: bidict[KT, _Node]  # type: ignore [assignment]
     _invm: bidict[VT, _Node]  # type: ignore [assignment]
 
