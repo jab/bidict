@@ -389,7 +389,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
     # On Python 3.8+, dicts are reversible, so even non-Ordered bidicts can provide an efficient
     # __reversed__ implementation. (On Python < 3.8, they cannot.) Once support is dropped for
     # Python < 3.8, can remove the following if statement to provide __reversed__ unconditionally.
-    if hasattr(_fwdm_cls, '__reversed__'):  # pragma: no cover
+    if hasattr(_fwdm_cls, '__reversed__'):
         def __reversed__(self) -> _t.Iterator[KT]:
             """Iterator over the contained keys in reverse order."""
             return reversed(self._fwdm)  # type: ignore [no-any-return,call-overload]

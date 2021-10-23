@@ -24,11 +24,11 @@ jobs:
           - {name: '3.7', python: '3.7', os: ubuntu-latest, tox: py37}
           - {name: '3.6', python: '3.6', os: ubuntu-latest, tox: py36}
           - {name: PyPy3, python: pypy3, os: ubuntu-latest, tox: pypy3}
-          # - {name: Windows, python: '3.9', os: windows-latest, tox: py39}
-          # - {name: Mac, python: '3.9', os: macos-latest, tox: py39}
-          - {name: lint, python: '3.9', os: ubuntu-latest, tox: lint}
+          # - {name: Windows, python: '3.10', os: windows-latest, tox: py39}
+          # - {name: Mac, python: '3.10', os: macos-latest, tox: py39}
+          - {name: lint, python: '3.10', os: ubuntu-latest, tox: lint}
           # Handled by https://docs.readthedocs.io/en/stable/guides/autobuild-docs-for-pull-requests.html
-          # - {name: Docs, python: '3.9', os: ubuntu-latest, tox: docs}
+          # - {name: Docs, python: '3.10', os: ubuntu-latest, tox: docs}
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
@@ -66,8 +66,8 @@ jobs:
       # https://github.com/codecov/codecov-action
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v2
-        # coverage only enabled for "py39" env in tox.ini
-        if: matrix.tox == 'py39'
+        # coverage only enabled for "py37" and "py310" envs in tox.ini
+        if: matrix.tox == 'py37' || matrix.tox == 'py310'
         with:
           verbose: true
           fail_ci_if_error: true

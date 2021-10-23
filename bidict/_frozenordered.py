@@ -55,20 +55,9 @@ class FrozenOrderedBidict(OrderedBidictBase[KT, VT]):
         @property
         def inverse(self) -> 'FrozenOrderedBidict[VT, KT]': ...
 
-    # Assume the Python implementation's dict type is ordered (e.g. PyPy or CPython >= 3.6), so we
-    # can delegate to `_fwdm` and `_invm` for faster implementations of several methods. Both
-    # `_fwdm` and `_invm` will always be initialized with the provided items in the correct order,
-    # and since `FrozenOrderedBidict` is immutable, their respective orders can't get out of sync
-    # after a mutation.
-    def __iter__(self) -> _t.Iterator[KT]:
-        """Iterator over the contained keys in insertion order."""
-        return self._iter()
-
-    def _iter(self, *, reverse: bool = False) -> _t.Iterator[KT]:
-        if reverse:
-            return super()._iter(reverse=True)
-        return iter(self._fwdm._fwdm)
-
+    # Delegate to backing dicts for more efficient implementations of keys() and values().
+    # Possible with FrozenOrderedBidict but not OrderedBidict since FrozenOrderedBidict
+    # is immutable, i.e. these can't get out of sync after initialization due to mutation.
     def keys(self) -> _t.KeysView[KT]:
         """A set-like object providing a view on the contained keys."""
         return self._fwdm._fwdm.keys()  # type: ignore [return-value]
@@ -77,7 +66,20 @@ class FrozenOrderedBidict(OrderedBidictBase[KT, VT]):
         """A set-like object providing a view on the contained values."""
         return self._invm._fwdm.keys()  # type: ignore [return-value]
 
-    # We can't delegate for items because values in `_fwdm` are nodes.
+    # Can't delegate for items() because values in _fwdm and _invm are nodes.
+
+    # On Python 3.8+, delegate to backing dicts for a more efficient implementation
+    # of __iter__ and __reversed__ (both of which call this _iter() method):
+    if hasattr(dict, '__reversed__'):
+        def _iter(self, *, reverse: bool = False) -> _t.Iterator[KT]:
+            itfn = reversed if reverse else iter
+            return itfn(self._fwdm._fwdm)  # type: ignore [operator,no-any-return]
+    else:
+        # On Python < 3.8, just optimize __iter__:
+        def _iter(self, *, reverse: bool = False) -> _t.Iterator[KT]:
+            if not reverse:
+                return iter(self._fwdm._fwdm)
+            return super()._iter(reverse=True)
 
 
 #                             * Code review nav *
