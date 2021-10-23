@@ -24,6 +24,13 @@ Tip: Subscribe to releases
 to be notified when new versions of ``bidict`` are released.
 
 
+0.21.4 (2021-10-23)
+-------------------
+
+Explicitly declare support for Python 3.10
+as well as some minor internal improvements.
+
+
 0.21.3 (2021-09-05)
 -------------------
 
