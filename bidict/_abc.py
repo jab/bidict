@@ -78,7 +78,7 @@ class BidirectionalMapping(_t.Mapping[KT, VT]):
         """
         return iter(self.inverse.items())
 
-    def values(self) -> _t.AbstractSet[VT]:  # type: ignore  # https://github.com/python/typeshed/issues/4435
+    def values(self) -> _t.KeysView[VT]:  # type: ignore [override]  # https://github.com/python/typeshed/issues/4435
         """A set-like object providing a view on the contained values.
 
         Override the implementation inherited from
@@ -90,7 +90,7 @@ class BidirectionalMapping(_t.Mapping[KT, VT]):
         which has the advantages of constant-time containment checks
         and supporting set operations.
         """
-        return self.inverse.keys()
+        return self.inverse.keys()  # type: ignore [return-value]
 
 
 class MutableBidirectionalMapping(BidirectionalMapping[KT, VT], _t.MutableMapping[KT, VT]):

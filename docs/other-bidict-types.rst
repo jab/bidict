@@ -51,7 +51,7 @@ causes an error:
    >>> f['C'] = 'carbon'
    Traceback (most recent call last):
        ...
-   TypeError: ...
+   TypeError: 'frozenbidict' object does not support item assignment
 
 
 :class:`~bidict.frozenbidict`
@@ -200,8 +200,9 @@ intransitive was a mistake.
 What about order-preserving dicts?
 ##################################
 
-In PyPy as well as CPython 3.6+,
-:class:`dict` preserves insertion order.
+In CPython 3.6+ and all versions of PyPy,
+:class:`dict` (which bidicts are built on)
+preserves insertion order.
 Given that, can you get away with
 using a non-ordered bidict
 in places where you need
@@ -219,9 +220,9 @@ Consider this example:
     >>> ob[2] = b[2] = 'UPDATED'
     >>> ob
     OrderedBidict([(1, -1), (2, 'UPDATED'), (3, -3)])
-    >>> b
+    >>> b  # so far so good:
     bidict({1: -1, 2: 'UPDATED', 3: -3})
-    >>> b.inverse  # look what happens here
+    >>> b.inverse  # but look what happens here:
     bidict({-1: 1, -3: 3, 'UPDATED': 2})
     >>> ob.inverse  # need an OrderedBidict for full order preservation
     OrderedBidict([(-1, 1), ('UPDATED', 2), (-3, 3)])
@@ -253,7 +254,7 @@ a non-ordered bidict may be sufficient if:
   not the order of the items in its inverse.
 
 On the other hand, if your code is actually depending on the order,
-using an ordered bidict explicitly makes for clearer code.
+using an explicitly-ordered bidict type makes for clearer code.
 
 :class:`~bidict.OrderedBidict` also gives you
 additional ordering-related mutating APIs, such as
@@ -278,7 +279,7 @@ without the mutating APIs,
 or like a :class:`reversible <collections.abc.Reversible>`
 :class:`~bidict.frozenbidict` even on Python < 3.8.
 (All :class:`~bidict.bidict`\s are
-`order-preserving when never mutated <What about order-preserving dicts>`__,
+`order-preserving when never mutated <#what-about-order-preserving-dicts>`__,
 so :class:`~bidict.frozenbidict` is already order-preserving,
 but only on Python 3.8+, where :class:`dict`\s
 are :class:`reversible <collections.abc.Reversible>`,
@@ -330,7 +331,7 @@ allowing the creation of e.g. a named frozenbidict type:
    >>> noble['C'] = 'carbon'  # mutation fails
    Traceback (most recent call last):
    ...
-   TypeError: ...
+   TypeError: 'ElMap' object does not support item assignment
 
 
 Polymorphism
@@ -359,7 +360,7 @@ The same is true for all the bidict types:
 The proper way to check whether an object
 is a :class:`~collections.abc.Mapping`
 is to use the abstract base classes (ABCs)
-from the :mod:`collections` module
+from the :mod:`collections.abc` module
 that are provided for this purpose:
 
 .. doctest::
