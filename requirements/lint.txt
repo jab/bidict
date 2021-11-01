@@ -18,7 +18,7 @@ distlib==0.3.3
     # via virtualenv
 filelock==3.3.0
     # via virtualenv
-hypothesis==6.23.2
+hypothesis==6.24.1
     # via -r lint.in
 identify==2.3.0
     # via pre-commit
@@ -61,10 +61,6 @@ toml==0.10.2
     #   pre-commit
     #   pylint
     #   pytest
-typing-extensions==3.10.0.2
-    # via
-    #   astroid
-    #   pylint
 virtualenv==20.8.1
     # via pre-commit
 wrapt==1.12.1
