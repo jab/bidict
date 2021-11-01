@@ -1,0 +1,27 @@
+{
+  // https://docs.renovatebot.com/configuration-options/
+
+  "extends": [
+    "config:base",
+  ],
+
+  // https://docs.renovatebot.com/noise-reduction/#package-grouping
+  "packageRules": [
+    {
+      "matchPackagePatterns": [".*"],
+      "groupName": "grouped dependencies",
+    },
+  ],
+
+  // https://docs.renovatebot.com/modules/manager/pip-compile/
+  "pip-compile": {
+    "fileMatch": [
+      "^requirements/.+\\.in$",
+    ],
+  },
+
+  // https://docs.renovatebot.com/modules/manager/pre-commit/
+  "pre-commit": {
+    "enabled": true,
+  },
+}
