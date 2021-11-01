@@ -1,0 +1,26 @@
+{
+  // https://docs.renovatebot.com/configuration-options/
+
+  "extends": [
+    "config:base",
+  ],
+
+  "packageRules": [
+    {
+      "matchPackagePatterns": [".*"],
+      "groupName": "grouped dependencies",
+    },
+  ],
+
+  // https://docs.renovatebot.com/modules/manager/pip-compile/
+  "pip-compile": {
+    "fileMatch": [
+      "^requirements/.+",
+    ],
+  },
+
+  // https://docs.renovatebot.com/modules/manager/pre-commit/
+  "pre-commit": {
+    "enabled": true,
+  },
+}
