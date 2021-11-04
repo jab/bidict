@@ -224,7 +224,7 @@ you can override :meth:`~object.__getattribute__` as follows:
    >>> def __getattribute__(self, name):
    ...     try:
    ...         return object.__getattribute__(self, name)
-   ...     except AttributeError as e:
+   ...     except AttributeError:
    ...         return getattr(self._fwdm, name)
 
    >>> KeySortedBidict.__getattribute__ = __getattribute__
