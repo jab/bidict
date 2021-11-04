@@ -8,7 +8,7 @@
 """Define bidict package metadata."""
 
 
-__version__ = '0.21.4'
+__version__ = '0.21.5.dev0'
 __author__ = 'Joshua Bronson'
 __maintainer__ = 'Joshua Bronson'
 __copyright__ = 'Copyright 2009-2021 Joshua Bronson'
