@@ -41,6 +41,7 @@ suppress_warnings = ['image.nonlocal_uri']
 # extensions coming with Sphinx (named 'sphinx.ext.*') or custom ones.
 extensions = [
     'alabaster',
+    'sphinx_copybutton',
     'sphinx.ext.autodoc',
     'sphinx.ext.autosectionlabel',
     'sphinx.ext.coverage',
@@ -324,6 +325,9 @@ autodoc_typehints = 'description'
 # http://www.sphinx-doc.org/en/master/usage/extensions/doctest.html
 doctest_global_setup = """
 """
+
+# https://sphinx-copybutton.readthedocs.io/en/latest/#strip-and-configure-input-prompts-for-code-cells
+copybutton_prompt_text = '>>> '
 
 
 def setup(app):
