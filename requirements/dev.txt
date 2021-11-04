@@ -6,7 +6,7 @@
 #
 alabaster==0.7.12
     # via sphinx
-astroid==2.8.2
+astroid==2.8.4
     # via pylint
 attrs==21.2.0
     # via
@@ -28,7 +28,7 @@ check-manifest==0.47
     # via -r dev.in
 click==8.0.3
     # via pip-tools
-coverage[toml]==6.0.2
+coverage[toml]==6.1.1
     # via
     #   -r tests.in
     #   pytest-cov
@@ -36,17 +36,17 @@ distlib==0.3.3
     # via virtualenv
 docutils==0.17.1
     # via sphinx
-filelock==3.3.0
+filelock==3.3.2
     # via
     #   tox
     #   virtualenv
-hypothesis==6.23.2
+hypothesis==6.24.1
     # via
     #   -r lint.in
     #   -r tests.in
 icdiff==2.0.4
     # via pytest-icdiff
-identify==2.3.0
+identify==2.3.3
     # via pre-commit
 idna==3.3
     # via requests
@@ -54,7 +54,7 @@ imagesize==1.2.0
     # via sphinx
 iniconfig==1.1.1
     # via pytest
-isort==5.9.3
+isort==5.10.0
     # via pylint
 jinja2==3.0.2
     # via sphinx
@@ -66,13 +66,13 @@ mccabe==0.6.1
     # via pylint
 nodeenv==1.6.0
     # via pre-commit
-packaging==21.0
+packaging==21.2
     # via
     #   build
     #   pytest
     #   sphinx
     #   tox
-pep517==0.11.0
+pep517==0.12.0
     # via
     #   build
     #   pip-tools
@@ -92,7 +92,7 @@ pre-commit==2.15.0
     # via
     #   -r dev.in
     #   -r lint.in
-py==1.10.0
+py==1.11.0
     # via
     #   -r tests.in
     #   pytest
@@ -158,7 +158,7 @@ toml==0.10.2
     #   pylint
     #   pytest
     #   tox
-tomli==1.2.1
+tomli==1.2.2
     # via
     #   build
     #   coverage
@@ -171,13 +171,13 @@ typing-extensions==3.10.0.2
     #   pylint
 urllib3==1.26.7
     # via requests
-virtualenv==20.8.1
+virtualenv==20.10.0
     # via
     #   pre-commit
     #   tox
 wheel==0.37.0
     # via pip-tools
-wrapt==1.12.1
+wrapt==1.13.3
     # via astroid
 
 # The following packages are considered to be unsafe in a requirements file:
