@@ -21,3 +21,4 @@ tasks:
   - init: |
       python3 -m pip install -U pip
       python3 -m pip install -r requirements/dev.txt
+      env PIP_USER=false pre-commit install --install-hooks
