@@ -18,7 +18,7 @@ distlib==0.3.3
     # via virtualenv
 filelock==3.3.2
     # via virtualenv
-hypothesis==6.24.1
+hypothesis==6.29.0
     # via -r lint.in
 identify==2.3.3
     # via pre-commit

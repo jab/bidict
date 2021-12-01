@@ -22,7 +22,7 @@ coverage[toml]==6.1.1
     #   pytest-cov
 docutils==0.17.1
     # via sphinx
-hypothesis==6.24.1
+hypothesis==6.29.0
     # via -r tests.in
 icdiff==2.0.4
     # via pytest-icdiff
