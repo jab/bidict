@@ -14,14 +14,15 @@ Release Notifications
 .. duplicated in README.rst
    (would use `.. include::` but GitHub doesn't understand it)
 
-.. image:: https://img.shields.io/badge/libraries.io-subscribe-5BC0DF.svg
-   :target: https://libraries.io/pypi/bidict
-   :alt: Follow on libraries.io
-
-Tip: Subscribe to releases
-`on GitHub <https://github.blog/changelog/2018-11-27-watch-releases/>`__ or
-`libraries.io <https://libraries.io/pypi/bidict>`__
+Tip: Watch releases
+`on GitHub <https://github.blog/changelog/2018-11-27-watch-releases/>`__
 to be notified when new versions of ``bidict`` are released.
+
+
+Development
+-----------
+
+- Drop support for Python 3.6, which reached end of life on 2021-12-23.
 
 
 0.21.4 (2021-10-23)

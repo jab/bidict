@@ -161,13 +161,8 @@ Release Notifications
 .. duplicated in CHANGELOG.rst:
    (would use `.. include::` but GitHub doesn't understand it)
 
-.. image:: https://img.shields.io/badge/libraries.io-subscribe-5BC0DF.svg
-   :target: https://libraries.io/pypi/bidict
-   :alt: Follow on libraries.io
-
 Watch releases
-`on GitHub <https://github.blog/changelog/2018-11-27-watch-releases/>`__ or
-`libraries.io <https://libraries.io/pypi/bidict>`__
+`on GitHub <https://github.blog/changelog/2018-11-27-watch-releases/>`__
 to be notified when new versions of bidict are released.
 
 
