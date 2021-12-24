@@ -53,8 +53,8 @@ if you are reading this elsewhere.
 from sys import version_info as _version_info
 
 
-if _version_info < (3, 6):  # pragma: no cover
-    raise ImportError('Python 3.6+ is required.')
+if _version_info < (3, 7):  # pragma: no cover
+    raise ImportError('Python 3.7+ is required.')
 
 from ._abc import BidirectionalMapping, MutableBidirectionalMapping
 from ._base import BidictBase

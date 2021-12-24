@@ -395,9 +395,6 @@ class BidictBase(BidirectionalMapping[KT, VT]):
             return reversed(self._fwdm)  # type: ignore [no-any-return,call-overload]
 
 
-# Work around weakref slot with Generics bug on Python 3.6 (https://bugs.python.org/issue41451):
-BidictBase.__slots__.remove('__weakref__')
-
 #                             * Code review nav *
 #==============================================================================
 # ← Prev: _abc.py             Current: _base.py   Next:     _frozenbidict.py →
