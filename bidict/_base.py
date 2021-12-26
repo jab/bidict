@@ -29,9 +29,9 @@
 """Provide :class:`BidictBase`."""
 
 import typing as _t
+import weakref
 from collections import namedtuple
 from copy import copy
-from weakref import ref
 
 from ._abc import BidirectionalMapping
 from ._dup import ON_DUP_DEFAULT, RAISE, DROP_OLD, DROP_NEW, OnDup
@@ -65,7 +65,8 @@ class BidictBase(BidirectionalMapping[KT, VT]):
     #: The object used by :meth:`__repr__` for printing the contained items.
     _repr_delegate: _t.Callable = dict
 
-    _inv: 'BidictBase[VT, KT]'
+    _inv: '_t.Optional[BidictBase[VT, KT]]'
+    _invweak: '_t.Optional[weakref.ReferenceType[BidictBase[VT, KT]]]'
     _inv_cls: '_t.Type[BidictBase[VT, KT]]'
 
     def __init_subclass__(cls, **kw):
@@ -117,7 +118,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         # stored in the _invweak attribute. See also the docs in
         # :ref:`addendum:Bidict Avoids Reference Cycles`
         inv._inv = None
-        inv._invweak = ref(self)
+        inv._invweak = weakref.ref(self)
         # Since this bidict has a strong reference to its inverse already, set its _invweak to None.
         self._invweak = None
 
@@ -139,6 +140,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
             return inv
         # Refcount of referent must have dropped to zero, as in `bidict().inv.inv`. Init a new one.
         self._init_inv()  # Now this bidict will retain a strong ref to its inverse.
+        assert self._inv is not None
         return self._inv
 
     #: Alias for :attr:`inverse`.
@@ -392,7 +394,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
     if hasattr(_fwdm_cls, '__reversed__'):
         def __reversed__(self) -> _t.Iterator[KT]:
             """Iterator over the contained keys in reverse order."""
-            return reversed(self._fwdm)  # type: ignore [no-any-return,call-overload]
+            return reversed(self._fwdm)  # type: ignore [arg-type]
 
 
 #                             * Code review nav *

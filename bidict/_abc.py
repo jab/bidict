@@ -90,7 +90,7 @@ class BidirectionalMapping(_t.Mapping[KT, VT]):
         which has the advantages of constant-time containment checks
         and supporting set operations.
         """
-        return self.inverse.keys()  # type: ignore [return-value]
+        return self.inverse.keys()
 
 
 class MutableBidirectionalMapping(BidirectionalMapping[KT, VT], _t.MutableMapping[KT, VT]):

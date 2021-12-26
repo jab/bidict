@@ -60,11 +60,11 @@ class FrozenOrderedBidict(OrderedBidictBase[KT, VT]):
     # is immutable, i.e. these can't get out of sync after initialization due to mutation.
     def keys(self) -> _t.KeysView[KT]:
         """A set-like object providing a view on the contained keys."""
-        return self._fwdm._fwdm.keys()  # type: ignore [return-value]
+        return self._fwdm._fwdm.keys()
 
     def values(self) -> _t.KeysView[VT]:  # type: ignore [override]
         """A set-like object providing a view on the contained values."""
-        return self._invm._fwdm.keys()  # type: ignore [return-value]
+        return self._invm._fwdm.keys()
 
     # Can't delegate for items() because values in _fwdm and _invm are nodes.
 
