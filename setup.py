@@ -50,14 +50,14 @@ with open(join(CWD, 'README.rst'), encoding='utf-8') as f:
 
 setup(
     name='bidict',
-    author=METADATA.__author__,  # type: ignore [attr-defined]
-    author_email=METADATA.__email__,  # type: ignore [attr-defined]
-    description=METADATA.__description__,  # type: ignore [attr-defined]
+    author=METADATA.__author__,
+    author_email=METADATA.__email__,
+    description=METADATA.__description__,
     long_description=LONG_DESCRIPTION,
     long_description_content_type='text/x-rst',
-    keywords=METADATA.__keywords__,  # type: ignore [attr-defined]
-    url=METADATA.__url__,  # type: ignore [attr-defined]
-    license=METADATA.__license__,  # type: ignore [attr-defined]
+    keywords=METADATA.__keywords__,
+    url=METADATA.__url__,
+    license=METADATA.__license__,
     packages=['bidict'],
     include_package_data=True,
     zip_safe=False,  # Don't zip. (We're zip-safe but prefer not to.)
