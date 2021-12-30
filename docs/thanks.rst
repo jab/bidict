@@ -14,8 +14,10 @@ People
 - Terry Reedy for suggesting the slice syntax
   (it was fun while it lasted).
 
-- Raymond Hettinger for suggesting namedbidict
-  and pointing out various caveats.
+- Raymond Hettinger for suggesting :func:`~bidict.namedbidict`,
+  providing feedback on the design and implementation,
+  and (most of all) for the amazing work on Python's built-in collections
+  that made bidict possible.
 
 - Francis Carr for the idea of storing the inverse bidict.
 
