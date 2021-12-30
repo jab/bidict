@@ -19,6 +19,7 @@ from . import _types as t
 
 MAX = int(getenv('HYPOTHESIS_GEN_MAX_SIZE', '0')) or None
 
+DATA = st.data()
 BIDICT_TYPES = st.sampled_from(t.BIDICT_TYPES)
 MUTABLE_BIDICT_TYPES = st.sampled_from(t.MUTABLE_BIDICT_TYPES)
 FROZEN_BIDICT_TYPES = st.sampled_from(t.FROZEN_BIDICT_TYPES)
@@ -38,6 +39,8 @@ BOOLEANS = st.booleans()
 # provides enough coverage; including more just slows down example generation.
 ATOMS = st.none() | BOOLEANS | st.integers()
 PAIRS = st.tuples(ATOMS, ATOMS)
+FROSETS = st.frozensets(ATOMS)
+FROSETS_PAIRS = st.frozensets(PAIRS)
 NON_MAPPINGS = ATOMS | st.iterables(ATOMS)
 ODICTS_KW_PAIRS = st.dictionaries(TEXT, ATOMS, dict_class=OrderedDict, max_size=MAX)
 L_PAIRS = st.lists(PAIRS, max_size=MAX)

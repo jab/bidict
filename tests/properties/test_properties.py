@@ -12,7 +12,8 @@ import pickle
 
 from copy import deepcopy
 from collections import OrderedDict
-from collections.abc import Iterable
+from collections.abc import Iterable, KeysView, ValuesView, ItemsView
+
 from itertools import tee
 from platform import python_implementation
 from weakref import ref
@@ -425,3 +426,34 @@ def test_inverted_bidict(bi_and_mapping):
     mapping_inv = {v: k for (k, v) in mapping.items()}
     assert all(i == j for (i, j) in zip(inverted(bi), mapping_inv.items()))
     assert all(i == j for (i, j) in zip(inverted(inverted(bi)), mapping.items()))
+
+
+_SET_METHOD_NAMES = (
+    '__le__', '__lt__', '__gt__', '__ge__', '__eq__', '__and__', '__rand__',
+    '__or__', '__ror__', '__sub__', '__rsub__', '__xor__', '__rxor__', 'isdisjoint',
+)
+
+
+@given(st.BIDICTS, st.DATA)
+def test_views(bi, data):
+    """Optimized view APIs should be equivalent to using the corresponding MappingViews from :mod:`collections.abc`."""
+    for check, expect in (bi.keys(), KeysView(bi)), (bi.values(), ValuesView(bi)), (bi.items(), ItemsView(bi)):
+        # 0-arity methods: __len__, __iter__
+        assert check.__len__() == expect.__len__()
+        assert list(check.__iter__()) == list(expect.__iter__())
+        # 1-arity methods: __contains__
+        draw_from = st.PAIRS if isinstance(expect, ItemsView) else st.ATOMS
+        arg = data.draw(draw_from)
+        assert check.__contains__(arg) == expect.__contains__(arg)
+        # Methods of set-like views
+        if isinstance(expect, ItemsView):
+            draw_from = st.FROSETS_PAIRS
+        elif isinstance(expect, KeysView):
+            draw_from = st.FROSETS
+        else:
+            continue
+        arg = data.draw(draw_from)
+        for methname in _SET_METHOD_NAMES:
+            check_ = getattr(check, methname)(arg)
+            expect_ = getattr(expect, methname)(arg)
+            assert check_ == expect_
