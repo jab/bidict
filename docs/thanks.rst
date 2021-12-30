@@ -56,4 +56,3 @@ Projects
 - `Codecov <https://codecov.io/>`__
 - `Pylint <https://www.pylint.org/>`__
 - `Flake8 <http://flake8.pycqa.org/>`__
-- `setuptools_scm <https://github.com/pypa/setuptools_scm>`__
