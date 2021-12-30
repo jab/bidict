@@ -142,12 +142,6 @@ ARGS_BY_METHOD = st.fixed_dictionaries({
     (0, 'keys'): NO_ARGS,
     (0, 'items'): NO_ARGS,
     (0, 'values'): NO_ARGS,
-    (0, 'iterkeys'): NO_ARGS,
-    (0, 'iteritems'): NO_ARGS,
-    (0, 'itervalues'): NO_ARGS,
-    (0, 'viewkeys'): NO_ARGS,
-    (0, 'viewitems'): NO_ARGS,
-    (0, 'viewvalues'): NO_ARGS,
     # 1-arity
     (1, '__contains__'): IM_ARG,
     (1, '__getitem__'): IM_ARG,
