@@ -167,12 +167,8 @@ tomli==2.0.0
     #   build
     #   coverage
     #   pep517
-tox==3.24.4
+tox==3.24.5
     # via -r dev.in
-typing-extensions==4.0.1
-    # via
-    #   astroid
-    #   pylint
 urllib3==1.26.7
     # via requests
 virtualenv==20.10.0
