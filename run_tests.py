@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 # Copyright 2009-2022 Joshua Bronson. All Rights Reserved.
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
