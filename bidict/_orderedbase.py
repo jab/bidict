@@ -29,13 +29,25 @@
 """Provide :class:`OrderedBidictBase`."""
 
 import typing as _t
+import weakref
 from copy import copy
-from weakref import ref
 
 from ._abc import MutableBidirectionalMapping
 from ._base import _NONE, _DedupResult, _WriteResult, BidictBase, BT
 from ._bidict import bidict
 from ._typing import KT, VT, OKT, OVT, IterItems, MapOrIterItems
+
+
+class _WeakAttribute:
+
+    def __set_name__(self, owner: _t.Any, name: str) -> None:
+        self.name = name
+
+    def __set__(self, instance: _t.Any, value: _t.Any) -> None:
+        setattr(instance, f'_{self.name}_weak', weakref.ref(value))
+
+    def __get__(self, instance: _t.Any, owner: _t.Any) -> _t.Any:
+        return getattr(instance, f'_{self.name}_weak')()
 
 
 class _Node:
@@ -55,47 +67,30 @@ class _Node:
     they too are immediately freed.
     """
 
-    __slots__ = ('_prv', '_nxt', '__weakref__')
+    prv: '_Node' = _WeakAttribute()  # type: ignore[assignment]
+    nxt: '_Node' = _WeakAttribute()  # type: ignore[assignment]
 
-    def __init__(self, prv: '_Node' = None, nxt: '_Node' = None) -> None:
-        self._setprv(prv)
-        self._setnxt(nxt)
+    __slots__ = ('_prv_weak', '_nxt_weak', '__weakref__',)
+    if _t.TYPE_CHECKING:  # trick mypy, which gets confused without this:
+        __slots__ = ('nxt', 'prv', '__weakref__')  # pylint: disable=class-variable-slots-conflict
 
-    def __repr__(self) -> str:
-        clsname = self.__class__.__name__
-        prv = id(self.prv)
-        nxt = id(self.nxt)
-        return f'{clsname}(prv={prv}, self={id(self)}, nxt={nxt})'
+    def __init__(self, prv: '_Node', nxt: '_Node') -> None:
+        self.prv = prv
+        self.nxt = nxt
 
-    def _getprv(self) -> '_t.Optional[_Node]':
-        return self._prv() if isinstance(self._prv, ref) else self._prv
-
-    def _setprv(self, prv: '_t.Optional[_Node]') -> None:
-        self._prv = prv and ref(prv)
-
-    prv = property(_getprv, _setprv)
-
-    def _getnxt(self) -> '_t.Optional[_Node]':
-        return self._nxt() if isinstance(self._nxt, ref) else self._nxt
-
-    def _setnxt(self, nxt: '_t.Optional[_Node]') -> None:
-        self._nxt = nxt and ref(nxt)
-
-    nxt = property(_getnxt, _setnxt)
-
-    def __getstate__(self) -> dict:
+    def __getstate__(self) -> 'dict[str, _Node]':
         """Return the instance state dictionary
         but with weakrefs converted to strong refs
-        so that it can be pickled.
+        so that instances can be pickled.
 
         *See also* :meth:`object.__getstate__`
         """
-        return dict(_prv=self.prv, _nxt=self.nxt)
+        return dict(prv=self.prv, nxt=self.nxt)
 
-    def __setstate__(self, state: dict) -> None:
+    def __setstate__(self, state: 'dict[str, _Node]') -> None:
         """Set the instance state from *state*."""
-        self._setprv(state['_prv'])
-        self._setnxt(state['_nxt'])
+        self.prv = state['prv']
+        self.nxt = state['nxt']
 
 
 class _SentinelNode(_Node):
@@ -107,8 +102,8 @@ class _SentinelNode(_Node):
 
     __slots__ = ()
 
-    def __init__(self, prv: _Node = None, nxt: _Node = None) -> None:
-        super().__init__(prv or self, nxt or self)
+    def __init__(self) -> None:
+        super().__init__(self, self)
 
     def __repr__(self) -> str:
         return '<SNTL>'
@@ -185,7 +180,7 @@ class OrderedBidictBase(BidictBase[KT, VT]):
         sntl = _SentinelNode()
         fwdm = copy(self._fwdm)
         invm = copy(self._invm)
-        cur = sntl
+        cur: _Node = sntl
         nxt = sntl.nxt
         for (key, val) in self.items():
             nxt = _Node(cur, sntl)

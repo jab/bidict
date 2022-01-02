@@ -16,7 +16,7 @@ VT = _t.TypeVar('VT')
 IterItems = _t.Iterable[_t.Tuple[KT, VT]]
 MapOrIterItems = _t.Union[_t.Mapping[KT, VT], IterItems[KT, VT]]
 
-DT = _t.TypeVar('DT')   #: for default arguments
+DT = _t.TypeVar('DT')  #: for default arguments
 VDT = _t.Union[VT, DT]
 
 
@@ -29,5 +29,5 @@ class _NONE(metaclass=_BareReprMeta):
     """Sentinel type used to represent 'missing'."""
 
 
-OKT = _t.Union[KT, _NONE]    #: optional key type
-OVT = _t.Union[VT, _NONE]    #: optional value type
+OKT = _t.Union[KT, _NONE]  #: optional key type
+OVT = _t.Union[VT, _NONE]  #: optional value type

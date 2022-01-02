@@ -22,6 +22,8 @@ to be notified when new versions of ``bidict`` are released.
 Development
 -----------
 
+- Minor optimizations to ordered bidicts.
+
 - Drop support for Python 3.6, which reached end of life on 2021-12-23.
 
 
