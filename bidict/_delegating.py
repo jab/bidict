@@ -19,8 +19,6 @@ class _DelegatingBidict(BidictBase[KT, VT]):
     Used to override less efficient implementations inherited by :class:`~collections.abc.Mapping`.
     """
 
-    __slots__ = ()
-
     def __iter__(self) -> _t.Iterator[KT]:
         """Iterator over the contained keys."""
         return iter(self._fwdm)

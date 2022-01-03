@@ -38,8 +38,6 @@ from ._typing import _NONE, KT, VT, VDT, IterItems, MapOrIterItems
 class MutableBidict(BidictBase[KT, VT], MutableBidirectionalMapping[KT, VT]):
     """Base class for mutable bidirectional mappings."""
 
-    __slots__ = ()
-
     if _t.TYPE_CHECKING:
         @property
         def inverse(self) -> 'MutableBidict[VT, KT]': ...

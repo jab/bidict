@@ -37,8 +37,6 @@ from ._typing import KT, VT
 class OrderedBidict(OrderedBidictBase[KT, VT], MutableBidict[KT, VT]):
     """Mutable bidict type that maintains items in insertion order."""
 
-    __slots__ = ()
-
     if _t.TYPE_CHECKING:
         @property
         def inverse(self) -> 'OrderedBidict[VT, KT]': ...

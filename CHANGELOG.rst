@@ -22,9 +22,14 @@ to be notified when new versions of ``bidict`` are released.
 Development
 -----------
 
-- Minor optimizations to ordered bidicts.
-
 - Drop support for Python 3.6, which reached end of life on 2021-12-23.
+
+- Remove the use of slots from (non-ABC) bidict types.
+
+  This better matches the mapping implementations in Python's standard library,
+  and significantly reduces code complexity and maintenance burden.
+  The memory savings conferred by using slots are not noticeable
+  unless you're creating millions of bidict instances anyway.
 
 
 0.21.4 (2021-10-23)

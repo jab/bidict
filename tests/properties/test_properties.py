@@ -23,6 +23,7 @@ from hypothesis import assume, example, given
 from bidict import (
     BidictException,
     DROP_OLD, RAISE, OnDup,
+    BidirectionalMapping, MutableBidirectionalMapping,
     OrderedBidictBase, OrderedBidict, bidict, namedbidict,
     inverted,
     KeyDuplicationError, ValueDuplicationError, KeyAndValueDuplicationError,
@@ -297,12 +298,11 @@ def test_namedbidict(nb):
 
 
 @given(st.BIDICTS)
-def test_bidict_isinv_getstate(bi):
-    """All bidicts should provide ``_isinv`` and ``__getstate__``
+def test_bidict_isinv(bi):
+    """All bidicts should provide ``_isinv``
     (or else they won't fully work as a *base_type* for :func:`namedbidict`).
     """
-    bi._isinv  # pylint: disable=pointless-statement
-    assert bi.__getstate__()
+    assert hasattr(bi, '_isinv')
 
 
 @require_cpython_gc
@@ -343,20 +343,13 @@ def test_orderedbidict_nodes_freed_on_zero_refcount(ob_cls, init_items):
         gc.enable()
 
 
-@given(bi_cls=st.BIDICT_TYPES)
-def test_slots(bi_cls):
-    """See https://docs.python.org/3/reference/datamodel.html#notes-on-using-slots."""
-    stop_at = {object}
-    cls_by_slot = {}
-    for cls in bi_cls.__mro__:
-        if cls in stop_at:
-            break
-        slots = getattr(cls, '__slots__', None)
-        assert slots is not None, f'Expected {cls!r} to define __slots__'
-        for slot in slots:
-            seen_at = cls_by_slot.get(slot)
-            assert not seen_at, f'{seen_at!r} repeats slot {slot!r} declared first by {cls!r}'
-            cls_by_slot[slot] = cls
+def test_abc_slots():
+    """Bidict ABCs should define __slots__.
+
+    Ref: https://docs.python.org/3/reference/datamodel.html#notes-on-using-slots
+    """
+    assert BidirectionalMapping.__dict__['__slots__'] == ()
+    assert MutableBidirectionalMapping.__dict__['__slots__'] == ()
 
 
 @given(st.BIDICTS)

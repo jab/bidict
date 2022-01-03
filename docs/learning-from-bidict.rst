@@ -7,7 +7,7 @@ thanks to working on :mod:`bidict`.
 
 If you would like to learn more about any of the topics below,
 you may find `reading bidict's code
-<https://github.com/jab/bidict/blob/main/bidict/__init__.py#L10>`__
+<https://github.com/jab/bidict/blob/main/bidict/__init__.py#L9>`__
 particularly interesting.
 
 I've sought to optimize the code not just for correctness and performance,
@@ -207,10 +207,9 @@ Better memory usage through ``__slots__``
 =========================================
 
 Using :ref:`slots` dramatically reduces memory usage in CPython
-and speeds up attribute access to boot.
+and speeds up attribute access
+when creating many instances of the same class.
 Must be careful with pickling and weakrefs though!
-See `BidictBase.__getstate__()
-<https://github.com/jab/bidict/blob/main/bidict/_base.py>`__.
 
 
 Better memory usage through :mod:`weakref`

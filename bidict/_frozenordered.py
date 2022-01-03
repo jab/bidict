@@ -47,7 +47,6 @@ class FrozenOrderedBidict(OrderedBidictBase[KT, VT]):
     FrozenOrderedBidict gives you, but with less space overhead.
     """
 
-    __slots__ = ('_hash',)
     __hash__ = frozenbidict.__hash__
 
     if _t.TYPE_CHECKING:

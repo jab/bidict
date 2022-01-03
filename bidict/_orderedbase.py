@@ -75,15 +75,6 @@ class _Node:
         self.prv = prv
         self.nxt = nxt
 
-    def __getstate__(self) -> _t.Mapping[str, _t.Any]:
-        """Needed to enable pickling due to use of :attr:`__slots__` and weakrefs."""
-        return dict(prv=self.prv, nxt=self.nxt)
-
-    def __setstate__(self, state: _t.Mapping[str, _t.Any]) -> None:
-        """Needed to enable unpickling due to use of :attr:`__slots__` and weakrefs."""
-        self.prv = state['prv']
-        self.nxt = state['nxt']
-
 
 class _SentinelNode(_Node):
     """Special node in a circular doubly-linked list
@@ -118,8 +109,6 @@ class _SentinelNode(_Node):
 
 class OrderedBidictBase(BidictBase[KT, VT]):
     """Base class implementing an ordered :class:`BidirectionalMapping`."""
-
-    __slots__ = ('_sntl',)
 
     _fwdm_cls: _t.Type[MutableBidirectionalMapping[KT, _Node]] = bidict  # type: ignore [assignment]
     _invm_cls: _t.Type[MutableBidirectionalMapping[VT, _Node]] = bidict  # type: ignore [assignment]

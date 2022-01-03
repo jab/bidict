@@ -40,19 +40,17 @@ def namedbidict(
         strings is not a valid Python identifier, or if *keyname == valname*.
 
     :raises TypeError: if *base_type* is not a :class:`BidirectionalMapping` subclass
-        that provides ``_isinv`` and :meth:`~object.__getstate__` attributes.
+        that provides an ``_isinv`` attribute.
         (Any :class:`~bidict.BidictBase` subclass can be passed in, including all the
         concrete bidict types pictured in the :ref:`other-bidict-types:Bidict Types Diagram`.
     """
-    if not issubclass(base_type, BidirectionalMapping) or not all(hasattr(base_type, i) for i in ('_isinv', '__getstate__')):
+    if not issubclass(base_type, BidirectionalMapping) or not hasattr(base_type, '_isinv'):
         raise TypeError(base_type)
     names = (typename, keyname, valname)
     if not all(map(str.isidentifier, names)) or keyname == valname:
         raise ValueError(names)
 
     class _Named(base_type):  # type: ignore [valid-type,misc]
-
-        __slots__ = ()
 
         def _getfwd(self) -> '_Named':
             return self.inverse if self._isinv else self  # type: ignore [no-any-return]
@@ -68,9 +66,6 @@ def namedbidict(
         def _valname(self) -> str:
             return keyname if self._isinv else valname
 
-        def __reduce__(self) -> '_t.Tuple[_t.Callable[[str, str, str, _t.Type[BidirectionalMapping]], BidirectionalMapping], _t.Tuple[str, str, str, _t.Type[BidirectionalMapping]], dict]':
-            return (_make_empty, (typename, keyname, valname, base_type), self.__getstate__())
-
     bname = base_type.__name__
     fname = valname + '_for'
     iname = keyname + '_for'
@@ -83,16 +78,3 @@ def namedbidict(
     _Named.__qualname__ = typename
     _Named.__module__ = _getframe(1).f_globals.get('__name__')  # type: ignore [assignment]
     return _Named
-
-
-def _make_empty(
-    typename: str,
-    keyname: str,
-    valname: str,
-    base_type: _t.Type[BidirectionalMapping] = bidict,
-) -> BidirectionalMapping:
-    """Create a named bidict with the indicated arguments and return an empty instance.
-    Used to make :func:`bidict.namedbidict` instances picklable.
-    """
-    cls = namedbidict(typename, keyname, valname, base_type=base_type)
-    return cls()

@@ -49,8 +49,6 @@ BT = _t.TypeVar('BT', bound='BidictBase')  # typevar for BidictBase.copy
 class BidictBase(BidirectionalMapping[KT, VT]):
     """Base class implementing :class:`BidirectionalMapping`."""
 
-    __slots__ = ('_fwdm', '_invm', '_inv', '_invweak', '__weakref__')
-
     #: The default :class:`~bidict.OnDup`
     #: that governs behavior when a provided item
     #: duplicates the key or value of other item(s).
@@ -144,31 +142,6 @@ class BidictBase(BidirectionalMapping[KT, VT]):
 
     #: Alias for :attr:`inverse`.
     inv = inverse
-
-    def __getstate__(self) -> dict:
-        """Needed to enable pickling due to use of :attr:`__slots__` and weakrefs.
-
-        *See also* :meth:`object.__getstate__`
-        """
-        state = {}
-        for cls in self.__class__.__mro__:
-            slots = getattr(cls, '__slots__', ())
-            for slot in slots:
-                if hasattr(self, slot):
-                    state[slot] = getattr(self, slot)
-        # weakrefs can't be pickled.
-        state.pop('_invweak', None)  # Added back in __setstate__ via _init_inv call.
-        state.pop('__weakref__', None)  # Not added back in __setstate__. Python manages this one.
-        return state
-
-    def __setstate__(self, state: dict) -> None:
-        """Needed to enable unpickling due to use of :attr:`__slots__` and weakrefs.
-
-        *See also* :meth:`object.__setstate__`
-        """
-        for slot, value in state.items():
-            setattr(self, slot, value)
-        self._init_inv()
 
     def __repr__(self) -> str:
         """See :func:`repr`."""
@@ -386,6 +359,11 @@ class BidictBase(BidirectionalMapping[KT, VT]):
     def __getitem__(self, key: KT) -> VT:
         """*x.__getitem__(key)　⟺　x[key]*"""
         return self._fwdm[key]
+
+    def __reduce__(self):
+        """Return state information for pickling (otherwise thwarted by _invweak weakref)."""
+        items = dict(self)
+        return (type(self), (items,))
 
     # On Python 3.8+, dicts are reversible, so even non-Ordered bidicts can provide an efficient
     # __reversed__ implementation. (On Python < 3.8, they cannot.) Once support is dropped for

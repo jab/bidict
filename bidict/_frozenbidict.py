@@ -35,8 +35,6 @@ from ._typing import KT, VT
 class frozenbidict(_DelegatingBidict[KT, VT]):
     """Immutable, hashable bidict type."""
 
-    __slots__ = ('_hash',)
-
     _hash: int
 
     # Work around lack of support for higher-kinded types in mypy.
