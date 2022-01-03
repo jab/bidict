@@ -162,7 +162,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         return state
 
     def __setstate__(self, state: dict) -> None:
-        """Implemented because use of :attr:`__slots__` would prevent unpickling otherwise.
+        """Needed to enable unpickling due to use of :attr:`__slots__` and weakrefs.
 
         *See also* :meth:`object.__setstate__`
         """

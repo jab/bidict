@@ -42,15 +42,18 @@ Status
    .. image:: https://bestpractices.coreinfrastructure.org/projects/2354/badge
       :target: https://bestpractices.coreinfrastructure.org/en/projects/2354
       :alt: CII best practices badge
-   .. image:: https://img.shields.io/badge/tidelift-pro%20support-orange.svg
+   .. image:: https://img.shields.io/badge/tidelift-support-orange.svg
       :target: https://tidelift.com/subscription/pkg/pypi-bidict?utm_source=pypi-bidict&utm_medium=referral&utm_campaign=docs
-      :alt: Paid support available via Tidelift
+      :alt: Support available via Tidelift
    .. image:: https://img.shields.io/pypi/pyversions/bidict.svg
       :target: https://pypi.org/project/bidict
       :alt: Supported Python versions
    .. image:: https://img.shields.io/pypi/implementation/bidict.svg
       :target: https://pypi.org/project/bidict
       :alt: Supported Python implementations
+   .. image:: https://img.shields.io/badge/gitter-chat-5AB999.svg?logo=gitter-white
+      :target: https://gitter.im/jab/bidict
+      :alt: Chat
 
 .. image:: https://img.shields.io/pypi/l/bidict.svg
    :target: https://raw.githubusercontent.com/jab/bidict/main/LICENSE
@@ -107,32 +110,38 @@ head to the :doc:`intro` [#fn-intro]_
 and proceed from there.
 
 
-Voluntary Community Support
----------------------------
-
-.. image:: https://img.shields.io/badge/gitter-chat-5AB999.svg?logo=gitter-white
-   :target: https://gitter.im/jab/bidict
-   :alt: Chat
-
-Please feel free to leave a message in the
-`bidict chatroom <https://gitter.im/jab/bidict>`__
-or open a new issue on GitHub
-for voluntary community support.
-You can search through
-`existing issues <https://github.com/jab/bidict/issues>`__
-before creating a new one
-in case your issue has been addressed already.
-
-
 Enterprise Support
 ------------------
 
-.. image:: https://img.shields.io/badge/tidelift-enterprise%20support-orange.svg
-   :target: https://tidelift.com/subscription/pkg/pypi-bidict?utm_source=pypi-bidict&utm_medium=referral&utm_campaign=readme
-   :alt: Enterprise support via Tidelift
-
 Enterprise-level support for bidict can be obtained via the
-`Tidelift subscription <https://tidelift.com/subscription/pkg/pypi-bidict?utm_source=pypi-bidict&utm_medium=referral&utm_campaign=readme>`__.
+`Tidelift subscription <https://tidelift.com/subscription/pkg/pypi-bidict?utm_source=pypi-bidict&utm_medium=referral&utm_campaign=readme>`__
+or by `contacting me directly <mailto:jabronson@gmail.com>`__.
+
+I have a US-based LLC set up for invoicing,
+and I have 15+ years of professional experience
+delivering software and support to companies successfully.
+
+You can also sponsor my work through platforms like GitHub Sponsors.
+See the `Sponsoring <#sponsoring>`__ section below for details.
+For rationale and examples of companies doing this,
+see `this post
+<https://www.cognitect.com/blog/supporting-open-source-developers>`__
+among others.
+
+
+Voluntary Community Support
+---------------------------
+
+Please search through already-asked questions and answers
+in `GitHub Discussions <https://github.com/jab/bidict/discussions>`__
+and the `issue tracker <https://github.com/jab/bidict/issues?q=is%3Aissue>`__
+in case your question has already been addressed.
+
+Otherwise, please feel free to
+`start a new discussion <https://github.com/jab/bidict/discussions/new>`__
+or `create a new issue <https://github.com/jab/bidict/issues/new>`__ on GitHub,
+or ask in the `bidict chatroom <https://gitter.im/jab/bidict>`__
+for voluntary community support.
 
 
 Notice of Usage
@@ -143,9 +152,9 @@ and especially if your usage or your organization is significant in some way,
 please let me know in any of the following ways:
 
 - `star bidict on GitHub <https://github.com/jab/bidict>`__
-- `create an issue <https://github.com/jab/bidict/issues/new?title=Notice+of+Usage&body=I+am+using+bidict+for...>`__
+- post in `GitHub Discussions <https://github.com/jab/bidict/discussions/new>`__
 - leave a message in the `chat room <https://gitter.im/jab/bidict>`__
-- `email me <mailto:jabronson@gmail.com?subject=bidict&body=I%20am%20using%20bidict%20for...>`__
+- `email me <mailto:jabronson@gmail.com>`__
 
 
 Changelog
@@ -181,8 +190,9 @@ if you're interested in learning more.
 Contributing
 ------------
 
-bidict is currently a one-person operation
-maintained on a voluntary basis.
+I have been bidict's sole maintainer
+and `active contributor <https://github.com/jab/bidict/graphs/contributors>`__
+since I started the project almost 15 years ago.
 
 Your help would be most welcome!
 See the :doc:`contributors-guide` [#fn-contributing]_
@@ -200,23 +210,24 @@ Sponsoring
   :alt: Sponsor through GitHub
 
 Bidict is the product of thousands of hours of my unpaid work
-over the 12+ years I've been maintaining it.
+over the ~15 years that I've been the sole maintainer.
 
-If bidict has helped you accomplish your work,
-especially work you've been paid for,
-it's easy to
-`sponsor me through GitHub <https://github.com/sponsors/jab>`__.
+If bidict has helped you or your company accomplish your work,
+especially work that you or your company were paid for,
+please `sponsor my work through GitHub <https://github.com/sponsors/jab>`__,
+and ask others you know who got value from my work to do the same.
 
 Choose a tier and GitHub handles everything else.
-The sponsorship just goes on your regular GitHub bill;
-there's nothing extra to do.
-You can also sponsor me through
-`Gumroad <https://gumroad.com/l/bidict>`__ or
-`PayPal <https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=jabronson%40gmail%2ecom&lc=US&item_name=Sponsor%20bidict%20(name%20a%20fair%20price)>`__.
+Sponsorship just goes on the same bill that GitHub
+already charges you or your company for automatically,
+so after the one-time signup, there's nothing extra to do.
 
-Read more about
-`companies supporting open source developers
-<https://www.cognitect.com/blog/supporting-open-source-developers>`__.
+You can also sponsor my work through
+`Gumroad <https://gumroad.com/l/bidict>`__ or
+`PayPal <https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=jabronson%40gmail%2ecom&lc=US&item_name=Sponsor%20bidict>`__,
+or through a support engagement with my LLC.
+See `Enterprise Support <#enterprise-support>`__
+above for details.
 
 
 Finding Documentation

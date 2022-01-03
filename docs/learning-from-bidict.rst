@@ -57,14 +57,13 @@ has been one of the most fun parts of working on bidict.
 
 To see how this is done, check out this code:
 
-- `_base.py <https://github.com/jab/bidict/blob/main/bidict/_base.py#L10>`__
-- `_delegating.py <https://github.com/jab/bidict/blob/main/bidict/_delegating.py#L12>`__
-- `_frozenbidict.py <https://github.com/jab/bidict/blob/main/bidict/_frozenbidict.py#L10>`__
-- `_mut.py <https://github.com/jab/bidict/blob/main/bidict/_mut.py#L10>`__
-- `_bidict.py <https://github.com/jab/bidict/blob/main/bidict/_bidict.py#L10>`__
-- `_orderedbase.py <https://github.com/jab/bidict/blob/main/bidict/_orderedbase.py#L10>`__
-- `_frozenordered.py <https://github.com/jab/bidict/blob/main/bidict/_frozenordered.py#L10>`__
-- `_orderedbidict.py <https://github.com/jab/bidict/blob/main/bidict/_orderedbidict.py#L10>`__
+- `_base.py <https://github.com/jab/bidict/blob/main/bidict/_base.py#L9>`__
+- `_frozenbidict.py <https://github.com/jab/bidict/blob/main/bidict/_frozenbidict.py#L9>`__
+- `_mut.py <https://github.com/jab/bidict/blob/main/bidict/_mut.py#L9>`__
+- `_bidict.py <https://github.com/jab/bidict/blob/main/bidict/_bidict.py#L9>`__
+- `_orderedbase.py <https://github.com/jab/bidict/blob/main/bidict/_orderedbase.py#L9>`__
+- `_frozenordered.py <https://github.com/jab/bidict/blob/main/bidict/_frozenordered.py#L9>`__
+- `_orderedbidict.py <https://github.com/jab/bidict/blob/main/bidict/_orderedbidict.py#L9>`__
 
 Data structures are amazing
 ===========================

@@ -37,16 +37,15 @@ from ._bidict import bidict
 from ._typing import KT, VT, OKT, OVT, IterItems, MapOrIterItems
 
 
-class _WeakAttribute:
-
+class _WeakAttr:
     def __set_name__(self, owner: _t.Any, name: str) -> None:
-        self.name = name
+        self.name = f'_{name}_weak'
 
     def __set__(self, instance: _t.Any, value: _t.Any) -> None:
-        setattr(instance, f'_{self.name}_weak', weakref.ref(value))
+        setattr(instance, self.name, weakref.ref(value))
 
     def __get__(self, instance: _t.Any, owner: _t.Any) -> _t.Any:
-        return getattr(instance, f'_{self.name}_weak')()
+        return getattr(instance, self.name)()
 
 
 class _Node:
@@ -66,9 +65,8 @@ class _Node:
     they too are immediately freed.
     """
 
-    prv: '_Node' = _WeakAttribute()  # type: ignore[assignment]
-    nxt: '_Node' = _WeakAttribute()  # type: ignore[assignment]
-
+    prv: '_Node' = _WeakAttr()  # type: ignore[assignment]
+    nxt: '_Node' = _WeakAttr()  # type: ignore[assignment]
     __slots__ = ('_prv_weak', '_nxt_weak', '__weakref__',)
     if _t.TYPE_CHECKING:  # trick mypy, which gets confused without this:
         __slots__ = ('nxt', 'prv', '__weakref__')  # pylint: disable=class-variable-slots-conflict
@@ -77,17 +75,12 @@ class _Node:
         self.prv = prv
         self.nxt = nxt
 
-    def __getstate__(self) -> 'dict[str, _Node]':
-        """Return the instance state dictionary
-        but with weakrefs converted to strong refs
-        so that instances can be pickled.
-
-        *See also* :meth:`object.__getstate__`
-        """
+    def __getstate__(self) -> _t.Mapping[str, _t.Any]:
+        """Needed to enable pickling due to use of :attr:`__slots__` and weakrefs."""
         return dict(prv=self.prv, nxt=self.nxt)
 
-    def __setstate__(self, state: 'dict[str, _Node]') -> None:
-        """Set the instance state from *state*."""
+    def __setstate__(self, state: _t.Mapping[str, _t.Any]) -> None:
+        """Needed to enable unpickling due to use of :attr:`__slots__` and weakrefs."""
         self.prv = state['prv']
         self.nxt = state['nxt']
 
@@ -285,13 +278,13 @@ class OrderedBidictBase(BidictBase[KT, VT]):
         return self._iter()
 
     def _iter(self, *, reverse: bool = False) -> _t.Iterator[KT]:
-        fwdm_inv = self._fwdm.inverse
+        key_by_node = self._fwdm.inverse
         for node in self._sntl._iter(reverse=reverse):
-            yield fwdm_inv[node]
+            yield key_by_node[node]
 
     def __reversed__(self) -> _t.Iterator[KT]:
         """Iterator over the contained keys in reverse insertion order."""
-        yield from self._iter(reverse=True)
+        return self._iter(reverse=True)
 
 
 #                             * Code review nav *

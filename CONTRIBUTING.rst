@@ -19,10 +19,11 @@ Getting Started
 - `Create a GitHub account <https://github.com/join>`__ if you don't have one
   already.
 
-- Search through the `issue tracker <https://github.com/jab/bidict/issues>`__
+- Search through the `tracker <https://github.com/jab/bidict/issues?q=>`__
   to see if an issue or pull request has already been created for what you're interested in.
   If so, feel free to add comments to it or just hit the "subscribe" button to follow progress.
   If not, you can `join the chat room <https://gitter.im/jab/bidict>`__ to discuss there,
+  post in the `GitHub Discussions forum <https://github.com/jab/bidict/discussions>`__,
   or go ahead and `create a new issue <https://github.com/jab/bidict/issues/new>`__:
 
   - Clearly describe the issue giving as much relevant context as possible.
@@ -39,9 +40,15 @@ Getting Started
 Making Changes
 --------------
 
+.. note:: You can now use
+   `GitPod.io <https://gitpod.io/#https://github.com/jab/bidict>`__
+   to get an already-configured development environment inside your browser
+   in which you can make, test, and submit your changes to bidict.
+
 - Before making changes, please
   (create a `virtualenv <http://virtualenv.pypa.io>`__ and)
-  install the extra packages required for development:
+  install the extra packages required for development
+  if you haven't already:
   ``pip install -r requirements/dev.txt``
 
   We use `EditorConfig <https://editorconfig.org/>`__
@@ -109,7 +116,6 @@ Submitting Changes
 
 - All communication should be supportive and appreciative of good faith efforts to contribute,
   creating a welcoming and inclusive community.
-  Expect nothing less of any project.
 
 
 Sponsoring
@@ -124,30 +130,32 @@ Sponsoring
   :alt: Sponsor through Gumroad
 
 .. image:: https://img.shields.io/badge/PayPal-sponsor-blue.svg
-  :target: https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=jabronson%40gmail%2ecom&lc=US&item_name=Sponsor%20bidict%20(name%20a%20fair%20price)
+  :target: https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=jabronson%40gmail%2ecom&lc=US&item_name=Sponsor%20bidict
   :alt: Sponsor through PayPal
 
 .. duplicated in README.rst
    (would use `.. include::` but GitHub doesn't understand it)
 
 Bidict is the product of thousands of hours of my unpaid work
-over the 12+ years I've been maintaining it.
+over the ~15 years that I've been the sole maintainer.
 
-If bidict has helped you accomplish your work,
-especially work you've been paid for,
-it's easy to
-`sponsor me through GitHub <https://github.com/sponsors/jab>`__.
+If bidict has helped you or your company accomplish your work,
+especially work that you or your company were paid for,
+please `sponsor my work through GitHub <https://github.com/sponsors/jab>`__,
+and ask others you know who got value from my work to do the same.
 
 Choose a tier and GitHub handles everything else.
-The sponsorship just goes on your regular GitHub bill;
-there's nothing extra to do.
-You can also sponsor me through
-`Gumroad <https://gumroad.com/l/bidict>`__ or
-`PayPal <https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=jabronson%40gmail%2ecom&lc=US&item_name=Sponsor%20bidict%20(name%20a%20fair%20price)>`__.
+Sponsorship just goes on the same bill that GitHub
+already charges you or your company for automatically,
+so after the one-time signup, there's nothing extra to do.
 
-Read more about
-`companies supporting open source developers
-<https://www.cognitect.com/blog/supporting-open-source-developers>`__.
+You can also sponsor my work through
+`Gumroad <https://gumroad.com/l/bidict>`__ or
+`PayPal <https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=jabronson%40gmail%2ecom&lc=US&item_name=Sponsor%20bidict>`__,
+or through a support engagement with my LLC.
+See `Enterprise Support
+<https://bidict.readthedocs.io/#enterprise-support>`__
+for details.
 
 
 Code of Conduct
@@ -158,5 +166,4 @@ All participation in this project should respect the
 
 By participating, you are expected to honor this code.
 
-.. [#fn-let-me-know] `<https://bidict.readthedocs.io/#notice-of-usage>`__
 .. [#fn-coc] `<CODE_OF_CONDUCT.rst>`_ | `<https://bidict.readthedocs.io/code-of-conduct.html>`__
