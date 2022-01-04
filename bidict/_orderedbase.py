@@ -75,6 +75,10 @@ class _Node:
         self.prv = prv
         self.nxt = nxt
 
+    def unlink(self):
+        self.prv.nxt = self.nxt
+        self.nxt.prv = self.prv
+
 
 class _SentinelNode(_Node):
     """Special node in a circular doubly-linked list
@@ -87,9 +91,6 @@ class _SentinelNode(_Node):
 
     def __init__(self) -> None:
         super().__init__(self, self)
-
-    def __repr__(self) -> str:
-        return '<SNTL>'
 
     def __bool__(self) -> bool:
         return False
@@ -105,6 +106,13 @@ class _SentinelNode(_Node):
         while node:
             yield node
             node = getattr(node, attr)
+
+    def push(self) -> _Node:
+        """Create and return a new terminal node."""
+        old_last = self.prv
+        new_last = _Node(old_last, self)
+        old_last.nxt = self.prv = new_last
+        return new_last
 
 
 class OrderedBidictBase(BidictBase[KT, VT]):
@@ -161,13 +169,8 @@ class OrderedBidictBase(BidictBase[KT, VT]):
         sntl = _SentinelNode()
         fwdm = copy(self._fwdm)
         invm = copy(self._invm)
-        cur: _Node = sntl
-        nxt = sntl.nxt
         for (key, val) in self.items():
-            nxt = _Node(cur, sntl)
-            cur.nxt = fwdm[key] = invm[val] = nxt
-            cur = nxt
-        sntl.prv = nxt
+            fwdm[key] = invm[val] = sntl.push()
         cp._sntl = sntl  # type: ignore [attr-defined]
         cp._fwdm = fwdm
         cp._invm = invm
@@ -184,8 +187,7 @@ class OrderedBidictBase(BidictBase[KT, VT]):
     def _pop(self, key: KT) -> VT:
         nodefwd = self._fwdm.pop(key)
         val = self._invm.inverse.pop(nodefwd)
-        nodefwd.prv.nxt = nodefwd.nxt
-        nodefwd.nxt.prv = nodefwd.prv
+        nodefwd.unlink()
         return val
 
     @staticmethod
@@ -200,10 +202,7 @@ class OrderedBidictBase(BidictBase[KT, VT]):
         isdupkey, isdupval, nodeinv, nodefwd = dedup_result
         if not isdupkey and not isdupval:
             # No key or value duplication -> create and append a new node.
-            sntl = self._sntl
-            last = sntl.prv
-            node = _Node(last, sntl)
-            last.nxt = sntl.prv = fwdm[key] = invm[val] = node
+            fwdm[key] = invm[val] = self._sntl.push()
             oldkey: OKT = _NONE
             oldval: OVT = _NONE
         elif isdupkey and isdupval:
@@ -215,10 +214,9 @@ class OrderedBidictBase(BidictBase[KT, VT]):
             assert oldval != val
             # We have to collapse nodefwd and nodeinv into a single node, i.e. drop one of them.
             # Drop nodeinv, so that the item with the same key is the one overwritten in place.
-            nodeinv.prv.nxt = nodeinv.nxt
-            nodeinv.nxt.prv = nodeinv.prv
+            nodeinv.unlink()
             # Don't remove nodeinv's references to its neighbors since
-            # if the update fails, we'll need them to undo this write.
+            # if the update fails, we need them to undo this write (see _undo_write below).
             # Update fwdm and invm.
             tmp = fwdm.pop(oldkey)
             assert tmp is nodeinv
