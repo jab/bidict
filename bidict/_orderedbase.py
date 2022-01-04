@@ -38,22 +38,23 @@ from ._typing import KT, VT, OKT, OVT, IterItems, MapOrIterItems
 
 
 class _WeakAttr:
-    def __set_name__(self, owner: _t.Any, name: str) -> None:
-        self.name = f'_{name}_weak'
+    def __init__(self, *, slot: str) -> None:
+        self.slot = slot
 
     def __set__(self, instance: _t.Any, value: _t.Any) -> None:
-        setattr(instance, self.name, weakref.ref(value))
+        setattr(instance, self.slot, weakref.ref(value))
 
     def __get__(self, instance: _t.Any, owner: _t.Any) -> _t.Any:
-        return getattr(instance, self.name)()
+        return getattr(instance, self.slot)()
 
 
 class _Node:
     """A node in a circular doubly-linked list
     used to encode the order of items in an ordered bidict.
 
-    Only weak references to the next and previous nodes
-    are held to avoid creating strong reference cycles.
+    A weak reference to the previous node is stored
+    to avoid creating strong reference cycles.
+    Managing the weak reference is handled automatically by _WeakAttr.
 
     Because an ordered bidict retains two strong references
     to each node instance (one from its backing `_fwdm` mapping
@@ -65,11 +66,11 @@ class _Node:
     they too are immediately freed.
     """
 
-    prv: '_Node' = _WeakAttr()  # type: ignore[assignment]
-    nxt: '_Node' = _WeakAttr()  # type: ignore[assignment]
-    __slots__ = ('_prv_weak', '_nxt_weak', '__weakref__',)
-    if _t.TYPE_CHECKING:  # trick mypy, which gets confused without this:
-        __slots__ = ('nxt', 'prv', '__weakref__')  # pylint: disable=class-variable-slots-conflict
+    prv: '_Node' = _WeakAttr(slot='_prv_weak')  # type: ignore[assignment]
+    __slots__ = ('_prv_weak', 'nxt', '__weakref__',)
+    # mypy doesn't understand that we have a 'prv' attr unless we trick it:
+    if _t.TYPE_CHECKING:
+        __slots__ = ('prv', 'nxt', '__weakref__')  # pylint: disable=class-variable-slots-conflict
 
     def __init__(self, prv: '_Node', nxt: '_Node') -> None:
         self.prv = prv
@@ -85,9 +86,14 @@ class _SentinelNode(_Node):
     that links the first node with the last node.
     When its next and previous references point back to itself
     it represents an empty list.
+
+    To avoid creating a strong reference cycle,
+    use weak references to both the next and previous nodes.
+    Managing weak references is handled automatically by _WeakAttr.
     """
 
-    __slots__ = ()
+    nxt: '_Node' = _WeakAttr(slot='_nxt_weak')  # type: ignore[assignment]
+    __slots__ = ('_nxt_weak',)
 
     def __init__(self) -> None:
         super().__init__(self, self)
@@ -107,7 +113,7 @@ class _SentinelNode(_Node):
             yield node
             node = getattr(node, attr)
 
-    def push(self) -> _Node:
+    def new_last_node(self) -> _Node:
         """Create and return a new terminal node."""
         old_last = self.prv
         new_last = _Node(old_last, self)
@@ -169,8 +175,9 @@ class OrderedBidictBase(BidictBase[KT, VT]):
         sntl = _SentinelNode()
         fwdm = copy(self._fwdm)
         invm = copy(self._invm)
+        make_node = sntl.new_last_node
         for (key, val) in self.items():
-            fwdm[key] = invm[val] = sntl.push()
+            fwdm[key] = invm[val] = make_node()
         cp._sntl = sntl  # type: ignore [attr-defined]
         cp._fwdm = fwdm
         cp._invm = invm
@@ -201,8 +208,8 @@ class OrderedBidictBase(BidictBase[KT, VT]):
         invm = self._invm  # bidict mapping vals to nodes
         isdupkey, isdupval, nodeinv, nodefwd = dedup_result
         if not isdupkey and not isdupval:
-            # No key or value duplication -> create and append a new node.
-            fwdm[key] = invm[val] = self._sntl.push()
+            # No key or value duplication -> create a new terminal node.
+            fwdm[key] = invm[val] = self._sntl.new_last_node()
             oldkey: OKT = _NONE
             oldval: OVT = _NONE
         elif isdupkey and isdupval:
