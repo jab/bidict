@@ -24,12 +24,24 @@ Development
 
 - Drop support for Python 3.6, which reached end of life on 2021-12-23.
 
+- Optimize :meth:`~bidict.BidictBase.__contains__`
+  (the method called when you run ``key in my_bidict``).
+  In a loose benchmark, it now performs approximately 75% faster in the True case
+  and 340% faster in the False case.
+
 - Remove the use of slots from (non-ABC) bidict types.
 
   This better matches the mapping implementations in Python's standard library,
   and significantly reduces code complexity and maintenance burden.
   The memory savings conferred by using slots are not noticeable
-  unless you're creating millions of bidict instances anyway.
+  unless you're creating millions of bidict instances anyway,
+  which is an extremely unusual usage pattern.
+
+  Of course, bidicts can still contain millions (or more) items
+  (which is not an unusual usage pattern)
+  without using any more memory than before these changes.
+  Notably, slots are still used in the internal linked list nodes of ordered bidicts
+  to save memory, since as many node instances are created as there are items inserted.
 
 
 0.21.4 (2021-10-23)

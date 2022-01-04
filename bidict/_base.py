@@ -62,25 +62,31 @@ class BidictBase(BidirectionalMapping[KT, VT]):
     #: The object used by :meth:`__repr__` for printing the contained items.
     _repr_delegate: _t.Callable = dict
 
-    _inv: '_t.Optional[BidictBase[VT, KT]]'
-    _invweak: '_t.Optional[weakref.ReferenceType[BidictBase[VT, KT]]]'
+    #: The class of the inverse bidict instance.
     _inv_cls: '_t.Type[BidictBase[VT, KT]]'
+    #: The inverse bidict instance. If None, then ``_invweak`` is not None.
+    _inv: '_t.Optional[BidictBase[VT, KT]]'
+    #: A weak reference to the inverse bidict instance. If None, then ``_inv`` is not None.
+    _invweak: '_t.Optional[weakref.ReferenceType[BidictBase[VT, KT]]]'
 
     def __init_subclass__(cls, **kw):
         super().__init_subclass__(**kw)
         # Compute and set _inv_cls, the inverse of this bidict class.
-        if '_inv_cls' in cls.__dict__:
+        # See https://bidict.readthedocs.io/extending.html#dynamic-inverse-class-generation
+        # for an explanation of this along with a motivating example.
+        if '_inv_cls' in cls.__dict__:  # Already computed and cached (see below).
             return
-        if cls._fwdm_cls is cls._invm_cls:
+        if cls._fwdm_cls is cls._invm_cls:  # The bidict class is its own inverse.
             cls._inv_cls = cls
             return
+        # Compute the inverse class, e.g. with _fwdm_cls and _invm_cls swapped.
         inv_cls = type(cls.__name__ + 'Inv', cls.__bases__, {
             **cls.__dict__,
             '_inv_cls': cls,
             '_fwdm_cls': cls._invm_cls,
             '_invm_cls': cls._fwdm_cls,
         })
-        cls._inv_cls = inv_cls
+        cls._inv_cls = inv_cls  # Cache for the future.
 
     @_t.overload
     def __init__(self, __arg: _t.Mapping[KT, VT], **kw: VT) -> None: ...
@@ -150,8 +156,15 @@ class BidictBase(BidirectionalMapping[KT, VT]):
             return f'{clsname}()'
         return f'{clsname}({self._repr_delegate(self.items())})'
 
-    # The inherited Mapping.__eq__ implementation would work, but it's implemented in terms of an
-    # inefficient ``dict(self.items()) == dict(other.items())`` comparison, so override it with a
+    # The inherited Mapping.__contains__ method is implemented by doing a ``try``
+    # ``except KeyError`` around ``self[key]``. The following implementation is much faster,
+    # especially in the missing case.
+    def __contains__(self, key: _t.Any) -> bool:
+        """True if the mapping contains the specified key, else False."""
+        return key in self._fwdm
+
+    # The inherited Mapping.__eq__ method is implemented in terms of an inefficient
+    # ``dict(self.items()) == dict(other.items())`` comparison, so override it with a
     # more efficient implementation.
     def __eq__(self, other: object) -> bool:
         """*x.__eq__(other)　⟺　x == other*

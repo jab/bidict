@@ -27,6 +27,8 @@
 
 """The bidirectional mapping library for Python.
 
+----
+
 bidict by example:
 
 .. code-block:: python
@@ -43,6 +45,7 @@ Please see https://github.com/jab/bidict for the most up-to-date code and
 https://bidict.readthedocs.io for the most up-to-date documentation
 if you are reading this elsewhere.
 
+----
 
 .. :copyright: (c) 2009-2022 Joshua Bronson.
 .. :license: MPLv2. See LICENSE for details.

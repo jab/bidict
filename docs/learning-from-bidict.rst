@@ -206,8 +206,8 @@ Python surprises, gotchas, regrets
 Better memory usage through ``__slots__``
 =========================================
 
-Using :ref:`slots` dramatically reduces memory usage in CPython
-and speeds up attribute access
+Using :ref:`slots` speeds up attribute access
+and can dramatically reduce memory usage in CPython
 when creating many instances of the same class.
 Must be careful with pickling and weakrefs though!
 
