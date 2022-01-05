@@ -25,7 +25,7 @@ FROZEN_BIDICT_TYPES = st.sampled_from(t.FROZEN_BIDICT_TYPES)
 ORDERED_BIDICT_TYPES = st.sampled_from(t.ORDERED_BIDICT_TYPES)
 REVERSIBLE_BIDICT_TYPES = st.sampled_from(t.REVERSIBLE_BIDICT_TYPES)
 MAPPING_TYPES = st.sampled_from(t.MAPPING_TYPES)
-NON_BIDICT_MAPPING_TYPES = st.sampled_from(t.NON_BIDICT_MAPPING_TYPES)
+NON_BI_MAPPING_TYPES = st.sampled_from(t.NON_BI_MAPPING_TYPES)
 ORDERED_MAPPING_TYPES = st.sampled_from(t.ORDERED_MAPPING_TYPES)
 HASHABLE_MAPPING_TYPES = st.sampled_from(t.HASHABLE_MAPPING_TYPES)
 ON_DUP_ACTIONS = st.sampled_from((DROP_NEW, DROP_OLD, RAISE))
@@ -72,6 +72,8 @@ FROZEN_BIDICTS = _bidict_strat(FROZEN_BIDICT_TYPES)
 MUTABLE_BIDICTS = _bidict_strat(MUTABLE_BIDICT_TYPES)
 ORDERED_BIDICTS = _bidict_strat(ORDERED_BIDICT_TYPES)
 
+NON_BI_MAPPINGS = st.tuples(NON_BI_MAPPING_TYPES, L_PAIRS).map(lambda i: i[0](i[1]))
+
 
 _ALPHABET = tuple(chr(i) for i in range(0x10ffff) if chr(i).isidentifier())
 _NAMEDBI_VALID_NAMES = st.text(_ALPHABET, min_size=1)
@@ -85,9 +87,9 @@ NAMEDBIDICT_TYPES = st.tuples(NAMEDBIDICT_NAMES_ALL_VALID, BIDICT_TYPES).map(
 NAMEDBIDICTS = _bidict_strat(NAMEDBIDICT_TYPES)
 
 
-def _bi_and_map(bi_types, builtin_map_types=MAPPING_TYPES, init_items=L_PAIRS_NODUP):
-    """Given bidict types and builtin mapping types, return a pair of each type created from init_items."""
-    return st.tuples(bi_types, builtin_map_types, init_items).map(
+def _bi_and_map(bi_types, map_types=MAPPING_TYPES, init_items=L_PAIRS_NODUP):
+    """Given bidict types and mapping types, return a pair of each type created from init_items."""
+    return st.tuples(bi_types, map_types, init_items).map(
         lambda i: (i[0](i[2]), i[1](i[2]))
     )
 

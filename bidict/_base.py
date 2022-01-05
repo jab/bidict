@@ -361,6 +361,22 @@ class BidictBase(BidirectionalMapping[KT, VT]):
     #: *See also* the :mod:`copy` module
     __copy__ = copy
 
+    def __or__(self, other: _t.Mapping[KT, VT]) -> 'BidictBase[KT, VT]':
+        """Return self|other."""
+        if not isinstance(other, _t.Mapping):
+            return NotImplemented
+        new = self.copy()
+        new._update(False, self.on_dup, other)
+        return new
+
+    def __ror__(self, other: _t.Mapping[KT, VT]) -> 'BidictBase[KT, VT]':
+        """Return other|self."""
+        if not isinstance(other, _t.Mapping):
+            return NotImplemented
+        new = self.__class__(other)
+        new._update(False, self.on_dup, self)
+        return new
+
     def __len__(self) -> int:
         """The number of contained items."""
         return len(self._fwdm)

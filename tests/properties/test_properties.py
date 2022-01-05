@@ -26,7 +26,7 @@ from bidict import (
     BidirectionalMapping, MutableBidirectionalMapping,
     OrderedBidictBase, OrderedBidict, bidict, namedbidict,
     inverted,
-    KeyDuplicationError, ValueDuplicationError, KeyAndValueDuplicationError,
+    DuplicationError, KeyDuplicationError, ValueDuplicationError, KeyAndValueDuplicationError,
 )
 from bidict._iter import _iteritems_args_kw
 
@@ -118,6 +118,33 @@ def test_unequal_order_sensitive_non_mapping(ob, not_a_mapping):
     assert not ob.inv.equals_order_sensitive(not_a_mapping)
 
 
+@given(st.BIDICTS, st.NON_BI_MAPPINGS)
+def test_merge_operators(bi, mapping):
+    """PEP 584-style dict merge operators should work as expected."""
+    try:
+        merged = bi | mapping
+    except DuplicationError as exc:
+        with pytest.raises(exc.__class__):
+            bidict(bi).update(mapping)
+        with pytest.raises(exc.__class__):
+            bi |= mapping
+    else:
+        assert merged == bidict({**bi, **mapping})
+        cp = bidict(bi)
+        cp |= mapping
+        assert merged == cp
+
+    try:
+        merged = mapping | bi
+    except DuplicationError as exc:
+        with pytest.raises(exc.__class__):
+            bidict(mapping).update(bi)
+    else:
+        assert merged == bidict({**mapping, **bi})
+        mapping |= bi
+        assert merged == mapping
+
+
 @given(st.MUTABLE_BIDICTS, st.DIFF_ATOMS, st.RANDOMS)
 def test_setitem_with_dup_val_raises(bi, new_key, rand):
     """Setting an item whose value duplicates that of an existing item should raise ValueDuplicationError."""
@@ -196,7 +223,7 @@ def test_consistency_after_method_call(bi_and_cmp_dict, args_by_method):
                     coll = list if isinstance(bi, OrderedBidictBase) else set
                     result = coll(result)
                     cmp_result = coll(cmp_result)
-                assert result == cmp_result, f'methodname={methodname}, args={args!r}'
+                assert result == cmp_result, f'methodname={methodname} args={args!r}'
         # Whether the call failed or succeeded, bi should pass consistency checks.
         assert len(bi) == sum(1 for _ in bi.items())
         assert len(bi.inv) == sum(1 for _ in bi.inv.items())
@@ -275,7 +302,7 @@ def test_namedbidict_raises_on_same_keyname_as_valname(names):
         namedbidict(typename, keyname, keyname)
 
 
-@given(st.NAMEDBIDICT_NAMES_ALL_VALID, st.NON_BIDICT_MAPPING_TYPES)
+@given(st.NAMEDBIDICT_NAMES_ALL_VALID, st.NON_BI_MAPPING_TYPES)
 def test_namedbidict_raises_on_invalid_base_type(names, invalid_base_type):
     """:func:`bidict.namedbidict` should raise if given a non-bidict base_type."""
     with pytest.raises(TypeError):

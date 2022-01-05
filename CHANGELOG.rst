@@ -26,8 +26,15 @@ Development
 
 - Optimize :meth:`~bidict.BidictBase.__contains__`
   (the method called when you run ``key in my_bidict``).
+
   In a loose benchmark, it now performs approximately 75% faster in the True case
   and 340% faster in the False case.
+
+- Add support for
+  `PEP 584 <https://www.python.org/dev/peps/pep-0584/>`__-style
+  dict merge operators (introduced in Python 3.9).
+  See `the tests <https://github.com/jab/bidict/blob/main/tests/>`__
+  for examples.
 
 - Remove the use of slots from (non-ABC) bidict types.
 

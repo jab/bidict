@@ -7,7 +7,7 @@
 """Types for Hypothoses tests."""
 
 from collections import OrderedDict
-from collections.abc import KeysView, ItemsView, Mapping, Reversible
+from collections.abc import ItemsView, Mapping, Reversible
 
 from bidict import FrozenOrderedBidict, OrderedBidict, bidict, frozenbidict, namedbidict
 
@@ -24,10 +24,16 @@ BIDICT_TYPES = tuple(set(MUTABLE_BIDICT_TYPES + FROZEN_BIDICT_TYPES + ORDERED_BI
 REVERSIBLE_BIDICT_TYPES = BIDICT_TYPES if issubclass(bidict, Reversible) else ORDERED_BIDICT_TYPES  # Py<3.8
 
 
-class _FrozenDict(KeysView, Mapping):
+class _FrozenMap(Mapping):
 
     def __init__(self, *args, **kw):
         self._mapping = dict(*args, **kw)
+
+    def __iter__(self):
+        return iter(self._mapping)
+
+    def __len__(self):
+        return len(self._mapping)
 
     def __getitem__(self, key):
         return self._mapping[key]
@@ -36,7 +42,7 @@ class _FrozenDict(KeysView, Mapping):
         return ItemsView(self._mapping)._hash()
 
 
-NON_BIDICT_MAPPING_TYPES = (dict, OrderedDict, _FrozenDict)
-MAPPING_TYPES = BIDICT_TYPES + NON_BIDICT_MAPPING_TYPES
+NON_BI_MAPPING_TYPES = (dict, OrderedDict, _FrozenMap)
+MAPPING_TYPES = BIDICT_TYPES + NON_BI_MAPPING_TYPES
 ORDERED_MAPPING_TYPES = ORDERED_BIDICT_TYPES + (OrderedDict,)
-HASHABLE_MAPPING_TYPES = FROZEN_BIDICT_TYPES + (_FrozenDict,)
+HASHABLE_MAPPING_TYPES = FROZEN_BIDICT_TYPES + (_FrozenMap,)

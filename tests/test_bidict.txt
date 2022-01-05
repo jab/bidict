@@ -239,3 +239,65 @@ Make sure copy.copy and copy.deepcopy create shallow and deep copies, respective
     True
     >>> b[1] is d[1]
     False
+
+Bidicts support PEP 584-style dict merge operators:
+
+    >>> b = bidict({'one': 1})
+    >>> b | {}
+    bidict({'one': 1})
+    >>> b | {'one': 1}
+    bidict({'one': 1})
+    >>> b | {'two': 2}
+    bidict({'one': 1, 'two': 2})
+    >>> b | {'two': 2} | {'three': 3}
+    bidict({'one': 1, 'two': 2, 'three': 3})
+
+    >>> b | {'one': 111}  # duplicate key -> succeeds, last one wins (as with dict.__or__)
+    bidict({'one': 111})
+    >>> {'one': 111} | b  # ditto
+    bidict({'one': 1})
+
+    >>> b | {'uno': 1}  # duplicate value -> ValueDuplicationError
+    Traceback (most recent call last):
+        ...
+    ValueDuplicationError: 1
+
+    >>> {'uno': 1} | b  # ditto
+    Traceback (most recent call last):
+        ...
+    ValueDuplicationError: 1
+
+    >>> b = bidict({'one': 1, 'two': 2})
+    >>> b | {'one': 2}
+    Traceback (most recent call last):
+        ...
+    KeyAndValueDuplicationError: (one, 2)
+
+    >>> b |= {'three': 3}  # in-place merge
+    >>> b
+    bidict({'one': 1, 'two': 2, 'three': 3})
+
+    >>> b |= {'one': 111}  # in-place merge, duplicate key -> succeeds, last one wins
+    >>> b
+    bidict({'one': 111, 'two': 2, 'three': 3})
+
+    >>> b |= {'dos': 2}  # duplicate value -> ValueDuplicationError
+    Traceback (most recent call last):
+        ...
+    ValueDuplicationError: 2
+
+    >>> b
+    bidict({'one': 111, 'two': 2, 'three': 3})
+    >>> b |= {'one': 3}
+    Traceback (most recent call last):
+        ...
+    KeyAndValueDuplicationError: (one, 3)
+
+    >>> b | 1
+    Traceback (most recent call last):
+        ...
+    TypeError: unsupported operand type(s) for |: 'int' and 'bidict'
+    >>> 1 | b
+    Traceback (most recent call last):
+        ...
+    TypeError: unsupported operand type(s) for |: 'bidict' and 'int'

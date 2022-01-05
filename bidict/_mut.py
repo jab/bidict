@@ -165,6 +165,11 @@ class MutableBidict(BidictBase[KT, VT], MutableBidirectionalMapping[KT, VT]):
         """Like a bulk :meth:`forceput`."""
         self._update(False, ON_DUP_DROP_OLD, *args, **kw)
 
+    def __ior__(self, other: _t.Mapping[KT, VT]) -> 'MutableBidict[KT, VT]':
+        """Return self|=other."""
+        self.update(other)
+        return self
+
     @_t.overload
     def putall(self, items: _t.Mapping[KT, VT], on_dup: OnDup) -> None: ...
     @_t.overload
