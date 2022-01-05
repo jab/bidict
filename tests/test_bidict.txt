@@ -7,11 +7,9 @@
 Test script for bidict.bidict::
 
     >>> from bidict import bidict
-    >>> keys = (1, 2, 3)
-    >>> vals = ('one', 'two', 'three')
-    >>> bi = bidict(zip(keys, vals))
-    >>> bi == bidict({1: 'one', 2: 'two', 3: 'three'})
-    True
+    >>> bi = bidict({1: 'one', 2: 'two', 3: 'three'})
+    >>> bi
+    bidict({1: 'one', 2: 'two', 3: 'three'})
 
 Works like dict for getting and changing forward mappings::
 
@@ -27,6 +25,9 @@ Works like dict for getting and changing forward mappings::
     >>> del bi[2]
     >>> bi.pop(3)
     'three'
+    >>> bi.update({4: 'four'})
+    >>> bi.popitem()
+    (4, 'four')
     >>> bi
     bidict({1: 'one'})
 
@@ -48,26 +49,26 @@ don't already exist::
     >>> bi
     bidict({1: 'aught'})
 
-bidicts maintain references to their inverses via the ``inv`` property,
+bidicts maintain references to their inverses via the ``inverse`` property,
 which can also be used to access or modify them::
 
-    >>> bi.inv
+    >>> bi.inverse
     bidict({'aught': 1})
-    >>> bi.inv['aught']
+    >>> bi.inverse['aught']
     1
-    >>> bi.inv['aught'] = 'one'
+    >>> bi.inverse['aught'] = 'one'
     >>> bi
     bidict({'one': 'aught'})
-    >>> bi.inv.pop('aught')
+    >>> bi.inverse.pop('aught')
     'one'
-    >>> bi == bi.inv == bidict()
+    >>> bi == bi.inverse == bidict()
     True
-    >>> bi.inv.update(one=1)
+    >>> bi.inverse.update(one=1)
     >>> bi
     bidict({1: 'one'})
-    >>> bi is bi.inv.inv
+    >>> bi is bi.inverse.inverse
     True
-    >>> bi.inv is bi.inv.inv.inv
+    >>> bi.inverse is bi.inverse.inverse.inverse
     True
 
 bidicts work with ``inverted`` as expected::
@@ -79,16 +80,16 @@ bidicts work with ``inverted`` as expected::
 
 This created a new object (equivalent but not identical)::
 
-    >>> biinv == bi.inv
+    >>> biinv == bi.inverse
     True
-    >>> biinv is bi.inv
+    >>> biinv is bi.inverse
     False
 
 Inverting the inverse should round-trip::
 
     >>> bi == bidict(inverted(inverted(bi)))
     True
-    >>> bi = bi.inv
+    >>> bi = bi.inverse
     >>> bi == bidict(inverted(inverted(bi)))
     True
 
@@ -113,7 +114,7 @@ The rest of the ``MutableMapping`` interface is supported::
     1
     >>> bi
     bidict({'two': 2})
-    >>> bi.inv
+    >>> bi.inverse
     bidict({2: 'two'})
     >>> bi.pop('wrong', 'number', 'of', 'args')
     Traceback (most recent call last):
@@ -125,7 +126,7 @@ The rest of the ``MutableMapping`` interface is supported::
     Traceback (most recent call last):
         ...
     KeyError: 'popitem(): bidict is empty'
-    >>> bi.inv.setdefault(3, 'three')
+    >>> bi.inverse.setdefault(3, 'three')
     'three'
     >>> bi
     bidict({'three': 3})
@@ -193,8 +194,8 @@ Trying to insert an existing mapping does not raise, and is a no-op::
     >>> b[1] = 'one'
     >>> b[1]
     'one'
-    >>> b.inv['one'] = 1
-    >>> b.inv['one']
+    >>> b.inverse['one'] = 1
+    >>> b.inverse['one']
     1
 
 The following case does not half-succeed,
@@ -205,7 +206,7 @@ i.e. the bidict is not in an inconsistent state after::
     Traceback (most recent call last):
         ...
     KeyAndValueDuplicationError: ('one', 2)
-    >>> len(b) == len(b.inv)
+    >>> len(b) == len(b.inverse)
     True
 
 ``put`` and ``putall`` allow you to have
