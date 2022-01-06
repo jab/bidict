@@ -32,11 +32,7 @@ jobs:
           python-version: ${{ matrix.python }}
           cache: pip
           cache-dependency-path: ${{ matrix.reqs || 'requirements/tests.txt' }}
-      - name: update wheel, setuptools, and pip
-        run: |
-          pip install -U wheel
-          pip install -U setuptools
-          python -m pip install -U pip
+      - run: pip install -U pip setuptools wheel
       - name: cache .hypothesis dir
         uses: actions/cache@v2
         with:
