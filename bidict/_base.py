@@ -156,14 +156,57 @@ class BidictBase(BidirectionalMapping[KT, VT]):
             return f'{clsname}()'
         return f'{clsname}({self._repr_delegate(self.items())})'
 
-    # The inherited Mapping.__contains__ method is implemented by doing a ``try``
+    # The inherited collections.abc.Mapping.keys() method returns a collections.abc.KeysView,
+    # which is currently implemented in pure Python rather than optimized C, so override:
+    def keys(self) -> _t.KeysView[KT]:
+        """A set-like object providing a view on the contained keys.
+
+        Returns a dict_keys object that behaves exactly the same as collections.abc.KeysView(b),
+        except for being much faster when running on CPython, being reversible,
+        and having a .mapping attribute in Python 3.10+ that exposes a mappingproxy
+        pointing back to the (one-way) forward dictionary that backs this bidict.
+        """
+        return self._fwdm.keys()
+
+    # The inherited collections.abc.Mapping.values() method returns a collections.abc.ValuesView, so override:
+    def values(self) -> _t.KeysView[VT]:  # type: ignore [override]  # https://github.com/python/typeshed/issues/4435
+        """A set-like object providing a view on the contained values.
+
+        Since the values of a bidict are equivalent to the keys of its inverse,
+        this method returns a KeysView for this bidict's inverse
+        rather than just a ValuesView for this bidict.
+        The KeysView offers the benefit of supporting set operations
+        (including constant- rather than linear-time containment checks)
+        and is just as cheap to provide as the less capable ValuesView would be.
+
+        Returns a dict_keys object that behaves exactly the same as collections.abc.KeysView(b.inverse),
+        except for being much faster when running on CPython, being reversible,
+        and having a .mapping attribute in Python 3.10+ that exposes a mappingproxy
+        pointing back to the (one-way) inverse dictionary that backs this bidict.
+        """
+        return self._invm.keys()
+
+    # The inherited collections.abc.Mapping.items() methods returns collections.abc.ItemsView,
+    # which is currently implemented in pure Python rather than optimized C, so override:
+    def items(self) -> _t.ItemsView[KT, VT]:
+        """A set-like object providing a view on the contained items.
+
+        Returns a dict_items object that behaves exactly the same as collections.abc.ItemsView(b),
+        except for being much faster when running on CPython, being reversible,
+        and having a .mapping attribute in Python 3.10+ that exposes a mappingproxy
+        pointing back to the (one-way) forward dictionary that backs this bidict.
+        """
+        # Overridden by _orderedbase.OrderedBidictBase.
+        return self._fwdm.items()
+
+    # The inherited collections.abc.Mapping.__contains__() method is implemented by doing a ``try``
     # ``except KeyError`` around ``self[key]``. The following implementation is much faster,
     # especially in the missing case.
     def __contains__(self, key: _t.Any) -> bool:
         """True if the mapping contains the specified key, else False."""
         return key in self._fwdm
 
-    # The inherited Mapping.__eq__ method is implemented in terms of an inefficient
+    # The inherited collections.abc.Mapping.__eq__() method is implemented in terms of an inefficient
     # ``dict(self.items()) == dict(other.items())`` comparison, so override it with a
     # more efficient implementation.
     def __eq__(self, other: object) -> bool:

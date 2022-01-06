@@ -29,12 +29,11 @@
 
 import typing as _t
 
-from ._delegating import _DelegatingBidict
 from ._mut import MutableBidict
 from ._typing import KT, VT
 
 
-class bidict(_DelegatingBidict[KT, VT], MutableBidict[KT, VT]):
+class bidict(MutableBidict[KT, VT]):
     """Base class for mutable bidirectional mappings."""
 
     if _t.TYPE_CHECKING:

@@ -280,6 +280,17 @@ class OrderedBidictBase(BidictBase[KT, VT]):
         """Iterator over the contained keys in reverse insertion order."""
         return self._iter(reverse=True)
 
+    def items(self) -> _t.ItemsView[KT, VT]:
+        """A set-like object providing a view on the contained items."""
+        return _OrderedBidictItemsView(self)
+
+
+class _OrderedBidictItemsView(_t.ItemsView[KT, VT]):
+    def __reversed__(self) -> _t.Iterator[_t.Tuple[KT, VT]]:
+        ob = self._mapping  # type: ignore[attr-defined]
+        for key in reversed(ob):
+            yield (key, ob[key])
+
 
 #                             * Code review nav *
 #==============================================================================

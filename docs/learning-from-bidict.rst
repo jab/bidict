@@ -134,7 +134,7 @@ if it weren't for property-based testing, enabled by the amazing
 It's game-changing.
 
 Check out `bidict's property-based tests
-<https://github.com/jab/bidict/blob/main/tests/properties/test_properties.py>`__
+<https://github.com/jab/bidict/blob/main/tests/property_tests/test_properties.py>`__
 to see this in action.
 
 
@@ -475,7 +475,7 @@ Portability
 
   - Hence ``test_bidicts_freed_on_zero_refcount()``
     in `test_properties.py
-    <https://github.com/jab/bidict/blob/main/tests/properties/test_properties.py>`__
+    <https://github.com/jab/bidict/blob/main/tests/property_tests/test_properties.py>`__
     is skipped outside CPython.
 
   - primitives' identities, nan, etc.

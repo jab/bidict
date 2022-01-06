@@ -28,11 +28,11 @@
 
 import typing as _t
 
-from ._delegating import _DelegatingBidict
+from ._base import BidictBase
 from ._typing import KT, VT
 
 
-class frozenbidict(_DelegatingBidict[KT, VT]):
+class frozenbidict(BidictBase[KT, VT]):
     """Immutable, hashable bidict type."""
 
     _hash: int
