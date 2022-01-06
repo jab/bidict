@@ -34,7 +34,7 @@ from copy import copy
 from ._abc import MutableBidirectionalMapping
 from ._base import _NONE, _DedupResult, _WriteResult, BidictBase, BT
 from ._bidict import bidict
-from ._typing import KT, VT, OKT, OVT, IterItems, MapOrIterItems
+from ._typing import KT, VT, OKT, OVT, IterItems, MapOrIterItems, KeysView, ItemsView
 
 
 class _WeakAttr:
@@ -272,13 +272,48 @@ class OrderedBidictBase(BidictBase[KT, VT]):
         return self._iter()
 
     def _iter(self, *, reverse: bool = False) -> _t.Iterator[KT]:
-        key_by_node = self._fwdm.inverse
-        for node in self._sntl._iter(reverse=reverse):
-            yield key_by_node[node]
+        key_by_node = self._fwdm._invm
+        nodes = self._sntl._iter(reverse=reverse)
+        return map(key_by_node.__getitem__, nodes)
 
     def __reversed__(self) -> _t.Iterator[KT]:
         """Iterator over the contained keys in reverse insertion order."""
         return self._iter(reverse=True)
+
+    def keys(self) -> KeysView[KT]:
+        """A set-like object providing a view on the contained keys."""
+        return _OrderedBidictKeysView(self)
+
+    # Override the values() inherited from BidictBase merely to override the docstring; the implementation is the same.
+    def values(self) -> KeysView[VT]:
+        """A set-like object providing a view on the contained items.
+
+        Since the values of a bidict are equivalent to the keys of its inverse,
+        this method returns a KeysView for this bidict's inverse
+        rather than just a ValuesView for this bidict.
+        The KeysView offers the benefit of supporting set operations
+        (including constant- rather than linear-time containment checks)
+        and is just as cheap to provide as the less capable ValuesView would be.
+        """
+        return self.inverse.keys()
+
+    def items(self) -> ItemsView[KT, VT]:
+        """A set-like object providing a view on the contained items."""
+        return _OrderedBidictItemsView(self)
+
+
+class _OrderedBidictKeysView(KeysView[KT]):
+    def __reversed__(self) -> _t.Iterator[KT]:
+        return reversed(self._mapping)  # type: ignore[attr-defined]
+
+
+class _OrderedBidictItemsView(ItemsView[KT, VT]):
+    def __reversed__(self) -> _t.Iterator[_t.Tuple[KT, VT]]:
+        ob: OrderedBidictBase = self._mapping  # type: ignore[attr-defined]
+        key_by_node = ob._fwdm._invm
+        val_by_node = ob._invm._invm
+        for node in ob._sntl._iter(reverse=True):
+            yield (key_by_node[node], val_by_node[node])
 
 
 #                             * Code review nav *

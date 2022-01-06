@@ -36,6 +36,19 @@ Development
   See `the tests <https://github.com/jab/bidict/blob/main/tests/>`__
   for examples.
 
+- All ordered bidicts'
+  :meth:`~bidict.OrderedBidictBase.keys`,
+  :meth:`~bidict.OrderedBidictBase.values`, and
+  :meth:`~bidict.OrderedBidictBase.items` methods
+  now return
+  :class:`reversible <collections.abc.Reversible>`
+  :class:`~collections.abc.MappingView` objects.
+
+- Expanded docstrings for
+  :meth:`~bidict.BidictBase.keys`,
+  :meth:`~bidict.BidictBase.values`, and
+  :meth:`~bidict.BidictBase.items`.
+
 - Remove the use of slots from (non-ABC) bidict types.
 
   This better matches the mapping implementations in Python's standard library,

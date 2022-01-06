@@ -7,6 +7,7 @@
 
 """Provide typing-related objects."""
 
+import collections.abc
 import typing as _t
 
 
@@ -30,3 +31,16 @@ class _NONE(metaclass=_BareReprMeta):
 
 OKT = _t.Union[KT, _NONE]  #: optional key type
 OVT = _t.Union[VT, _NONE]  #: optional value type
+
+
+class ItemsView(_t.ItemsView[KT, VT], _t.Reversible[_t.Tuple[KT, VT]]):
+    """All ItemsViews that bidicts provide are reversible."""
+
+
+class KeysView(_t.KeysView[KT], _t.Reversible[KT], collections.abc.ValuesView):
+    """All KeysViews that bidicts provide are reversible.
+
+    In addition, since the keys of a bidict are the values of its inverse (and vice versa),
+    calling .values() on a bidict returns the same result as calling .keys() on its inverse,
+    specifically a KeysView[KT] object that is also a ValuesView[VT].
+    """

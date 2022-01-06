@@ -112,42 +112,39 @@ BI_AND_CMPDICT_FROM_SAME_ITEMS = st.tuples(BIDICT_TYPES, L_PAIRS_NODUP).map(
     lambda i: (i[0](i[1]), _cmpdict(i[0])(i[1]))
 )
 
-NO_ARGS = st.just(())
-IM_ARG = st.tuples(ATOMS)
-IP_ARG = st.tuples(I_PAIRS)
-TWO_IM_ARGS = st.tuples(ATOMS, ATOMS)
+ARGS_ATOM = st.tuples(ATOMS)
+ARGS_ITERPAIRS = st.tuples(I_PAIRS)
+ARGS_ATOM_ATOM = st.tuples(ATOMS, ATOMS)
 
-ARGS_BY_METHOD = st.fixed_dictionaries({
-    # mutating
-    # 0-arity
-    (0, 'clear'): NO_ARGS,
-    (0, 'popitem'): NO_ARGS,
-    # 1-arity, an immutable atom
-    (1, '__delitem__'): IM_ARG,
-    (1, 'pop'): IM_ARG,
-    (1, 'setdefault'): IM_ARG,
-    (1, 'move_to_end'): IM_ARG,
-    # 1-arity, a list of pairs
-    (1, 'update'): IP_ARG,
-    (1, 'forceupdate'): IP_ARG,
-    # 2-arity
-    (2, 'pop'): TWO_IM_ARGS,
-    (2, 'setdefault'): TWO_IM_ARGS,
-    (2, '__setitem__'): TWO_IM_ARGS,
-    (2, 'put'): TWO_IM_ARGS,
-    (2, 'forceput'): TWO_IM_ARGS,
-    (2, 'move_to_end'): st.tuples(ATOMS, BOOLEANS),
-    # non-mutating
-    # 0-arity
-    (0, '__copy__'): NO_ARGS,
-    (0, '__iter__'): NO_ARGS,
-    (0, '__len__'): NO_ARGS,
-    (0, 'copy'): NO_ARGS,
-    (0, 'keys'): NO_ARGS,
-    (0, 'items'): NO_ARGS,
-    (0, 'values'): NO_ARGS,
-    # 1-arity
-    (1, '__contains__'): IM_ARG,
-    (1, '__getitem__'): IM_ARG,
-    (1, 'get'): IM_ARG,
-})
+METHOD_ARGS_PAIRS = (
+    # 0-arity methods -> no need to generate any args:
+    ('clear', None),
+    ('popitem', None),
+    ('__copy__', None),
+    ('__iter__', None),
+    ('__len__', None),
+    ('copy', None),
+    ('keys', None),
+    ('items', None),
+    ('values', None),
+    # 1-arity methods that take an atom:
+    ('__contains__', ARGS_ATOM),
+    ('__getitem__', ARGS_ATOM),
+    ('__delitem__', ARGS_ATOM),
+    ('get', ARGS_ATOM),
+    ('pop', ARGS_ATOM),
+    ('setdefault', ARGS_ATOM),
+    ('move_to_end', ARGS_ATOM),
+    # 1-arity methods that take an iterable of pairs:
+    ('update', ARGS_ITERPAIRS),
+    ('forceupdate', ARGS_ITERPAIRS),
+    # 2-arity methods that take two atoms:
+    ('__setitem__', ARGS_ATOM_ATOM),
+    ('setdefault', ARGS_ATOM_ATOM),
+    ('pop', ARGS_ATOM_ATOM),
+    ('put', ARGS_ATOM_ATOM),
+    ('forceput', ARGS_ATOM_ATOM),
+    # Other
+    ('popitem', st.tuples(BOOLEANS)),
+    ('move_to_end', st.tuples(ATOMS, BOOLEANS)),
+)

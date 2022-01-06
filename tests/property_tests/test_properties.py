@@ -24,13 +24,14 @@ from bidict import (
     BidictException,
     DROP_OLD, RAISE, OnDup,
     BidirectionalMapping, MutableBidirectionalMapping,
-    OrderedBidictBase, OrderedBidict, bidict, namedbidict,
+    OrderedBidict, bidict, namedbidict,
     inverted,
     DuplicationError, KeyDuplicationError, ValueDuplicationError, KeyAndValueDuplicationError,
 )
 from bidict._iter import _iteritems_args_kw
 
 from . import _strategies as st
+from ._types import ORDER_PRESERVING_BIDICT_TYPES
 
 
 require_cpython_gc = pytest.mark.skipif(
@@ -130,9 +131,9 @@ def test_merge_operators(bi, mapping):
             bi |= mapping
     else:
         assert merged == bidict({**bi, **mapping})
-        cp = bidict(bi)
-        cp |= mapping
-        assert merged == cp
+        tmp = bidict(bi)
+        tmp |= mapping
+        assert merged == tmp
 
     try:
         merged = mapping | bi
@@ -197,22 +198,33 @@ def test_cleared_bidicts_have_no_items(bi):
     assert len(bi) == 0
 
 
-@given(st.BI_AND_CMPDICT_FROM_SAME_ITEMS, st.ARGS_BY_METHOD)
-def test_consistency_after_method_call(bi_and_cmp_dict, args_by_method):
+@given(st.BI_AND_CMPDICT_FROM_SAME_ITEMS, st.DATA)
+def test_consistency_after_method_call(bi_and_cmp_dict, data):
     """A bidict should be left in a consistent state after calling any method, even if it raises."""
     bi_orig, cmp_dict_orig = bi_and_cmp_dict
-    for (_, methodname), args in args_by_method.items():
+    for methodname, args_strat in st.METHOD_ARGS_PAIRS:
         if not hasattr(bi_orig, methodname):
             continue
         bi = bi_orig.copy()
+        collect = list if isinstance(bi, ORDER_PRESERVING_BIDICT_TYPES) else set
         method = getattr(bi, methodname)
+        args = data.draw(args_strat) if args_strat is not None else ()
         try:
             result = method(*args)
-        except (KeyError, BidictException) as exc:
+        except (KeyError, BidictException, TypeError) as exc:
+            if isinstance(exc, TypeError):
+                assert methodname == 'popitem', 'popitem should be only method we sometimes pass wrong number of args'
+                continue
             # Call should fail clean, i.e. bi should be in the same state it was before the call.
             assertmsg = f'{method!r} did not fail clean: {exc!r}'
             assert bi == bi_orig, assertmsg
             assert bi.inv == bi_orig.inv, assertmsg
+            assert collect(bi.keys()) == collect(bi_orig.keys()), assertmsg
+            assert collect(bi.values()) == collect(bi_orig.values()), assertmsg
+            assert collect(bi.items()) == collect(bi_orig.items()), assertmsg
+            assert collect(reversed(bi.keys())) == collect(reversed(bi_orig.keys())), assertmsg
+            assert collect(reversed(bi.values())) == collect(reversed(bi_orig.values())), assertmsg
+            assert collect(reversed(bi.items())) == collect(reversed(bi_orig.items())), assertmsg
         else:
             # Should get the same result as calling the same method on the compare-to dict.
             cmp_dict = cmp_dict_orig.copy()
@@ -220,17 +232,24 @@ def test_consistency_after_method_call(bi_and_cmp_dict, args_by_method):
             if cmp_dict_meth:
                 cmp_result = cmp_dict_meth(*args)
                 if isinstance(cmp_result, Iterable):
-                    coll = list if isinstance(bi, OrderedBidictBase) else set
-                    result = coll(result)
-                    cmp_result = coll(cmp_result)
+                    result = collect(result)
+                    cmp_result = collect(cmp_result)
                 assert result == cmp_result, f'methodname={methodname} args={args!r}'
         # Whether the call failed or succeeded, bi should pass consistency checks.
-        assert len(bi) == sum(1 for _ in bi.items())
-        assert len(bi.inv) == sum(1 for _ in bi.inv.items())
-        assert bi == dict(bi)
-        assert bi.inv == dict(bi.inv)
-        assert bi == OrderedDict((k, v) for (v, k) in bi.inv.items())
-        assert bi.inv == OrderedDict((v, k) for (k, v) in bi.items())
+        keys = collect(bi.keys())
+        assert keys == collect(bi)
+        vals = collect(bi.values())
+        assert vals == collect(bi[k] for k in bi)
+        items = collect(bi.items())
+        assert items == collect((k, bi[k]) for k in bi)
+        assert collect(bi.inv.keys()) == collect(bi.inv) == vals
+        assert collect(bi.inv.values()) == collect(bi.inv[k] for k in bi.inv) == keys
+        assert collect(bi.inv.items()) == collect((k, bi.inv[k]) for k in bi.inv)
+        if not getattr(bi.keys(), '__reversed__', None):  # Python < 3.8
+            return
+        assert collect(reversed(bi.keys())) == collect(reversed(bi.inv.values()))
+        assert collect(reversed(bi.values())) == collect(reversed(bi.inv.keys()))
+        assert collect(reversed(bi.items())) == collect((k, v) for (v, k) in reversed(bi.inv.items()))
 
 
 @given(st.MUTABLE_BIDICTS, st.L_PAIRS, st.ON_DUP)

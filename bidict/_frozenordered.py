@@ -30,7 +30,7 @@ import typing as _t
 
 from ._frozenbidict import frozenbidict
 from ._orderedbase import OrderedBidictBase
-from ._typing import KT, VT
+from ._typing import KT, VT, KeysView
 
 
 class FrozenOrderedBidict(OrderedBidictBase[KT, VT]):
@@ -56,13 +56,19 @@ class FrozenOrderedBidict(OrderedBidictBase[KT, VT]):
     # Delegate to backing dicts for more efficient implementations of keys() and values().
     # Possible with FrozenOrderedBidict but not OrderedBidict since FrozenOrderedBidict
     # is immutable, i.e. these can't get out of sync after initialization due to mutation.
-    def keys(self) -> _t.KeysView[KT]:
-        """A set-like object providing a view on the contained keys."""
-        return self._fwdm._fwdm.keys()
+    def keys(self) -> KeysView[KT]:
+        """A set-like object providing a view on the contained keys.
 
-    def values(self) -> _t.KeysView[VT]:  # type: ignore [override]
-        """A set-like object providing a view on the contained values."""
-        return self._invm._fwdm.keys()
+        See :meth:`bidict.BidictBase.keys` for more info.
+        """
+        return self._fwdm._fwdm.keys()  # type: ignore[return-value]
+
+    def values(self) -> KeysView[VT]:
+        """A set-like object providing a view on the contained values.
+
+        See :meth:`bidict.BidictBase.values` for more info.
+        """
+        return self._invm._fwdm.keys()  # type: ignore[return-value]
 
     # Can't delegate for items() because values in _fwdm and _invm are nodes.
 
