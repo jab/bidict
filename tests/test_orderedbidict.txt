@@ -81,3 +81,9 @@ and the doctests in the Sphinx docs don't get counted in the coverage report)::
     Traceback (most recent call last):
         ...
     KeyError: 'NOT FOUND'
+
+The object returned by .items() is reversible:
+
+    >>> b = OrderedBidict([(0, 1), (2, 3)])
+    >>> list(reversed(b.items()))
+    [(2, 3), (0, 1)]
