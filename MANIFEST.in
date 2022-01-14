@@ -1,6 +1,5 @@
 # Tip: pip install check-manifest && check-manifest -uv
 
-include .LICENSE_HEADER
 include LICENSE
 include *.py
 include *.rst
