@@ -14,9 +14,6 @@ from itertools import chain
 from ._typing import KT, VT, IterItems, MapOrIterItems
 
 
-_NULL_IT: IterItems = iter(())
-
-
 def _iteritems_mapping_or_iterable(arg: MapOrIterItems[KT, VT]) -> IterItems[KT, VT]:
     """Yield the items in *arg*.
 
@@ -34,21 +31,17 @@ def _iteritems_args_kw(*args: MapOrIterItems[KT, VT], **kw: VT) -> IterItems[KT,
     args_len = len(args)
     if args_len > 1:
         raise TypeError(f'Expected at most 1 positional argument, got {args_len}')
-    it: IterItems = ()
+    it: IterItems[_t.Any, VT] = iter(())
     if args:
         arg = args[0]
         if arg:
             it = _iteritems_mapping_or_iterable(arg)
     if kw:
         iterkw = iter(kw.items())
-        it = chain(it, iterkw) if it else iterkw
-    return it or _NULL_IT
+        it = chain(it, iterkw)
+    return it
 
 
-@_t.overload
-def inverted(arg: _t.Mapping[KT, VT]) -> IterItems[VT, KT]: ...
-@_t.overload
-def inverted(arg: IterItems[KT, VT]) -> IterItems[VT, KT]: ...
 def inverted(arg: MapOrIterItems[KT, VT]) -> IterItems[VT, KT]:
     """Yield the inverse items of the provided object.
 
@@ -60,7 +53,8 @@ def inverted(arg: MapOrIterItems[KT, VT]) -> IterItems[VT, KT]:
 
     *See also* :attr:`bidict.BidirectionalMapping.__inverted__`
     """
-    inv = getattr(arg, '__inverted__', None)
-    if callable(inv):
-        return inv()  # type: ignore [no-any-return]
-    return ((val, key) for (key, val) in _iteritems_mapping_or_iterable(arg))
+    invattr = getattr(arg, '__inverted__', None)
+    if callable(invattr):
+        inv: IterItems[VT, KT] = invattr()
+        return inv
+    return ((v, k) for (k, v) in _iteritems_mapping_or_iterable(arg))

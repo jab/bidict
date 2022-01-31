@@ -15,6 +15,7 @@ disable =
   attribute-defined-outside-init,
   bad-continuation,
   broad-except,
+  class-variable-slots-conflict,  # pylint does not understand descriptors like _WeakAttr in _orderedbase.py
   duplicate-code,
   import-error,
   invalid-name,
@@ -27,6 +28,7 @@ disable =
   no-self-use,  # prevents idiomatic type hints
   not-callable,
   protected-access,
+  raising-bad-type,
   redefined-builtin,
   signature-differs,
   super-init-not-called,
@@ -36,5 +38,6 @@ disable =
   too-many-locals,
   unsubscriptable-object,  # pylint bug with generic types
   unused-argument,
+  useless-import-alias,  # pylint does not understand mypy-style explicit re-exports (as in bidict/__init__.py)
   wrong-import-order,
   wrong-import-position,

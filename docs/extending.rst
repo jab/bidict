@@ -84,7 +84,7 @@ A safer example of this type of customization would be something like:
    >>> b['one'] = 2  # Works with a regular bidict, but Yodo plays it safe.
    Traceback (most recent call last):
        ...
-   KeyDuplicationError: one
+   bidict.KeyDuplicationError: one
    >>> b
    YodoBidict({'one': 1})
    >>> b.forceput('one', 2)  # Any destructive change requires more force.

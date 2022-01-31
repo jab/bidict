@@ -58,21 +58,24 @@ from sys import version_info as _version_info
 if _version_info < (3, 7):  # pragma: no cover
     raise ImportError('Python 3.7+ is required.')
 
-from ._abc import BidirectionalMapping, MutableBidirectionalMapping
-from ._base import BidictBase
-from ._mut import MutableBidict
-from ._bidict import bidict
-from ._frozenbidict import frozenbidict
-from ._frozenordered import FrozenOrderedBidict
-from ._named import namedbidict
-from ._orderedbase import OrderedBidictBase
-from ._orderedbidict import OrderedBidict
-from ._dup import ON_DUP_DEFAULT, ON_DUP_RAISE, ON_DUP_DROP_OLD, RAISE, DROP_OLD, DROP_NEW, OnDup, OnDupAction
-from ._exc import BidictException, DuplicationError, KeyDuplicationError, ValueDuplicationError, KeyAndValueDuplicationError
-from ._iter import inverted
+from ._abc import BidirectionalMapping as BidirectionalMapping, MutableBidirectionalMapping as MutableBidirectionalMapping
+from ._base import BidictBase as BidictBase
+from ._mut import MutableBidict as MutableBidict
+from ._bidict import bidict as bidict
+from ._frozenbidict import frozenbidict as frozenbidict
+from ._frozenordered import FrozenOrderedBidict as FrozenOrderedBidict
+from ._named import namedbidict as namedbidict
+from ._orderedbase import OrderedBidictBase as OrderedBidictBase
+from ._orderedbidict import OrderedBidict as OrderedBidict
+from ._dup import ON_DUP_DEFAULT as ON_DUP_DEFAULT, ON_DUP_RAISE as ON_DUP_RAISE, ON_DUP_DROP_OLD as ON_DUP_DROP_OLD
+from ._dup import RAISE as RAISE, DROP_OLD as DROP_OLD, DROP_NEW as DROP_NEW, OnDup as OnDup, OnDupAction as OnDupAction
+from ._exc import BidictException as BidictException, DuplicationError as DuplicationError
+from ._exc import KeyDuplicationError as KeyDuplicationError, ValueDuplicationError as ValueDuplicationError, KeyAndValueDuplicationError as KeyAndValueDuplicationError
+from ._iter import inverted as inverted
 from .metadata import (
-    __author__, __maintainer__, __copyright__, __email__, __credits__, __url__,
-    __license__, __status__, __description__, __keywords__, __version__,
+    __author__ as __author__, __maintainer__ as __maintainer__, __copyright__ as __copyright__, __email__ as __email__,
+    __credits__ as __credits__, __url__ as __url__, __license__ as __license__, __status__ as __status__, __description__ as __description__,
+    __keywords__ as __keywords__, __version__ as __version__,
 )
 
 # Set __module__ of re-exported classes to the 'bidict' top-level module name

@@ -8,6 +8,8 @@
 
 import gc
 import pickle
+import unittest.mock
+import weakref
 
 from copy import deepcopy
 from collections import OrderedDict
@@ -15,14 +17,13 @@ from collections.abc import Iterable, KeysView, ValuesView, ItemsView
 
 from itertools import tee
 from platform import python_implementation
-from weakref import ref
 
 import pytest
 from hypothesis import assume, example, given
 
 from bidict import (
     BidictException,
-    DROP_OLD, RAISE, OnDup,
+    DROP_NEW, DROP_OLD, RAISE, OnDup,
     BidirectionalMapping, MutableBidirectionalMapping,
     OrderedBidict, bidict, namedbidict,
     inverted,
@@ -42,11 +43,18 @@ require_cpython_gc = pytest.mark.skipif(
 
 @given(st.BIDICTS, st.NON_MAPPINGS)
 def test_unequal_to_non_mapping(bi, not_a_mapping):
-    """Bidicts and their inverses should be unequal to non-mappings."""
+    """Bidicts and their inverses should compare unequal to bools, ints, and other typical non-mappings."""
     assert bi != not_a_mapping
     assert bi.inv != not_a_mapping
     assert not bi == not_a_mapping
     assert not bi.inv == not_a_mapping
+
+
+@given(st.BIDICTS)
+def test_eq_correctly_defers_to_eq_of_non_mapping(bi):
+    """Bidicts' __eq__ does not defeat non-mapping objects' __eq__, when implemented."""
+    assert bi == unittest.mock.ANY
+    assert unittest.mock.ANY == bi
 
 
 @given(st.BI_AND_MAP_FROM_DIFF_ITEMS)
@@ -65,10 +73,14 @@ def test_equal_to_mapping_with_same_items(bi_and_map_from_same_items):
     """
     bi, mapping = bi_and_map_from_same_items
     assert bi == mapping
+    assert mapping == bi
     assert not bi != mapping
+    assert not mapping != bi
     mapping_inv = OrderedDict((v, k) for (k, v) in mapping.items())
     assert bi.inv == mapping_inv
+    assert mapping_inv == bi.inv
     assert not bi.inv != mapping_inv
+    assert not mapping_inv != bi.inv
 
 
 @given(st.HBI_AND_HMAP_FROM_SAME_ND_ITEMS)
@@ -76,18 +88,44 @@ def test_equal_hashables_have_same_hash(hashable_bidict_and_mapping):
     """Hashable bidicts and hashable mappings that are equal should hash to the same value."""
     bi, mapping = hashable_bidict_and_mapping
     assert bi == mapping
+    assert mapping == bi
     assert hash(bi) == hash(mapping)
 
 
+@given(st.BIDICTS, st.NON_BI_MAPPINGS)
+@example(OrderedBidict([(1, 1), (2, 2)]), OrderedDict([(1, 1), (2, 2)]))
+@example(OrderedBidict([(1, 1), (2, 2)]), OrderedDict([(2, 2), (1, 1)]))
+@example(OrderedBidict({None: None}), {False: None, None: None})
+def test_equals_matches_equals_order_sensitive(bi, mapping):
+    """Bidict equals_order_sensitive should agree with __eq__."""
+    mapping_inv = OrderedDict((v, k) for (k, v) in mapping.items())
+    if bi.equals_order_sensitive(mapping):
+        assert bi == mapping
+        assert mapping == bi
+        assert list(bi.inv.items()) == list(mapping_inv.items())
+    else:
+        assert list(bi.items()) != list(mapping.items())
+        if bi == mapping:
+            assert mapping == bi
+            assert bi.items() == mapping.items()  # should use (unordered) set comparison
+            assert bi.inv.items() == mapping_inv.items()  # ditto
+            assert mapping_inv.items() == bi.inv.items()  # ditto
+        else:
+            assert mapping != bi
+            assert bi.items() != mapping.items()
+            assert bi.inv.items() != mapping_inv.items() or len(mapping_inv) != len(mapping)
+            assert mapping_inv.items() != bi.inv.items() or len(mapping_inv) != len(mapping)
+
+
 @given(st.BI_AND_MAP_FROM_SAME_ND_ITEMS)
-def test_equals_order_sensitive(bi_and_map_from_same_items):
-    """Ordered bidicts should be order-sensitive-equal to ordered mappings with same nondup items.
+def test_equals_order_sensitive_same_items(bi_and_map_from_same_items):
+    """Bidicts should be order-sensitive-equal to mappings with the same items in the same order.
 
     The bidict's inverse and the ordered mapping's inverse should also be order-sensitive-equal.
     """
     bi, mapping = bi_and_map_from_same_items
     assert bi.equals_order_sensitive(mapping)
-    mapping_inv = {v: k for (k, v) in mapping.items()}
+    mapping_inv = OrderedDict((v, k) for (k, v) in mapping.items())
     assert bi.inv.equals_order_sensitive(mapping_inv)
 
 
@@ -211,10 +249,10 @@ def test_consistency_after_method_call(bi_and_cmp_dict, data):
         args = data.draw(args_strat) if args_strat is not None else ()
         try:
             result = method(*args)
-        except (KeyError, BidictException, TypeError) as exc:
-            if isinstance(exc, TypeError):
-                assert methodname == 'popitem', 'popitem should be only method we sometimes pass wrong number of args'
-                continue
+        except TypeError:
+            assert methodname == 'popitem', 'popitem should be the only method that can raise TypeError here (we sometimes pass in the wrong number of args)'
+            continue
+        except (KeyError, BidictException) as exc:
             # Call should fail clean, i.e. bi should be in the same state it was before the call.
             assertmsg = f'{method!r} did not fail clean: {exc!r}'
             assert bi == bi_orig, assertmsg
@@ -261,6 +299,8 @@ def test_consistency_after_method_call(bi_and_cmp_dict, data):
 @example(OrderedBidict({1: 1, 2: 2}), [(1, 3), (1, 2)], OnDup(key=DROP_OLD, val=RAISE))
 @example(OrderedBidict({1: 1, 2: 2}), [(3, 1), (2, 4)], OnDup(key=RAISE, val=DROP_OLD))
 @example(OrderedBidict({1: 1, 2: 2}), [(1, 2), (1, 1)], OnDup(key=RAISE, val=RAISE, kv=DROP_OLD))
+@example(OrderedBidict(), [(1, 1), (2, 2), (1, 2), (1, 1), (2, 1)], OnDup(key=DROP_OLD, val=RAISE, kv=DROP_OLD))
+@example(OrderedBidict(), [(1, 2), (2, 1), (1, 1), (1, 2)], OnDup(key=RAISE, val=DROP_NEW, kv=DROP_OLD))
 def test_putall_same_as_put_for_each_item(bi, items, on_dup):
     """*bi.putall(items) <==> for i in items: bi.put(i)* for all values of OnDup."""
     check = bi.copy()
@@ -352,7 +392,7 @@ def test_bidict_isinv(bi):
 
 
 @require_cpython_gc
-@given(bi_cls=st.BIDICT_TYPES)
+@given(st.BIDICT_TYPES)
 def test_bidicts_freed_on_zero_refcount(bi_cls):
     """On CPython, the moment you have no more (strong) references to a bidict,
     there are no remaining (internal) strong references to it
@@ -362,7 +402,7 @@ def test_bidicts_freed_on_zero_refcount(bi_cls):
     gc.disable()
     try:
         bi = bi_cls()
-        weak = ref(bi)
+        weak = weakref.ref(bi)
         assert weak() is not None
         del bi
         assert weak() is None
@@ -371,7 +411,7 @@ def test_bidicts_freed_on_zero_refcount(bi_cls):
 
 
 @require_cpython_gc
-@given(ob_cls=st.ORDERED_BIDICT_TYPES, init_items=st.I_PAIRS_NODUP)
+@given(st.ORDERED_BIDICT_TYPES, st.I_PAIRS_NODUP)
 def test_orderedbidict_nodes_freed_on_zero_refcount(ob_cls, init_items):
     """On CPython, the moment you have no more references to an ordered bidict,
     the refcount of each of its internal nodes drops to 0
@@ -380,13 +420,25 @@ def test_orderedbidict_nodes_freed_on_zero_refcount(ob_cls, init_items):
     """
     gc.disable()
     try:
+        # Create an OrderedBidict as a local variable rather than having one passed in
+        # by hypothesis (via st.ORDERED_BIDICTS) so that its refcount drops to 0 when we
+        # del it below.
         ob = ob_cls(init_items)
-        node_refs = [ref(node) for node in ob._fwdm.values()]
-        assert all(r() is not None for r in node_refs)
+        nodes = weakref.WeakSet(ob._sntl.iternodes())
+        assert len(nodes) == len(ob)
         del ob
-        assert all(r() is None for r in node_refs)
+        assert len(nodes) == 0
     finally:
         gc.enable()
+
+
+@given(st.ORDERED_BIDICTS)
+def test_orderedbidict_nodes_consistent(ob):
+    """The nodes in an ordered bidict's backing linked list should be the same as those in its backing mapping."""
+    nodemap = ob._node_by_key if ob._node_by_key is not None else ob._node_by_val
+    mapnodes = set(nodemap.inverse)
+    listnodes = set(ob._sntl.iternodes())
+    assert mapnodes == listnodes
 
 
 def test_abc_slots():
@@ -417,14 +469,31 @@ def test_pickle_roundtrips(bi):
 
 
 @given(st.BIDICTS)
+def test_copy(bi):
+    """A bidict should equal its copy."""
+    cp = bi.copy()
+    assert cp is not bi
+    assert cp.inv is not bi.inv
+    assert bi == cp
+    assert bi.inv == cp.inv
+    collect = list if isinstance(bi, ORDER_PRESERVING_BIDICT_TYPES) else set
+    assert collect(bi.items()) == collect(cp.items())
+    assert collect(bi.inv.items()) == collect(cp.inv.items())
+
+
+@given(st.BIDICTS)
 def test_deepcopy(bi):
     """A bidict should equal its deepcopy."""
     cp = deepcopy(bi)
     assert cp is not bi
+    assert cp.inv is not bi.inv
     assert cp.inv.inv is cp
     assert cp.inv.inv is not bi
     assert bi == cp
     assert bi.inv == cp.inv
+    collect = list if isinstance(bi, ORDER_PRESERVING_BIDICT_TYPES) else set
+    assert collect(bi.items()) == collect(cp.items())
+    assert collect(bi.inv.items()) == collect(cp.inv.items())
 
 
 def test_iteritems_args_kw_raises_on_too_many_args():
@@ -467,7 +536,7 @@ def test_inverted_bidict(bi_and_mapping):
 
 
 _SET_METHOD_NAMES = (
-    '__le__', '__lt__', '__gt__', '__ge__', '__eq__', '__and__', '__rand__',
+    '__le__', '__lt__', '__gt__', '__ge__', '__eq__', '__ne__', '__and__', '__rand__',
     '__or__', '__ror__', '__sub__', '__rsub__', '__xor__', '__rxor__', 'isdisjoint',
 )
 
@@ -475,23 +544,28 @@ _SET_METHOD_NAMES = (
 @given(st.BIDICTS, st.DATA)
 def test_views(bi, data):
     """Optimized view APIs should be equivalent to using the corresponding MappingViews from :mod:`collections.abc`."""
-    for check, expect in (bi.keys(), KeysView(bi)), (bi.values(), ValuesView(bi)), (bi.items(), ItemsView(bi)):
+    for check, oracle in (bi.keys(), KeysView(bi)), (bi.values(), ValuesView(bi)), (bi.items(), ItemsView(bi)):
         # 0-arity methods: __len__, __iter__
-        assert check.__len__() == expect.__len__()
-        assert list(check.__iter__()) == list(expect.__iter__())
+        assert check.__len__() == oracle.__len__()
+        assert list(check.__iter__()) == list(oracle.__iter__())
         # 1-arity methods: __contains__
-        draw_from = st.PAIRS if isinstance(expect, ItemsView) else st.ATOMS
+        draw_from = st.PAIRS if isinstance(oracle, ItemsView) else st.ATOMS
         arg = data.draw(draw_from)
-        assert check.__contains__(arg) == expect.__contains__(arg)
+        assert check.__contains__(arg) == oracle.__contains__(arg)
         # Methods of set-like views
-        if isinstance(expect, ItemsView):
-            draw_from = st.FROSETS_PAIRS
-        elif isinstance(expect, KeysView):
-            draw_from = st.FROSETS
+        if isinstance(oracle, ItemsView):
+            draw_from = st.SETS_PAIRS
+        elif isinstance(oracle, KeysView):
+            draw_from = st.SETS
         else:
             continue
         arg = data.draw(draw_from)
         for methname in _SET_METHOD_NAMES:
-            check_ = getattr(check, methname)(arg)
-            expect_ = getattr(expect, methname)(arg)
-            assert check_ == expect_
+            try:
+                expect = getattr(oracle, methname)(arg)
+            except TypeError:
+                with pytest.raises(TypeError):
+                    getattr(check, methname)(arg)
+            else:
+                check_ = getattr(check, methname)(arg)
+                assert check_ == expect, (check, methname, arg)

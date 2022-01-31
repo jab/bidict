@@ -32,7 +32,7 @@ import typing as _t
 from ._abc import MutableBidirectionalMapping
 from ._base import BidictBase
 from ._dup import OnDup, ON_DUP_RAISE, ON_DUP_DROP_OLD
-from ._typing import _NONE, KT, VT, VDT, IterItems, MapOrIterItems
+from ._typing import NONE, KT, VT, DT, ODT, IterItems, MapOrIterItems
 
 
 class MutableBidict(BidictBase[KT, VT], MutableBidirectionalMapping[KT, VT]):
@@ -114,10 +114,13 @@ class MutableBidict(BidictBase[KT, VT], MutableBidirectionalMapping[KT, VT]):
         self._invm.clear()
 
     @_t.overload
-    def pop(self, key: KT) -> VT: ...
+    def pop(self, __key: KT, __default: DT) -> _t.Union[VT, DT]: ...
+
     @_t.overload
-    def pop(self, key: KT, default: VDT = ...) -> VDT: ...
-    def pop(self, key: KT, default: VDT = _NONE) -> VDT:
+    def pop(self, __key: KT) -> VT: ...
+    @_t.overload
+    def pop(self, __key: KT, __default: _t.Union[VT, DT] = ...) -> _t.Union[VT, DT]: ...
+    def pop(self, key: KT, default: ODT[DT] = NONE) -> _t.Union[VT, DT]:
         """*x.pop(k[, d]) → v*
 
         Remove specified key and return the corresponding value.
@@ -127,7 +130,7 @@ class MutableBidict(BidictBase[KT, VT], MutableBidirectionalMapping[KT, VT]):
         try:
             return self._pop(key)
         except KeyError:
-            if default is _NONE:
+            if default is NONE:
                 raise
             return default
 
@@ -145,9 +148,9 @@ class MutableBidict(BidictBase[KT, VT], MutableBidirectionalMapping[KT, VT]):
         return key, val
 
     @_t.overload
-    def update(self, __arg: _t.Mapping[KT, VT], **kw: VT) -> None: ...
+    def update(self, __m: _t.Mapping[KT, VT], **kw: VT) -> None: ...
     @_t.overload
-    def update(self, __arg: IterItems[KT, VT], **kw: VT) -> None: ...
+    def update(self, __m: IterItems[KT, VT], **kw: VT) -> None: ...
     @_t.overload
     def update(self, **kw: VT) -> None: ...
     def update(self, *args: MapOrIterItems[KT, VT], **kw: VT) -> None:

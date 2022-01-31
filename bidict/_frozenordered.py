@@ -28,9 +28,10 @@
 
 import typing as _t
 
+from ._base import BidictBase
 from ._frozenbidict import frozenbidict
 from ._orderedbase import OrderedBidictBase
-from ._typing import KT, VT, KeysView
+from ._typing import KT, VT
 
 
 class FrozenOrderedBidict(OrderedBidictBase[KT, VT]):
@@ -45,45 +46,25 @@ class FrozenOrderedBidict(OrderedBidictBase[KT, VT]):
 
     If you are using Python 3.8+, frozenbidict gives you everything that
     FrozenOrderedBidict gives you, but with less space overhead.
+    On the other hand, using FrozenOrderedBidict when you are depending on
+    the ordering of the items can make the ordering dependence more explicit.
     """
 
-    __hash__ = frozenbidict.__hash__
+    __hash__: _t.Callable[[_t.Any], int] = frozenbidict.__hash__
 
     if _t.TYPE_CHECKING:
         @property
         def inverse(self) -> 'FrozenOrderedBidict[VT, KT]': ...
 
-    # Delegate to backing dicts for more efficient implementations of keys() and values().
-    # Possible with FrozenOrderedBidict but not OrderedBidict since FrozenOrderedBidict
-    # is immutable, i.e. these can't get out of sync after initialization due to mutation.
-    def keys(self) -> KeysView[KT]:
-        """A set-like object providing a view on the contained keys.
-
-        See :meth:`bidict.BidictBase.keys` for more info.
-        """
-        return self._fwdm._fwdm.keys()  # type: ignore[return-value]
-
-    def values(self) -> KeysView[VT]:
-        """A set-like object providing a view on the contained values.
-
-        See :meth:`bidict.BidictBase.values` for more info.
-        """
-        return self._invm._fwdm.keys()  # type: ignore[return-value]
-
-    # Can't delegate for items() because values in _fwdm and _invm are nodes.
-
-    # On Python 3.8+, delegate to backing dicts for a more efficient implementation
-    # of __iter__ and __reversed__ (both of which call this _iter() method):
-    if hasattr(dict, '__reversed__'):
-        def _iter(self, *, reverse: bool = False) -> _t.Iterator[KT]:
-            itfn = reversed if reverse else iter
-            return itfn(self._fwdm._fwdm)  # type: ignore [operator,no-any-return]
-    else:
-        # On Python < 3.8, just optimize __iter__:
-        def _iter(self, *, reverse: bool = False) -> _t.Iterator[KT]:
-            if not reverse:
-                return iter(self._fwdm._fwdm)
-            return super()._iter(reverse=True)
+    # Use BidictBase's implementations of the following methods, which delegate
+    # to the _fwdm/_invm dicts for more efficient implementations of these mapping views
+    # compared to those used by the implementations inherited from OrderedBidictBase.
+    # This is possible with FrozenOrderedBidict since it is immutable, i.e. mutations that
+    # could change the initial ordering (e.g. requiring a less efficient __iter__ implementation)
+    # are not supported.
+    keys = BidictBase.keys
+    values = BidictBase.values
+    items = BidictBase.items
 
 
 #                             * Code review nav *

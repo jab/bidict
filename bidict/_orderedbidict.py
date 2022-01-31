@@ -43,25 +43,29 @@ class OrderedBidict(OrderedBidictBase[KT, VT], MutableBidict[KT, VT]):
 
     def clear(self) -> None:
         """Remove all items."""
-        self._fwdm.clear()
-        self._invm.clear()
+        super().clear()
+        nodemap = self._node_by_val if self._node_by_key is None else self._node_by_key
+        if _t.TYPE_CHECKING: assert nodemap is not None
+        nodemap.clear()
         self._sntl.nxt = self._sntl.prv = self._sntl
 
     def popitem(self, last: bool = True) -> _t.Tuple[KT, VT]:
-        """*x.popitem() → (k, v)*
+        """*b.popitem() → (k, v)*
 
         Remove and return the most recently added item as a (key, value) pair
         if *last* is True, else the least recently added item.
 
-        :raises KeyError: if *x* is empty.
+        :raises KeyError: if *b* is empty.
         """
         if not self:
-            raise KeyError('mapping is empty')
-        itfn: _t.Callable = reversed if last else iter  # type: ignore [assignment]
-        it = itfn(self)
-        key = next(it)
-        val = self._pop(key)
-        return key, val
+            raise KeyError('mapping is empty')  # match {}.pop() and bidict().pop()
+        node = getattr(self._sntl, 'prv' if last else 'nxt')
+        if self._node_by_key is not None:
+            key = self._node_by_key.inverse[node]
+            return key, self._pop(key)
+        assert self._node_by_val is not None
+        val = self._node_by_val.inverse[node]
+        return self.inverse._pop(val), val
 
     def move_to_end(self, key: KT, last: bool = True) -> None:
         """Move an existing key to the beginning or end of this ordered bidict.
@@ -70,7 +74,9 @@ class OrderedBidict(OrderedBidictBase[KT, VT], MutableBidict[KT, VT]):
 
         :raises KeyError: if the key does not exist
         """
-        node = self._fwdm[key]
+        node = self._get_node_by_key(key)
+        if node is None:
+            raise KeyError(key)
         node.prv.nxt = node.nxt
         node.nxt.prv = node.prv
         sntl = self._sntl

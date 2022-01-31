@@ -6,84 +6,118 @@
 
 Test for consistency in ordered bidicts after handling duplicate keys/values::
 
-    >>> from bidict import OrderedBidict, DuplicationError, RAISE, DROP_OLD, OnDup
+    >>> from bidict import OrderedBidict, RAISE, DROP_OLD, OnDup
     >>> b = OrderedBidict([(0, 1)])
+
     >>> b.update([(0, 2), (3, 4), (5, 4)])
     Traceback (most recent call last):
-        ...
-    ValueDuplicationError: 4
-    >>> len(b.inv)
-    1
+      ...
+    bidict.ValueDuplicationError: 4
+
+    >>> b
+    OrderedBidict([(0, 1)])
+    >>> b.inv
+    OrderedBidict([(1, 0)])
 
     >>> b.putall([(2, 1), (2, 3)], OnDup(key=RAISE, val=DROP_OLD))
     Traceback (most recent call last):
-        ...
-    KeyDuplicationError: 2
-    >>> len(b)
-    1
+      ...
+    bidict.KeyDuplicationError: 2
+
+    >>> b
+    OrderedBidict([(0, 1)])
+    >>> list(b._node_by_key)
+    [0]
+    >>> b.inv
+    OrderedBidict([(1, 0)])
 
     >>> b.forceupdate([(0, 1), (2, 3), (0, 3)])
     >>> b
     OrderedBidict([(0, 3)])
+    >>> list(b._node_by_key)
+    [0]
+    >>> b.inv
+    OrderedBidict([(3, 0)])
 
 Test for consistency updating an ordered bidict's inverse:
 
-    >>> b.inv[3] = 'UPDATED KEY'
+    >>> b.inv[3] = 'UPDATED-KEY'
     >>> b
-    OrderedBidict([('UPDATED KEY', 3)])
+    OrderedBidict([('UPDATED-KEY', 3)])
+    >>> list(b._node_by_key)
+    ['UPDATED-KEY']
     >>> b.inv
-    OrderedBidict([(3, 'UPDATED KEY')])
+    OrderedBidict([(3, 'UPDATED-KEY')])
 
-    >>> b.inv.forceput('UPDATED VAL', 'UPDATED KEY')
+    >>> b.inv.forceput('UPDATED-VAL', 'UPDATED-KEY')
     >>> b
-    OrderedBidict([('UPDATED KEY', 'UPDATED VAL')])
+    OrderedBidict([('UPDATED-KEY', 'UPDATED-VAL')])
+    >>> list(b._node_by_key)
+    ['UPDATED-KEY']
     >>> b.inv
-    OrderedBidict([('UPDATED VAL', 'UPDATED KEY')])
+    OrderedBidict([('UPDATED-VAL', 'UPDATED-KEY')])
 
-    >>> b.inv['NEW VAL'] = 'NEW KEY'
+    >>> b.inv['NEW-VAL'] = 'NEW-KEY'
     >>> b
-    OrderedBidict([('UPDATED KEY', 'UPDATED VAL'), ('NEW KEY', 'NEW VAL')])
+    OrderedBidict([('UPDATED-KEY', 'UPDATED-VAL'), ('NEW-KEY', 'NEW-VAL')])
+    >>> list(b._node_by_key)
+    ['UPDATED-KEY', 'NEW-KEY']
     >>> b.inv
-    OrderedBidict([('UPDATED VAL', 'UPDATED KEY'), ('NEW VAL', 'NEW KEY')])
+    OrderedBidict([('UPDATED-VAL', 'UPDATED-KEY'), ('NEW-VAL', 'NEW-KEY')])
 
-    >>> b.inv.forceput('NEW VAL', 'UPDATED KEY')
+    >>> b.inv.forceput('NEW-VAL', 'UPDATED-KEY')
     >>> b
-    OrderedBidict([('UPDATED KEY', 'NEW VAL')])
+    OrderedBidict([('UPDATED-KEY', 'NEW-VAL')])
+    >>> list(b._node_by_key)
+    ['UPDATED-KEY']
     >>> b.inv
-    OrderedBidict([('NEW VAL', 'UPDATED KEY')])
+    OrderedBidict([('NEW-VAL', 'UPDATED-KEY')])
 
-    >>> b.inv.update([('NEWER VAL', 'NEWER KEY'), ('NEW VAL', 'NEW KEY'), ('FAIL!', 'NEW KEY')])
+    >>> b.inv.update([('NEWER-VAL', 'NEWER-KEY'), ('NEW-VAL', 'NEW-KEY'), ('FAIL!', 'NEW-KEY')])
     Traceback (most recent call last):
-        ...
-    ValueDuplicationError: NEW KEY
+      ...
+    bidict.ValueDuplicationError: NEW-KEY
     >>> b
-    OrderedBidict([('UPDATED KEY', 'NEW VAL')])
+    OrderedBidict([('UPDATED-KEY', 'NEW-VAL')])
     >>> b.inv
-    OrderedBidict([('NEW VAL', 'UPDATED KEY')])
+    OrderedBidict([('NEW-VAL', 'UPDATED-KEY')])
 
-    >>> b.inv.forceupdate([('NEWER VAL', 'NEWER KEY'), ('NEW VAL', 'NEW KEY'), ('SUCCESS!', 'NEW KEY')])
+    >>> b.inv.forceupdate([('NEWER-VAL', 'NEWER-KEY'), ('NEW-VAL', 'NEW-KEY'), ('SUCCESS!', 'NEW-KEY')])
     >>> b
-    OrderedBidict([('NEW KEY', 'SUCCESS!'), ('NEWER KEY', 'NEWER VAL')])
+    OrderedBidict([('NEW-KEY', 'SUCCESS!'), ('NEWER-KEY', 'NEWER-VAL')])
     >>> b.inv
-    OrderedBidict([('SUCCESS!', 'NEW KEY'), ('NEWER VAL', 'NEWER KEY')])
+    OrderedBidict([('SUCCESS!', 'NEW-KEY'), ('NEWER-VAL', 'NEWER-KEY')])
 
-Test move_to_end here so it shows up in pytest's coverage report
-(its hypothesis tests may not always hit all code paths,
+Test move_to_end and popitem here so it shows up in pytest's coverage report
+(the hypothesis tests may not always hit all code paths,
 and the doctests in the Sphinx docs don't get counted in the coverage report)::
 
-    >>> b.move_to_end('NEW KEY')
+    >>> b.move_to_end('NEW-KEY')
     >>> b
-    OrderedBidict([('NEWER KEY', 'NEWER VAL'), ('NEW KEY', 'SUCCESS!')])
-    >>> b.move_to_end('NEW KEY', last=False)
+    OrderedBidict([('NEWER-KEY', 'NEWER-VAL'), ('NEW-KEY', 'SUCCESS!')])
+    >>> b.move_to_end('NEW-KEY', last=False)
     >>> b
-    OrderedBidict([('NEW KEY', 'SUCCESS!'), ('NEWER KEY', 'NEWER VAL')])
-    >>> b.move_to_end('NOT FOUND')
+    OrderedBidict([('NEW-KEY', 'SUCCESS!'), ('NEWER-KEY', 'NEWER-VAL')])
+    >>> b.move_to_end('NOT-FOUND')
     Traceback (most recent call last):
-        ...
-    KeyError: 'NOT FOUND'
+      ...
+    KeyError: 'NOT-FOUND'
 
-The object returned by .items() is reversible:
+    >>> b.popitem(last=False)
+    ('NEW-KEY', 'SUCCESS!')
+    >>> b.inverse.popitem(last=True)
+    ('NEWER-VAL', 'NEWER-KEY')
+    >>> b.popitem()
+    Traceback (most recent call last):
+      ...
+    KeyError: 'mapping is empty'
+
+The views returned by .keys(), values(), and items() are reversible:
 
     >>> b = OrderedBidict([(0, 1), (2, 3)])
+    >>> list(reversed(b.keys()))
+    [2, 0]
+    >>> list(reversed(b.values()))
+    [3, 1]
     >>> list(reversed(b.items()))
     [(2, 3), (0, 1)]

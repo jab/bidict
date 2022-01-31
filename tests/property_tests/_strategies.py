@@ -38,8 +38,8 @@ BOOLEANS = st.booleans()
 # provides enough coverage; including more just slows down example generation.
 ATOMS = st.none() | BOOLEANS | st.integers()
 PAIRS = st.tuples(ATOMS, ATOMS)
-FROSETS = st.frozensets(ATOMS)
-FROSETS_PAIRS = st.frozensets(PAIRS)
+SETS = st.sets(ATOMS)
+SETS_PAIRS = st.sets(PAIRS)
 NON_MAPPINGS = ATOMS | st.iterables(ATOMS)
 ODICTS_KW_PAIRS = st.dictionaries(TEXT, ATOMS, dict_class=OrderedDict, max_size=MAX)
 L_PAIRS = st.lists(PAIRS, max_size=MAX)
@@ -106,10 +106,9 @@ OBI_AND_OMAP_FROM_SAME_ITEMS_DIFF_ORDER = st.tuples(
     ORDERED_BIDICT_TYPES, ORDERED_MAPPING_TYPES, SAME_ITEMS_DIFF_ORDER
 ).map(_unpack)
 
-_cmpdict = lambda i: (OrderedDict if issubclass(i, OrderedBidictBase) else dict)  # noqa: E731
-
-BI_AND_CMPDICT_FROM_SAME_ITEMS = st.tuples(BIDICT_TYPES, L_PAIRS_NODUP).map(
-    lambda i: (i[0](i[1]), _cmpdict(i[0])(i[1]))
+_cmpdict = lambda i: (OrderedDict if isinstance(i, OrderedBidictBase) else dict)  # noqa: E731
+BI_AND_CMPDICT_FROM_SAME_ITEMS = L_PAIRS_NODUP.map(
+    lambda items: (lambda b: (b, _cmpdict(b)(items)))(_bidict_strat(BIDICT_TYPES, items))
 )
 
 ARGS_ATOM = st.tuples(ATOMS)

@@ -22,13 +22,72 @@ to be notified when new versions of ``bidict`` are released.
 Development
 -----------
 
-- Drop support for Python 3.6, which reached end of life on 2021-12-23.
+- Drop support for Python 3.6, which reached end of life on 2021-12-23,
+  and take advantage of this to simplify bidict's implementation.
+
+- Fix a bug where
+  :meth:`bidict.BidictBase.__eq__` was always returning False
+  rather than :obj:`NotImplemented`
+  in the case that the argument was not a
+  :class:`~collections.abc.Mapping`,
+  defeating the argument's own ``__eq__()`` if implemented.
+
+  As a notable example, bidicts now correctly compare equal to
+  :obj:`unittest.mock.ANY`.
+
+- Ordered bidicts'
+  :meth:`~bidict.OrderedBidictBase.keys`,
+  :meth:`~bidict.OrderedBidictBase.values`, and
+  :meth:`~bidict.OrderedBidictBase.items` methods
+  now return
+  :class:`reversible <collections.abc.Reversible>`
+  :class:`~collections.abc.MappingView` objects.
+  (Unordered bidicts already do so when running on Python 3.8+.)
+
+- Optimize :meth:`~bidict.BidictBase.__eq__` and
+  :meth:`~bidict.BidictBase.equals_order_sensitive`.
+
+  In a rough `microbenchmark <TODO>`__,
+  :meth:`bidict.bidict.__eq__`
+  performed about 14x faster,
+  :meth:`bidict.OrderedBidict.__eq__`
+  performed ``TODO``\x faster, and
+  :meth:`~bidict.BidictBase.equals_order_sensitive`
+  performed 1.7x faster.
 
 - Optimize :meth:`~bidict.BidictBase.__contains__`
-  (the method called when you run ``key in my_bidict``).
+  (the method called when you run ``key in any_bidict``).
 
-  In a loose benchmark, it now performs approximately 75% faster in the True case
+  In a rough `microbenchmark <TODO>`__,
+  it now performs about 75% faster in the True case
   and 340% faster in the False case.
+
+- Redesign ordered bidicts' internal implementation
+  to reduce memory usage by ``TODO%``,
+  improve execution speed of several methods
+  (including :meth:`bidict.OrderedBidict.__eq__` mentioned above
+  as well as the :class:`~collections.abc.MappingView`\s returned by
+  :meth:`~bidict.OrderedBidictBase.keys`,
+  :meth:`~bidict.OrderedBidictBase.values`, and
+  :meth:`~bidict.OrderedBidictBase.items`,
+  all of whose APIs\*
+  now execute at C speed on CPython),
+  and to enable more reuse of
+  :class:`~bidict.BidictBase`\'s implementation.
+  ``TODO:`` give some microbenchmarks
+
+  \* The only exceptions are
+  :meth:`bidict.OrderedBidictBase.__iter__` and
+  :meth:`bidict.OrderedBidictBase.__reversed__`,
+  which are still implemented in pure Python,
+  but do now execute at C speed for the view returned by
+  :meth:`frozenbidict.items() <bidict.frozenbidict.items>`,
+  and still execute at C speed for all
+  :class:`~collections.abc.MappingView`\s
+  returned by non-ordered bidicts.
+
+- :meth:`bidict.OrderedBidictBase.__iter__`
+  is now about ``TODO:``\x faster.
 
 - Add support for
   `PEP 584 <https://www.python.org/dev/peps/pep-0584/>`__-style
@@ -36,18 +95,14 @@ Development
   See `the tests <https://github.com/jab/bidict/blob/main/tests/>`__
   for examples.
 
-- All ordered bidicts'
-  :meth:`~bidict.OrderedBidictBase.keys`,
-  :meth:`~bidict.OrderedBidictBase.values`, and
-  :meth:`~bidict.OrderedBidictBase.items` methods
-  now return
-  :class:`reversible <collections.abc.Reversible>`
-  :class:`~collections.abc.MappingView` objects.
-
-- Expanded docstrings for
-  :meth:`~bidict.BidictBase.keys`,
-  :meth:`~bidict.BidictBase.values`, and
-  :meth:`~bidict.BidictBase.items`.
+- Update docstrings for
+  :meth:`bidict.BidictBase.keys`,
+  :meth:`bidict.BidictBase.values`,
+  :meth:`bidict.BidictBase.items`,
+  :meth:`bidict.OrderedBidictBase.keys`,
+  :meth:`bidict.OrderedBidictBase.values`, and
+  :meth:`bidict.OrderedBidictBase.items`
+  to include more details.
 
 - Remove the use of slots from (non-ABC) bidict types.
 

@@ -9,8 +9,9 @@
 import typing as _t
 from sys import _getframe
 
-from ._abc import BidirectionalMapping, KT, VT
+from ._abc import BidirectionalMapping
 from ._bidict import bidict
+from ._typing import KT, VT
 
 
 def namedbidict(

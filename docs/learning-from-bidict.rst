@@ -97,6 +97,7 @@ Stay for the rare, exotic bidirectional mapping breeds you'll rarely see at home
 
    Interestingly, the nodes of the linked list encode only the ordering of the items;
    the nodes themselves contain no key or value data.
+XXX UPDATE:
    The two backing mappings associate the key and value data
    with the nodes, providing the final pieces of the puzzle.
 

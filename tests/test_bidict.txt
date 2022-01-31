@@ -20,7 +20,7 @@ Works like dict for getting and changing forward mappings::
     'twain'
     >>> bi[4]
     Traceback (most recent call last):
-        ...
+      ...
     KeyError: 4
     >>> del bi[2]
     >>> bi.pop(3)
@@ -39,8 +39,8 @@ don't already exist::
     'zero'
     >>> bi.put(1, 'aught')
     Traceback (most recent call last):
-        ...
-    KeyDuplicationError: 1
+      ...
+    bidict.KeyDuplicationError: 1
     >>> del bi[1]
     >>> bi.put(1, 'aught')
     >>> bi[1]
@@ -116,16 +116,20 @@ The rest of the ``MutableMapping`` interface is supported::
     bidict({'two': 2})
     >>> bi.inverse
     bidict({2: 'two'})
+    >>> bi.pop('no-such-key')
+    Traceback (most recent call last):
+      ...
+    KeyError: 'no-such-key'
     >>> bi.pop('wrong', 'number', 'of', 'args')
     Traceback (most recent call last):
-        ...
-    TypeError: pop expected at most 2 arguments (got 4)
+      ...
+    TypeError: ...pop() takes from 2 to 3 positional arguments but 5 were given
     >>> bi.popitem()
     ('two', 2)
     >>> bi.popitem()
     Traceback (most recent call last):
-        ...
-    KeyError: 'popitem(): bidict is empty'
+      ...
+    KeyError: 'mapping is empty'
     >>> bi.inverse.setdefault(3, 'three')
     'three'
     >>> bi
@@ -148,6 +152,7 @@ The rest of the ``MutableMapping`` interface is supported::
     >>> bi
     bidict()
 
+
 Empty update is a no-op::
 
     >>> bi.update()
@@ -164,20 +169,20 @@ Initializing with different keys mapping to the same value fails::
 
     >>> bidict([(1, 1), (2, 1)])
     Traceback (most recent call last):
-        ...
-    ValueDuplicationError: 1
+      ...
+    bidict.ValueDuplicationError: 1
 
 Adding a new key associated with an existing value fails::
 
     >>> b = bidict({1: 1})
     >>> b[2] = 1
     Traceback (most recent call last):
-        ...
-    ValueDuplicationError: 1
+      ...
+    bidict.ValueDuplicationError: 1
     >>> b.update({2: 1})
     Traceback (most recent call last):
-        ...
-    ValueDuplicationError: 1
+      ...
+    bidict.ValueDuplicationError: 1
 
 ``forceput`` and ``forceupdate`` can be used instead::
 
@@ -204,8 +209,8 @@ i.e. the bidict is not in an inconsistent state after::
     >>> b = bidict(one=1, two=2)
     >>> b['one'] = 2
     Traceback (most recent call last):
-        ...
-    KeyAndValueDuplicationError: ('one', 2)
+      ...
+    bidict.KeyAndValueDuplicationError: ('one', 2)
     >>> len(b) == len(b.inverse)
     True
 
@@ -259,19 +264,19 @@ Bidicts support PEP 584-style dict merge operators:
 
     >>> b | {'uno': 1}  # duplicate value -> ValueDuplicationError
     Traceback (most recent call last):
-        ...
-    ValueDuplicationError: 1
+      ...
+    bidict.ValueDuplicationError: 1
 
     >>> {'uno': 1} | b  # ditto
     Traceback (most recent call last):
-        ...
-    ValueDuplicationError: 1
+      ...
+    bidict.ValueDuplicationError: 1
 
     >>> b = bidict({'one': 1, 'two': 2})
     >>> b | {'one': 2}
     Traceback (most recent call last):
-        ...
-    KeyAndValueDuplicationError: (one, 2)
+      ...
+    bidict.KeyAndValueDuplicationError: ('one', 2)
 
     >>> b |= {'three': 3}  # in-place merge
     >>> b
@@ -283,21 +288,21 @@ Bidicts support PEP 584-style dict merge operators:
 
     >>> b |= {'dos': 2}  # duplicate value -> ValueDuplicationError
     Traceback (most recent call last):
-        ...
-    ValueDuplicationError: 2
+      ...
+    bidict.ValueDuplicationError: 2
 
     >>> b
     bidict({'one': 111, 'two': 2, 'three': 3})
     >>> b |= {'one': 3}
     Traceback (most recent call last):
-        ...
-    KeyAndValueDuplicationError: (one, 3)
+      ...
+    bidict.KeyAndValueDuplicationError: ('one', 3)
 
     >>> b | 1
     Traceback (most recent call last):
-        ...
-    TypeError: unsupported operand type(s) for |: 'int' and 'bidict'
+      ...
+    TypeError: unsupported operand type(s) for |: 'bidict' and 'int'
     >>> 1 | b
     Traceback (most recent call last):
-        ...
-    TypeError: unsupported operand type(s) for |: 'bidict' and 'int'
+      ...
+    TypeError: unsupported operand type(s) for |: 'int' and 'bidict'

@@ -34,7 +34,7 @@ from ._typing import KT, VT
 
 
 class BidirectionalMapping(_t.Mapping[KT, VT]):
-    """Abstract base class (ABC) for bidirectional mapping types.
+    """Abstract base class for bidirectional mapping types.
 
     Extends :class:`collections.abc.Mapping` primarily by adding the
     (abstract) :attr:`inverse` property,
@@ -79,7 +79,7 @@ class BidirectionalMapping(_t.Mapping[KT, VT]):
 
 
 class MutableBidirectionalMapping(BidirectionalMapping[KT, VT], _t.MutableMapping[KT, VT]):
-    """Abstract base class (ABC) for mutable bidirectional mapping types."""
+    """Abstract base class for mutable bidirectional mapping types."""
 
     __slots__ = ()
 
