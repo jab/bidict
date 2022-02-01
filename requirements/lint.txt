@@ -38,7 +38,7 @@ platformdirs==2.4.1
     #   virtualenv
 pluggy==1.0.0
     # via pytest
-pre-commit==2.16.0
+pre-commit==2.17.0
     # via -r lint.in
 py==1.11.0
     # via pytest
