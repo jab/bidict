@@ -29,7 +29,7 @@
 
 import typing as _t
 
-from ._mut import MutableBidict
+from ._bidict import MutableBidict
 from ._orderedbase import OrderedBidictBase
 from ._typing import KT, VT
 

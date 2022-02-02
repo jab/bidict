@@ -59,7 +59,6 @@ To see how this is done, check out this code:
 
 - `_base.py <https://github.com/jab/bidict/blob/main/bidict/_base.py#L9>`__
 - `_frozenbidict.py <https://github.com/jab/bidict/blob/main/bidict/_frozenbidict.py#L9>`__
-- `_mut.py <https://github.com/jab/bidict/blob/main/bidict/_mut.py#L9>`__
 - `_bidict.py <https://github.com/jab/bidict/blob/main/bidict/_bidict.py#L9>`__
 - `_orderedbase.py <https://github.com/jab/bidict/blob/main/bidict/_orderedbase.py#L9>`__
 - `_frozenordered.py <https://github.com/jab/bidict/blob/main/bidict/_frozenordered.py#L9>`__

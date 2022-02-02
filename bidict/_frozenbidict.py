@@ -21,7 +21,7 @@
 
 #                             * Code review nav *
 #==============================================================================
-# ← Prev: _base.py         Current: _frozenbidict.py           Next: _mut.py →
+# ← Prev: _base.py         Current: _frozenbidict.py        Next: _bidict.py →
 #==============================================================================
 
 """Provide :class:`frozenbidict`, an immutable, hashable bidirectional mapping type."""
@@ -53,5 +53,5 @@ class frozenbidict(BidictBase[KT, VT]):
 
 #                             * Code review nav *
 #==============================================================================
-# ← Prev: _base.py         Current: _frozenbidict.py           Next: _mut.py →
+# ← Prev: _base.py         Current: _frozenbidict.py        Next: _bidict.py →
 #==============================================================================

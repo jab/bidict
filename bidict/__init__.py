@@ -60,8 +60,7 @@ if _version_info < (3, 7):  # pragma: no cover
 
 from ._abc import BidirectionalMapping as BidirectionalMapping, MutableBidirectionalMapping as MutableBidirectionalMapping
 from ._base import BidictBase as BidictBase
-from ._mut import MutableBidict as MutableBidict
-from ._bidict import bidict as bidict
+from ._bidict import MutableBidict as MutableBidict, bidict as bidict
 from ._frozenbidict import frozenbidict as frozenbidict
 from ._frozenordered import FrozenOrderedBidict as FrozenOrderedBidict
 from ._named import namedbidict as namedbidict
