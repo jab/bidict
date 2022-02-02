@@ -29,7 +29,6 @@
 
 import typing as _t
 import weakref
-from copy import copy
 from itertools import starmap
 from operator import eq
 
@@ -37,16 +36,35 @@ from ._abc import BidirectionalMapping
 from ._dup import ON_DUP_DEFAULT, RAISE, DROP_OLD, DROP_NEW, OnDup
 from ._exc import DuplicationError, KeyDuplicationError, ValueDuplicationError, KeyAndValueDuplicationError
 from ._iter import _iteritems_args_kw
-from ._typing import KT, VT, NONEType, NONE, OKT, OVT, IterItems, MapOrIterItems, KeysView, ItemsView
+from ._typing import KT, VT, MISSING, OKT, OVT, IterItems, MapOrIterItems
 
 
-# Alias for better readability in dedup results below:
-NOOP = NONE
-NOOPT = NONEType
 OLDKV = _t.Tuple[OKT[KT], OVT[VT]]
-DedupResult = _t.Union[OLDKV[KT, VT], NOOPT]
-WriteResult = _t.Tuple[KT, VT, OKT[KT], OVT[VT]]
+DedupResult = _t.Optional[OLDKV[KT, VT]]
+PartialWrite = _t.Sequence[_t.Any]
+Write = _t.List[PartialWrite]
+Unwrite = Write
+PreparedWrite = _t.Tuple[Write, Unwrite]
 BT = _t.TypeVar('BT', bound='BidictBase[_t.Any, _t.Any]')
+
+
+class BiMappingView(_t.Generic[KT, VT], _t.MappingView):
+    """Bidict-specific MappingView subclass."""
+
+    _mapping: 'BidictBase[KT, VT]'
+
+
+class BiItemsView(BiMappingView[KT, VT], _t.ItemsView[KT, VT], _t.Reversible[_t.Tuple[KT, VT]]):
+    """All ItemsViews that bidicts provide are Reversible."""
+
+
+class BiKeysView(BiMappingView[KT, VT], _t.KeysView[KT], _t.Reversible[KT], _t.ValuesView[_t.Any]):
+    """All KeysViews that bidicts provide are Reversible and are also ValuesViews.
+
+    Since the keys of a bidict are the values of its inverse (and vice versa),
+    calling .values() on a bidict returns the same result as calling .keys() on its inverse,
+    specifically a KeysView[KT] object that is also a ValuesView[VT].
+    """
 
 
 class BidictBase(BidirectionalMapping[KT, VT]):
@@ -115,7 +133,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         self._invm = self._invm_cls()
         self._init_inv()
         if args or kw:
-            self._update(True, self.on_dup, *args, **kw)
+            self._update(args=args, kw=kw, rbof=False)
 
     def _init_inv(self) -> None:
         # Create the inverse bidict instance via __new__, bypassing its __init__ so that its
@@ -163,8 +181,8 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         return f'{clsname}({items})'
 
     # The inherited collections.abc.Mapping.keys() method returns a collections.abc.KeysView,
-    # which is currently implemented in pure Python rather than optimized C, so override:
-    def keys(self) -> KeysView[KT]:
+    # which is currently implemented in slow, pure Python rather than optimized C, so override:
+    def keys(self) -> BiKeysView[KT, VT]:
         """A set-like object providing a view on the contained keys.
 
         Returns a dict_keys object that behaves exactly the same as collections.abc.KeysView(b),
@@ -175,7 +193,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         return self._fwdm.keys()  # type: ignore [return-value]
 
     # The inherited collections.abc.Mapping.values() method returns a collections.abc.ValuesView, so override:
-    def values(self) -> KeysView[VT]:
+    def values(self) -> BiKeysView[VT, KT]:
         """A set-like object providing a view on the contained values.
 
         Since the values of a bidict are equivalent to the keys of its inverse,
@@ -192,9 +210,9 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         """
         return self.inverse.keys()
 
-    # The inherited collections.abc.Mapping.items() methods returns a collections.abc.ItemsView,
-    # which is currently implemented in pure Python rather than optimized C, so override:
-    def items(self) -> ItemsView[KT, VT]:
+    # The inherited collections.abc.Mapping.items() method returns a collections.abc.ItemsView,
+    # which is currently implemented in slow, pure Python rather than optimized C, so override:
+    def items(self) -> BiItemsView[KT, VT]:
         """A set-like object providing a view on the contained items.
 
         Returns a dict_items object that behaves exactly the same as collections.abc.ItemsView(b),
@@ -230,6 +248,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         """
         if isinstance(other, _t.Mapping):
             return self._fwdm.items() == other.items()
+        # Ref: https://docs.python.org/3/library/constants.html#NotImplemented
         return NotImplemented
 
     def equals_order_sensitive(self, other: object) -> bool:
@@ -242,30 +261,24 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         return all(starmap(eq, zip(self.items(), other.items())))
 
     # The following methods are mutating and so are not public. But they are implemented in this
-    # non-mutable base class (rather than the mutable `bidict` subclass) because they are used here
-    # during initialization (starting with the `_update` method). (Why is this? Because `__init__`
-    # and `update` share a lot of the same behavior (inserting the provided items while respecting
-    # `on_dup`), so it makes sense for them to share implementation too.)
+    # non-mutable base class (rather than the mutable `bidict` subclass) because they are used
+    # during initialization. (`__init__` and `update` share a lot of the same behavior, so it makes
+    # sense for them to share implementation too.)
     def _pop(self, key: KT) -> VT:
         val = self._fwdm.pop(key)
         del self._invm[val]
         return val
-
-    def _put(self, key: KT, val: VT, on_dup: OnDup) -> None:
-        dedup_result = self._dedup(key, val, on_dup)
-        if dedup_result is not NOOP:
-            self._write(key, val, *dedup_result)
 
     def _dedup(self, key: KT, val: VT, on_dup: OnDup) -> DedupResult[KT, VT]:
         """Check *key* and *val* for any duplication in self.
 
         Handle any duplication as per the passed in *on_dup*.
 
-        If (key, val) is already present, return :obj:`NOOP`
+        If (key, val) is already present, return None
         since writing (key, val) would be a no-op.
 
         If duplication is found and the corresponding :class:`~bidict.OnDupAction` is
-        :attr:`~bidict.DROP_NEW`, return :obj:`NOOP`.
+        :attr:`~bidict.DROP_NEW`, return None.
 
         If duplication is found and the corresponding :class:`~bidict.OnDupAction` is
         :attr:`~bidict.RAISE`, raise the appropriate exception.
@@ -275,118 +288,164 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         return *(oldkey, oldval)*.
         """
         fwdm, invm = self._fwdm, self._invm
-        oldval: OVT[VT] = fwdm.get(key, NONE)
-        oldkey: OKT[KT] = invm.get(val, NONE)
-        isdupkey, isdupval = oldval is not NONE, oldkey is not NONE
+        oldval: OVT[VT] = fwdm.get(key, MISSING)
+        oldkey: OKT[KT] = invm.get(val, MISSING)
+        isdupkey, isdupval = oldval is not MISSING, oldkey is not MISSING
         if isdupkey and isdupval:
             if key == oldkey:
                 assert val == oldval
                 # (key, val) duplicates an existing item -> no-op.
-                return NOOP
+                return None
             # key and val each duplicate a different existing item.
             if on_dup.kv is RAISE:
                 raise KeyAndValueDuplicationError(key, val)
             if on_dup.kv is DROP_NEW:
-                return NOOP
+                return None
             assert on_dup.kv is DROP_OLD
             # Fall through to the return statement on the last line.
         elif isdupkey:
             if on_dup.key is RAISE:
                 raise KeyDuplicationError(key)
             if on_dup.key is DROP_NEW:
-                return NOOP
+                return None
             assert on_dup.key is DROP_OLD
             # Fall through to the return statement on the last line.
         elif isdupval:
             if on_dup.val is RAISE:
                 raise ValueDuplicationError(val)
             if on_dup.val is DROP_NEW:
-                return NOOP
+                return None
             assert on_dup.val is DROP_OLD
             # Fall through to the return statement on the last line.
         # else neither isdupkey nor isdupval.
         return (oldkey, oldval)
 
-    def _write(self, newkey: KT, newval: VT, oldkey: OKT[KT], oldval: OVT[VT]) -> WriteResult[KT, VT]:
-        self._fwdm[newkey] = newval
-        self._invm[newval] = newkey
-        if oldval is not NONE:
-            del self._invm[oldval]
-        if oldkey is not NONE:
-            del self._fwdm[oldkey]
-        return newkey, newval, oldkey, oldval
+    def _prep_write(self, key: KT, val: VT, on_dup: OnDup, save_unwrite: bool = True) -> PreparedWrite:
+        dedup_result = self._dedup(key, val, on_dup)  # Propagate any DuplicationError this raises.
+        if dedup_result is None:  # Writing this item would be a no-op.
+            return [], []
+        return self._prep_write_deduped(key, val, *dedup_result, save_unwrite=save_unwrite)
 
-    def _undo_write(self, write_result: WriteResult[KT, VT]) -> None:
-        newkey, newval, oldkey, oldval, *_ = write_result
-        # mypy does not properly do type narrowing with the following, so inline below instead:
-        # isdupkey, isdupval = oldval is not NONE, oldkey is not NONE
-        if oldval is NONE and oldkey is NONE:  # not isdupkey and not isdupval
-            self._pop(newkey)
-            return
-        if oldval is not NONE:  # isdupkey
-            self._fwdm[newkey] = oldval
-            self._invm[oldval] = newkey
-            if oldkey is NONE:  # not isdupval
-                del self._invm[newval]
-        if oldkey is not NONE:  # isdupval
-            self._invm[newval] = oldkey
-            self._fwdm[oldkey] = newval
-            if oldval is NONE:  # not isdupkey
-                del self._fwdm[newkey]
+    def _prep_write_deduped(self, newkey: KT, newval: VT, oldkey: OKT[KT], oldval: OVT[VT], save_unwrite: bool) -> PreparedWrite:
+        fwdm, invm = self._fwdm, self._invm
+        write: Write = [
+            (fwdm.__setitem__, newkey, newval),
+            (invm.__setitem__, newval, newkey),
+        ]
+        unwrite: Unwrite
+        if oldval is MISSING and oldkey is MISSING:  # no key or value duplication
+            # {0: 1, 2: 3} + (4, 5) => {0: 1, 2: 3, 4: 5}
+            unwrite = [
+                (fwdm.__delitem__, newkey),
+                (invm.__delitem__, newval),
+            ] if save_unwrite else []
+        elif oldval is not MISSING and oldkey is not MISSING:  # key and value duplication across two different items
+            # {0: 1, 2: 3} + (0, 3) => {0: 3}
+            write.extend((
+                (fwdm.__delitem__, oldkey),
+                (invm.__delitem__, oldval),
+            ))
+            unwrite = [
+                (fwdm.__setitem__, newkey, oldval),
+                (invm.__setitem__, oldval, newkey),
+                (fwdm.__setitem__, oldkey, newval),
+                (invm.__setitem__, newval, oldkey),
+            ] if save_unwrite else []
+        elif oldval is not MISSING:  # just key duplication
+            # {0: 1, 2: 3} + (2, 4) => {0: 1, 2: 4}
+            #        nk ov   nk  nv
+            write.append((invm.__delitem__, oldval))
+            unwrite = [
+                (fwdm.__setitem__, newkey, oldval),
+                (invm.__setitem__, oldval, newkey),
+                (invm.__delitem__, newval),
+            ] if save_unwrite else []
+        else:
+            assert oldkey is not MISSING  # just value duplication
+            # {0: 1, 2: 3} + (4, 3) => {0: 1, 4: 3}
+            write.append((fwdm.__delitem__, oldkey))
+            unwrite = [
+                (fwdm.__setitem__, oldkey, newval),
+                (invm.__setitem__, newval, oldkey),
+                (fwdm.__delitem__, newkey),
+            ] if save_unwrite else []
+        return write, unwrite
 
-    def _update(self, in_init: bool, on_dup: OnDup, *args: MapOrIterItems[KT, VT], **kw: VT) -> None:
-        # args[0] may be a generator that yields many items, so process input in a single pass.
+    def _update(
+        self,
+        args: _t.Tuple[MapOrIterItems[KT, VT], ...] = (),
+        kw: _t.Optional[_t.Mapping[str, VT]] = None,
+        rbof: _t.Optional[bool] = None,
+        on_dup: _t.Optional[OnDup] = None,
+    ) -> None:
+        """Update, possibly rolling back on failure as per *rbof*."""
+        # Note: args[0] may be a generator that yields many items, so process input in a single pass.
         if not args and not kw:
             return
-        if not self and not kw and isinstance(args[0], BidirectionalMapping):
-            self._update_no_dup_check(args[0])
+        args_len = len(args)
+        if args_len > 1:
+            raise TypeError(f'Expected at most 1 positional argument, got {args_len}')
+        if on_dup is None:
+            on_dup = self.on_dup
+        if rbof is None:
+            rbof = RAISE in on_dup
+        if kw is None:
+            kw = {}
+        other = args[0] if args else ()
+        if not self and not kw:
+            if isinstance(other, BidictBase):  # can skip dup check
+                self._init_from(other)
+                return
+            # If other is not a BidictBase, fall through to the general treatment below,
+            # which includes duplication checking. (If other is some BidirectionalMapping
+            # that does not inherit from BidictBase, it's a foreign implementation, so we
+            # perform duplication checking to err on the safe side.)
+
+        # If we roll back on failure and we know that there are more updates to process than
+        # already-contained items, our rollback strategy is to update a copy of self (without
+        # rolling back on failure), and then to become the copy if all updates succeed.
+        if rbof and isinstance(other, _t.Sized) and len(other) + len(kw) > len(self):
+            target = self.copy()
+            target._update(args=args, kw=kw, rbof=False, on_dup=on_dup)
+            self._init_from(target)
             return
-        if in_init or RAISE not in on_dup:
-            self._update_no_rollback(on_dup, *args, **kw)
-        else:
-            self._update_with_rollback(on_dup, *args, **kw)
 
-    def _update_no_dup_check(self, other: BidirectionalMapping[KT, VT]) -> None:
-        write = self._write
-        for (key, val) in other.items():
-            write(key, val, NONE, NONE)
-
-    def _update_no_rollback(self, on_dup: OnDup, *args: MapOrIterItems[KT, VT], **kw: VT) -> None:
-        put = self._put
-        for (key, val) in _iteritems_args_kw(*args, **kw):
-            put(key, val, on_dup)
-
-    def _update_with_rollback(self, on_dup: OnDup, *args: MapOrIterItems[KT, VT], **kw: VT) -> None:
-        """Update, rolling back on failure."""
-        writes: _t.List[WriteResult[KT, VT]] = []
-        append, dedup, write, undo = writes.append, self._dedup, self._write, self._undo_write
+        # There are more already-contained items than updates to process, or we don't know
+        # how many updates there are to process. If we need to roll back on failure,
+        # save a log of Unwrites as we update so we can undo changes if the update fails.
+        unwrites: _t.List[Unwrite] = []
+        append_unwrite = unwrites.append
+        prep_write = self._prep_write
         for (key, val) in _iteritems_args_kw(*args, **kw):
             try:
-                dedup_result = dedup(key, val, on_dup)
+                write, unwrite = prep_write(key, val, on_dup, save_unwrite=rbof)
             except DuplicationError:
-                for w in reversed(writes):
-                    undo(w)
+                if rbof:
+                    while unwrites:  # apply saved unwrites
+                        unwrite = unwrites.pop()
+                        for op, *opargs in unwrite:
+                            op(*opargs)
                 raise
-            if dedup_result is not NOOP:
-                write_result = write(key, val, *dedup_result)
-                append(write_result)
+            for op, *opargs in write:  # apply the write
+                op(*opargs)
+            if rbof and unwrite:
+                append_unwrite(unwrite)
 
     def copy(self: BT) -> BT:
-        """Efficiently clone this bidict by (shallow) copying its internal structure."""
+        """Make a (shallow) copy of this bidict."""
         # Could just ``return self.__class__(self)`` here, but the below is faster. The former
         # would copy this bidict's items into a new instance one at a time (checking for duplication
         # for each item), whereas the below makes copies of the backing mappings at once, at C speed,
         # and does not check for item duplication (since the backing mappings have been checked already).
         into = self.__class__()
-        self._clone_into(into)
+        into._init_from(self)
         return into
 
-    def _clone_into(self: BT, other: BT) -> BT:
-        """Efficiently clone this bidict by copying its internal structure into *other*."""
-        other._fwdm = copy(self._fwdm)
-        other._invm = copy(self._invm)
-        other._init_inv()
-        return other
+    def _init_from(self, other: 'BidictBase[KT, VT]') -> None:
+        self._fwdm.clear()
+        self._invm.clear()
+        self._fwdm.update(other._fwdm)
+        self._invm.update(other._invm)
 
     #: Used for the copy protocol.
     #: *See also* the :mod:`copy` module
@@ -397,7 +456,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         if not isinstance(other, _t.Mapping):
             return NotImplemented
         new = self.copy()
-        new._update(False, self.on_dup, other)
+        new._update(args=(other,), rbof=False)
         return new
 
     def __ror__(self: BT, other: _t.Mapping[KT, VT]) -> BT:
@@ -405,7 +464,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         if not isinstance(other, _t.Mapping):
             return NotImplemented
         new = self.__class__(other)
-        new._update(False, self.on_dup, self)
+        new._update(args=(self,), rbof=False)
         return new
 
     def __len__(self) -> int:

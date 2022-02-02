@@ -45,7 +45,7 @@ class OrderedBidict(OrderedBidictBase[KT, VT], MutableBidict[KT, VT]):
         """Remove all items."""
         super().clear()
         nodemap = self._node_by_val if self._node_by_key is None else self._node_by_key
-        if _t.TYPE_CHECKING: assert nodemap is not None
+        assert nodemap is not None
         nodemap.clear()
         self._sntl.nxt = self._sntl.prv = self._sntl
 
@@ -74,9 +74,12 @@ class OrderedBidict(OrderedBidictBase[KT, VT], MutableBidict[KT, VT]):
 
         :raises KeyError: if the key does not exist
         """
-        node = self._get_node_by_key(key)
-        if node is None:
-            raise KeyError(key)
+        if self._node_by_key is not None:
+            node = self._node_by_key[key]
+        else:
+            assert self._node_by_val is not None
+            val = self._fwdm[key]
+            node = self._node_by_val[val]
         node.prv.nxt = node.nxt
         node.nxt.prv = node.prv
         sntl = self._sntl

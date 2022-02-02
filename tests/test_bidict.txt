@@ -4,14 +4,14 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-Test script for bidict.bidict::
+Test script for bidict.bidict:
 
     >>> from bidict import bidict
     >>> bi = bidict({1: 'one', 2: 'two', 3: 'three'})
     >>> bi
     bidict({1: 'one', 2: 'two', 3: 'three'})
 
-Works like dict for getting and changing forward mappings::
+Works like dict for getting and changing forward mappings:
 
     >>> bi[2]
     'two'
@@ -32,7 +32,7 @@ Works like dict for getting and changing forward mappings::
     bidict({1: 'one'})
 
 ``put`` can also be used to insert a mapping as long as its key and value
-don't already exist::
+don't already exist:
 
     >>> bi.put(0, 'zero')
     >>> bi[0]
@@ -50,7 +50,7 @@ don't already exist::
     bidict({1: 'aught'})
 
 bidicts maintain references to their inverses via the ``inverse`` property,
-which can also be used to access or modify them::
+which can also be used to access or modify them:
 
     >>> bi.inverse
     bidict({'aught': 1})
@@ -71,21 +71,21 @@ which can also be used to access or modify them::
     >>> bi.inverse is bi.inverse.inverse.inverse
     True
 
-bidicts work with ``inverted`` as expected::
+bidicts work with ``inverted`` as expected:
 
     >>> from bidict import inverted
     >>> biinv = bidict(inverted(bi))
     >>> biinv
     bidict({'one': 1})
 
-This created a new object (equivalent but not identical)::
+This created a new object (equivalent but not identical):
 
     >>> biinv == bi.inverse
     True
     >>> biinv is bi.inverse
     False
 
-Inverting the inverse should round-trip::
+Inverting the inverse should round-trip:
 
     >>> bi == bidict(inverted(inverted(bi)))
     True
@@ -93,7 +93,7 @@ Inverting the inverse should round-trip::
     >>> bi == bidict(inverted(inverted(bi)))
     True
 
-The rest of the ``MutableMapping`` interface is supported::
+The rest of the ``MutableMapping`` interface is supported:
 
     >>> bi.get('one')
     1
@@ -120,6 +120,8 @@ The rest of the ``MutableMapping`` interface is supported::
     Traceback (most recent call last):
       ...
     KeyError: 'no-such-key'
+    >>> bi.pop('no-such-key', 'default')
+    'default'
     >>> bi.pop('wrong', 'number', 'of', 'args')
     Traceback (most recent call last):
       ...
@@ -152,27 +154,27 @@ The rest of the ``MutableMapping`` interface is supported::
     >>> bi
     bidict()
 
-
-Empty update is a no-op::
+Empty update is a no-op:
 
     >>> bi.update()
     >>> bi
     bidict()
 
-Not part of the public API, but test this anyway for the coverage::
+Initializing with wrong number of positional args is a TypeError:
 
-    >>> bi._update(False, None)
-    >>> bi
-    bidict()
+    >>> bidict('wrong', 'number', 'of', 'args')
+    Traceback (most recent call last):
+      ...
+    TypeError: Expected at most 1 positional argument, got 4
 
-Initializing with different keys mapping to the same value fails::
+Initializing with different keys mapping to the same value fails:
 
     >>> bidict([(1, 1), (2, 1)])
     Traceback (most recent call last):
       ...
     bidict.ValueDuplicationError: 1
 
-Adding a new key associated with an existing value fails::
+Adding a new key associated with an existing value fails:
 
     >>> b = bidict({1: 1})
     >>> b[2] = 1
@@ -184,7 +186,7 @@ Adding a new key associated with an existing value fails::
       ...
     bidict.ValueDuplicationError: 1
 
-``forceput`` and ``forceupdate`` can be used instead::
+``forceput`` and ``forceupdate`` can be used instead:
 
     >>> b.forceput(2, 1)
     >>> b
@@ -193,7 +195,7 @@ Adding a new key associated with an existing value fails::
     >>> b
     bidict({1: 1})
 
-Trying to insert an existing mapping does not raise, and is a no-op::
+Trying to insert an existing mapping does not raise, and is a no-op:
 
     >>> b = bidict({1: 'one'})
     >>> b[1] = 'one'
@@ -204,7 +206,7 @@ Trying to insert an existing mapping does not raise, and is a no-op::
     1
 
 The following case does not half-succeed,
-i.e. the bidict is not in an inconsistent state after::
+i.e. the bidict is not in an inconsistent state after:
 
     >>> b = bidict(one=1, two=2)
     >>> b['one'] = 2
@@ -219,7 +221,7 @@ per-call control over duplication behavior
 (see doctests in ``../docs/unique-values.rst.inc``).
 
 Even with RAISE duplication behavior,
-inserting existing items is a no-op (i.e. it doesn't raise)::
+inserting existing items is a no-op (i.e. it doesn't raise):
 
     >>> from bidict import RAISE, OnDup
     >>> b.putall(
@@ -231,7 +233,7 @@ inserting existing items is a no-op (i.e. it doesn't raise)::
     >>> b == b0
     True
 
-Make sure copy.copy and copy.deepcopy create shallow and deep copies, respectively::
+Make sure copy.copy and copy.deepcopy create shallow and deep copies, respectively:
 
     >>> from copy import copy, deepcopy
     >>> from bidict import frozenbidict

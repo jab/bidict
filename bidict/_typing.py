@@ -17,31 +17,18 @@ IterItems = _t.Iterable[_t.Tuple[KT, VT]]
 MapOrIterItems = _t.Union[_t.Mapping[KT, VT], IterItems[KT, VT]]
 
 
-class NONEType(Enum):
+class MissingT(Enum):
     """Sentinel used to represent none/missing when None itself can't be used."""
 
-    NONE = 'NONE'
+    MISSING = 'MISSING'
 
     def __repr__(self) -> str:
-        return '<NONE>'
+        return '<MISSING>'
 
 
-NONE = NONEType.NONE
-OKT = _t.Union[KT, NONEType]  #: optional key type
-OVT = _t.Union[VT, NONEType]  #: optional value type
+MISSING = MissingT.MISSING
+OKT = _t.Union[KT, MissingT]  #: optional key type
+OVT = _t.Union[VT, MissingT]  #: optional value type
 
 DT = _t.TypeVar('DT')  #: for default arguments
-ODT = _t.Union[DT, NONEType]
-
-
-class ItemsView(_t.ItemsView[KT, VT], _t.Reversible[_t.Tuple[KT, VT]]):
-    """All ItemsViews that bidicts provide are Reversible."""
-
-
-class KeysView(_t.KeysView[KT], _t.Reversible[KT], _t.ValuesView[_t.Any]):
-    """All KeysViews that bidicts provide are Reversible and are also ValuesViews.
-
-    Since the keys of a bidict are the values of its inverse (and vice versa),
-    calling .values() on a bidict returns the same result as calling .keys() on its inverse,
-    specifically a KeysView[KT] object that is also a ValuesView[VT].
-    """
+ODT = _t.Union[DT, MissingT]

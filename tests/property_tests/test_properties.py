@@ -293,14 +293,15 @@ def test_consistency_after_method_call(bi_and_cmp_dict, data):
 @given(st.MUTABLE_BIDICTS, st.L_PAIRS, st.ON_DUP)
 # These test cases ensure coverage of all branches in [Ordered]BidictBase._undo_write
 # (Hypothesis doesn't always generate examples that cover all the branches otherwise).
-@example(bidict({1: 1, 2: 2}), [(1, 3), (1, 2)], OnDup(key=DROP_OLD, val=RAISE))
-@example(bidict({1: 1, 2: 2}), [(3, 1), (2, 4)], OnDup(key=RAISE, val=DROP_OLD))
-@example(bidict({1: 1, 2: 2}), [(1, 2), (1, 1)], OnDup(key=RAISE, val=RAISE, kv=DROP_OLD))
-@example(OrderedBidict({1: 1, 2: 2}), [(1, 3), (1, 2)], OnDup(key=DROP_OLD, val=RAISE))
-@example(OrderedBidict({1: 1, 2: 2}), [(3, 1), (2, 4)], OnDup(key=RAISE, val=DROP_OLD))
-@example(OrderedBidict({1: 1, 2: 2}), [(1, 2), (1, 1)], OnDup(key=RAISE, val=RAISE, kv=DROP_OLD))
-@example(OrderedBidict(), [(1, 1), (2, 2), (1, 2), (1, 1), (2, 1)], OnDup(key=DROP_OLD, val=RAISE, kv=DROP_OLD))
-@example(OrderedBidict(), [(1, 2), (2, 1), (1, 1), (1, 2)], OnDup(key=RAISE, val=DROP_NEW, kv=DROP_OLD))
+@example(bidict({1: 1, 2: 2}), [(1, 3), (1, 2)], OnDup(DROP_OLD, RAISE))
+@example(bidict({1: 1, 2: 2}), [(3, 1), (2, 4)], OnDup(RAISE, DROP_OLD))
+@example(bidict({1: 1, 2: 2}), [(1, 2), (1, 1)], OnDup(RAISE, RAISE, DROP_OLD))
+@example(OrderedBidict({1: 1, 2: 2}), [(1, 3), (1, 2)], OnDup(DROP_OLD, RAISE))
+@example(OrderedBidict({1: 1, 2: 2}), [(3, 1), (2, 4)], OnDup(RAISE, DROP_OLD))
+@example(OrderedBidict({1: 1, 2: 2}), [(1, 2), (1, 1)], OnDup(RAISE, RAISE, DROP_OLD))
+@example(OrderedBidict(), [(1, 1), (2, 2), (1, 2), (1, 1), (2, 1)], OnDup(DROP_OLD, RAISE, DROP_OLD))
+@example(OrderedBidict(), [(1, 2), (2, 1), (1, 1), (1, 2)], OnDup(RAISE, DROP_NEW, DROP_OLD))
+@example(OrderedBidict(), [(1, 1), (2, 1), (1, 1)], OnDup(DROP_NEW, DROP_OLD, DROP_NEW))
 def test_putall_same_as_put_for_each_item(bi, items, on_dup):
     """*bi.putall(items) <==> for i in items: bi.put(i)* for all values of OnDup."""
     check = bi.copy()

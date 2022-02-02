@@ -68,7 +68,7 @@ from ._named import namedbidict as namedbidict
 from ._orderedbase import OrderedBidictBase as OrderedBidictBase
 from ._orderedbidict import OrderedBidict as OrderedBidict
 from ._dup import ON_DUP_DEFAULT as ON_DUP_DEFAULT, ON_DUP_RAISE as ON_DUP_RAISE, ON_DUP_DROP_OLD as ON_DUP_DROP_OLD
-from ._dup import RAISE as RAISE, DROP_OLD as DROP_OLD, DROP_NEW as DROP_NEW, OnDup as OnDup, OnDupAction as OnDupAction
+from ._dup import RAISE as RAISE, DROP_OLD as DROP_OLD, DROP_NEW as DROP_NEW, OnDup as OnDup, OD as OD
 from ._exc import BidictException as BidictException, DuplicationError as DuplicationError
 from ._exc import KeyDuplicationError as KeyDuplicationError, ValueDuplicationError as ValueDuplicationError, KeyAndValueDuplicationError as KeyAndValueDuplicationError
 from ._iter import inverted as inverted
@@ -77,6 +77,11 @@ from .metadata import (
     __credits__ as __credits__, __url__ as __url__, __license__ as __license__, __status__ as __status__, __description__ as __description__,
     __keywords__ as __keywords__, __version__ as __version__,
 )
+
+
+#: Alias
+OnDupAction = OD
+
 
 # Set __module__ of re-exported classes to the 'bidict' top-level module name
 # so that private/internal submodules are not exposed to users e.g. in repr strings.

@@ -30,9 +30,9 @@
 import typing as _t
 from weakref import ref as weakref
 
-from ._base import BidictBase
+from ._base import BidictBase, PreparedWrite, BiMappingView, BiKeysView, BiItemsView
 from ._bidict import bidict
-from ._typing import KT, VT, OKT, OVT, NONE, IterItems, MapOrIterItems, KeysView, ItemsView
+from ._typing import KT, VT, OKT, OVT, MISSING, IterItems, MapOrIterItems
 
 
 IT = _t.TypeVar('IT')  # instance type
@@ -74,6 +74,9 @@ class Node:
         self.prv.nxt = self.nxt
         self.nxt.prv = self.prv
 
+    def relink(self) -> None:
+        self.prv.nxt = self.nxt.prv = self
+
 
 class SentinelNode(Node):
     """Special node in a circular doubly-linked list
@@ -109,8 +112,6 @@ class SentinelNode(Node):
         return new_last
 
 
-ONODE = _t.Optional[Node]
-OrderedWriteResult = _t.Tuple[KT, VT, OKT[KT], OVT[VT], ONODE, ONODE]
 OBT = _t.TypeVar('OBT', bound='OrderedBidictBase[_t.Any, _t.Any]')
 
 
@@ -149,107 +150,104 @@ class OrderedBidictBase(BidictBase[KT, VT]):
         self.inverse._node_by_key = self._node_by_val
         self.inverse._node_by_val = self._node_by_key
 
-    def _get_node_by_key(self, key: KT) -> _t.Optional[Node]:
-        if self._node_by_key is not None:
-            return self._node_by_key.get(key)
-        if _t.TYPE_CHECKING: assert self._node_by_val is not None
-        val: OVT[VT] = self._fwdm.get(key, NONE)
-        return self._node_by_val.get(val)  # type: ignore [arg-type]
-
     def _assoc_node(self, node: Node, key: KT, val: VT) -> None:
         if self._node_by_key is not None:
             self._node_by_key.forceput(key, node)
         else:
-            if _t.TYPE_CHECKING: assert self._node_by_val is not None
+            assert self._node_by_val is not None
             self._node_by_val.forceput(val, node)
 
-    def _dissoc_node(self, key: OKT[KT], val: OVT[VT]) -> ONODE:
+    def _dissoc_node(self, node: Node) -> None:
         if self._node_by_key is not None:
-            return self._node_by_key.pop(key, None)  # type: ignore [arg-type]
-        if _t.TYPE_CHECKING: assert self._node_by_val is not None
-        return self._node_by_val.pop(val, None)  # type: ignore [arg-type]
+            del self._node_by_key.inverse[node]
+        else:
+            assert self._node_by_val is not None
+            del self._node_by_val.inverse[node]
+        node.unlink()
 
     if _t.TYPE_CHECKING:
         @property
         def inverse(self) -> 'OrderedBidictBase[VT, KT]': ...
 
-    def _clone_into(self: OBT, other: OBT) -> OBT:
-        """See :meth:`bidict.BidictBase.copy`."""
-        node_by_korv = self._node_by_key if self._node_by_key is not None else self._node_by_val
-        if _t.TYPE_CHECKING: assert node_by_korv is not None
+    def _init_from(self, other: BidictBase[KT, VT]) -> None:
+        """Efficiently clone this ordered bidict by copying its internal structure into *other*."""
+        super()._init_from(other)
+        korv = self._node_by_key is not None
+        node_by_korv = self._node_by_key if korv else self._node_by_val
+        assert node_by_korv is not None
         korv_by_node = node_by_korv.inverse
-        o_korv_by_node = korv_by_node.copy()
-        other._sntl = SentinelNode()
-        new_o_node = other._sntl.new_last_node
-        for node in self._sntl.iternodes():
-            o_node = new_o_node()
-            o_korv_by_node.forceput(o_node, korv_by_node[node])
-        other._node_by_key, other._node_by_val = o_korv_by_node.inverse, None
-        if self._node_by_key is None:
-            other._node_by_key, other._node_by_val = other._node_by_val, other._node_by_key
-        return super()._clone_into(other)
+        korv_by_node.clear()
+        korv_by_node_set = korv_by_node.__setitem__
+        self._sntl.nxt = self._sntl.prv = self._sntl
+        new_node = self._sntl.new_last_node
+        for (k, v) in other.items():
+            korv_by_node_set(new_node(), k if korv else v)  # type: ignore [assignment]
 
     def _pop(self, key: KT) -> VT:
         val = super()._pop(key)
-        node = self._dissoc_node(key, val)
-        if node is not None:
-            node.unlink()
+        if self._node_by_key is not None:
+            node = self._node_by_key[key]
+        else:
+            assert self._node_by_val is not None
+            node = self._node_by_val[val]
+        self._dissoc_node(node)
         return val
 
-    def _write(self, newkey: KT, newval: VT, oldkey: OKT[KT], oldval: OVT[VT]) -> OrderedWriteResult[KT, VT]:  # type: ignore [override]
-        isdupkey = isdupval = False
-        nodek = nodev = dropped_node = None
-        if oldval is not NONE:
-            isdupkey = True
-            nodek = self._get_node_by_key(newkey)
-        if oldkey is not NONE:
-            isdupval = True
-            nodev = self.inverse._get_node_by_key(newval)
-
-        if isdupkey or isdupval:
-            self._dissoc_node(oldkey, oldval)
-
-        if not isdupkey and not isdupval:
-            # No key or value duplication -> no existing nodes touched.
-            assert nodek is None and nodev is None
-            # Create a new terminal node.
-            assoc_node = self._sntl.new_last_node()
-        elif isdupkey and isdupval:
-            # Key and value duplication across two different nodes.
-            assert nodek is not None and nodev is not None
-            # We have to collapse nodek and nodev into a single node, i.e. drop one of them.
-            # Drop nodev, so that the item with the same key is the one overwritten in place.
-            # But don't remove its references to its neighbors yet, since if the update fails,
-            # we use its neighbor references to undo this write (see _undo_write below).
-            assoc_node, dropped_node = nodek, nodev
-            dropped_node.unlink()
-        elif isdupval:
-            if _t.TYPE_CHECKING: assert nodev is not None
-            assoc_node = nodev
-        else:  # isdupkey
-            if _t.TYPE_CHECKING: assert nodek is not None
-            assoc_node = nodek
-        self._assoc_node(assoc_node, newkey, newval)
-        base_write = super()._write(newkey, newval, oldkey, oldval)
-        return base_write + (assoc_node, dropped_node)
-
-    def _undo_write(self, write_result: OrderedWriteResult[KT, VT]) -> None:  # type: ignore [override]
-        *_, oldkey, oldval, assoc_node, dropped_node = write_result
-        # mypy does not properly do type narrowing with the following, so inline below instead:
-        # isdupkey, isdupval = oldval is not NONE, oldkey is not NONE
-        if oldval is not NONE and self._node_by_val is not None:
-            assert assoc_node is not None
-            self._node_by_val.forceput(oldval, assoc_node)
-        if oldkey is not NONE and self._node_by_key is not None:
-            assert assoc_node is not None
-            self._node_by_key.forceput(oldkey, assoc_node)
-        if oldval is not NONE and oldkey is not NONE:
-            assert dropped_node is not None
-            # Un-collapse nodek and nodev by relinking the node we dropped (nodev). See _write_item above.
-            dropped_node.prv.nxt = dropped_node.nxt.prv = dropped_node
-        # In the case of not isdupkey and not isdupval, the self._pop() call caused by the following
-        # super()._undo_write() call takes care of unmapping and unlinking the new node that was added.
-        super()._undo_write(write_result)  # type: ignore [arg-type]
+    def _prep_write_deduped(self, newkey: KT, newval: VT, oldkey: OKT[KT], oldval: OVT[VT], save_unwrite: bool) -> PreparedWrite:
+        write, unwrite = super()._prep_write_deduped(newkey, newval, oldkey, oldval, save_unwrite)
+        assoc, dissoc = self._assoc_node, self._dissoc_node
+        node_by_key, node_by_val = self._node_by_key, self._node_by_val
+        if oldval is MISSING and oldkey is MISSING:  # no key or value duplication
+            # {0: 1, 2: 3} + (4, 5) => {0: 1, 2: 3, 4: 5}
+            newnode = self._sntl.new_last_node()
+            write.append((assoc, newnode, newkey, newval))
+            if save_unwrite:
+                unwrite.append((dissoc, newnode))
+        elif oldval is not MISSING and oldkey is not MISSING:  # key and value duplication across two different items
+            # {0: 1, 2: 3} + (0, 3) => {0: 3}
+            #    n1, n2             =>   n1   (collapse n1 and n2 into n1)
+            # oldkey: 2, oldval: 1, oldnode: n2, newkey: 0, newval: 3, newnode: n1
+            if node_by_key is not None:
+                oldnode = node_by_key[oldkey]
+                newnode = node_by_key[newkey]
+            else:
+                assert node_by_val is not None
+                oldnode = node_by_val[newval]
+                newnode = node_by_val[oldval]
+            write.extend((
+                (dissoc, oldnode),
+                (assoc, newnode, newkey, newval),
+            ))
+            if save_unwrite:
+                unwrite.extend((
+                    (assoc, newnode, newkey, oldval),
+                    (assoc, oldnode, oldkey, newval),
+                    (oldnode.relink,),
+                ))
+        elif oldval is not MISSING:  # just key duplication
+            # {0: 1, 2: 3} + (2, 4) => {0: 1, 2: 4}
+            # oldkey: MISSING, oldval: 3, newkey: 2, newval: 4
+            if node_by_key is not None:
+                node = node_by_key[newkey]
+            else:
+                assert node_by_val is not None
+                node = node_by_val[oldval]
+            write.append((assoc, node, newkey, newval))
+            if save_unwrite:
+                unwrite.append((assoc, node, newkey, oldval))
+        else:
+            assert oldkey is not MISSING  # just value duplication
+            # {0: 1, 2: 3} + (4, 3) => {0: 1, 4: 3}
+            # oldkey: 2, oldval: MISSING, newkey: 4, newval: 3
+            if node_by_key is not None:
+                node = node_by_key[oldkey]
+            else:
+                assert node_by_val is not None
+                node = node_by_val[newval]
+            write.append((assoc, node, newkey, newval))
+            if save_unwrite:
+                unwrite.append((assoc, node, oldkey, newval))
+        return write, unwrite
 
     def __iter__(self) -> _t.Iterator[KT]:
         """Iterator over the contained keys in insertion order."""
@@ -267,12 +265,12 @@ class OrderedBidictBase(BidictBase[KT, VT]):
         key_by_val, val_by_node = self._invm, self._node_by_val._invm
         return (key_by_val[val_by_node[node]] for node in nodes)
 
-    def keys(self) -> KeysView[KT]:
+    def keys(self) -> BiKeysView[KT, VT]:
         """A set-like object providing a view on the contained keys."""
         return _OrderedBidictKeysView(self)
 
     # Override the values() inherited from BidictBase merely to override the docstring; the implementation is the same.
-    def values(self) -> KeysView[VT]:
+    def values(self) -> BiKeysView[VT, KT]:
         """A set-like object providing a view on the contained items.
 
         Since the values of a bidict are equivalent to the keys of its inverse,
@@ -284,19 +282,19 @@ class OrderedBidictBase(BidictBase[KT, VT]):
         """
         return self.inverse.keys()
 
-    def items(self) -> ItemsView[KT, VT]:
+    def items(self) -> BiItemsView[KT, VT]:
         """A set-like object providing a view on the contained items."""
         return _OrderedBidictItemsView(self)
 
 
-class _OrderedBidictKeysView(KeysView[KT]):
-    _mapping: OrderedBidictBase[KT, _t.Any]
+class _OrderedBidictKeysView(BiKeysView[KT, VT]):
+    _mapping: OrderedBidictBase[KT, VT]
 
     def __reversed__(self) -> _t.Iterator[KT]:
         return reversed(self._mapping)
 
 
-class _OrderedBidictItemsView(ItemsView[KT, VT]):
+class _OrderedBidictItemsView(BiItemsView[KT, VT]):
     _mapping: OrderedBidictBase[KT, VT]
 
     def __reversed__(self) -> _t.Iterator[_t.Tuple[KT, VT]]:
@@ -306,29 +304,38 @@ class _OrderedBidictItemsView(ItemsView[KT, VT]):
 
 
 def _add_proxy_methods(
-    cls: _t.Type[_t.MappingView],
-    proxy_to_fwdm_view: str,
+    cls: _t.Type[BiMappingView[KT, VT]],
+    viewname: str,
     methods: _t.Iterable[str] = (
         '__lt__', '__le__', '__gt__', '__ge__', '__eq__', '__ne__',
         '__or__', '__ror__', '__xor__', '__rxor__', '__and__', '__rand__',
         '__sub__', '__rsub__', 'isdisjoint', '__contains__', '__len__',
     )
 ) -> None:
-    assert proxy_to_fwdm_view in ('keys', 'items')
+    assert viewname in ('keys', 'items')
+
     def make_proxy_method(methodname: str) -> _t.Any:
-        def meth(self: _t.MappingView, *args: _t.Any) -> _t.Any:
-            view = getattr(self._mapping._fwdm, proxy_to_fwdm_view)()  # type: ignore [attr-defined]
-            meth = getattr(view, methodname)
-            return meth(*args)
+        def meth(self: BiMappingView[KT, VT], *args: _t.Any) -> _t.Any:
+            self_bi = self._mapping
+            fwdm_view = getattr(self_bi._fwdm, viewname)()
+            if len(args) == 1 and isinstance(args[0], BiMappingView):
+                other_bi = args[0]._mapping
+                other_view = getattr(other_bi._fwdm, viewname)()
+                args = (other_view,)
+            rv = getattr(fwdm_view, methodname)(*args)
+            if rv is NotImplemented:
+                print(f'{fwdm_view}.{methodname}(*{args}) is NotImplemented')
+            return rv
         meth.__name__ = methodname
         meth.__qualname__ = f'{cls.__qualname__}.{methodname}'
         return meth
+
     for methodname in methods:
         setattr(cls, methodname, make_proxy_method(methodname))
 
 
-_add_proxy_methods(_OrderedBidictKeysView, proxy_to_fwdm_view='keys')
-_add_proxy_methods(_OrderedBidictItemsView, proxy_to_fwdm_view='items')
+_add_proxy_methods(_OrderedBidictKeysView, 'keys')
+_add_proxy_methods(_OrderedBidictItemsView, 'items')
 
 
 #                             * Code review nav *

@@ -32,7 +32,7 @@ import typing as _t
 from ._abc import MutableBidirectionalMapping
 from ._base import BidictBase
 from ._dup import OnDup, ON_DUP_RAISE, ON_DUP_DROP_OLD
-from ._typing import NONE, KT, VT, DT, ODT, IterItems, MapOrIterItems
+from ._typing import KT, VT, DT, ODT, MISSING, IterItems, MapOrIterItems
 
 
 class MutableBidict(BidictBase[KT, VT], MutableBidirectionalMapping[KT, VT]):
@@ -72,7 +72,7 @@ class MutableBidict(BidictBase[KT, VT], MutableBidirectionalMapping[KT, VT]):
             existing item and *val* duplicates the value of a different
             existing item.
         """
-        self._put(key, val, self.on_dup)
+        self.put(key, val, on_dup=self.on_dup)
 
     def put(self, key: KT, val: VT, on_dup: OnDup = ON_DUP_RAISE) -> None:
         """Associate *key* with *val*, honoring the :class:`OnDup` given in *on_dup*.
@@ -98,7 +98,7 @@ class MutableBidict(BidictBase[KT, VT], MutableBidirectionalMapping[KT, VT]):
             duplicates another existing item's, and *on_dup.kv* is
             :attr:`~bidict.RAISE`.
         """
-        self._put(key, val, on_dup)
+        self._update(args=(((key, val),),), on_dup=on_dup)
 
     def forceput(self, key: KT, val: VT) -> None:
         """Associate *key* with *val* unconditionally.
@@ -106,7 +106,7 @@ class MutableBidict(BidictBase[KT, VT], MutableBidirectionalMapping[KT, VT]):
         Replace any existing mappings containing key *key* or value *val*
         as necessary to preserve uniqueness.
         """
-        self._put(key, val, ON_DUP_DROP_OLD)
+        self.put(key, val, on_dup=ON_DUP_DROP_OLD)
 
     def clear(self) -> None:
         """Remove all items."""
@@ -115,12 +115,11 @@ class MutableBidict(BidictBase[KT, VT], MutableBidirectionalMapping[KT, VT]):
 
     @_t.overload
     def pop(self, __key: KT, __default: DT) -> _t.Union[VT, DT]: ...
-
     @_t.overload
     def pop(self, __key: KT) -> VT: ...
     @_t.overload
     def pop(self, __key: KT, __default: _t.Union[VT, DT] = ...) -> _t.Union[VT, DT]: ...
-    def pop(self, key: KT, default: ODT[DT] = NONE) -> _t.Union[VT, DT]:
+    def pop(self, key: KT, default: ODT[DT] = MISSING) -> _t.Union[VT, DT]:
         """*x.pop(k[, d]) → v*
 
         Remove specified key and return the corresponding value.
@@ -130,7 +129,7 @@ class MutableBidict(BidictBase[KT, VT], MutableBidirectionalMapping[KT, VT]):
         try:
             return self._pop(key)
         except KeyError:
-            if default is NONE:
+            if default is MISSING:
                 raise
             return default
 
@@ -156,7 +155,7 @@ class MutableBidict(BidictBase[KT, VT], MutableBidirectionalMapping[KT, VT]):
     def update(self, *args: MapOrIterItems[KT, VT], **kw: VT) -> None:
         """Like calling :meth:`putall` with *self.on_dup* passed for *on_dup*."""
         if args or kw:
-            self._update(False, self.on_dup, *args, **kw)
+            self._update(args=args, kw=kw)
 
     @_t.overload
     def forceupdate(self, __arg: _t.Mapping[KT, VT], **kw: VT) -> None: ...
@@ -166,7 +165,7 @@ class MutableBidict(BidictBase[KT, VT], MutableBidirectionalMapping[KT, VT]):
     def forceupdate(self, **kw: VT) -> None: ...
     def forceupdate(self, *args: MapOrIterItems[KT, VT], **kw: VT) -> None:
         """Like a bulk :meth:`forceput`."""
-        self._update(False, ON_DUP_DROP_OLD, *args, **kw)
+        self._update(args=args, kw=kw, on_dup=ON_DUP_DROP_OLD)
 
     def __ior__(self, other: _t.Mapping[KT, VT]) -> 'MutableBidict[KT, VT]':
         """Return self|=other."""
@@ -176,7 +175,7 @@ class MutableBidict(BidictBase[KT, VT], MutableBidirectionalMapping[KT, VT]):
     @_t.overload
     def putall(self, items: _t.Mapping[KT, VT], on_dup: OnDup) -> None: ...
     @_t.overload
-    def putall(self, items: IterItems[KT, VT], on_dup: OnDup = ON_DUP_RAISE) -> None: ...
+    def putall(self, items: IterItems[KT, VT], on_dup: OnDup = ...) -> None: ...
     def putall(self, items: MapOrIterItems[KT, VT], on_dup: OnDup = ON_DUP_RAISE) -> None:
         """Like a bulk :meth:`put`.
 
@@ -184,7 +183,7 @@ class MutableBidict(BidictBase[KT, VT], MutableBidirectionalMapping[KT, VT]):
         none of the items is inserted.
         """
         if items:
-            self._update(False, on_dup, items)
+            self._update(args=(items,), on_dup=on_dup)
 
 
 #                             * Code review nav *
