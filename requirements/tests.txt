@@ -14,15 +14,15 @@ babel==2.9.1
     # via sphinx
 certifi==2021.10.8
     # via requests
-charset-normalizer==2.0.9
+charset-normalizer==2.0.11
     # via requests
-coverage[toml]==6.2
+coverage[toml]==6.3.1
     # via
     #   -r tests.in
     #   pytest-cov
 docutils==0.17.1
     # via sphinx
-hypothesis==6.34.1
+hypothesis==6.36.1
     # via -r tests.in
 icdiff==2.0.4
     # via pytest-icdiff
@@ -50,9 +50,9 @@ py==1.11.0
     #   pytest
 py-cpuinfo==8.0.0
     # via pytest-benchmark
-pygments==2.11.1
+pygments==2.11.2
     # via sphinx
-pyparsing==3.0.6
+pyparsing==3.0.7
     # via packaging
 pytest==6.2.5
     # via
@@ -68,7 +68,7 @@ pytest-icdiff==0.5
     # via -r tests.in
 pytz==2021.3
     # via babel
-requests==2.26.0
+requests==2.27.1
     # via sphinx
 snowballstemmer==2.2.0
     # via sphinx
@@ -79,7 +79,7 @@ sortedcontainers==2.4.0
     #   -r tests.in
     #   hypothesis
     #   sortedcollections
-sphinx==4.3.2
+sphinx==4.4.0
     # via
     #   -r docs.in
     #   sphinx-copybutton
@@ -101,8 +101,5 @@ toml==0.10.2
     # via pytest
 tomli==2.0.0
     # via coverage
-urllib3==1.26.7
+urllib3==1.26.8
     # via requests
-
-# The following packages are considered to be unsafe in a requirements file:
-# setuptools

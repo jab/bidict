@@ -6,7 +6,7 @@
 #
 alabaster==0.7.12
     # via sphinx
-astroid==2.9.1
+astroid==2.9.3
     # via pylint
 attrs==21.4.0
     # via
@@ -20,13 +20,13 @@ certifi==2021.10.8
     # via requests
 cfgv==3.3.1
     # via pre-commit
-charset-normalizer==2.0.9
+charset-normalizer==2.0.11
     # via requests
 check-manifest==0.47
     # via -r dev.in
 click==8.0.3
     # via pip-tools
-coverage[toml]==6.2
+coverage[toml]==6.3.1
     # via
     #   -r tests.in
     #   pytest-cov
@@ -38,13 +38,13 @@ filelock==3.4.2
     # via
     #   tox
     #   virtualenv
-hypothesis==6.34.1
+hypothesis==6.36.1
     # via
     #   -r lint.in
     #   -r tests.in
 icdiff==2.0.4
     # via pytest-icdiff
-identify==2.4.1
+identify==2.4.7
     # via pre-commit
 idna==3.3
     # via requests
@@ -86,7 +86,7 @@ pluggy==1.0.0
     #   tox
 pprintpp==0.4.0
     # via pytest-icdiff
-pre-commit==2.16.0
+pre-commit==2.17.0
     # via
     #   -r dev.in
     #   -r lint.in
@@ -97,11 +97,11 @@ py==1.11.0
     #   tox
 py-cpuinfo==8.0.0
     # via pytest-benchmark
-pygments==2.11.1
+pygments==2.11.2
     # via sphinx
 pylint==2.12.2
     # via -r pylint.in
-pyparsing==3.0.6
+pyparsing==3.0.7
     # via packaging
 pytest==6.2.5
     # via
@@ -120,7 +120,7 @@ pytz==2021.3
     # via babel
 pyyaml==6.0
     # via pre-commit
-requests==2.26.0
+requests==2.27.1
     # via sphinx
 six==1.16.0
     # via
@@ -135,7 +135,7 @@ sortedcontainers==2.4.0
     #   -r tests.in
     #   hypothesis
     #   sortedcollections
-sphinx==4.3.2
+sphinx==4.4.0
     # via
     #   -r docs.in
     #   sphinx-copybutton
@@ -167,9 +167,9 @@ tomli==2.0.0
     #   pep517
 tox==3.24.5
     # via -r dev.in
-urllib3==1.26.7
+urllib3==1.26.8
     # via requests
-virtualenv==20.12.1
+virtualenv==20.13.0
     # via
     #   pre-commit
     #   tox
