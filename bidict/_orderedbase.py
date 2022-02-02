@@ -193,8 +193,8 @@ class OrderedBidictBase(BidictBase[KT, VT]):
         self._dissoc_node(node)
         return val
 
-    def _prep_write_deduped(self, newkey: KT, newval: VT, oldkey: OKT[KT], oldval: OVT[VT], save_unwrite: bool) -> PreparedWrite:
-        write, unwrite = super()._prep_write_deduped(newkey, newval, oldkey, oldval, save_unwrite)
+    def _prep_write(self, newkey: KT, newval: VT, oldkey: OKT[KT], oldval: OVT[VT], save_unwrite: bool) -> PreparedWrite:
+        write, unwrite = super()._prep_write(newkey, newval, oldkey, oldval, save_unwrite)
         assoc, dissoc = self._assoc_node, self._dissoc_node
         node_by_key, node_by_val = self._node_by_key, self._node_by_val
         if oldval is MISSING and oldkey is MISSING:  # no key or value duplication

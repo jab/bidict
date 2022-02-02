@@ -320,13 +320,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         # else neither isdupkey nor isdupval.
         return (oldkey, oldval)
 
-    def _prep_write(self, key: KT, val: VT, on_dup: OnDup, save_unwrite: bool = True) -> PreparedWrite:
-        dedup_result = self._dedup(key, val, on_dup)  # Propagate any DuplicationError this raises.
-        if dedup_result is None:  # Writing this item would be a no-op.
-            return [], []
-        return self._prep_write_deduped(key, val, *dedup_result, save_unwrite=save_unwrite)
-
-    def _prep_write_deduped(self, newkey: KT, newval: VT, oldkey: OKT[KT], oldval: OVT[VT], save_unwrite: bool) -> PreparedWrite:
+    def _prep_write(self, newkey: KT, newval: VT, oldkey: OKT[KT], oldval: OVT[VT], save_unwrite: bool) -> PreparedWrite:
         fwdm, invm = self._fwdm, self._invm
         write: Write = [
             (fwdm.__setitem__, newkey, newval),
@@ -418,7 +412,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         prep_write = self._prep_write
         for (key, val) in _iteritems_args_kw(*args, **kw):
             try:
-                write, unwrite = prep_write(key, val, on_dup, save_unwrite=rbof)
+                dedup_result = self._dedup(key, val, on_dup)
             except DuplicationError:
                 if rbof:
                     while unwrites:  # apply saved unwrites
@@ -426,9 +420,12 @@ class BidictBase(BidirectionalMapping[KT, VT]):
                         for op, *opargs in unwrite:
                             op(*opargs)
                 raise
+            if dedup_result is None:  # no-op
+                continue
+            write, unwrite = prep_write(key, val, *dedup_result, save_unwrite=rbof)
             for op, *opargs in write:  # apply the write
                 op(*opargs)
-            if rbof and unwrite:
+            if rbof and unwrite:  # save the unwrite for later application if needed
                 append_unwrite(unwrite)
 
     def copy(self: BT) -> BT:
