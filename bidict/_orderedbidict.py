@@ -44,9 +44,7 @@ class OrderedBidict(OrderedBidictBase[KT, VT], MutableBidict[KT, VT]):
     def clear(self) -> None:
         """Remove all items."""
         super().clear()
-        nodemap = self._node_by_val if self._node_by_key is None else self._node_by_key
-        assert nodemap is not None
-        nodemap.clear()
+        self._node_by_korv[0].clear()
         self._sntl.nxt = self._sntl.prv = self._sntl
 
     def popitem(self, last: bool = True) -> _t.Tuple[KT, VT]:
@@ -60,12 +58,11 @@ class OrderedBidict(OrderedBidictBase[KT, VT], MutableBidict[KT, VT]):
         if not self:
             raise KeyError('mapping is empty')  # match {}.pop() and bidict().pop()
         node = getattr(self._sntl, 'prv' if last else 'nxt')
-        if self._node_by_key is not None:
-            key = self._node_by_key.inverse[node]
-            return key, self._pop(key)
-        assert self._node_by_val is not None
-        val = self._node_by_val.inverse[node]
-        return self.inverse._pop(val), val
+        node_by_korv, bykey = self._node_by_korv
+        korv = node_by_korv.inverse[node]
+        if bykey:
+            return korv, self._pop(korv)
+        return self.inverse._pop(korv), korv
 
     def move_to_end(self, key: KT, last: bool = True) -> None:
         """Move an existing key to the beginning or end of this ordered bidict.
@@ -74,12 +71,9 @@ class OrderedBidict(OrderedBidictBase[KT, VT], MutableBidict[KT, VT]):
 
         :raises KeyError: if the key does not exist
         """
-        if self._node_by_key is not None:
-            node = self._node_by_key[key]
-        else:
-            assert self._node_by_val is not None
-            val = self._fwdm[key]
-            node = self._node_by_val[val]
+        node_by_korv, bykey = self._node_by_korv
+        korv = key if bykey else self._fwdm[key]
+        node = node_by_korv[korv]
         node.prv.nxt = node.nxt
         node.nxt.prv = node.prv
         sntl = self._sntl

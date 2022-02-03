@@ -115,14 +115,16 @@ class SentinelNode(Node):
 OBT = _t.TypeVar('OBT', bound='OrderedBidictBase[_t.Any, _t.Any]')
 
 
+NodeByKorV = _t.Tuple[bidict, bool]
+
+
 class OrderedBidictBase(BidictBase[KT, VT]):
     """Base class implementing an ordered :class:`BidirectionalMapping`."""
 
     #: The object used by :meth:`__repr__` for printing the contained items.
     _repr_delegate = list
 
-    _node_by_key: _t.Optional[bidict[KT, Node]]
-    _node_by_val: _t.Optional[bidict[VT, Node]]
+    _node_by_korv: NodeByKorV
 
     @_t.overload
     def __init__(self, __arg: _t.Mapping[KT, VT], **kw: VT) -> None: ...
@@ -140,29 +142,23 @@ class OrderedBidictBase(BidictBase[KT, VT]):
         similar to :class:`collections.OrderedDict`.
         """
         self._sntl = SentinelNode()
-        self._node_by_key = bidict()
-        self._node_by_val = None
+        self._node_by_korv = bidict(), True
         super().__init__(*args, **kw)  # calls _init_inv()
 
     def _init_inv(self) -> None:
         super()._init_inv()
         self.inverse._sntl = self._sntl
-        self.inverse._node_by_key = self._node_by_val
-        self.inverse._node_by_val = self._node_by_key
+        node_by_korv, bykey = self._node_by_korv
+        self.inverse._node_by_korv = node_by_korv, not bykey
 
     def _assoc_node(self, node: Node, key: KT, val: VT) -> None:
-        if self._node_by_key is not None:
-            self._node_by_key.forceput(key, node)
-        else:
-            assert self._node_by_val is not None
-            self._node_by_val.forceput(val, node)
+        node_by_korv, bykey = self._node_by_korv
+        korv = key if bykey else val
+        node_by_korv.forceput(korv, node)
 
     def _dissoc_node(self, node: Node) -> None:
-        if self._node_by_key is not None:
-            del self._node_by_key.inverse[node]
-        else:
-            assert self._node_by_val is not None
-            del self._node_by_val.inverse[node]
+        node_by_korv = self._node_by_korv[0]
+        del node_by_korv.inverse[node]
         node.unlink()
 
     if _t.TYPE_CHECKING:
@@ -172,31 +168,26 @@ class OrderedBidictBase(BidictBase[KT, VT]):
     def _init_from(self, other: BidictBase[KT, VT]) -> None:
         """Efficiently clone this ordered bidict by copying its internal structure into *other*."""
         super()._init_from(other)
-        korv = self._node_by_key is not None
-        node_by_korv = self._node_by_key if korv else self._node_by_val
-        assert node_by_korv is not None
+        node_by_korv, bykey = self._node_by_korv
         korv_by_node = node_by_korv.inverse
         korv_by_node.clear()
         korv_by_node_set = korv_by_node.__setitem__
         self._sntl.nxt = self._sntl.prv = self._sntl
         new_node = self._sntl.new_last_node
         for (k, v) in other.items():
-            korv_by_node_set(new_node(), k if korv else v)  # type: ignore [assignment]
+            korv_by_node_set(new_node(), k if bykey else v)
 
     def _pop(self, key: KT) -> VT:
         val = super()._pop(key)
-        if self._node_by_key is not None:
-            node = self._node_by_key[key]
-        else:
-            assert self._node_by_val is not None
-            node = self._node_by_val[val]
+        node_by_korv, bykey = self._node_by_korv
+        node = node_by_korv[key if bykey else val]
         self._dissoc_node(node)
         return val
 
     def _prep_write(self, newkey: KT, newval: VT, oldkey: OKT[KT], oldval: OVT[VT], save_unwrite: bool) -> PreparedWrite:
         write, unwrite = super()._prep_write(newkey, newval, oldkey, oldval, save_unwrite)
         assoc, dissoc = self._assoc_node, self._dissoc_node
-        node_by_key, node_by_val = self._node_by_key, self._node_by_val
+        node_by_korv, bykey = self._node_by_korv
         if oldval is MISSING and oldkey is MISSING:  # no key or value duplication
             # {0: 1, 2: 3} + (4, 5) => {0: 1, 2: 3, 4: 5}
             newnode = self._sntl.new_last_node()
@@ -207,13 +198,12 @@ class OrderedBidictBase(BidictBase[KT, VT]):
             # {0: 1, 2: 3} + (0, 3) => {0: 3}
             #    n1, n2             =>   n1   (collapse n1 and n2 into n1)
             # oldkey: 2, oldval: 1, oldnode: n2, newkey: 0, newval: 3, newnode: n1
-            if node_by_key is not None:
-                oldnode = node_by_key[oldkey]
-                newnode = node_by_key[newkey]
+            if bykey:
+                oldnode = node_by_korv[oldkey]
+                newnode = node_by_korv[newkey]
             else:
-                assert node_by_val is not None
-                oldnode = node_by_val[newval]
-                newnode = node_by_val[oldval]
+                oldnode = node_by_korv[newval]
+                newnode = node_by_korv[oldval]
             write.extend((
                 (dissoc, oldnode),
                 (assoc, newnode, newkey, newval),
@@ -227,11 +217,7 @@ class OrderedBidictBase(BidictBase[KT, VT]):
         elif oldval is not MISSING:  # just key duplication
             # {0: 1, 2: 3} + (2, 4) => {0: 1, 2: 4}
             # oldkey: MISSING, oldval: 3, newkey: 2, newval: 4
-            if node_by_key is not None:
-                node = node_by_key[newkey]
-            else:
-                assert node_by_val is not None
-                node = node_by_val[oldval]
+            node = node_by_korv[newkey if bykey else oldval]
             write.append((assoc, node, newkey, newval))
             if save_unwrite:
                 unwrite.append((assoc, node, newkey, oldval))
@@ -239,11 +225,7 @@ class OrderedBidictBase(BidictBase[KT, VT]):
             assert oldkey is not MISSING  # just value duplication
             # {0: 1, 2: 3} + (4, 3) => {0: 1, 4: 3}
             # oldkey: 2, oldval: MISSING, newkey: 4, newval: 3
-            if node_by_key is not None:
-                node = node_by_key[oldkey]
-            else:
-                assert node_by_val is not None
-                node = node_by_val[newval]
+            node = node_by_korv[oldkey if bykey else newval]
             write.append((assoc, node, newkey, newval))
             if save_unwrite:
                 unwrite.append((assoc, node, oldkey, newval))
@@ -259,11 +241,11 @@ class OrderedBidictBase(BidictBase[KT, VT]):
 
     def _iter(self, *, reverse: bool = False) -> _t.Iterator[KT]:
         nodes = self._sntl.iternodes(reverse=reverse)
+        node_by_korv, bykey = self._node_by_korv
         # Use map() here because it's faster than using generator comprehensions.
-        if self._node_by_key is not None:
-            return map(self._node_by_key._invm.__getitem__, nodes)
-        assert self._node_by_val is not None
-        vals = map(self._node_by_val._invm.__getitem__, nodes)
+        if bykey:
+            return map(node_by_korv._invm.__getitem__, nodes)
+        vals = map(node_by_korv._invm.__getitem__, nodes)
         return map(self._invm.__getitem__, vals)
 
     def keys(self) -> BiKeysView[KT, VT]:

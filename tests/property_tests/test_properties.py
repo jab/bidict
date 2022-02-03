@@ -436,8 +436,7 @@ def test_orderedbidict_nodes_freed_on_zero_refcount(ob_cls, init_items):
 @given(st.ORDERED_BIDICTS)
 def test_orderedbidict_nodes_consistent(ob):
     """The nodes in an ordered bidict's backing linked list should be the same as those in its backing mapping."""
-    nodemap = ob._node_by_key if ob._node_by_key is not None else ob._node_by_val
-    mapnodes = set(nodemap.inverse)
+    mapnodes = set(ob._node_by_korv[0].inverse)
     listnodes = set(ob._sntl.iternodes())
     assert mapnodes == listnodes
 
