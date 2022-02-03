@@ -27,7 +27,7 @@
 
 """Provide :class:`MutableBidict`."""
 
-import typing as _t
+import typing as t
 
 from ._abc import MutableBidirectionalMapping
 from ._base import BidictBase
@@ -38,7 +38,7 @@ from ._typing import KT, VT, DT, ODT, MISSING, IterItems, MapOrIterItems
 class MutableBidict(BidictBase[KT, VT], MutableBidirectionalMapping[KT, VT]):
     """Base class for mutable bidirectional mappings."""
 
-    if _t.TYPE_CHECKING:
+    if t.TYPE_CHECKING:
         @property
         def inverse(self) -> 'MutableBidict[VT, KT]': ...
 
@@ -113,13 +113,13 @@ class MutableBidict(BidictBase[KT, VT], MutableBidirectionalMapping[KT, VT]):
         self._fwdm.clear()
         self._invm.clear()
 
-    @_t.overload
-    def pop(self, __key: KT, __default: DT) -> _t.Union[VT, DT]: ...
-    @_t.overload
+    @t.overload
+    def pop(self, __key: KT, __default: DT) -> t.Union[VT, DT]: ...
+    @t.overload
     def pop(self, __key: KT) -> VT: ...
-    @_t.overload
-    def pop(self, __key: KT, __default: _t.Union[VT, DT] = ...) -> _t.Union[VT, DT]: ...
-    def pop(self, key: KT, default: ODT[DT] = MISSING) -> _t.Union[VT, DT]:
+    @t.overload
+    def pop(self, __key: KT, __default: t.Union[VT, DT] = ...) -> t.Union[VT, DT]: ...
+    def pop(self, key: KT, default: ODT[DT] = MISSING) -> t.Union[VT, DT]:
         """*x.pop(k[, d]) → v*
 
         Remove specified key and return the corresponding value.
@@ -133,7 +133,7 @@ class MutableBidict(BidictBase[KT, VT], MutableBidirectionalMapping[KT, VT]):
                 raise
             return default
 
-    def popitem(self) -> _t.Tuple[KT, VT]:
+    def popitem(self) -> t.Tuple[KT, VT]:
         """*x.popitem() → (k, v)*
 
         Remove and return some item as a (key, value) pair.
@@ -146,35 +146,35 @@ class MutableBidict(BidictBase[KT, VT], MutableBidirectionalMapping[KT, VT]):
         del self._invm[val]
         return key, val
 
-    @_t.overload
-    def update(self, __m: _t.Mapping[KT, VT], **kw: VT) -> None: ...
-    @_t.overload
+    @t.overload
+    def update(self, __m: t.Mapping[KT, VT], **kw: VT) -> None: ...
+    @t.overload
     def update(self, __m: IterItems[KT, VT], **kw: VT) -> None: ...
-    @_t.overload
+    @t.overload
     def update(self, **kw: VT) -> None: ...
     def update(self, *args: MapOrIterItems[KT, VT], **kw: VT) -> None:
         """Like calling :meth:`putall` with *self.on_dup* passed for *on_dup*."""
         if args or kw:
             self._update(args=args, kw=kw)
 
-    @_t.overload
-    def forceupdate(self, __arg: _t.Mapping[KT, VT], **kw: VT) -> None: ...
-    @_t.overload
+    @t.overload
+    def forceupdate(self, __arg: t.Mapping[KT, VT], **kw: VT) -> None: ...
+    @t.overload
     def forceupdate(self, __arg: IterItems[KT, VT], **kw: VT) -> None: ...
-    @_t.overload
+    @t.overload
     def forceupdate(self, **kw: VT) -> None: ...
     def forceupdate(self, *args: MapOrIterItems[KT, VT], **kw: VT) -> None:
         """Like a bulk :meth:`forceput`."""
         self._update(args=args, kw=kw, on_dup=ON_DUP_DROP_OLD)
 
-    def __ior__(self, other: _t.Mapping[KT, VT]) -> 'MutableBidict[KT, VT]':
+    def __ior__(self, other: t.Mapping[KT, VT]) -> 'MutableBidict[KT, VT]':
         """Return self|=other."""
         self.update(other)
         return self
 
-    @_t.overload
-    def putall(self, items: _t.Mapping[KT, VT], on_dup: OnDup) -> None: ...
-    @_t.overload
+    @t.overload
+    def putall(self, items: t.Mapping[KT, VT], on_dup: OnDup) -> None: ...
+    @t.overload
     def putall(self, items: IterItems[KT, VT], on_dup: OnDup = ...) -> None: ...
     def putall(self, items: MapOrIterItems[KT, VT], on_dup: OnDup = ON_DUP_RAISE) -> None:
         """Like a bulk :meth:`put`.
@@ -187,9 +187,14 @@ class MutableBidict(BidictBase[KT, VT], MutableBidirectionalMapping[KT, VT]):
 
 
 class bidict(MutableBidict[KT, VT]):
-    """Base class for mutable bidirectional mappings."""
+    """The main bidirectional mapping type.
 
-    if _t.TYPE_CHECKING:
+    See :ref:`intro` and :ref:`basic-usage`
+    (also available at `<https://bidict.readthedocs.io>`__)
+    to get started.
+    """
+
+    if t.TYPE_CHECKING:
         @property
         def inverse(self) -> 'bidict[VT, KT]': ...
 

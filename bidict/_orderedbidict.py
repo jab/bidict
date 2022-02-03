@@ -27,7 +27,7 @@
 
 """Provide :class:`OrderedBidict`."""
 
-import typing as _t
+import typing as t
 
 from ._bidict import MutableBidict
 from ._orderedbase import OrderedBidictBase
@@ -37,7 +37,7 @@ from ._typing import KT, VT
 class OrderedBidict(OrderedBidictBase[KT, VT], MutableBidict[KT, VT]):
     """Mutable bidict type that maintains items in insertion order."""
 
-    if _t.TYPE_CHECKING:
+    if t.TYPE_CHECKING:
         @property
         def inverse(self) -> 'OrderedBidict[VT, KT]': ...
 
@@ -47,7 +47,7 @@ class OrderedBidict(OrderedBidictBase[KT, VT], MutableBidict[KT, VT]):
         self._node_by_korv[0].clear()
         self._sntl.nxt = self._sntl.prv = self._sntl
 
-    def popitem(self, last: bool = True) -> _t.Tuple[KT, VT]:
+    def popitem(self, last: bool = True) -> t.Tuple[KT, VT]:
         """*b.popitem() → (k, v)*
 
         Remove and return the most recently added item as a (key, value) pair

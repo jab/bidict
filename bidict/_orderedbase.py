@@ -27,7 +27,7 @@
 
 """Provide :class:`OrderedBidictBase`."""
 
-import typing as _t
+import typing as t
 from weakref import ref as weakref
 
 from ._base import BidictBase, PreparedWrite, BiMappingView, BiKeysView, BiItemsView
@@ -35,11 +35,11 @@ from ._bidict import bidict
 from ._typing import KT, VT, OKT, OVT, MISSING, IterItems, MapOrIterItems
 
 
-IT = _t.TypeVar('IT')  # instance type
-AT = _t.TypeVar('AT')  # attr type
+IT = t.TypeVar('IT')  # instance type
+AT = t.TypeVar('AT')  # attr type
 
 
-class WeakAttr(_t.Generic[IT, AT]):
+class WeakAttr(t.Generic[IT, AT]):
     """Automatically handle referencing/dereferencing the given slot as a weakref."""
 
     def __init__(self, *, slot: str) -> None:
@@ -48,7 +48,7 @@ class WeakAttr(_t.Generic[IT, AT]):
     def __set__(self, instance: IT, value: AT) -> None:
         setattr(instance, self.slot, weakref(value))
 
-    def __get__(self, instance: IT, owner: _t.Any) -> AT:
+    def __get__(self, instance: IT, owner: t.Any) -> AT:
         return getattr(instance, self.slot)()  # type: ignore [no-any-return]
 
 
@@ -63,7 +63,7 @@ class Node:
 
     prv: 'WeakAttr[Node, Node]' = WeakAttr(slot='_prv_weak')
     __slots__ = ('_prv_weak', 'nxt', '__weakref__')
-    if _t.TYPE_CHECKING:  # no 'prv' in __slots__ makes mypy think we don't have a 'prv' attr, so trick it:
+    if t.TYPE_CHECKING:  # no 'prv' in __slots__ makes mypy think we don't have a 'prv' attr, so trick it:
         __slots__ = ('prv', 'nxt', '__weakref__')
 
     def __init__(self, prv: 'Node', nxt: 'Node') -> None:
@@ -91,7 +91,7 @@ class SentinelNode(Node):
     def __init__(self) -> None:
         super().__init__(self, self)
 
-    def iternodes(self, *, reverse: bool = False) -> _t.Iterator[Node]:
+    def iternodes(self, *, reverse: bool = False) -> t.Iterator[Node]:
         """Iterator yielding nodes in the requested order,
         i.e. traverse the linked list via :attr:`nxt`
         (or :attr:`prv` if *reverse* is truthy),
@@ -112,10 +112,10 @@ class SentinelNode(Node):
         return new_last
 
 
-OBT = _t.TypeVar('OBT', bound='OrderedBidictBase[_t.Any, _t.Any]')
+OBT = t.TypeVar('OBT', bound='OrderedBidictBase[t.Any, t.Any]')
 
 
-NodeByKorV = _t.Tuple[bidict, bool]
+NodeByKorV = t.Tuple[bidict, bool]
 
 
 class OrderedBidictBase(BidictBase[KT, VT]):
@@ -126,11 +126,11 @@ class OrderedBidictBase(BidictBase[KT, VT]):
 
     _node_by_korv: NodeByKorV
 
-    @_t.overload
-    def __init__(self, __arg: _t.Mapping[KT, VT], **kw: VT) -> None: ...
-    @_t.overload
+    @t.overload
+    def __init__(self, __arg: t.Mapping[KT, VT], **kw: VT) -> None: ...
+    @t.overload
     def __init__(self, __arg: IterItems[KT, VT], **kw: VT) -> None: ...
-    @_t.overload
+    @t.overload
     def __init__(self, **kw: VT) -> None: ...
     def __init__(self, *args: MapOrIterItems[KT, VT], **kw: VT) -> None:
         """Make a new ordered bidirectional mapping.
@@ -161,7 +161,7 @@ class OrderedBidictBase(BidictBase[KT, VT]):
         del node_by_korv.inverse[node]
         node.unlink()
 
-    if _t.TYPE_CHECKING:
+    if t.TYPE_CHECKING:
         @property
         def inverse(self) -> 'OrderedBidictBase[VT, KT]': ...
 
@@ -231,15 +231,15 @@ class OrderedBidictBase(BidictBase[KT, VT]):
                 unwrite.append((assoc, node, oldkey, newval))
         return write, unwrite
 
-    def __iter__(self) -> _t.Iterator[KT]:
+    def __iter__(self) -> t.Iterator[KT]:
         """Iterator over the contained keys in insertion order."""
         return self._iter(reverse=False)
 
-    def __reversed__(self) -> _t.Iterator[KT]:
+    def __reversed__(self) -> t.Iterator[KT]:
         """Iterator over the contained keys in reverse insertion order."""
         return self._iter(reverse=True)
 
-    def _iter(self, *, reverse: bool = False) -> _t.Iterator[KT]:
+    def _iter(self, *, reverse: bool = False) -> t.Iterator[KT]:
         nodes = self._sntl.iternodes(reverse=reverse)
         node_by_korv, bykey = self._node_by_korv
         # Use map() here because it's faster than using generator comprehensions.
@@ -273,23 +273,23 @@ class OrderedBidictBase(BidictBase[KT, VT]):
 class _OrderedBidictKeysView(BiKeysView[KT, VT]):
     _mapping: OrderedBidictBase[KT, VT]
 
-    def __reversed__(self) -> _t.Iterator[KT]:
+    def __reversed__(self) -> t.Iterator[KT]:
         return reversed(self._mapping)
 
 
 class _OrderedBidictItemsView(BiItemsView[KT, VT]):
     _mapping: OrderedBidictBase[KT, VT]
 
-    def __reversed__(self) -> _t.Iterator[_t.Tuple[KT, VT]]:
+    def __reversed__(self) -> t.Iterator[t.Tuple[KT, VT]]:
         ob = self._mapping
         for key in reversed(ob):
             yield key, ob[key]
 
 
 def _add_proxy_methods(
-    cls: _t.Type[BiMappingView[KT, VT]],
+    cls: t.Type[BiMappingView[KT, VT]],
     viewname: str,
-    methods: _t.Iterable[str] = (
+    methods: t.Iterable[str] = (
         '__lt__', '__le__', '__gt__', '__ge__', '__eq__', '__ne__',
         '__or__', '__ror__', '__xor__', '__rxor__', '__and__', '__rand__',
         '__sub__', '__rsub__', 'isdisjoint', '__contains__', '__len__',
@@ -297,8 +297,8 @@ def _add_proxy_methods(
 ) -> None:
     assert viewname in ('keys', 'items')
 
-    def make_proxy_method(methodname: str) -> _t.Any:
-        def meth(self: BiMappingView[KT, VT], *args: _t.Any) -> _t.Any:
+    def make_proxy_method(methodname: str) -> t.Any:
+        def meth(self: BiMappingView[KT, VT], *args: t.Any) -> t.Any:
             self_bi = self._mapping
             fwdm_view = getattr(self_bi._fwdm, viewname)()
             if len(args) == 1 and isinstance(args[0], BiMappingView):

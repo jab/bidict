@@ -50,7 +50,7 @@ class OnDup(namedtuple('_OnDup', 'key val kv')):
 #: :meth:`~bidict.bidict.__init__`,
 #: :meth:`~bidict.bidict.__setitem__`, and
 #: :meth:`~bidict.bidict.update` methods.
-ON_DUP_DEFAULT = OnDup()
+ON_DUP_DEFAULT = OnDup(key=DROP_OLD, val=RAISE, kv=RAISE)
 #: An :class:`OnDup` whose members are all :obj:`RAISE`.
 ON_DUP_RAISE = OnDup(key=RAISE, val=RAISE, kv=RAISE)
 #: An :class:`OnDup` whose members are all :obj:`DROP_OLD`.

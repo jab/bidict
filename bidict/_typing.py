@@ -7,14 +7,14 @@
 
 """Provide typing-related objects."""
 
-import typing as _t
+import typing as t
 from enum import Enum
 
 
-KT = _t.TypeVar('KT')
-VT = _t.TypeVar('VT')
-IterItems = _t.Iterable[_t.Tuple[KT, VT]]
-MapOrIterItems = _t.Union[_t.Mapping[KT, VT], IterItems[KT, VT]]
+KT = t.TypeVar('KT')
+VT = t.TypeVar('VT')
+IterItems = t.Iterable[t.Tuple[KT, VT]]
+MapOrIterItems = t.Union[t.Mapping[KT, VT], IterItems[KT, VT]]
 
 
 class MissingT(Enum):
@@ -27,8 +27,8 @@ class MissingT(Enum):
 
 
 MISSING = MissingT.MISSING
-OKT = _t.Union[KT, MissingT]  #: optional key type
-OVT = _t.Union[VT, MissingT]  #: optional value type
+OKT = t.Union[KT, MissingT]  #: optional key type
+OVT = t.Union[VT, MissingT]  #: optional value type
 
-DT = _t.TypeVar('DT')  #: for default arguments
-ODT = _t.Union[DT, MissingT]
+DT = t.TypeVar('DT')  #: for default arguments
+ODT = t.Union[DT, MissingT]

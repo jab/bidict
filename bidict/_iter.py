@@ -7,7 +7,7 @@
 
 """Functions for iterating over items in a mapping."""
 
-import typing as _t
+import typing as t
 from collections.abc import Mapping
 from itertools import chain
 
@@ -31,7 +31,7 @@ def _iteritems_args_kw(*args: MapOrIterItems[KT, VT], **kw: VT) -> IterItems[KT,
     args_len = len(args)
     if args_len > 1:
         raise TypeError(f'Expected at most 1 positional argument, got {args_len}')
-    it: IterItems[_t.Any, VT] = iter(())
+    it: IterItems[t.Any, VT] = iter(())
     if args:
         arg = args[0]
         if arg:

@@ -26,7 +26,7 @@
 
 """Provide :class:`FrozenOrderedBidict`, an immutable, hashable, ordered bidict."""
 
-import typing as _t
+import typing as t
 
 from ._base import BidictBase
 from ._frozenbidict import frozenbidict
@@ -50,9 +50,9 @@ class FrozenOrderedBidict(OrderedBidictBase[KT, VT]):
     the ordering of the items can make the ordering dependence more explicit.
     """
 
-    __hash__: _t.Callable[[_t.Any], int] = frozenbidict.__hash__
+    __hash__: t.Callable[[t.Any], int] = frozenbidict.__hash__
 
-    if _t.TYPE_CHECKING:
+    if t.TYPE_CHECKING:
         @property
         def inverse(self) -> 'FrozenOrderedBidict[VT, KT]': ...
 

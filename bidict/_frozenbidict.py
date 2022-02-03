@@ -26,7 +26,7 @@
 
 """Provide :class:`frozenbidict`, an immutable, hashable bidirectional mapping type."""
 
-import typing as _t
+import typing as t
 
 from ._base import BidictBase
 from ._typing import KT, VT
@@ -40,14 +40,14 @@ class frozenbidict(BidictBase[KT, VT]):
     # Work around lack of support for higher-kinded types in mypy.
     # Ref: https://github.com/python/typing/issues/548#issuecomment-621571821
     # Remove this and similar type stubs from other classes if support is ever added.
-    if _t.TYPE_CHECKING:
+    if t.TYPE_CHECKING:
         @property
         def inverse(self) -> 'frozenbidict[VT, KT]': ...
 
     def __hash__(self) -> int:
         """The hash of this bidict as determined by its items."""
         if getattr(self, '_hash', None) is None:
-            self._hash = _t.ItemsView(self)._hash()  # type: ignore [attr-defined]
+            self._hash = t.ItemsView(self)._hash()  # type: ignore [attr-defined]
         return self._hash
 
 

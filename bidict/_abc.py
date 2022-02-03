@@ -27,13 +27,13 @@
 
 """Provide the :class:`BidirectionalMapping` abstract base class."""
 
-import typing as _t
+import typing as t
 from abc import abstractmethod
 
 from ._typing import KT, VT
 
 
-class BidirectionalMapping(_t.Mapping[KT, VT]):
+class BidirectionalMapping(t.Mapping[KT, VT]):
     """Abstract base class for bidirectional mapping types.
 
     Extends :class:`collections.abc.Mapping` primarily by adding the
@@ -61,7 +61,7 @@ class BidirectionalMapping(_t.Mapping[KT, VT]):
         # clear there's no reason to call this implementation (e.g. via super() after overriding).
         raise NotImplementedError
 
-    def __inverted__(self) -> _t.Iterator[_t.Tuple[VT, KT]]:
+    def __inverted__(self) -> t.Iterator[t.Tuple[VT, KT]]:
         """Get an iterator over the items in :attr:`inverse`.
 
         This is functionally equivalent to iterating over the items in the
@@ -78,7 +78,7 @@ class BidirectionalMapping(_t.Mapping[KT, VT]):
         return iter(self.inverse.items())
 
 
-class MutableBidirectionalMapping(BidirectionalMapping[KT, VT], _t.MutableMapping[KT, VT]):
+class MutableBidirectionalMapping(BidirectionalMapping[KT, VT], t.MutableMapping[KT, VT]):
     """Abstract base class for mutable bidirectional mapping types."""
 
     __slots__ = ()
