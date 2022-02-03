@@ -259,11 +259,12 @@ class OrderedBidictBase(BidictBase[KT, VT]):
 
     def _iter(self, *, reverse: bool = False) -> _t.Iterator[KT]:
         nodes = self._sntl.iternodes(reverse=reverse)
-        if self._node_by_key is not None:  # Faster than a generator:
+        # Use map() here because it's faster than using generator comprehensions.
+        if self._node_by_key is not None:
             return map(self._node_by_key._invm.__getitem__, nodes)
         assert self._node_by_val is not None
-        key_by_val, val_by_node = self._invm, self._node_by_val._invm
-        return (key_by_val[val_by_node[node]] for node in nodes)
+        vals = map(self._node_by_val._invm.__getitem__, nodes)
+        return map(self._invm.__getitem__, vals)
 
     def keys(self) -> BiKeysView[KT, VT]:
         """A set-like object providing a view on the contained keys."""
