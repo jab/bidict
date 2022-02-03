@@ -203,10 +203,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         (including constant- rather than linear-time containment checks)
         and is just as cheap to provide as the less capable ValuesView would be.
 
-        Returns a dict_keys object that behaves exactly the same as collections.abc.KeysView(b.inverse),
-        except for (1) being faster when running on CPython, (2) being reversible,
-        and (3) having a .mapping attribute in Python 3.10+ that exposes a mappingproxy
-        pointing back to the (one-way) inverse dictionary that backs this bidict.
+        See :meth:`keys` for more information.
         """
         return self.inverse.keys()
 

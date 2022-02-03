@@ -28,7 +28,6 @@
 
 import typing as t
 
-from ._base import BidictBase
 from ._frozenbidict import frozenbidict
 from ._orderedbase import OrderedBidictBase
 from ._typing import KT, VT
@@ -55,16 +54,6 @@ class FrozenOrderedBidict(OrderedBidictBase[KT, VT]):
     if t.TYPE_CHECKING:
         @property
         def inverse(self) -> 'FrozenOrderedBidict[VT, KT]': ...
-
-    # Use BidictBase's implementations of the following methods, which delegate
-    # to the _fwdm/_invm dicts for more efficient implementations of these mapping views
-    # compared to those used by the implementations inherited from OrderedBidictBase.
-    # This is possible with FrozenOrderedBidict since it is immutable, i.e. mutations that
-    # could change the initial ordering (e.g. requiring a less efficient __iter__ implementation)
-    # are not supported.
-    keys = BidictBase.keys
-    values = BidictBase.values
-    items = BidictBase.items
 
 
 #                             * Code review nav *

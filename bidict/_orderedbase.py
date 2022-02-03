@@ -30,7 +30,7 @@
 import typing as t
 from weakref import ref as weakref
 
-from ._base import BidictBase, PreparedWrite, BiMappingView, BiKeysView, BiItemsView
+from ._base import BidictBase, PreparedWrite
 from ._bidict import bidict
 from ._typing import KT, VT, OKT, OVT, MISSING, IterItems, MapOrIterItems
 
@@ -248,77 +248,18 @@ class OrderedBidictBase(BidictBase[KT, VT]):
         vals = map(node_by_korv._invm.__getitem__, nodes)
         return map(self._invm.__getitem__, vals)
 
-    def keys(self) -> BiKeysView[KT, VT]:
-        """A set-like object providing a view on the contained keys."""
-        return _OrderedBidictKeysView(self)
-
-    # Override the values() inherited from BidictBase merely to override the docstring; the implementation is the same.
-    def values(self) -> BiKeysView[VT, KT]:
-        """A set-like object providing a view on the contained items.
-
-        Since the values of a bidict are equivalent to the keys of its inverse,
-        this method returns a KeysView for this bidict's inverse
-        rather than just a ValuesView for this bidict.
-        The KeysView offers the benefit of supporting set operations
-        (including constant- rather than linear-time containment checks)
-        and is just as cheap to provide as the less capable ValuesView would be.
-        """
-        return self.inverse.keys()
-
-    def items(self) -> BiItemsView[KT, VT]:
-        """A set-like object providing a view on the contained items."""
-        return _OrderedBidictItemsView(self)
-
-
-class _OrderedBidictKeysView(BiKeysView[KT, VT]):
-    _mapping: OrderedBidictBase[KT, VT]
-
-    def __reversed__(self) -> t.Iterator[KT]:
-        return reversed(self._mapping)
-
-
-class _OrderedBidictItemsView(BiItemsView[KT, VT]):
-    _mapping: OrderedBidictBase[KT, VT]
-
-    def __reversed__(self) -> t.Iterator[t.Tuple[KT, VT]]:
-        ob = self._mapping
-        for key in reversed(ob):
-            yield key, ob[key]
-
-
-def _add_proxy_methods(
-    cls: t.Type[BiMappingView[KT, VT]],
-    viewname: str,
-    methods: t.Iterable[str] = (
-        '__lt__', '__le__', '__gt__', '__ge__', '__eq__', '__ne__',
-        '__or__', '__ror__', '__xor__', '__rxor__', '__and__', '__rand__',
-        '__sub__', '__rsub__', 'isdisjoint', '__contains__', '__len__',
-    )
-) -> None:
-    assert viewname in ('keys', 'items')
-
-    def make_proxy_method(methodname: str) -> t.Any:
-        def meth(self: BiMappingView[KT, VT], *args: t.Any) -> t.Any:
-            self_bi = self._mapping
-            fwdm_view = getattr(self_bi._fwdm, viewname)()
-            if len(args) == 1 and isinstance(args[0], BiMappingView):
-                other_bi = args[0]._mapping
-                other_view = getattr(other_bi._fwdm, viewname)()
-                args = (other_view,)
-            rv = getattr(fwdm_view, methodname)(*args)
-            if rv is NotImplemented:
-                print(f'{fwdm_view}.{methodname}(*{args}) is NotImplemented')
-            return rv
-        meth.__name__ = methodname
-        meth.__qualname__ = f'{cls.__qualname__}.{methodname}'
-        return meth
-
-    for methodname in methods:
-        setattr(cls, methodname, make_proxy_method(methodname))
-
-
-_add_proxy_methods(_OrderedBidictKeysView, 'keys')
-_add_proxy_methods(_OrderedBidictItemsView, 'items')
+    # Note: We need not override the keys() and items() implementations we inherit
+    # from BidictBase, which delegate to the backing _fwdm dict for better performance,
+    # since this base class does not implement a mutable bidict, and therefore the
+    # ordering of items cannot get out of sync with the backing dict.
+    # (In CPython, dicts and dicts' MappingViews are implemented in C, so they are
+    # much faster compared to using the implementations we inherit from collections.abc.)
+    # In contrast, the subclass OrderedBidict does implement a mutable bidict, and
+    # therefore does override these methods, since mutating an existing item after
+    # initialization can change the ordering from that of the backing _fwdm dict,
+    # and so we have to use the slower __iter__ implementations of the MappingViews
+    # in collections.abc to ensure these views continue to yield items in the correct
+    # order as an OrderedBidict is mutated.
 
 
 #                             * Code review nav *
