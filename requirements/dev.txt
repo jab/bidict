@@ -100,7 +100,7 @@ py-cpuinfo==8.0.0
 pygments==2.11.2
     # via sphinx
 pylint==2.12.2
-    # via -r pylint.in
+    # via -r lint.in
 pyparsing==3.0.7
     # via packaging
 pytest==6.2.5

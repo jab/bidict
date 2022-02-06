@@ -119,6 +119,7 @@ class MutableBidict(BidictBase[KT, VT], MutableBidirectionalMapping[KT, VT]):
     def pop(self, __key: KT) -> VT: ...
     @t.overload
     def pop(self, __key: KT, __default: t.Union[VT, DT] = ...) -> t.Union[VT, DT]: ...
+
     def pop(self, key: KT, default: ODT[DT] = MISSING) -> t.Union[VT, DT]:
         """*x.pop(k[, d]) → v*
 
@@ -152,6 +153,7 @@ class MutableBidict(BidictBase[KT, VT], MutableBidirectionalMapping[KT, VT]):
     def update(self, __m: IterItems[KT, VT], **kw: VT) -> None: ...
     @t.overload
     def update(self, **kw: VT) -> None: ...
+
     def update(self, *args: MapOrIterItems[KT, VT], **kw: VT) -> None:
         """Like calling :meth:`putall` with *self.on_dup* passed for *on_dup*."""
         if args or kw:
@@ -163,6 +165,7 @@ class MutableBidict(BidictBase[KT, VT], MutableBidirectionalMapping[KT, VT]):
     def forceupdate(self, __arg: IterItems[KT, VT], **kw: VT) -> None: ...
     @t.overload
     def forceupdate(self, **kw: VT) -> None: ...
+
     def forceupdate(self, *args: MapOrIterItems[KT, VT], **kw: VT) -> None:
         """Like a bulk :meth:`forceput`."""
         self._update(args=args, kw=kw, on_dup=ON_DUP_DROP_OLD)
@@ -176,6 +179,7 @@ class MutableBidict(BidictBase[KT, VT], MutableBidirectionalMapping[KT, VT]):
     def putall(self, items: t.Mapping[KT, VT], on_dup: OnDup) -> None: ...
     @t.overload
     def putall(self, items: IterItems[KT, VT], on_dup: OnDup = ...) -> None: ...
+
     def putall(self, items: MapOrIterItems[KT, VT], on_dup: OnDup = ON_DUP_RAISE) -> None:
         """Like a bulk :meth:`put`.
 
@@ -189,7 +193,7 @@ class MutableBidict(BidictBase[KT, VT], MutableBidirectionalMapping[KT, VT]):
 class bidict(MutableBidict[KT, VT]):
     """The main bidirectional mapping type.
 
-    See :ref:`intro` and :ref:`basic-usage`
+    See :ref:`intro:Introduction` and :ref:`basic-usage:Basic Usage`
     (also available at `<https://bidict.readthedocs.io>`__)
     to get started.
     """

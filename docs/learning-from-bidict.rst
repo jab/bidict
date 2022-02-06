@@ -90,19 +90,23 @@ Stay for the rare, exotic bidirectional mapping breeds you'll rarely see at home
    Since dicts are unordered, regular bidicts are unordered too.
    How should we extend this to implement an ordered bidict?
 
-   We'll still need two backing mappings to store the forward and inverse associations.
-   To store the ordering, we use a (circular, doubly-) linked list.
-   This allows us to e.g. delete an item in any position in O(1) time.
+   :class:`~bidict.OrderedBidictBase` inherits from
+   :class:`~bidict.BidictBase` the use of two regular dicts
+   to store the forward and inverse associations.
+   And to store the ordering of the associations,
+   we use a doubly-linked list.
+   This allows us to e.g. move any item to the front
+   of the ordering in O(1) time.
 
    Interestingly, the nodes of the linked list encode only the ordering of the items;
    the nodes themselves contain no key or value data.
-XXX UPDATE:
-   The two backing mappings associate the key and value data
-   with the nodes, providing the final pieces of the puzzle.
+   An additional backing mapping associates the key/value data
+   with the nodes, providing the final piece of the puzzle.
 
-   Can we use dicts for the backing mappings, as we did for the unordered bidict?
-   It turns out that dicts aren't enough—the backing mappings must actually be
-   (unordered) bidicts themselves!
+   And since :class:`~bidict.OrderedBidictBase` needs to not only
+   look up nodes by key/value, but also key/values by nodes,
+   internally it uses an (unordered) :class:`~bidict.bidict` for this.
+   Eat your own dogfood for fun and profit!
 
 Check out `_orderedbase.py <https://github.com/jab/bidict/blob/main/bidict/_orderedbase.py#L10>`__
 to see this in action.
@@ -431,10 +435,6 @@ Python's data model
     but subclasses of :class:`object`
     that override :meth:`~object.__eq__`
     are not hashable by default.
-
-- Using :meth:`~object.__new__` to bypass default object initialization,
-  e.g. for better :meth:`~bidict.bidict.copy` performance.
-  See `_base.py <https://github.com/jab/bidict/blob/main/bidict/_bidict.py#L10>`__.
 
 - Overriding :meth:`object.__getattribute__` for custom attribute lookup.
   See :ref:`extending:\`\`SortedBidict\`\` Recipes`.

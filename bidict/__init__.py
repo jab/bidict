@@ -59,11 +59,11 @@ if _version_info < (3, 7):  # pragma: no cover
     raise ImportError('Python 3.7+ is required.')
 
 from ._abc import BidirectionalMapping as BidirectionalMapping, MutableBidirectionalMapping as MutableBidirectionalMapping
-from ._base import BidictBase as BidictBase
+from ._base import BidictBase as BidictBase, GeneratedBidictInverse as GeneratedBidictInverse
 from ._bidict import MutableBidict as MutableBidict, bidict as bidict
 from ._frozenbidict import frozenbidict as frozenbidict
 from ._frozenordered import FrozenOrderedBidict as FrozenOrderedBidict
-from ._named import namedbidict as namedbidict
+from ._named import NamedBidictBase as NamedBidictBase, namedbidict as namedbidict
 from ._orderedbase import OrderedBidictBase as OrderedBidictBase
 from ._orderedbidict import OrderedBidict as OrderedBidict
 from ._dup import ON_DUP_DEFAULT as ON_DUP_DEFAULT, ON_DUP_RAISE as ON_DUP_RAISE, ON_DUP_DROP_OLD as ON_DUP_DROP_OLD

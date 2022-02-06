@@ -112,7 +112,7 @@ def test_issubclass_internal():
     assert not issubclass(OnlyHasInverse, Mapping)
 
 
-def test_abstract_bimap_init_fails():
+def test_typeerror_on_abstract_bimap_init():
     """See the :class:`AbstractBimap` docstring above."""
     with pytest.raises(TypeError) as excinfo:
         AbstractBimap()  # pylint: disable=abstract-class-instantiated
@@ -128,9 +128,11 @@ def test_bimap_inverse_notimplemented():
         # the interface, so only way to call this implementation is on the class.
         BidirectionalMapping.inverse.fget(bidict())
 
+
 def test_bidict_reversible_matches_dict_reversible():
     """Reversibility of bidict matches dict's on all supported Python versions."""
     assert issubclass(bidict, Reversible) == issubclass(dict, Reversible)
+
 
 @pytest.mark.skipif(sys.version_info < (3, 8), reason='reversible bidicts require Python 3.8+')
 def test_bidict_reversible():

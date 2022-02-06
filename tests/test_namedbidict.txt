@@ -1,0 +1,32 @@
+# Copyright 2009-2022 Joshua Bronson. All Rights Reserved.
+#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+Test script for bidict.namedbidict:
+
+    >>> from bidict import namedbidict
+    >>> ElBySym = namedbidict('ElBySym', 'sym', 'el')
+    >>> el_by_sym = ElBySym(H='hydrogen')
+    >>> el_by_sym['H']
+    'hydrogen'
+    >>> el_by_sym.inverse['hydrogen']
+    'H'
+    >>> el_by_sym.keyname
+    'sym'
+    >>> el_by_sym.valname
+    'el'
+    >>> el_by_sym.el_for['H']
+    'hydrogen'
+    >>> el_by_sym.sym_for['hydrogen']
+    'H'
+    >>> el_by_sym.inverse.el_for['H']
+    'hydrogen'
+    >>> el_by_sym.inverse.sym_for['hydrogen']
+    'H'
+    >>> el_by_sym['He'] = 'helium'
+    >>> el_by_sym
+    ElBySym({'H': 'hydrogen', 'He': 'helium'})
+    >>> el_by_sym.inverse
+    ElBySymInv({'hydrogen': 'H', 'helium': 'He'})

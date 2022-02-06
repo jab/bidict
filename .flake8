@@ -1,0 +1,23 @@
+# http://flake8.pycqa.org/en/latest/user/configuration.html
+[flake8]
+# B = bugbear
+# E = pycodestyle errors
+# F = flake8 pyflakes
+# W = pycodestyle warnings
+# B9 = bugbear opinions
+
+ignore =
+  E501,  # line too long (REMOVE THIS if we adopt auto-formatting)
+  E265,  # block comment should start with '# '
+  E266,  # too many leading '#' for block comment
+  E402,  # import not at top of file
+  E704,  # more than one statement on a single line (flags @typing.overload's)
+  E722,  # broad except
+  F811,  # redefinition of unused ... (flags @typing.overload's)
+
+per-file-ignores =
+  # __init__.py collects functionality implemented in the rest of the package
+  # for the sole purpose of exporting it under the `bidict` module namespace,
+  # and does not understand mypy-style "import foo as foo" explicit re-exports,
+  # so ignore F401 in this file ("imported but unused").
+  bidict/__init__.py:F401

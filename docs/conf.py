@@ -31,7 +31,11 @@ import bidict
 
 # -- General configuration ------------------------------------------------
 
-suppress_warnings = ['image.nonlocal_uri']
+suppress_warnings = [
+    'image.nonlocal_uri',
+    'autodoc.import_object',
+    'autosectionlabel.*',
+]
 
 # If your documentation needs a minimal Sphinx version, state it here.
 #needs_sphinx = '1.0'
@@ -323,6 +327,8 @@ autodoc_typehints = 'description'
 
 # http://www.sphinx-doc.org/en/master/usage/extensions/doctest.html
 doctest_global_setup = """
+import sys
+not_cpython = sys.implementation.name != 'cpython'
 """
 
 # https://sphinx-copybutton.readthedocs.io/en/latest/#strip-and-configure-input-prompts-for-code-cells

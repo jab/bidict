@@ -25,7 +25,6 @@ you can use the following recipe:
    >>> from bidict import bidict, ON_DUP_DROP_OLD
 
    >>> class YoloBidict(bidict):
-   ...     __slots__ = ()
    ...     on_dup = ON_DUP_DROP_OLD
 
    >>> b = YoloBidict({'one': 1})
@@ -77,7 +76,6 @@ A safer example of this type of customization would be something like:
    >>> from bidict import ON_DUP_RAISE
 
    >>> class YodoBidict(bidict):
-   ...     __slots__ = ()
    ...     on_dup = ON_DUP_RAISE
 
    >>> b = YodoBidict({'one': 1})
@@ -90,6 +88,60 @@ A safer example of this type of customization would be something like:
    >>> b.forceput('one', 2)  # Any destructive change requires more force.
    >>> b
    YodoBidict({'one': 2})
+
+
+``WeakrefBidict`` Recipe
+########################
+
+Suppose you need a custom bidict type that only retains weakrefs
+to some objects whose refcounts you're trying not increment.
+
+With :class:`~bidict.BidictBase`\'s
+:attr:`~bidict.BidictBase._fwdm_cls` (forward mapping class) and
+:attr:`~bidict.BidictBase._invm_cls` (inverse mapping class) attributes,
+accomplishing this is as simple as:
+
+.. doctest::
+
+   >>> from bidict import MutableBidict
+   >>> from weakref import WeakKeyDictionary, WeakValueDictionary
+
+   >>> class WeakrefBidict(MutableBidict):
+   ...     _fwdm_cls = WeakKeyDictionary
+   ...     _invm_cls = WeakValueDictionary
+
+Now you can insert items into *WeakrefBidict* without incrementing any refcounts:
+
+.. doctest::
+
+   >>> id_by_obj = WeakrefBidict()
+
+   >>> class MyObj:
+   ...     def __init__(self, id):
+   ...         self.id = id
+   ...     def __repr__(self):
+   ...         return f'<MyObj id={self.id}>'
+
+   >>> o1, o2 = MyObj(1), MyObj(2)
+   >>> id_by_obj[o1] = o1.id
+   >>> id_by_obj[o2] = o2.id
+   >>> id_by_obj
+   WeakrefBidict({<MyObj id=1>: 1, <MyObj id=2>: 2})
+   >>> id_by_obj.inverse
+   WeakrefBidictInv({1: <MyObj id=1>, 2: <MyObj id=2>})
+
+If you drop your references to your objects,
+you can see that they get garbage collected on CPython right away,
+since your *WeakrefBidict* isn't holding on to them:
+
+.. doctest::
+   :skipif: not_cpython
+
+   >>> del o1, o2
+   >>> len(id_by_obj)
+   0
+   >>> id_by_obj
+   WeakrefBidict()
 
 
 ``SortedBidict`` Recipes
@@ -109,7 +161,6 @@ creating a sorted bidict is simple:
 
 .. doctest::
 
-   >>> from bidict import MutableBidict
    >>> from sortedcontainers import SortedDict
 
    >>> class SortedBidict(MutableBidict):
@@ -118,7 +169,6 @@ creating a sorted bidict is simple:
    ...     Note: As a result, an instance and its inverse yield their items
    ...     in different orders.
    ...     """
-   ...     __slots__ = ()
    ...     _fwdm_cls = SortedDict
    ...     _invm_cls = SortedDict
    ...     _repr_delegate = list  # only used for list-style repr
@@ -145,7 +195,6 @@ will yield their items in *the same* order:
    >>> from sortedcollections import ValueSortedDict
 
    >>> class KeySortedBidict(MutableBidict):
-   ...     __slots__ = ()
    ...     _fwdm_cls = SortedDict
    ...     _invm_cls = ValueSortedDict
    ...     _repr_delegate = list
@@ -235,6 +284,13 @@ because it's passed through to the backing ``SortedDict``:
 
    >>> elem_by_atomicnum.peekitem()
    (6, 'carbon')
+
+
+.. warning::
+   If you need to pickle a bidict instance whose class was dynamically generated,
+   either ensure you have a reference to its qualname in the namespace where
+   it's unpickled, or if possible, pickle its inverse whose class was not
+   dynamically generated instead.
 
 
 This goes to show how simple it can be

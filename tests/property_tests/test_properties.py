@@ -8,15 +8,15 @@
 
 import gc
 import pickle
+import sys
 import unittest.mock
 import weakref
 
 from copy import deepcopy
-from collections import OrderedDict
+from collections import OrderedDict, UserDict
 from collections.abc import Iterable, KeysView, ValuesView, ItemsView
 
 from itertools import tee
-from platform import python_implementation
 
 import pytest
 from hypothesis import assume, example, given
@@ -32,12 +32,16 @@ from bidict import (
 from bidict._iter import _iteritems_args_kw
 
 from . import _strategies as st
-from ._types import ORDER_PRESERVING_BIDICT_TYPES
+from ._types import (
+    ORDER_PRESERVING_BIDICT_TYPES,
+    BIDICT_TYPE_WHOSE_MODULE_HAS_REF_TO_INV_CLS,
+    BIDICT_TYPE_WHOSE_MODULE_HAS_NO_REF_TO_INV_CLS,
+)
 
 
-require_cpython_gc = pytest.mark.skipif(
-    python_implementation() != 'CPython',
-    reason='Requires CPython GC behavior',
+require_cpython_refcounting = pytest.mark.skipif(
+    sys.implementation.name != 'cpython',
+    reason='Requires CPython refcounting behavior',
 )
 
 
@@ -372,27 +376,19 @@ def test_namedbidict_raises_on_invalid_base_type(names, invalid_base_type):
 @given(st.NAMEDBIDICTS)
 def test_namedbidict(nb):
     """Test :func:`bidict.namedbidict` custom accessors."""
-    valfor = getattr(nb, nb._valname + '_for')
-    keyfor = getattr(nb, nb._keyname + '_for')
+    valfor = getattr(nb, nb.valname + '_for')
+    keyfor = getattr(nb, nb.keyname + '_for')
     assert all(valfor[key] == val for (key, val) in nb.items())
     assert all(keyfor[val] == key for (key, val) in nb.items())
     # The same custom accessors should work on the inverse.
     inv = nb.inv
-    valfor = getattr(inv, nb._valname + '_for')
-    keyfor = getattr(inv, nb._keyname + '_for')
+    valfor = getattr(inv, nb.valname + '_for')
+    keyfor = getattr(inv, nb.keyname + '_for')
     assert all(valfor[key] == val for (key, val) in nb.items())
     assert all(keyfor[val] == key for (key, val) in nb.items())
 
 
-@given(st.BIDICTS)
-def test_bidict_isinv(bi):
-    """All bidicts should provide ``_isinv``
-    (or else they won't fully work as a *base_type* for :func:`namedbidict`).
-    """
-    assert hasattr(bi, '_isinv')
-
-
-@require_cpython_gc
+@require_cpython_refcounting
 @given(st.BIDICT_TYPES)
 def test_bidicts_freed_on_zero_refcount(bi_cls):
     """On CPython, the moment you have no more (strong) references to a bidict,
@@ -411,9 +407,9 @@ def test_bidicts_freed_on_zero_refcount(bi_cls):
         gc.enable()
 
 
-@require_cpython_gc
-@given(st.ORDERED_BIDICT_TYPES, st.I_PAIRS_NODUP)
-def test_orderedbidict_nodes_freed_on_zero_refcount(ob_cls, init_items):
+@require_cpython_refcounting
+@given(st.ORDERED_BIDICTS)
+def test_orderedbidict_nodes_freed_on_zero_refcount(ob):
     """On CPython, the moment you have no more references to an ordered bidict,
     the refcount of each of its internal nodes drops to 0
     (i.e. the linked list of nodes does not create a reference cycle),
@@ -421,10 +417,9 @@ def test_orderedbidict_nodes_freed_on_zero_refcount(ob_cls, init_items):
     """
     gc.disable()
     try:
-        # Create an OrderedBidict as a local variable rather than having one passed in
-        # by hypothesis (via st.ORDERED_BIDICTS) so that its refcount drops to 0 when we
-        # del it below.
-        ob = ob_cls(init_items)
+        # Make a local copy of the bidict passed in by hypothesis
+        # so that its refcount actually drops to 0 when we del it below.
+        ob = ob.copy()
         nodes = weakref.WeakSet(ob._sntl.iternodes())
         assert len(nodes) == len(ob)
         del ob
@@ -458,14 +453,59 @@ def test_inv_aliases_inverse(bi):
 
 
 @given(st.BIDICTS)
-def test_pickle_roundtrips(bi):
-    """A bidict should equal the result of unpickling its pickle."""
+def test_inverse_readonly(bi):
+    """Attempting to set the .inverse attribute should raise AttributeError."""
+    with pytest.raises(AttributeError):
+        bi.inverse = 42
+    with pytest.raises(AttributeError):
+        bi.inv = 42
+
+
+@given(st.BIDICTS)
+@example(BIDICT_TYPE_WHOSE_MODULE_HAS_REF_TO_INV_CLS({1: 'one'}).inverse)
+@example(BIDICT_TYPE_WHOSE_MODULE_HAS_NO_REF_TO_INV_CLS({1: 'one'}).inverse)
+def test_pickle(bi):
+    """All bidicts should work with pickle."""
     pickled = pickle.dumps(bi)
     roundtripped = pickle.loads(pickled)
     assert roundtripped is roundtripped.inv.inv
     assert roundtripped == bi
     assert roundtripped.inv == bi.inv
     assert roundtripped.inv.inv == bi.inv.inv
+    assert dict(roundtripped) == dict(bi)
+    roundtripped_inv = pickle.loads(pickle.dumps(bi.inv))
+    assert roundtripped_inv == bi.inv
+    assert roundtripped_inv.inv == bi
+    assert roundtripped_inv.inv.inv == bi.inv
+    assert dict(roundtripped_inv) == dict(bi.inv)
+
+
+class _UserBidict(bidict):
+    _invm_cls = UserDict
+
+
+def test_pickle_dynamically_generated_inverse_bidict():
+    """Even instances of dynamically-generated inverse bidict classes should be pickleable."""
+    # The @example(BIDICT_TYPE_WHOSE_MODULE_HAS_NO_REF_TO_INV_CLS...) in test_pickle above
+    # covers this, but this is an even more explicit test for clarity.
+
+    # First pickle a non-inverse instance (whose class we have a direct reference to).
+    ub = _UserBidict(one=1, two=2)
+    roundtripped = pickle.loads(pickle.dumps(ub))
+    assert roundtripped == ub == _UserBidict({'one': 1, 'two': 2})
+    assert dict(roundtripped) == dict(ub)
+
+    # Now for the inverse:
+    assert repr(ub.inverse) == "_UserBidictInv({1: 'one', 2: 'two'})"
+    # We can still pickle the inverse, even though its class, _UserBidictInv, was
+    # dynamically generated, and we didn't save a reference to it named "_UserBidictInv"
+    # anywhere that pickle could find it in sys.modules:
+    ubinv = pickle.loads(pickle.dumps(ub.inverse))
+    assert repr(ubinv) == "_UserBidictInv({1: 'one', 2: 'two'})"
+    inv_cls = ub._inv_cls
+    assert inv_cls not in globals().values()
+    inv_cls_name = ub._inv_cls.__name__
+    assert inv_cls_name not in (name for m in sys.modules for name in dir(m))
 
 
 @given(st.BIDICTS)

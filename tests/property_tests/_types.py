@@ -6,23 +6,52 @@
 
 """Types for Hypothoses tests."""
 
-from collections import OrderedDict
+from collections import OrderedDict, UserDict
 from collections.abc import ItemsView, Mapping, Reversible
 
 from bidict import FrozenOrderedBidict, OrderedBidict, bidict, frozenbidict, namedbidict
 
 
-MyNamedBidict = namedbidict('MyNamedBidict', 'key', 'val', base_type=bidict)
-MyNamedFrozenBidict = namedbidict('MyNamedFrozenBidict', 'key', 'val', base_type=frozenbidict)
-MyNamedOrderedBidict = namedbidict('MyNamedOrderedBidict', 'key', 'val', base_type=OrderedBidict)
-MUTABLE_BIDICT_TYPES = (bidict, OrderedBidict, MyNamedBidict)
-FROZEN_BIDICT_TYPES = (frozenbidict, FrozenOrderedBidict, MyNamedFrozenBidict)
-ORDERED_BIDICT_TYPES = (OrderedBidict, FrozenOrderedBidict, MyNamedOrderedBidict)
+class UserBidict(bidict):
+    """Custom bidict subclass."""
+
+    _fwdm_cls = UserDict
+    _invm_cls = UserDict
+
+
+class UserBidictNotOwnInverse(bidict):
+    """Custom bidict subclass that is not its own inverse."""
+
+    _fwdm_cls = dict
+    _invm_cls = UserDict
+
+
+UserBidictNotOwnInverseInv = UserBidictNotOwnInverse._inv_cls
+assert UserBidictNotOwnInverseInv is not UserBidictNotOwnInverse
+
+
+class UserBidictNotOwnInverse2(UserBidictNotOwnInverse):
+    """Another custom bidict subclass that is not its own inverse."""
+
+
+NamedBidict = namedbidict('NamedBidict', 'key', 'val', base_type=bidict)
+NamedFrozenBidict = namedbidict('NamedFrozenBidict', 'key', 'val', base_type=frozenbidict)
+NamedOrderedBidict = namedbidict('NamedOrderedBidict', 'key', 'val', base_type=OrderedBidict)
+NamedUserBidict = namedbidict('NamedUserBidict', 'key', 'val', base_type=UserBidict)
+NAMED_BIDICT_TYPES = (NamedBidict, NamedFrozenBidict, NamedOrderedBidict, NamedUserBidict)
+
+MUTABLE_BIDICT_TYPES = (bidict, OrderedBidict, NamedBidict, UserBidict, UserBidictNotOwnInverse)
+FROZEN_BIDICT_TYPES = (frozenbidict, FrozenOrderedBidict, NamedFrozenBidict)
+ORDERED_BIDICT_TYPES = (OrderedBidict, FrozenOrderedBidict, NamedOrderedBidict)
 ORDER_PRESERVING_BIDICT_TYPES = tuple(set(FROZEN_BIDICT_TYPES + ORDERED_BIDICT_TYPES))
 BIDICT_TYPES = tuple(set(MUTABLE_BIDICT_TYPES + FROZEN_BIDICT_TYPES + ORDERED_BIDICT_TYPES))
+NON_NAMED_BIDICT_TYPES = tuple(set(BIDICT_TYPES) - set(NAMED_BIDICT_TYPES))
 # When support is dropped for Python < 3.8, all bidict types will be reversible,
 # and we can remove the following and just use BIDICT_TYPES instead:
-REVERSIBLE_BIDICT_TYPES = BIDICT_TYPES if issubclass(bidict, Reversible) else ORDERED_BIDICT_TYPES  # Py<3.8
+REVERSIBLE_BIDICT_TYPES = tuple(b for b in BIDICT_TYPES if issubclass(b, Reversible))
+
+BIDICT_TYPE_WHOSE_MODULE_HAS_REF_TO_INV_CLS = UserBidictNotOwnInverse
+BIDICT_TYPE_WHOSE_MODULE_HAS_NO_REF_TO_INV_CLS = UserBidictNotOwnInverse2
 
 
 class _FrozenMap(Mapping):

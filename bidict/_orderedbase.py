@@ -71,10 +71,14 @@ class Node:
         self.nxt = nxt
 
     def unlink(self) -> None:
+        """Remove self from in between prv and nxt.
+        Self's references to prv and nxt are retained so it can be relinked (see below).
+        """
         self.prv.nxt = self.nxt
         self.nxt.prv = self.prv
 
     def relink(self) -> None:
+        """Restore self between prv and nxt after unlinking (see above)."""
         self.prv.nxt = self.nxt.prv = self
 
 
@@ -112,16 +116,14 @@ class SentinelNode(Node):
         return new_last
 
 
-OBT = t.TypeVar('OBT', bound='OrderedBidictBase[t.Any, t.Any]')
-
-
 NodeByKorV = t.Tuple[bidict, bool]
+OBT = t.TypeVar('OBT', bound='OrderedBidictBase[t.Any, t.Any]')
 
 
 class OrderedBidictBase(BidictBase[KT, VT]):
     """Base class implementing an ordered :class:`BidirectionalMapping`."""
 
-    #: The object used by :meth:`__repr__` for printing the contained items.
+    #: The object used by :meth:`__repr__` for representing the contained items.
     _repr_delegate = list
 
     _node_by_korv: NodeByKorV
@@ -132,6 +134,7 @@ class OrderedBidictBase(BidictBase[KT, VT]):
     def __init__(self, __arg: IterItems[KT, VT], **kw: VT) -> None: ...
     @t.overload
     def __init__(self, **kw: VT) -> None: ...
+
     def __init__(self, *args: MapOrIterItems[KT, VT], **kw: VT) -> None:
         """Make a new ordered bidirectional mapping.
         The signature behaves like that of :class:`dict`.
@@ -143,13 +146,18 @@ class OrderedBidictBase(BidictBase[KT, VT]):
         """
         self._sntl = SentinelNode()
         self._node_by_korv = bidict(), True
-        super().__init__(*args, **kw)  # calls _init_inv()
+        super().__init__(*args, **kw)
 
-    def _init_inv(self) -> None:
-        super()._init_inv()
-        self.inverse._sntl = self._sntl
+    if t.TYPE_CHECKING:
+        @property
+        def inverse(self) -> 'OrderedBidictBase[VT, KT]': ...
+
+    def _make_inverse(self) -> 'OrderedBidictBase[VT, KT]':
+        inv = t.cast(OrderedBidictBase[VT, KT], super()._make_inverse())
+        inv._sntl = self._sntl
         node_by_korv, bykey = self._node_by_korv
-        self.inverse._node_by_korv = node_by_korv, not bykey
+        inv._node_by_korv = node_by_korv, not bykey
+        return inv
 
     def _assoc_node(self, node: Node, key: KT, val: VT) -> None:
         node_by_korv, bykey = self._node_by_korv
@@ -160,10 +168,6 @@ class OrderedBidictBase(BidictBase[KT, VT]):
         node_by_korv = self._node_by_korv[0]
         del node_by_korv.inverse[node]
         node.unlink()
-
-    if t.TYPE_CHECKING:
-        @property
-        def inverse(self) -> 'OrderedBidictBase[VT, KT]': ...
 
     def _init_from(self, other: BidictBase[KT, VT]) -> None:
         """Efficiently clone this ordered bidict by copying its internal structure into *other*."""
@@ -235,7 +239,7 @@ class OrderedBidictBase(BidictBase[KT, VT]):
         """Iterator over the contained keys in insertion order."""
         return self._iter(reverse=False)
 
-    def __reversed__(self) -> t.Iterator[KT]:
+    def __reversed__(self: 'OrderedBidictBase[KT, VT]') -> t.Iterator[KT]:
         """Iterator over the contained keys in reverse insertion order."""
         return self._iter(reverse=True)
 

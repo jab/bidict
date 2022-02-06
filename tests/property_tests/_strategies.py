@@ -6,6 +6,7 @@
 
 """Strategies for Hypothesis tests."""
 
+import string
 from collections import OrderedDict
 from operator import attrgetter, itemgetter
 from os import getenv
@@ -31,6 +32,7 @@ ORDERED_BIDICT_TYPES = one_of(t.ORDERED_BIDICT_TYPES)
 REVERSIBLE_BIDICT_TYPES = one_of(t.REVERSIBLE_BIDICT_TYPES)
 MAPPING_TYPES = one_of(t.MAPPING_TYPES)
 NON_BI_MAPPING_TYPES = one_of(t.NON_BI_MAPPING_TYPES)
+NON_NAMED_BIDICT_TYPES = one_of(t.NON_NAMED_BIDICT_TYPES)
 ORDERED_MAPPING_TYPES = one_of(t.ORDERED_MAPPING_TYPES)
 HASHABLE_MAPPING_TYPES = one_of(t.HASHABLE_MAPPING_TYPES)
 ON_DUP_ACTIONS = one_of((DROP_NEW, DROP_OLD, RAISE))
@@ -80,13 +82,14 @@ ORDERED_BIDICTS = _bidict_strat(ORDERED_BIDICT_TYPES)
 NON_BI_MAPPINGS = st.tuples(NON_BI_MAPPING_TYPES, L_PAIRS).map(lambda i: i[0](i[1]))
 
 
-_ALPHABET = tuple(chr(i) for i in range(0x10ffff) if chr(i).isidentifier())
-_NAMEDBI_VALID_NAMES = st.text(_ALPHABET, min_size=1)
+# _ALPHABET = tuple(chr(i) for i in range(0x10ffff) if chr(i).isidentifier())
+_ALPHABET = string.ascii_lowercase
+_NAMEDBI_VALID_NAMES = st.text(_ALPHABET, min_size=1, max_size=16)
 NAMEDBIDICT_NAMES_ALL_VALID = st.lists(_NAMEDBI_VALID_NAMES, min_size=3, max_size=3, unique=True)
 NAMEDBIDICT_NAMES_SOME_INVALID = st.lists(st.text(min_size=1), min_size=3, max_size=3).filter(
     lambda i: not all(str.isidentifier(name) for name in i)
 )
-NAMEDBIDICT_TYPES = st.tuples(NAMEDBIDICT_NAMES_ALL_VALID, BIDICT_TYPES).map(
+NAMEDBIDICT_TYPES = st.tuples(NAMEDBIDICT_NAMES_ALL_VALID, NON_NAMED_BIDICT_TYPES).map(
     lambda i: namedbidict(*i[0], base_type=i[1])
 )
 NAMEDBIDICTS = _bidict_strat(NAMEDBIDICT_TYPES)

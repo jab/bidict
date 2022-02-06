@@ -55,16 +55,22 @@ class BiMappingView(t.Generic[KT, VT], t.MappingView):
 
 
 class BiItemsView(BiMappingView[KT, VT], t.ItemsView[KT, VT], t.Reversible[t.Tuple[KT, VT]]):
-    """All ItemsViews that bidicts provide are Reversible."""
+    """Custom bidict ItemsView type."""
 
 
 class BiKeysView(BiMappingView[KT, VT], t.KeysView[KT], t.Reversible[KT], t.ValuesView[t.Any]):
-    """All KeysViews that bidicts provide are Reversible and are also ValuesViews.
+    """Custom bidict KeysView type.
 
     Since the keys of a bidict are the values of its inverse (and vice versa),
     calling .values() on a bidict returns the same result as calling .keys() on its inverse,
     specifically a KeysView[KT] object that is also a ValuesView[VT].
     """
+
+
+# See _set_reversed() below.
+def _fwdm_reversed(self: t.Any) -> t.Iterator[KT]:
+    """Iterator over the contained keys in reverse order."""
+    return reversed(self._fwdm)
 
 
 class BidictBase(BidirectionalMapping[KT, VT]):
@@ -79,37 +85,75 @@ class BidictBase(BidirectionalMapping[KT, VT]):
 
     _fwdm: t.MutableMapping[KT, VT]  #: the backing forward mapping (*key* → *val*)
     _invm: t.MutableMapping[VT, KT]  #: the backing inverse mapping (*val* → *key*)
+
+    # The following should be `t.ClassVar`s, but annotating them as such results in
+    # "ClassVar cannot contain type variables":
     _fwdm_cls: t.Type[t.MutableMapping[KT, VT]] = dict  #: class of the backing forward mapping
     _invm_cls: t.Type[t.MutableMapping[VT, KT]] = dict  #: class of the backing inverse mapping
 
-    #: The inverse bidict instance. If None, then ``_invweak`` is not None.
-    _inv: 't.Optional[BidictBase[VT, KT]]'
     #: The class of the inverse bidict instance.
+    #: BidictBase itself is its own inverse (set after the class definition below).
+    #: For subclasses, this is set automatically in :meth:`__init_subclass__`.
     _inv_cls: 't.Type[BidictBase[VT, KT]]'
-    #: A weak reference to the inverse bidict instance. If None, then ``_inv`` is not None.
-    _invweak: 't.Optional[weakref.ReferenceType[BidictBase[VT, KT]]]'
 
-    #: The object used by :meth:`__repr__` for printing the contained items.
-    _repr_delegate: t.Any = dict
+    #: The object used by :meth:`__repr__` for representing the contained items.
+    _repr_delegate: t.ClassVar[t.Any] = dict
 
-    def __init_subclass__(cls, **kw: t.Any) -> None:
-        super().__init_subclass__(**kw)
-        # Compute and set _inv_cls, the inverse of this bidict class.
-        # See https://bidict.readthedocs.io/extending.html#dynamic-inverse-class-generation
-        # for an explanation of this along with motivating examples.
-        if '_inv_cls' in cls.__dict__:  # Already computed and cached (see below).
-            return
-        if cls._fwdm_cls is cls._invm_cls:  # The bidict class is its own inverse.
-            cls._inv_cls = cls
-            return
-        # Compute the inverse class, e.g. with _fwdm_cls and _invm_cls swapped.
-        inv_cls = type(cls.__name__ + 'Inv', cls.__bases__, {
-            **cls.__dict__,
-            '_inv_cls': cls,
+    def __init_subclass__(cls) -> None:
+        super().__init_subclass__()
+        cls._ensure_inv_cls()
+        cls._set_reversed()
+
+    __reversed__: t.Any
+
+    @classmethod
+    def _set_reversed(cls) -> None:
+        """Set __reversed__ for subclasses that do not set it explicitly
+        according to whether backing mappings are reversible.
+        """
+        if cls is not BidictBase:
+            resolved = cls.__reversed__
+            overridden = resolved is not BidictBase.__reversed__
+            if overridden:  # E.g. OrderedBidictBase, OrderedBidict, FrozenOrderedBidict
+                return
+        # The following will be False for MutableBidict, bidict, and frozenbidict on Python < 3.8,
+        # and True for them on 3.8+ (where dicts are reversible). Will also be True for custom
+        # subclasses like SortedBidict (see :ref:`extending:SortedBidict Recipes`).
+        backing_reversible = all(issubclass(i, t.Reversible) for i in (cls._fwdm_cls, cls._invm_cls))
+        cls.__reversed__ = _fwdm_reversed if backing_reversible else None
+
+    @classmethod
+    def _ensure_inv_cls(cls) -> None:
+        """Ensure :attr:`_inv_cls` is set, computing it dynamically if necessary.
+
+        Ref: https://bidict.readthedocs.io/extending.html#dynamic-inverse-class-generation
+
+        Most subclasses will be their own inverse classes, but some
+        (e.g. those created via namedbidict) will have distinct inverse classes.
+        """
+        if cls.__dict__.get('_inv_cls'):
+            return  # Already set, nothing to do.
+        cls._inv_cls = cls._make_inv_cls()
+
+    @classmethod
+    def _make_inv_cls(cls, _miss: t.Any = object()) -> 't.Type[BidictBase[VT, KT]]':
+        diff = cls._inv_cls_dict_diff()
+        cls_is_own_inv = all(getattr(cls, k, _miss) == v for (k, v) in diff.items())
+        if cls_is_own_inv:
+            return t.cast(t.Type[BidictBase[VT, KT]], cls)
+        # Suppress auto-calculation of _inv_cls's _inv_cls since we know it already.
+        # Works with the guard in BidictBase._ensure_inv_cls() to prevent infinite recursion.
+        diff['_inv_cls'] = cls
+        inv_cls = type(f'{cls.__name__}Inv', (cls, GeneratedBidictInverse), diff)
+        inv_cls.__module__ = cls.__module__
+        return inv_cls
+
+    @classmethod
+    def _inv_cls_dict_diff(cls) -> t.Dict[str, t.Any]:
+        return {
             '_fwdm_cls': cls._invm_cls,
             '_invm_cls': cls._fwdm_cls,
-        })
-        cls._inv_cls = inv_cls  # Cache for the future.
+        }
 
     @t.overload
     def __init__(self: 'BidictBase[KT, VT]') -> None: ...
@@ -123,6 +167,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
     def __init__(self: 'BidictBase[str, VT]', __m: t.Mapping[str, VT], **kw: VT) -> None: ...
     @t.overload
     def __init__(self: 'BidictBase[str, VT]', __i: IterItems[str, VT], **kw: VT) -> None: ...
+
     def __init__(self, *args: MapOrIterItems[t.Any, VT], **kw: VT) -> None:
         """Make a new bidirectional mapping.
         The signature behaves like that of :class:`dict`.
@@ -131,48 +176,51 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         """
         self._fwdm = self._fwdm_cls()
         self._invm = self._invm_cls()
-        self._init_inv()
         if args or kw:
             self._update(args=args, kw=kw, rbof=False)
 
-    def _init_inv(self) -> None:
-        # Create the inverse bidict instance via __new__, bypassing its __init__ so that its
-        # _fwdm and _invm can be assigned to this bidict's _invm and _fwdm. Store it in self._inv,
-        # which holds a strong reference to a bidict's inverse, if one is available.
-        self._inv = inv = self._inv_cls.__new__(self._inv_cls)
-        inv._fwdm = self._invm
-        inv._invm = self._fwdm
-        # Only give the inverse a weak reference to this bidict to avoid creating a reference cycle,
-        # stored in the _invweak attribute. See also the docs in
-        # :ref:`addendum:Bidict Avoids Reference Cycles`
-        inv._inv = None
-        inv._invweak = weakref.ref(self)
-        # Since this bidict has a strong reference to its inverse already, set its _invweak to None.
-        self._invweak = None
-
-    @property
-    def _isinv(self) -> bool:
-        return self._inv is None
-
     @property
     def inverse(self) -> 'BidictBase[VT, KT]':
-        """The inverse of this bidict."""
-        # Resolve and return a strong reference to the inverse bidict.
-        # One may be stored in self._inv already.
-        if self._inv is not None:
-            return self._inv
-        # Otherwise a weakref is stored in self._invweak. Try to get a strong ref from it.
-        assert self._invweak is not None
-        inv = self._invweak()
+        """The inverse of this bidirectional mapping instance."""
+        # When `bi.inverse` is called for the first time, this method
+        # computes the inverse instance, stores it for subsequent use, and then
+        # returns it. It also stores a reference on `bi.inverse` back to `bi`,
+        # but uses a weakref to avoid creating a reference cycle. Strong references
+        # to inverse instances are stored in ._inv, and weak references are stored
+        # in ._invweak.
+
+        # First check if a strong reference is already stored.
+        inv: 't.Optional[BidictBase[VT, KT]]' = getattr(self, '_inv', None)
         if inv is not None:
             return inv
-        # Refcount of referent must have dropped to zero, as in `bidict().inv.inv`. Init a new one.
-        self._init_inv()  # Now this bidict will retain a strong ref to its inverse.
-        assert self._inv is not None
-        return self._inv
+        # Next check if a weak reference is already stored.
+        invweak = getattr(self, '_invweak', None)
+        if invweak is not None:
+            inv = invweak()  # Try to resolve a strong reference and return it.
+            if inv is not None:
+                return inv
+        # No luck. Compute the inverse reference and store it for subsequent use.
+        inv = self._make_inverse()
+        self._inv: 't.Optional[BidictBase[VT, KT]]' = inv
+        self._invweak: 't.Optional[weakref.ReferenceType[BidictBase[VT, KT]]]' = None
+        # Also store a weak reference back to `instance` on its inverse instance, so that
+        # the second `.inverse` access in `bi.inverse.inverse` hits the cached weakref.
+        inv._inv, inv._invweak = None, weakref.ref(self)
+        # In e.g. `bidict().inverse.inverse`, this design ensures that a strong reference
+        # back to the original instance is retained before its refcount drops to zero,
+        # avoiding an unintended potential deallocation.
+        return inv
 
-    #: Alias for :attr:`inverse`.
-    inv = inverse
+    def _make_inverse(self) -> 'BidictBase[VT, KT]':
+        inv: 'BidictBase[VT, KT]' = self._inv_cls()
+        inv._fwdm = self._invm
+        inv._invm = self._fwdm
+        return inv
+
+    @property
+    def inv(self) -> 'BidictBase[VT, KT]':
+        """Alias for :attr:`inverse`."""
+        return self.inverse
 
     def __repr__(self) -> str:
         """See :func:`repr`."""
@@ -185,12 +233,18 @@ class BidictBase(BidirectionalMapping[KT, VT]):
     def keys(self) -> BiKeysView[KT, VT]:
         """A set-like object providing a view on the contained keys.
 
-        Returns a dict_keys object that behaves exactly the same as collections.abc.KeysView(b),
-        except for (1) being faster when running on CPython, (2) being reversible,
-        and (3) having a .mapping attribute in Python 3.10+ that exposes a mappingproxy
-        pointing back to the (one-way) forward dictionary that backs this bidict.
+        When *b._fwdm* is a :class:`dict`, *b.keys()* returns a
+        *dict_keys* object that behaves exactly the same as
+        *collections.abc.KeysView(b)*, except for
+
+          - offering better performance
+
+          - being reversible on Python > 3.7
+
+          - having a .mapping attribute in Python 3.10+
+            that exposes a mappingproxy to *b._fwdm*.
         """
-        return self._fwdm.keys()  # type: ignore [return-value]
+        return self._fwdm.keys() if isinstance(self._fwdm, dict) else super().keys()  # type: ignore [return-value]
 
     # The inherited collections.abc.Mapping.values() method returns a collections.abc.ValuesView, so override:
     def values(self) -> BiKeysView[VT, KT]:
@@ -212,22 +266,28 @@ class BidictBase(BidirectionalMapping[KT, VT]):
     def items(self) -> BiItemsView[KT, VT]:
         """A set-like object providing a view on the contained items.
 
-        Returns a dict_items object that behaves exactly the same as collections.abc.ItemsView(b),
-        except for being much faster when running on CPython, being reversible,
-        and having a .mapping attribute in Python 3.10+ that exposes a mappingproxy
-        pointing back to the (one-way) forward dictionary that backs this bidict.
-        """
-        return self._fwdm.items()  # type: ignore [return-value]
+        When *b._fwdm* is a :class:`dict`, *b.items()* returns a
+        *dict_items* object that behaves exactly the same as
+        *collections.abc.ItemsView(b)*, except for:
 
-    # The inherited collections.abc.Mapping.__contains__() method is implemented by doing a ``try``
-    # ``except KeyError`` around ``self[key]``. The following implementation is much faster,
+          - offering better performance
+
+          - being reversible on Python > 3.7
+
+          - having a .mapping attribute in Python 3.10+
+            that exposes a mappingproxy to *b._fwdm*.
+        """
+        return self._fwdm.items() if isinstance(self._fwdm, dict) else super().items()  # type: ignore [return-value]
+
+    # The inherited collections.abc.Mapping.__contains__() method is implemented by doing a `try`
+    # `except KeyError` around `self[key]`. The following implementation is much faster,
     # especially in the missing case.
     def __contains__(self, key: t.Any) -> bool:
         """True if the mapping contains the specified key, else False."""
         return key in self._fwdm
 
     # The inherited collections.abc.Mapping.__eq__() method is implemented in terms of an inefficient
-    # ``dict(self.items()) == dict(other.items())`` comparison, so override it with a
+    # `dict(self.items()) == dict(other.items())` comparison, so override it with a
     # more efficient implementation.
     def __eq__(self, other: object) -> bool:
         """*x.__eq__(other)　⟺　x == other*
@@ -427,7 +487,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
 
     def copy(self: BT) -> BT:
         """Make a (shallow) copy of this bidict."""
-        # Could just ``return self.__class__(self)`` here, but the below is faster. The former
+        # Could just `return self.__class__(self)` here, but the below is faster. The former
         # would copy this bidict's items into a new instance one at a time (checking for duplication
         # for each item), whereas the below makes copies of the backing mappings at once, at C speed,
         # and does not check for item duplication (since the backing mappings have been checked already).
@@ -473,17 +533,37 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         """*x.__getitem__(key) ⟺ x[key]*"""
         return self._fwdm[key]
 
-    def __reduce__(self: BT) -> t.Tuple[t.Type[BT], t.Tuple[t.Dict[KT, VT]]]:
-        """Return state information for pickling (otherwise thwarted by _invweak weakref)."""
-        return (type(self), (dict(self.items()),))
+    def __reduce__(self) -> t.Tuple[t.Any, ...]:
+        """Return state information for pickling."""
+        cls = self.__class__
+        fwdm, invm = self._fwdm, self._invm
+        is_generated = isinstance(self, GeneratedBidictInverse)
+        if is_generated:
+            # If this bidict's class is dynamically generated, pickle the inverse
+            # instead, whose (presumably not dynamically generated) class the caller
+            # is more likely to have a reference to in sys.modules that pickle can discover.
+            cls = cls._inv_cls
+            fwdm, invm = invm, fwdm  # type: ignore [assignment]
+        return (_reduce_factory, (cls, fwdm, invm, is_generated))
 
-    # On Python 3.8+, dicts are reversible, so even non-Ordered bidicts can provide an efficient
-    # __reversed__ implementation. (On Python < 3.8, they cannot.) Once support is dropped for
-    # Python < 3.8, can remove the following if statement to provide __reversed__ unconditionally.
-    if hasattr(_fwdm_cls, '__reversed__'):
-        def __reversed__(self) -> t.Iterator[KT]:
-            """Iterator over the contained keys in reverse order."""
-            return reversed(self._fwdm.keys())
+
+# Set BidictBase's own _inv_cls, since _inv_cls is only set automatically for BidictBase subclasses.
+# We don't really expect BidictBase to be instantiated, but might as well make it work (including
+# `BidictBase().inverse`, which would otherwise cause AttributeError due to _inv_cls not being set).
+BidictBase._inv_cls = BidictBase  # type: ignore [misc]
+
+# Set BidictBase's own __reversed__, since it's only set automatically for BidictBase subclasses.
+BidictBase._set_reversed()
+
+
+class GeneratedBidictInverse(BidictBase[KT, VT]):
+    """Base class for dynamically-generated inverse bidict classes."""
+
+
+def _reduce_factory(cls: t.Type[BidictBase[KT, VT]], fwdm: t.MutableMapping[KT, VT], invm: t.MutableMapping[VT, KT], invert: bool) -> t.Type[BidictBase[KT, VT]]:
+    inst = cls()
+    inst._update(args=(zip(fwdm, invm),), rbof=False)
+    return inst.inverse if invert else inst  # type: ignore [return-value]
 
 
 #                             * Code review nav *

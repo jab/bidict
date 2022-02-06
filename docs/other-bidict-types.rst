@@ -7,7 +7,7 @@ let's look at some other bidirectional mapping types.
 
 .. testsetup::
 
-   from bidict import bidict
+   from bidict import bidict, BidirectionalMapping, FrozenOrderedBidict
    from collections.abc import Mapping, MutableMapping
 
 
@@ -304,80 +304,111 @@ with custom attribute-based access to forward and inverse mappings:
 .. doctest::
 
    >>> from bidict import namedbidict
-   >>> ElementMap = namedbidict('ElementMap', 'symbol', 'name')
-   >>> noble_gases = ElementMap(He='helium')
-   >>> noble_gases.name_for['He']
+   >>> ElementBySymbolBidict = namedbidict('ElementBySymbolBidict', 'symbol', 'name')
+   >>> el_by_sym = ElementBySymbolBidict(H='hydrogen', He='helium')
+   >>> el_by_sym.name_for['He']
    'helium'
-   >>> noble_gases.symbol_for['helium']
+   >>> el_by_sym.symbol_for['helium']
    'He'
-   >>> noble_gases.name_for['Ne'] = 'neon'
-   >>> del noble_gases.symbol_for['helium']
-   >>> noble_gases
-   ElementMap({'Ne': 'neon'})
+   >>> el_by_sym.name_for['Ne'] = 'neon'
+   >>> el_by_sym
+   ElementBySymbolBidict({'H': 'hydrogen', 'He': 'helium', 'Ne': 'neon'})
+   >>> el_by_sym['H']  # regular lookup still works the same
+   'hydrogen'
+   >>> el_by_sym.inverse['hydrogen']  # and for the inverse as well
+   'H'
+   >>> el_by_sym.inverse
+   ElementBySymbolBidictInv({'hydrogen': 'H', 'helium': 'He', 'neon': 'Ne'})
+   >>> el_by_sym.inverse.name_for['H']  # custom attribute lookup works on the inverse too
+   'hydrogen'
+
+
+.. note::
+
+   Notice how, unlike the other bidict types,
+   namedbidict classes aren't their own inverse classes,
+   because the roles of the custom attribute-based accessors
+   are inverted when accessing the inverse.
+   :class:`~bidict.BidictBase` realizes when a subclass is not its own inverse,
+   and dynamically generates the inverse class for you automatically.
+   You can see this in action above if you look at the
+   dynamically-generated inverse class name, ``ElementBySymbolBidictInv``.
+   For more about this, see :ref:`extending:Dynamic Inverse Class Generation`.
+
 
 Using the *base_type* keyword arg –
 whose default value is :class:`bidict.bidict` –
-you can override the bidict type used as the base class,
-allowing the creation of e.g. a named frozenbidict type:
+you can customize the bidict type used as the base class.
+For example, the following creates a
+named frozenbidict type:
 
 .. doctest::
 
-   >>> ElMap = namedbidict('ElMap', 'symbol', 'name', base_type=frozenbidict)
-   >>> noble = ElMap(He='helium')
-   >>> noble.symbol_for['helium']
+   >>> FrozenElBySymBidict = namedbidict('FrozenElBySymBidict', 'sym', 'name', base_type=frozenbidict)
+   >>> noble = FrozenElBySymBidict(He='helium', Ne='neon', Ar='argon', Kr='krypton')
+   >>> noble.sym_for['helium']
    'He'
    >>> hash(noble) is not TypeError  # does not raise TypeError: unhashable type
    True
-   >>> noble['C'] = 'carbon'  # mutation fails
+   >>> noble['C'] = 'carbon'  # mutation fails - it's frozen!
    Traceback (most recent call last):
    ...
-   TypeError: 'ElMap' object does not support item assignment
+   TypeError: 'FrozenElBySymBidict' object does not support item assignment
 
 
 Polymorphism
 ------------
 
-(Or: ABCs ftw!)
-
-You may be tempted to write something like ``isinstance(obj, dict)``
-to check whether ``obj`` is a :class:`~collections.abc.Mapping`.
-However, this check is too specific, and will fail for many
-types that implement the :class:`~collections.abc.Mapping` interface:
+Code that needs to check only whether an object is *dict-like*
+should not use ``isinstance(obj, dict)``.
+This check is too specific, because dict-like objects need not
+actually be instances of dict or a dict subclass.
+You can see this fails for many dict-like in the standard library:
 
 .. doctest::
 
    >>> from collections import ChainMap
-   >>> issubclass(ChainMap, dict)
+   >>> chainmap = ChainMap()
+   >>> isinstance(chainmap, dict)
    False
 
 The same is true for all the bidict types:
 
 .. doctest::
 
-   >>> issubclass(bidict, dict)
+   >>> bi = bidict()
+   >>> isinstance(bi, dict)
    False
 
-The proper way to check whether an object
-is a :class:`~collections.abc.Mapping`
-is to use the abstract base classes (ABCs)
-from the :mod:`collections.abc` module
-that are provided for this purpose:
+A better way to check whether an object is dict-like
+is to use the :class:`~collections.abc.Mapping`
+abstract base class (ABC)
+from the :mod:`collections.abc` module,
+which provides a number of ABCs
+intended for this purpose:
 
 .. doctest::
 
-   >>> issubclass(ChainMap, Mapping)
+   >>> isinstance(chainmap, Mapping)
    True
-   >>> isinstance(bidict(), Mapping)
+   >>> isinstance(bi, Mapping)
    True
 
 Also note that the proper way to check whether an object
 is an (im)mutable mapping is to use the
 :class:`~collections.abc.MutableMapping` ABC:
 
-
 .. doctest::
 
-   >>> from bidict import BidirectionalMapping
+   >>> isinstance(chainmap, MutableMapping)
+   True
+   >>> isinstance(bi, MutableMapping)
+   True
+
+You can combine this with bidict's own
+:class:`~bidict.BidirectionalMapping` ABC
+to implement your own check for whether
+an object is an immutable, bidirectional mapping:
 
    >>> def is_immutable_bimap(obj):
    ...     return (isinstance(obj, BidirectionalMapping)
@@ -389,24 +420,20 @@ is an (im)mutable mapping is to use the
    >>> is_immutable_bimap(frozenbidict())
    True
 
-Checking for ``isinstance(obj, frozenbidict)`` is too specific
-and could fail in some cases.
-For example, :class:`~bidict.FrozenOrderedBidict` is an immutable mapping
-but it does not subclass :class:`~bidict.frozenbidict`:
+Using this in the next example,
+we can see the concept above in action again:
 
 .. doctest::
 
-   >>> from bidict import FrozenOrderedBidict
-   >>> obj = FrozenOrderedBidict()
-   >>> is_immutable_bimap(obj)
-   True
-   >>> isinstance(obj, frozenbidict)
+   >>> fb = FrozenOrderedBidict()
+   >>> isinstance(fb, frozenbidict)
    False
+   >>> is_immutable_bimap(fb)
+   True
 
-Besides the above, there are several other collections ABCs
-whose interfaces are implemented by various bidict types.
-Have a look through the :mod:`collections.abc` documentation
-if you're interested.
+Checking for ``isinstance(obj, frozenbidict)`` is too specific
+for this purpose and can fail in some cases.
+But using the collections ABCs as intended does the trick.
 
 For more you can do with :mod:`bidict`,
 check out :doc:`extending` next.

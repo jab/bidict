@@ -22,12 +22,19 @@ to be notified when new versions of ``bidict`` are released.
 Development
 -----------
 
-- Drop support for Python 3.6, which reached end of life on 2021-12-23,
-  and take advantage of this to simplify bidict's implementation
-  and maintenance.
+- Drop support for Python 3.6, which reached end of life on 2021-12-23
+  and is no longer even supported by pip as of v22.
+  Take advantage of this to simplify bidict's implementation
+  and reduce maintenance costs.
 
-- Optimize initializing a bidict from another bidict.
-  This now performs ``TODO``\x faster
+- Bidicts' inverses are now computed lazily the first time
+  the :attr:`~bidict.BidictBase.inverse` attribute is accessed
+  rather than being computed eagerly during initialization.
+
+- Optimize initializing a bidict with another bidict,
+  updating an empty bidict with another bidict,
+  and pickling/unpickling any bidict.
+  These now perform ``TODO``\x faster
   in a rough `microbenchmark <TODO>`__.
 
 - Optimize rolling back
@@ -87,6 +94,21 @@ Development
   As a notable example, bidicts now correctly compare equal to
   :obj:`unittest.mock.ANY`.
 
+- :class:`bidict.BidictBase` now adds a ``__reversed__`` implementation
+  to subclasses that don't have an overridden implementation
+  depending on whether both their backing mappings are
+  :class:`reversible <collections.abc.Reversible>`.
+
+  Previously, a ``__reversed__`` implementation was only added to
+  :class:`~bidict.BidictBase` when ``BidictBase._fwdm_cls`` was
+  :class:`reversible <collections.abc.Reversible>`.
+  So if a :class:`~bidict.BidictBase` subclass set its ``_fwdm_cls``
+  to a non-reversible mutable mapping,
+  it would also have to manually set its ``__reversed__`` attribute to None
+  to override the implementation inherited from :class:`~bidict.BidictBase`.
+  This is no longer necessary thanks to bidict's new
+  :meth:`object.__init_subclass__` logic.
+
 - :meth:`~bidict.OrderedBidict.keys`,
   :meth:`~bidict.OrderedBidict.values`, and
   :meth:`~bidict.OrderedBidict.items`
@@ -109,6 +131,23 @@ Development
   :meth:`bidict.OrderedBidictBase.values`, and
   :meth:`bidict.OrderedBidictBase.items`
   to include more details.
+
+- :func:`~bidict.namedbidict` now
+  exposes the passed-in *keyname* and *valname*
+  in the corresponding properties on the generated class.
+
+- :func:`~bidict.namedbidict` now requires *base_type*
+  to be a subclass of :class:`~bidict.BidictBase`,
+  but no longer requires *base_type* to provide ``_isinv``,
+  which :class:`~bidict.BidictBase` subclasses no longer implement.
+
+- When attempting to pickle a bidict's inverse
+  whose class was dynamically generated
+  (as in :ref:`extending:Dynamic Inverse Class Generation`),
+  and no reference to the dynamically-generated class has been stored
+  anywhere in :attr:`sys.modules` where :mod:`pickle` can find it,
+  the pickle call is now more likely to succeed
+  rather than failing with a :class:`~pickle.PicklingError`.
 
 - Remove the use of slots from (non-ABC) bidict types.
 
@@ -152,8 +191,8 @@ as well as some minor internal improvements.
   :class:`reversible <collections.abc.Reversible>` in Python 3.8.
 
   Specifically, now even non-:class:`Ordered <bidict.OrderedBidict>` bidicts
-  provide a :meth:`~bidict.BidictBase.__reversed__` implementation on Python 3.8+,
-  since it can piggyback off the efficient :meth:`dict.__reversed__` implementation.
+  provide a :meth:`~bidict.BidictBase.__reversed__` implementation on Python 3.8+
+  that calls :func:`reversed` on the backing ``_fwdm`` mapping.
 
   As a result, if you are using Python 3.8+,
   :class:`~bidict.frozenbidict` now gives you everything that

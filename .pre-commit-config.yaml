@@ -25,6 +25,7 @@ repos:
     rev: 6.1.1
     hooks:
       - id: pydocstyle
+        exclude: setup.py|docs/conf.py|tests
 
   - repo: https://github.com/pycqa/flake8
     rev: 3.9.2
@@ -39,6 +40,7 @@ repos:
         entry: pylint
         language: system
         types: [python]
+        exclude: setup.py|run_tests.py|docs/conf.py
 
   - repo: https://github.com/Lucas-C/pre-commit-hooks
     rev: v1.1.10
