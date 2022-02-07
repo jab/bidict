@@ -64,8 +64,7 @@ def namedbidict(
     get_val_by_key = property(lambda self: self, doc=val_by_key_doc)
     get_key_by_val = property(lambda self: self.inverse, doc=key_by_val_doc)
 
-    # Need type: ignores due to https://github.com/python/mypy/issues/5865:
-    class NamedBidict(base_type, NamedBidictBase[KT, VT]):  # type: ignore [valid-type,misc]
+    class NamedBidict(base_type, NamedBidictBase[KT, VT]):  # type: ignore [valid-type,misc]  # https://github.com/python/mypy/issues/5865
         """NamedBidict."""
 
         keyname = get_keyname

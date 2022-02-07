@@ -9,15 +9,15 @@
 #                    * Welcome to the bidict source code *
 #==============================================================================
 
-# Doing a code review? You'll find a "Code review nav" comment like the one
-# below at the top and bottom of the most important source files. This provides
-# a suggested initial path through the source when reviewing.
+# Reading through the code? You'll find a "Code review nav" comment like the one
+# below at the top and bottom of the most important source files. This suggests
+# a path through the code that's optimized for familiarizing yourself with it.
 #
-# Note: If you aren't reading this on https://github.com/jab/bidict, you may be
-# viewing an outdated version of the code. Please head to GitHub to review the
-# latest version, which contains important improvements over older versions.
-#
-# Thank you for reading and for any feedback you provide.
+# You can find the latest version of this code at https://github.com/jab/bidict
+# if you're not reading this there already. While there, you can also star and
+# watch the project for updates, fork the code, and submit an issue or pull
+# request if you have something to contribute. More information can be found
+# linked from ../README.rst, and is also displayed on the page linked above.
 
 #                             * Code review nav *
 #==============================================================================
@@ -74,7 +74,7 @@ from ._iter import inverted as inverted
 from .metadata import (
     __author__ as __author__, __maintainer__ as __maintainer__, __copyright__ as __copyright__, __email__ as __email__,
     __credits__ as __credits__, __url__ as __url__, __license__ as __license__, __status__ as __status__, __description__ as __description__,
-    __keywords__ as __keywords__, __version__ as __version__,
+    __keywords__ as __keywords__, __version__ as __version__, __project_urls__ as __project_urls__,
 )
 
 

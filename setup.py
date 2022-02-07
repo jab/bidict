@@ -12,7 +12,6 @@ Ref: https://github.com/pypa/sampleproject/blob/main/setup.py
 
 import sys
 from os.path import abspath, dirname, join
-from warnings import warn
 
 from setuptools import setup
 
@@ -30,8 +29,8 @@ See python3statement.org for more info.
 
 if sys.version_info < (3,):
     sys.exit(PY2_ERR)
-elif sys.version_info < (3, 6):
-    warn('This version of bidict is untested on Python < 3.6 and may not work.')
+elif sys.version_info < (3, 7):
+    sys.exit('Python < 3.7 is not supported by this version of bidict.')
 
 from importlib.util import module_from_spec, spec_from_file_location
 
@@ -61,9 +60,9 @@ setup(
     packages=['bidict'],
     include_package_data=True,
     zip_safe=False,  # Don't zip. (We're zip-safe but prefer not to.)
-    python_requires='>=3.6',
+    python_requires='>=3.7',
+    project_urls=METADATA.__project_urls__,
     classifiers=[
-        'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: Mozilla Public License 2.0 (MPL 2.0)',
         'Operating System :: OS Independent',

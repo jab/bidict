@@ -5,21 +5,8 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 
-#==============================================================================
-#                    * Welcome to the bidict source code *
-#==============================================================================
-
-# Doing a code review? You'll find a "Code review nav" comment like the one
-# below at the top and bottom of the most important source files. This provides
-# a suggested initial path through the source when reviewing.
-#
-# Note: If you aren't reading this on https://github.com/jab/bidict, you may be
-# viewing an outdated version of the code. Please head to GitHub to review the
-# latest version, which contains important improvements over older versions.
-#
-# Thank you for reading and for any feedback you provide.
-
 #                             * Code review nav *
+#                    (see comments in bidict/__init__.py)
 #==============================================================================
 #← Prev: _orderedbase.py  Current: _frozenordered.py  Next: _orderedbidict.py →
 #==============================================================================

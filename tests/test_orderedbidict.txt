@@ -26,7 +26,7 @@ Test for consistency in ordered bidicts after handling duplicate keys/values:
 
     >>> b
     OrderedBidict([(0, 1)])
-    >>> list(b._node_by_korv[0])
+    >>> list(b._node_by_korv)
     [0]
     >>> b.inv
     OrderedBidict([(1, 0)])
@@ -34,7 +34,7 @@ Test for consistency in ordered bidicts after handling duplicate keys/values:
     >>> b.forceupdate([(0, 1), (2, 3), (0, 3)])
     >>> b
     OrderedBidict([(0, 3)])
-    >>> list(b._node_by_korv[0])
+    >>> list(b._node_by_korv)
     [0]
     >>> b.inv
     OrderedBidict([(3, 0)])
@@ -44,7 +44,7 @@ Test for consistency updating an ordered bidict's inverse:
     >>> b.inv[3] = 'UPDATED-KEY'
     >>> b
     OrderedBidict([('UPDATED-KEY', 3)])
-    >>> list(b._node_by_korv[0])
+    >>> list(b._node_by_korv)
     ['UPDATED-KEY']
     >>> b.inv
     OrderedBidict([(3, 'UPDATED-KEY')])
@@ -52,7 +52,7 @@ Test for consistency updating an ordered bidict's inverse:
     >>> b.inv.forceput('UPDATED-VAL', 'UPDATED-KEY')
     >>> b
     OrderedBidict([('UPDATED-KEY', 'UPDATED-VAL')])
-    >>> list(b._node_by_korv[0])
+    >>> list(b._node_by_korv)
     ['UPDATED-KEY']
     >>> b.inv
     OrderedBidict([('UPDATED-VAL', 'UPDATED-KEY')])
@@ -60,7 +60,7 @@ Test for consistency updating an ordered bidict's inverse:
     >>> b.inv['NEW-VAL'] = 'NEW-KEY'
     >>> b
     OrderedBidict([('UPDATED-KEY', 'UPDATED-VAL'), ('NEW-KEY', 'NEW-VAL')])
-    >>> list(b._node_by_korv[0])
+    >>> list(b._node_by_korv)
     ['UPDATED-KEY', 'NEW-KEY']
     >>> b.inv
     OrderedBidict([('UPDATED-VAL', 'UPDATED-KEY'), ('NEW-VAL', 'NEW-KEY')])
@@ -68,7 +68,7 @@ Test for consistency updating an ordered bidict's inverse:
     >>> b.inv.forceput('NEW-VAL', 'UPDATED-KEY')
     >>> b
     OrderedBidict([('UPDATED-KEY', 'NEW-VAL')])
-    >>> list(b._node_by_korv[0])
+    >>> list(b._node_by_korv)
     ['UPDATED-KEY']
     >>> b.inv
     OrderedBidict([('NEW-VAL', 'UPDATED-KEY')])

@@ -4,22 +4,8 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-
-#==============================================================================
-#                    * Welcome to the bidict source code *
-#==============================================================================
-
-# Doing a code review? You'll find a "Code review nav" comment like the one
-# below at the top and bottom of the most important source files. This provides
-# a suggested initial path through the source when reviewing.
-#
-# Note: If you aren't reading this on https://github.com/jab/bidict, you may be
-# viewing an outdated version of the code. Please head to GitHub to review the
-# latest version, which contains important improvements over older versions.
-#
-# Thank you for reading and for any feedback you provide.
-
 #                             * Code review nav *
+#                    (see comments in bidict/__init__.py)
 #==============================================================================
 # ← Prev: _base.py         Current: _frozenbidict.py        Next: _bidict.py →
 #==============================================================================
@@ -47,7 +33,7 @@ class frozenbidict(BidictBase[KT, VT]):
     def __hash__(self) -> int:
         """The hash of this bidict as determined by its items."""
         if getattr(self, '_hash', None) is None:
-            self._hash = t.ItemsView(self)._hash()  # type: ignore [attr-defined]
+            self._hash = t.ItemsView(self)._hash()  # type: ignore [attr-defined]  # https://github.com/python/typeshed/pull/7153
         return self._hash
 
 

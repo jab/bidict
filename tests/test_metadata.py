@@ -21,6 +21,7 @@ __license__
 __status__
 __url__
 __version__
+__project_urls__
 """.split()
 
 

@@ -5,21 +5,8 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 
-#==============================================================================
-#                    * Welcome to the bidict source code *
-#==============================================================================
-
-# Doing a code review? You'll find a "Code review nav" comment like the one
-# below at the top and bottom of the most important source files. This provides
-# a suggested initial path through the source when reviewing.
-#
-# Note: If you aren't reading this on https://github.com/jab/bidict, you may be
-# viewing an outdated version of the code. Please head to GitHub to review the
-# latest version, which contains important improvements over older versions.
-#
-# Thank you for reading and for any feedback you provide.
-
 #                             * Code review nav *
+#                    (see comments in bidict/__init__.py)
 #==============================================================================
 # ← Prev: _abc.py             Current: _base.py   Next:     _frozenbidict.py →
 #==============================================================================
@@ -35,7 +22,7 @@ from operator import eq
 from ._abc import BidirectionalMapping
 from ._dup import ON_DUP_DEFAULT, RAISE, DROP_OLD, DROP_NEW, OnDup
 from ._exc import DuplicationError, KeyDuplicationError, ValueDuplicationError, KeyAndValueDuplicationError
-from ._iter import _iteritems_args_kw
+from ._iter import iteritems_args_kw
 from ._typing import KT, VT, MISSING, OKT, OVT, IterItems, MapOrIterItems
 
 
@@ -101,6 +88,10 @@ class BidictBase(BidirectionalMapping[KT, VT]):
 
     def __init_subclass__(cls) -> None:
         super().__init_subclass__()
+        cls._init_class()
+
+    @classmethod
+    def _init_class(cls) -> None:
         cls._ensure_inv_cls()
         cls._set_reversed()
 
@@ -111,7 +102,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         """Set __reversed__ for subclasses that do not set it explicitly
         according to whether backing mappings are reversible.
         """
-        if cls is not BidictBase:
+        if cls is not __class__:  # type: ignore  # https://github.com/python/mypy/issues/4177
             resolved = cls.__reversed__
             overridden = resolved is not BidictBase.__reversed__
             if overridden:  # E.g. OrderedBidictBase, OrderedBidict, FrozenOrderedBidict
@@ -467,7 +458,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         unwrites: t.List[Unwrite] = []
         append_unwrite = unwrites.append
         prep_write = self._prep_write
-        for (key, val) in _iteritems_args_kw(*args, **kw):
+        for (key, val) in iteritems_args_kw(*args, **kw):
             try:
                 dedup_result = self._dedup(key, val, on_dup)
             except DuplicationError:
@@ -547,13 +538,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         return (_reduce_factory, (cls, fwdm, invm, is_generated))
 
 
-# Set BidictBase's own _inv_cls, since _inv_cls is only set automatically for BidictBase subclasses.
-# We don't really expect BidictBase to be instantiated, but might as well make it work (including
-# `BidictBase().inverse`, which would otherwise cause AttributeError due to _inv_cls not being set).
-BidictBase._inv_cls = BidictBase  # type: ignore [misc]
-
-# Set BidictBase's own __reversed__, since it's only set automatically for BidictBase subclasses.
-BidictBase._set_reversed()
+BidictBase._init_class()
 
 
 class GeneratedBidictInverse(BidictBase[KT, VT]):

@@ -5,21 +5,8 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 
-#==============================================================================
-#                    * Welcome to the bidict source code *
-#==============================================================================
-
-# Doing a code review? You'll find a "Code review nav" comment like the one
-# below at the top and bottom of the most important source files. This provides
-# a suggested initial path through the source when reviewing.
-#
-# Note: If you aren't reading this on https://github.com/jab/bidict, you may be
-# viewing an outdated version of the code. Please head to GitHub to review the
-# latest version, which contains important improvements over older versions.
-#
-# Thank you for reading and for any feedback you provide.
-
 #                             * Code review nav *
+#                    (see comments in bidict/__init__.py)
 #==============================================================================
 # ← Prev: _bidict.py       Current: _orderedbase.py   Next: _frozenordered.py →
 #==============================================================================
@@ -116,7 +103,6 @@ class SentinelNode(Node):
         return new_last
 
 
-NodeByKorV = t.Tuple[bidict, bool]
 OBT = t.TypeVar('OBT', bound='OrderedBidictBase[t.Any, t.Any]')
 
 
@@ -124,9 +110,10 @@ class OrderedBidictBase(BidictBase[KT, VT]):
     """Base class implementing an ordered :class:`BidirectionalMapping`."""
 
     #: The object used by :meth:`__repr__` for representing the contained items.
-    _repr_delegate = list
+    _repr_delegate: t.ClassVar[t.Any] = list
 
-    _node_by_korv: NodeByKorV
+    _node_by_korv: bidict[t.Any, Node]
+    _bykey: bool
 
     @t.overload
     def __init__(self, __arg: t.Mapping[KT, VT], **kw: VT) -> None: ...
@@ -145,7 +132,8 @@ class OrderedBidictBase(BidictBase[KT, VT]):
         similar to :class:`collections.OrderedDict`.
         """
         self._sntl = SentinelNode()
-        self._node_by_korv = bidict(), True
+        self._node_by_korv = bidict()
+        self._bykey = True
         super().__init__(*args, **kw)
 
     if t.TYPE_CHECKING:
@@ -155,25 +143,23 @@ class OrderedBidictBase(BidictBase[KT, VT]):
     def _make_inverse(self) -> 'OrderedBidictBase[VT, KT]':
         inv = t.cast(OrderedBidictBase[VT, KT], super()._make_inverse())
         inv._sntl = self._sntl
-        node_by_korv, bykey = self._node_by_korv
-        inv._node_by_korv = node_by_korv, not bykey
+        inv._node_by_korv = self._node_by_korv
+        inv._bykey = not self._bykey
         return inv
 
     def _assoc_node(self, node: Node, key: KT, val: VT) -> None:
-        node_by_korv, bykey = self._node_by_korv
-        korv = key if bykey else val
-        node_by_korv.forceput(korv, node)
+        korv = key if self._bykey else val
+        self._node_by_korv.forceput(korv, node)
 
     def _dissoc_node(self, node: Node) -> None:
-        node_by_korv = self._node_by_korv[0]
-        del node_by_korv.inverse[node]
+        del self._node_by_korv.inverse[node]
         node.unlink()
 
     def _init_from(self, other: BidictBase[KT, VT]) -> None:
         """Efficiently clone this ordered bidict by copying its internal structure into *other*."""
         super()._init_from(other)
-        node_by_korv, bykey = self._node_by_korv
-        korv_by_node = node_by_korv.inverse
+        bykey = self._bykey
+        korv_by_node = self._node_by_korv.inverse
         korv_by_node.clear()
         korv_by_node_set = korv_by_node.__setitem__
         self._sntl.nxt = self._sntl.prv = self._sntl
@@ -183,15 +169,14 @@ class OrderedBidictBase(BidictBase[KT, VT]):
 
     def _pop(self, key: KT) -> VT:
         val = super()._pop(key)
-        node_by_korv, bykey = self._node_by_korv
-        node = node_by_korv[key if bykey else val]
+        node = self._node_by_korv[key if self._bykey else val]
         self._dissoc_node(node)
         return val
 
     def _prep_write(self, newkey: KT, newval: VT, oldkey: OKT[KT], oldval: OVT[VT], save_unwrite: bool) -> PreparedWrite:
         write, unwrite = super()._prep_write(newkey, newval, oldkey, oldval, save_unwrite)
         assoc, dissoc = self._assoc_node, self._dissoc_node
-        node_by_korv, bykey = self._node_by_korv
+        node_by_korv, bykey = self._node_by_korv, self._bykey
         if oldval is MISSING and oldkey is MISSING:  # no key or value duplication
             # {0: 1, 2: 3} + (4, 5) => {0: 1, 2: 3, 4: 5}
             newnode = self._sntl.new_last_node()
@@ -245,11 +230,10 @@ class OrderedBidictBase(BidictBase[KT, VT]):
 
     def _iter(self, *, reverse: bool = False) -> t.Iterator[KT]:
         nodes = self._sntl.iternodes(reverse=reverse)
-        node_by_korv, bykey = self._node_by_korv
         # Use map() here because it's faster than using generator comprehensions.
-        if bykey:
-            return map(node_by_korv._invm.__getitem__, nodes)
-        vals = map(node_by_korv._invm.__getitem__, nodes)
+        if self._bykey:
+            return map(self._node_by_korv._invm.__getitem__, nodes)
+        vals = map(self._node_by_korv._invm.__getitem__, nodes)
         return map(self._invm.__getitem__, vals)
 
     # Note: We need not override the keys() and items() implementations we inherit

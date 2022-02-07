@@ -55,14 +55,17 @@ adherence to `SOLID <https://en.wikipedia.org/wiki/SOLID>`__ design principles
 (while not missing any chances for special-case optimizations)
 has been one of the most fun parts of working on bidict.
 
-To see how this is done, check out this code:
+To see how this is done, check out the code starting with
+`__init__.py <https://github.com/jab/bidict/blob/main/bidict/__init__.py#L9>`__,
+and then follow the path suggested in the "code review nav" comments at the
+top of the file:
 
-- `_base.py <https://github.com/jab/bidict/blob/main/bidict/_base.py#L9>`__
-- `_frozenbidict.py <https://github.com/jab/bidict/blob/main/bidict/_frozenbidict.py#L9>`__
-- `_bidict.py <https://github.com/jab/bidict/blob/main/bidict/_bidict.py#L9>`__
-- `_orderedbase.py <https://github.com/jab/bidict/blob/main/bidict/_orderedbase.py#L9>`__
-- `_frozenordered.py <https://github.com/jab/bidict/blob/main/bidict/_frozenordered.py#L9>`__
-- `_orderedbidict.py <https://github.com/jab/bidict/blob/main/bidict/_orderedbidict.py#L9>`__
+- `_base.py <https://github.com/jab/bidict/blob/main/bidict/_base.py#L8>`__
+- `_frozenbidict.py <https://github.com/jab/bidict/blob/main/bidict/_frozenbidict.py#L8>`__
+- `_bidict.py <https://github.com/jab/bidict/blob/main/bidict/_bidict.py#L8>`__
+- `_orderedbase.py <https://github.com/jab/bidict/blob/main/bidict/_orderedbase.py#L8>`__
+- `_frozenordered.py <https://github.com/jab/bidict/blob/main/bidict/_frozenordered.py#L8>`__
+- `_orderedbidict.py <https://github.com/jab/bidict/blob/main/bidict/_orderedbidict.py#L8>`__
 
 Data structures are amazing
 ===========================

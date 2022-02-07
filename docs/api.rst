@@ -24,8 +24,8 @@ bidict
 .. autodata:: bidict.ON_DUP_DROP_OLD
 
 
-.. autofunction:: bidict._iter._iteritems_mapping_or_iterable
-.. autofunction:: bidict._iter._iteritems_args_kw
+.. autofunction:: bidict._iter.iteritems_mapping_or_iterable
+.. autofunction:: bidict._iter.iteritems_args_kw
 
 .. attribute:: __version__
 

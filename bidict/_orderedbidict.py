@@ -5,21 +5,8 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 
-#==============================================================================
-#                    * Welcome to the bidict source code *
-#==============================================================================
-
-# Doing a code review? You'll find a "Code review nav" comment like the one
-# below at the top and bottom of the most important source files. This provides
-# a suggested initial path through the source when reviewing.
-#
-# Note: If you aren't reading this on https://github.com/jab/bidict, you may be
-# viewing an outdated version of the code. Please head to GitHub to review the
-# latest version, which contains important improvements over older versions.
-#
-# Thank you for reading and for any feedback you provide.
-
 #                             * Code review nav *
+#                    (see comments in bidict/__init__.py)
 #==============================================================================
 #  ← Prev: _frozenordered.py  Current: _orderedbidict.py                <FIN>
 #==============================================================================
@@ -45,7 +32,7 @@ class OrderedBidict(OrderedBidictBase[KT, VT], MutableBidict[KT, VT]):
     def clear(self) -> None:
         """Remove all items."""
         super().clear()
-        self._node_by_korv[0].clear()
+        self._node_by_korv.clear()
         self._sntl.nxt = self._sntl.prv = self._sntl
 
     def popitem(self, last: bool = True) -> t.Tuple[KT, VT]:
@@ -59,9 +46,8 @@ class OrderedBidict(OrderedBidictBase[KT, VT], MutableBidict[KT, VT]):
         if not self:
             raise KeyError('mapping is empty')  # match {}.pop() and bidict().pop()
         node = getattr(self._sntl, 'prv' if last else 'nxt')
-        node_by_korv, bykey = self._node_by_korv
-        korv = node_by_korv.inverse[node]
-        if bykey:
+        korv = self._node_by_korv.inverse[node]
+        if self._bykey:
             return korv, self._pop(korv)
         return self.inverse._pop(korv), korv
 
@@ -72,9 +58,8 @@ class OrderedBidict(OrderedBidictBase[KT, VT], MutableBidict[KT, VT]):
 
         :raises KeyError: if the key does not exist
         """
-        node_by_korv, bykey = self._node_by_korv
-        korv = key if bykey else self._fwdm[key]
-        node = node_by_korv[korv]
+        korv = key if self._bykey else self._fwdm[key]
+        node = self._node_by_korv[korv]
         node.prv.nxt = node.nxt
         node.nxt.prv = node.prv
         sntl = self._sntl

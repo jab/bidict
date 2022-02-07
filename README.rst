@@ -35,26 +35,6 @@ Status
    :target: https://codecov.io/gh/jab/bidict
    :alt: Test coverage
 
-.. Hide to reduce clutter
-   .. image:: https://img.shields.io/lgtm/alerts/github/jab/bidict.svg
-      :target: https://lgtm.com/projects/g/jab/bidict/
-      :alt: LGTM alerts
-   .. image:: https://bestpractices.coreinfrastructure.org/projects/2354/badge
-      :target: https://bestpractices.coreinfrastructure.org/en/projects/2354
-      :alt: CII best practices badge
-   .. image:: https://img.shields.io/badge/tidelift-support-orange.svg
-      :target: https://tidelift.com/subscription/pkg/pypi-bidict?utm_source=pypi-bidict&utm_medium=referral&utm_campaign=docs
-      :alt: Support available via Tidelift
-   .. image:: https://img.shields.io/pypi/pyversions/bidict.svg
-      :target: https://pypi.org/project/bidict
-      :alt: Supported Python versions
-   .. image:: https://img.shields.io/pypi/implementation/bidict.svg
-      :target: https://pypi.org/project/bidict
-      :alt: Supported Python implementations
-   .. image:: https://img.shields.io/badge/gitter-chat-5AB999.svg?logo=gitter-white
-      :target: https://gitter.im/jab/bidict
-      :alt: Chat
-
 .. image:: https://img.shields.io/pypi/l/bidict.svg
    :target: https://raw.githubusercontent.com/jab/bidict/main/LICENSE
    :alt: License
@@ -73,14 +53,14 @@ bidict:
 
 - has been used for many years by several teams at
   **Google, Venmo, CERN, Bank of America Merrill Lynch, Bloomberg, Two Sigma,** and many others
-- has carefully designed APIs for
+- has carefully designed, Pythonic APIs for
   **safety, simplicity, flexibility, and ergonomics**
-- is **fast, lightweight, and has no runtime dependencies** other than Python's standard library
-- **integrates natively** with Python’s ``collections.abc`` interfaces
+- is **lightweight**, with no runtime dependencies
+  other than Python's standard library
 - provides **type hints** for all public APIs
-- is implemented in **concise, well-factored, pure (PyPy-compatible) Python code**
-  that is **optimized for running efficiently**
-  as well as for **reading and learning** [#fn-learning]_
+- is implemented in **concise, well-factored, pure Python code**
+- is **optimized for running efficiently**
+  as well as for **reading, learning, and maintaining** [#fn-learning]_
 - has **extensive docs and test coverage**
   (including property-based tests and benchmarks)
   run continuously on all supported Python versions
@@ -122,11 +102,9 @@ and I have 15+ years of professional experience
 delivering software and support to companies successfully.
 
 You can also sponsor my work through platforms like GitHub Sponsors.
-See the `Sponsoring <#sponsoring>`__ section below for details.
-For rationale and examples of companies doing this,
-see `this post
-<https://www.cognitect.com/blog/supporting-open-source-developers>`__
-among others.
+See the `Sponsoring <#sponsoring>`__ section below for details,
+including rationale and examples of companies
+supporting the open source projects they depend on.
 
 
 Voluntary Community Support
@@ -222,7 +200,15 @@ Sponsorship just goes on the same bill that GitHub
 already charges you or your company for automatically,
 so after the one-time signup, there's nothing extra to do.
 
-You can also sponsor my work through
+See the following for rationale and examples of companies
+supporting the open source projects they depend on
+in this manner:
+
+- `<https://www.onepercent.dev>`__
+- `<https://www.cognitect.com/blog/supporting-open-source-developers>`__
+- `<https://vorpus.org/blog/the-unreasonable-effectiveness-of-investment-in-open-source-infrastructure/>`__
+
+You can also support my work through
 `Gumroad <https://gumroad.com/l/bidict>`__ or
 `PayPal <https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=jabronson%40gmail%2ecom&lc=US&item_name=Sponsor%20bidict>`__,
 or through a support engagement with my LLC.

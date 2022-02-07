@@ -29,7 +29,7 @@ from bidict import (
     inverted,
     DuplicationError, KeyDuplicationError, ValueDuplicationError, KeyAndValueDuplicationError,
 )
-from bidict._iter import _iteritems_args_kw
+from bidict._iter import iteritems_args_kw
 
 from . import _strategies as st
 from ._types import (
@@ -431,7 +431,7 @@ def test_orderedbidict_nodes_freed_on_zero_refcount(ob):
 @given(st.ORDERED_BIDICTS)
 def test_orderedbidict_nodes_consistent(ob):
     """The nodes in an ordered bidict's backing linked list should be the same as those in its backing mapping."""
-    mapnodes = set(ob._node_by_korv[0].inverse)
+    mapnodes = set(ob._node_by_korv.inverse)
     listnodes = set(ob._sntl.iternodes())
     assert mapnodes == listnodes
 
@@ -537,16 +537,16 @@ def test_deepcopy(bi):
 
 
 def test_iteritems_args_kw_raises_on_too_many_args():
-    """:func:`bidict._iteritems_args_kw` should raise if given too many arguments."""
+    """:func:`iteritems_args_kw` should raise if given too many arguments."""
     with pytest.raises(TypeError):
-        _iteritems_args_kw('too', 'many', 'args')
+        iteritems_args_kw('too', 'many', 'args')
 
 
 @given(st.I_PAIRS, st.ODICTS_KW_PAIRS)
 def test_iteritems_args_kw(arg0, kw):
-    """:func:`bidict._iteritems_args_kw` should work correctly."""
+    """:func:`iteritems_args_kw` should work correctly."""
     arg0_1, arg0_2 = tee(arg0)
-    it = _iteritems_args_kw(arg0_1, **kw)
+    it = iteritems_args_kw(arg0_1, **kw)
     # Consume the first `len(arg0)` pairs, checking that they match `arg0`.
     assert all(check == expect for (check, expect) in zip(it, arg0_2))
     with pytest.raises(StopIteration):

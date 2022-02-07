@@ -26,3 +26,13 @@ __keywords__ = 'dict dictionary mapping datastructure bimap bijection bijective 
 __license__ = 'MPL 2.0'
 __status__ = 'Beta'
 __url__ = 'https://bidict.readthedocs.io'
+
+__project_urls__ = {
+    'Donate': 'https://github.com/sponsors/jab',
+    'Documentation': 'https://bidict.readthedocs.io',
+    'Enterprise Support': 'https://bidict.readthedocs.io/#enterprise-support',
+    'Changelog': 'https://bidict.readthedocs.io/changelog.html',
+    'Source Code': 'https://github.com/jab/bidict',
+    'Issue Tracker': 'https://github.com/jab/bidict/issues',
+    'Chat': 'https://gitter.im/jab/bidict',
+}

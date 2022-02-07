@@ -10,11 +10,12 @@
 import typing as t
 from collections.abc import Mapping
 from itertools import chain
+from operator import itemgetter
 
 from ._typing import KT, VT, IterItems, MapOrIterItems
 
 
-def _iteritems_mapping_or_iterable(arg: MapOrIterItems[KT, VT]) -> IterItems[KT, VT]:
+def iteritems_mapping_or_iterable(arg: MapOrIterItems[KT, VT]) -> IterItems[KT, VT]:
     """Yield the items in *arg*.
 
     If *arg* is a :class:`~collections.abc.Mapping`, return an iterator over its items.
@@ -23,7 +24,7 @@ def _iteritems_mapping_or_iterable(arg: MapOrIterItems[KT, VT]) -> IterItems[KT,
     return iter(arg.items() if isinstance(arg, Mapping) else arg)
 
 
-def _iteritems_args_kw(*args: MapOrIterItems[KT, VT], **kw: VT) -> IterItems[KT, VT]:
+def iteritems_args_kw(*args: MapOrIterItems[KT, VT], **kw: VT) -> IterItems[KT, VT]:
     """Yield the items from the positional argument (if given) and then any from *kw*.
 
     :raises TypeError: if more than one positional argument is given.
@@ -35,11 +36,14 @@ def _iteritems_args_kw(*args: MapOrIterItems[KT, VT], **kw: VT) -> IterItems[KT,
     if args:
         arg = args[0]
         if arg:
-            it = _iteritems_mapping_or_iterable(arg)
+            it = iteritems_mapping_or_iterable(arg)
     if kw:
         iterkw = iter(kw.items())
         it = chain(it, iterkw)
     return it
+
+
+swap = itemgetter(1, 0)
 
 
 def inverted(arg: MapOrIterItems[KT, VT]) -> IterItems[VT, KT]:
@@ -57,4 +61,4 @@ def inverted(arg: MapOrIterItems[KT, VT]) -> IterItems[VT, KT]:
     if callable(invattr):
         inv: IterItems[VT, KT] = invattr()
         return inv
-    return ((v, k) for (k, v) in _iteritems_mapping_or_iterable(arg))
+    return map(swap, iteritems_mapping_or_iterable(arg))

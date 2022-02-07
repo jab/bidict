@@ -589,7 +589,7 @@ Misc
 
 Minor code and efficiency improvements to
 :func:`~bidict.inverted` and
-:func:`~bidict._iter._iteritems_args_kw`
+:func:`~bidict._iter.iteritems_args_kw`
 (formerly ``bidict.pairs()``).
 
 
@@ -598,7 +598,7 @@ Minor Breaking API Changes
 
 The following breaking changes are expected to affect few if any users.
 
-- Rename ``bidict.pairs()`` → ``bidict._util._iteritems_args_kw``.
+- Rename ``bidict.pairs()`` → ``_iteritems_args_kw``.
 
 
 0.15.0 (2018-03-29)
