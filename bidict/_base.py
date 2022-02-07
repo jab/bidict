@@ -35,23 +35,14 @@ PreparedWrite = t.Tuple[Write, Unwrite]
 BT = t.TypeVar('BT', bound='BidictBase[t.Any, t.Any]')
 
 
-class BiMappingView(t.Generic[KT, VT], t.MappingView):
-    """Bidict-specific MappingView subclass."""
-
-    _mapping: 'BidictBase[KT, VT]'
-
-
-class BiItemsView(BiMappingView[KT, VT], t.ItemsView[KT, VT], t.Reversible[t.Tuple[KT, VT]]):
-    """Custom bidict ItemsView type."""
-
-
-class BiKeysView(BiMappingView[KT, VT], t.KeysView[KT], t.Reversible[KT], t.ValuesView[t.Any]):
-    """Custom bidict KeysView type.
-
-    Since the keys of a bidict are the values of its inverse (and vice versa),
-    calling .values() on a bidict returns the same result as calling .keys() on its inverse,
-    specifically a KeysView[KT] object that is also a ValuesView[VT].
+class BidictKeysView(t.KeysView[KT], t.ValuesView[KT]):
+    """Since the keys of a bidict are the values of its inverse (and vice versa),
+    the ValuesView result of calling *bi.values()* is also a KeysView of *bi.inverse*.
     """
+
+
+dict_keys: t.Type[t.KeysView[t.Any]] = type({}.keys())
+BidictKeysView.register(dict_keys)
 
 
 # See _set_reversed() below.
@@ -219,9 +210,22 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         items = self._repr_delegate(self.items()) if self else ''
         return f'{clsname}({items})'
 
-    # The inherited collections.abc.Mapping.keys() method returns a collections.abc.KeysView,
-    # which is currently implemented in slow, pure Python rather than optimized C, so override:
-    def keys(self) -> BiKeysView[KT, VT]:
+    def values(self) -> BidictKeysView[VT]:
+        """A set-like object providing a view on the contained values.
+
+        Since the values of a bidict are equivalent to the keys of its inverse,
+        this method returns a set-like object for this bidict's values
+        rather than just a collections.abc.ValuesView.
+        This object supports set operations like union and difference,
+        and constant- rather than linear-time containment checks,
+        and is no more expensive to provide than the less capable
+        collections.abc.ValuesView would be.
+
+        See :meth:`keys` for more information.
+        """
+        return t.cast(BidictKeysView[VT], self.inverse.keys())
+
+    def keys(self) -> t.KeysView[KT]:
         """A set-like object providing a view on the contained keys.
 
         When *b._fwdm* is a :class:`dict`, *b.keys()* returns a
@@ -230,31 +234,16 @@ class BidictBase(BidirectionalMapping[KT, VT]):
 
           - offering better performance
 
-          - being reversible on Python > 3.7
+          - being reversible on Python 3.8+
 
           - having a .mapping attribute in Python 3.10+
             that exposes a mappingproxy to *b._fwdm*.
         """
-        return self._fwdm.keys() if isinstance(self._fwdm, dict) else super().keys()  # type: ignore [return-value]
+        fwdm = self._fwdm
+        kv = fwdm.keys() if isinstance(fwdm, dict) else BidictKeysView(self)
+        return kv
 
-    # The inherited collections.abc.Mapping.values() method returns a collections.abc.ValuesView, so override:
-    def values(self) -> BiKeysView[VT, KT]:
-        """A set-like object providing a view on the contained values.
-
-        Since the values of a bidict are equivalent to the keys of its inverse,
-        this method returns a KeysView for this bidict's inverse
-        rather than just a ValuesView for this bidict.
-        The KeysView offers the benefit of supporting set operations
-        (including constant- rather than linear-time containment checks)
-        and is just as cheap to provide as the less capable ValuesView would be.
-
-        See :meth:`keys` for more information.
-        """
-        return self.inverse.keys()
-
-    # The inherited collections.abc.Mapping.items() method returns a collections.abc.ItemsView,
-    # which is currently implemented in slow, pure Python rather than optimized C, so override:
-    def items(self) -> BiItemsView[KT, VT]:
+    def items(self) -> t.ItemsView[KT, VT]:
         """A set-like object providing a view on the contained items.
 
         When *b._fwdm* is a :class:`dict`, *b.items()* returns a
@@ -263,12 +252,12 @@ class BidictBase(BidirectionalMapping[KT, VT]):
 
           - offering better performance
 
-          - being reversible on Python > 3.7
+          - being reversible on Python 3.8+
 
           - having a .mapping attribute in Python 3.10+
             that exposes a mappingproxy to *b._fwdm*.
         """
-        return self._fwdm.items() if isinstance(self._fwdm, dict) else super().items()  # type: ignore [return-value]
+        return self._fwdm.items() if isinstance(self._fwdm, dict) else super().items()
 
     # The inherited collections.abc.Mapping.__contains__() method is implemented by doing a `try`
     # `except KeyError` around `self[key]`. The following implementation is much faster,

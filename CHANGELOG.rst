@@ -25,7 +25,19 @@ Development
 - Drop support for Python 3.6, which reached end of life on 2021-12-23
   and is no longer even supported by pip as of v22.
   Take advantage of this to simplify bidict's implementation
-  and reduce maintenance costs.
+
+- Use mypy-appeasing explicit re-exports in ``__init__.py``
+  (e.g. ``import y as y``)
+  so that mypy no longer gives errors if you enable its
+  `--no-implicit-reexport
+  <https://mypy.readthedocs.io/en/stable/command_line.html#cmdoption-mypy-no-implicit-reexport>`__
+  (or "--strict") option.
+
+- Update the implementations and type annotations of
+  :meth:`~bidict.BidictBase.keys` and
+  :meth:`~bidict.BidictBase.values` to make use of the new
+  :class:`~bidict.BidictBase.BidictKeysView` type,
+  which works better with mypy when type checking these methods.
 
 - Bidicts' inverses are now computed lazily the first time
   the :attr:`~bidict.BidictBase.inverse` attribute is accessed
@@ -125,11 +137,8 @@ Development
 
 - Update docstrings for
   :meth:`bidict.BidictBase.keys`,
-  :meth:`bidict.BidictBase.values`,
-  :meth:`bidict.BidictBase.items`,
-  :meth:`bidict.OrderedBidictBase.keys`,
-  :meth:`bidict.OrderedBidictBase.values`, and
-  :meth:`bidict.OrderedBidictBase.items`
+  :meth:`bidict.BidictBase.values`, and
+  :meth:`bidict.BidictBase.items`
   to include more details.
 
 - :func:`~bidict.namedbidict` now

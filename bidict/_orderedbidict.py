@@ -16,7 +16,7 @@
 
 import typing as t
 
-from ._base import BiMappingView, BiKeysView, BiItemsView
+from ._base import BidictKeysView
 from ._bidict import MutableBidict
 from ._orderedbase import OrderedBidictBase
 from ._typing import KT, VT
@@ -75,15 +75,14 @@ class OrderedBidict(OrderedBidictBase[KT, VT], MutableBidict[KT, VT]):
             sntl.nxt = firstnode.prv = node
 
     # Override the keys() and items() implementations we inherit from BidictBase,
-    # which delegate to the backing _fwdm dict for better performance,
-    # since this is a mutable ordered bidict, and therefore the ordering of items
-    # can get out of sync with the backing dict after mutation.
-    # (We need not override values() because it just delegates to .inverse.keys().)
-    def keys(self) -> BiKeysView[KT, VT]:
+    # which may delegate to the backing _fwdm dict, since this is a mutable ordered bidict,
+    # and therefore the ordering of items can get out of sync with the backing mappings
+    # after mutation. (Need not override values() because it delegates to .inverse.keys().)
+    def keys(self) -> t.KeysView[KT]:
         """A set-like object providing a view on the contained keys."""
         return _OrderedBidictKeysView(self)
 
-    def items(self) -> BiItemsView[KT, VT]:
+    def items(self) -> t.ItemsView[KT, VT]:
         """A set-like object providing a view on the contained items."""
         return _OrderedBidictItemsView(self)
 
@@ -93,14 +92,14 @@ class OrderedBidict(OrderedBidictBase[KT, VT], MutableBidict[KT, VT]):
 # continue to yield items in the correct order even after an OrderedBidict
 # is mutated. They also provide a __reversed__ implementation, which is not
 # provided by the collections.abc superclasses.
-class _OrderedBidictKeysView(BiKeysView[KT, VT]):
-    _mapping: OrderedBidict[KT, VT]
+class _OrderedBidictKeysView(BidictKeysView[KT]):
+    _mapping: OrderedBidict[KT, t.Any]
 
     def __reversed__(self) -> t.Iterator[KT]:
         return reversed(self._mapping)
 
 
-class _OrderedBidictItemsView(BiItemsView[KT, VT]):
+class _OrderedBidictItemsView(t.ItemsView[KT, VT]):
     _mapping: OrderedBidict[KT, VT]
 
     def __reversed__(self) -> t.Iterator[t.Tuple[KT, VT]]:
@@ -112,9 +111,13 @@ class _OrderedBidictItemsView(BiItemsView[KT, VT]):
 # Although the OrderedBidict MappingViews above cannot delegate to a backing
 # dict's MappingViews for faster __iter__ and __reversed__ implementations,
 # they can for all the collections.abc.Set methods, which are not order-sensitive:
+OBKeysOrItemsView = t.Union[_OrderedBidictKeysView[KT], _OrderedBidictItemsView[KT, VT]]
+OBKeysOrItemsViewT = t.Union[t.Type[_OrderedBidictKeysView[KT]], t.Type[_OrderedBidictItemsView[KT, VT]]]
+
+
 def _add_proxy_methods(
-    cls: t.Type[BiMappingView[KT, VT]],
-    viewname: str,
+    cls: OBKeysOrItemsViewT[KT, VT],
+    viewname: str,  # Use t.Literal['keys', 'items'] when support for Python 3.7 is dropped.
     methods: t.Iterable[str] = (
         '__lt__', '__le__', '__gt__', '__ge__', '__eq__', '__ne__',
         '__or__', '__ror__', '__xor__', '__rxor__', '__and__', '__rand__',
@@ -124,10 +127,10 @@ def _add_proxy_methods(
     assert viewname in ('keys', 'items')
 
     def make_proxy_method(methodname: str) -> t.Any:
-        def meth(self: BiMappingView[KT, VT], *args: t.Any) -> t.Any:
+        def meth(self: OBKeysOrItemsView[KT, VT], *args: t.Any) -> t.Any:
             self_bi = self._mapping
             fwdm_view = getattr(self_bi._fwdm, viewname)()
-            if len(args) == 1 and isinstance(args[0], BiMappingView):
+            if len(args) == 1 and isinstance(args[0], (_OrderedBidictKeysView, _OrderedBidictItemsView)):
                 other_bi = args[0]._mapping
                 other_view = getattr(other_bi._fwdm, viewname)()
                 args = (other_view,)

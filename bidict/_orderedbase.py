@@ -236,19 +236,6 @@ class OrderedBidictBase(BidictBase[KT, VT]):
         vals = map(self._node_by_korv._invm.__getitem__, nodes)
         return map(self._invm.__getitem__, vals)
 
-    # Note: We need not override the keys() and items() implementations we inherit
-    # from BidictBase, which delegate to the backing _fwdm dict for better performance,
-    # since this base class does not implement a mutable bidict, and therefore the
-    # ordering of items cannot get out of sync with the backing dict.
-    # (In CPython, dicts and dicts' MappingViews are implemented in C, so they are
-    # much faster compared to using the implementations we inherit from collections.abc.)
-    # In contrast, the subclass OrderedBidict does implement a mutable bidict, and
-    # therefore does override these methods, since mutating an existing item after
-    # initialization can change the ordering from that of the backing _fwdm dict,
-    # and so we have to use the slower __iter__ implementations of the MappingViews
-    # in collections.abc to ensure these views continue to yield items in the correct
-    # order as an OrderedBidict is mutated.
-
 
 #                             * Code review nav *
 #==============================================================================
