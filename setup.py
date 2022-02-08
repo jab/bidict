@@ -11,6 +11,7 @@ Ref: https://github.com/pypa/sampleproject/blob/main/setup.py
 """
 
 import sys
+import types
 from os.path import abspath, dirname, join
 
 from setuptools import setup
@@ -32,36 +33,34 @@ if sys.version_info < (3,):
 elif sys.version_info < (3, 7):
     sys.exit('Python < 3.7 is not supported by this version of bidict.')
 
-from importlib.util import module_from_spec, spec_from_file_location
 
 CWD = abspath(dirname(__file__))
 
-# Get bidict's package metadata from ./bidict/metadata.py.
-METADATA_PATH = join(CWD, 'bidict', 'metadata.py')
-SPEC = spec_from_file_location('metadata', METADATA_PATH)
-if not SPEC:
-    raise FileNotFoundError('bidict/metadata.py')
-METADATA = module_from_spec(SPEC)
-SPEC.loader.exec_module(METADATA)  # type: ignore [union-attr]
-
-with open(join(CWD, 'README.rst'), encoding='utf-8') as f:
+with open(join(CWD, 'README.rst'), encoding='utf8') as f:
     LONG_DESCRIPTION = f.read()
+
+# Get bidict's package metadata from ./bidict/metadata.py.
+metadata = {}
+with open(join(CWD, 'bidict', 'metadata.py'), encoding='utf8') as f:
+    exec(f.read(), metadata)
+metadata = types.SimpleNamespace(**metadata)
+
 
 setup(
     name='bidict',
-    author=METADATA.__author__,
-    author_email=METADATA.__email__,
-    description=METADATA.__description__,
+    author=metadata.__author__,
+    author_email=metadata.__email__,
+    description=metadata.__description__,
     long_description=LONG_DESCRIPTION,
     long_description_content_type='text/x-rst',
-    keywords=METADATA.__keywords__,
-    url=METADATA.__url__,
-    license=METADATA.__license__,
+    keywords=metadata.__keywords__,
+    url=metadata.__url__,
+    license=metadata.__license__,
     packages=['bidict'],
     include_package_data=True,
     zip_safe=False,  # Don't zip. (We're zip-safe but prefer not to.)
     python_requires='>=3.7',
-    project_urls=METADATA.__project_urls__,
+    project_urls=metadata.__project_urls__,
     classifiers=[
         'Intended Audience :: Developers',
         'License :: OSI Approved :: Mozilla Public License 2.0 (MPL 2.0)',
