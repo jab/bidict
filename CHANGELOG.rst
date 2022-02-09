@@ -19,82 +19,78 @@ Tip: Watch releases
 to be notified when new versions of ``bidict`` are released.
 
 
-Development
------------
+0.22.0 (not yet released)
+-------------------------
 
 - Drop support for Python 3.6, which reached end of life on 2021-12-23
-  and is no longer even supported by pip as of v22.
+  and is no longer supported by pip as of pip version 22.
   Take advantage of this to simplify bidict's implementation
+  and reduce maintenance costs.
 
 - Use mypy-appeasing explicit re-exports in ``__init__.py``
   (e.g. ``import y as y``)
   so that mypy no longer gives errors if you enable its
-  `--no-implicit-reexport
-  <https://mypy.readthedocs.io/en/stable/command_line.html#cmdoption-mypy-no-implicit-reexport>`__
-  (or "--strict") option.
+  ``--no-implicit-reexport`` or ``--strict`` options.
 
 - Update the implementations and type annotations of
   :meth:`~bidict.BidictBase.keys` and
   :meth:`~bidict.BidictBase.values` to make use of the new
-  :class:`~bidict.BidictBase.BidictKeysView` type,
+  :class:`~bidict.BidictKeysView` type,
   which works better with mypy when type checking these methods.
 
 - Bidicts' inverses are now computed lazily the first time
   the :attr:`~bidict.BidictBase.inverse` attribute is accessed
   rather than being computed eagerly during initialization.
 
-- Optimize initializing a bidict with another bidict,
-  updating an empty bidict with another bidict,
-  and pickling/unpickling any bidict.
-  These now perform ``TODO``\x faster
-  in a rough `microbenchmark <TODO>`__.
+- Optimize initializing a bidict with another bidict.
+  In a microbenchmark on Python 3.10,
+  this now performs over **20x faster**.
+
+- Optimize updating an empty bidict with another bidict.
+  In a microbenchmark on Python 3.10,
+  this now performs **2x faster**.
+
+- Optimize :meth:`~bidict.BidictBase.copy`.
+  In a microbenchmark on Python 3.10,
+  this now performs **5-30% faster**.
+
+- Optimize pickling bidicts.
+  In a microbenchmark on Python 3.10,
+  this now performs **5-10% faster**.
 
 - Optimize rolling back
   :ref:`failed updates to a bidict <basic-usage:Updates Fail Clean>`
-  in the case that the bidict already contained more items
-  than you passed in the update call.
-  This now performs ``TODO``\x faster
-  in a rough `microbenchmark <TODO>`__.
-
-- Optimize
-  :meth:`bidict.BidictBase.copy`,
-  :meth:`~bidict.BidictBase.__eq__`, and
-  :meth:`~bidict.BidictBase.equals_order_sensitive`.
-
-  In a `microbenchmark <TODO>`__,
-  :meth:`~bidict.BidictBase.copy`
-  now performs ``TODO``\x faster,
-  :meth:`bidict.bidict.__eq__`
-  now performs ``TODO``\x faster,
-  :meth:`bidict.OrderedBidict.__eq__`
-  now performs ``TODO``\x faster, and
-  :meth:`~bidict.BidictBase.equals_order_sensitive`
-  now performs ``TODO``\x faster.
+  in the case that the number of items passed to the update call
+  can be determined to be larger than the bidict being updated.
+  Previously this rollback was O(n) in the number of items passed.
+  Now it is O(1), i.e. **unboundedly faster**.
 
 - Optimize :meth:`~bidict.BidictBase.__contains__`
   (the method called when you run ``key in any_bidict``).
+  In a microbenchmark on Python 3.10,
+  this now performs over **3x faster** in the False case,
+  and at least **50% faster** in the True case.
 
-  In a `microbenchmark <TODO>`__,
-  it now performs ``TODO``\x faster in the True case
-  and ``TODO``\x faster in the False case.
+- Optimize :meth:`~bidict.BidictBase.__eq__`.
+  In a microbenchmark on Python 3.10,
+  this now performs over **25x faster** for ordered bidicts,
+  and at least **10x faster** for unordered bidicts.
 
-- Redesign ordered bidicts' internal implementation
-  to reduce memory usage by ``TODO%``,
-  to improve performance of several methods
-  (e.g. :meth:`bidict.OrderedBidict.__eq__` as mentioned above),
-  as well as the performance of the
-  :class:`~collections.abc.MappingView`\s returned by
+- Optimize :meth:`~bidict.BidictBase.equals_order_sensitive`.
+  In a microbenchmark on Python 3.10,
+  this now performs over **2x faster** for ordered bidicts
+  and at least **70% faster** for unordered bidicts.
+
+- Optimize the
+  :class:`~collections.abc.MappingView` objects returned by
   :meth:`~bidict.OrderedBidict.keys`,
   :meth:`~bidict.OrderedBidict.values`, and
   :meth:`~bidict.OrderedBidict.items`
-  (all of whose set-like APIs
-  now execute at C speed on CPython),
-  and to enable more reuse of
-  :class:`~bidict.BidictBase`\'s implementation.
-  ``TODO:`` give some microbenchmarks
-
-- :meth:`bidict.OrderedBidictBase.__iter__`
-  is now about ``TODO:``\x faster.
+  to delegate to backing ``dict_keys`` and ``dict_items``
+  objects if available, which are much faster in CPython.
+  For example, in a microbenchmark on Python 3.10,
+  ``orderedbi.items() == d.items()``
+  now performs **40-50x faster**.
 
 - Fix a bug where
   :meth:`bidict.BidictBase.__eq__` was always returning False
@@ -102,18 +98,16 @@ Development
   in the case that the argument was not a
   :class:`~collections.abc.Mapping`,
   defeating the argument's own ``__eq__()`` if implemented.
-
   As a notable example, bidicts now correctly compare equal to
   :obj:`unittest.mock.ANY`.
 
 - :class:`bidict.BidictBase` now adds a ``__reversed__`` implementation
   to subclasses that don't have an overridden implementation
   depending on whether both their backing mappings are
-  :class:`reversible <collections.abc.Reversible>`.
-
+  :class:`~collections.abc.Reversible`.
   Previously, a ``__reversed__`` implementation was only added to
   :class:`~bidict.BidictBase` when ``BidictBase._fwdm_cls`` was
-  :class:`reversible <collections.abc.Reversible>`.
+  :class:`~collections.abc.Reversible`.
   So if a :class:`~bidict.BidictBase` subclass set its ``_fwdm_cls``
   to a non-reversible mutable mapping,
   it would also have to manually set its ``__reversed__`` attribute to None
@@ -121,13 +115,16 @@ Development
   This is no longer necessary thanks to bidict's new
   :meth:`object.__init_subclass__` logic.
 
-- :meth:`~bidict.OrderedBidict.keys`,
+- The
+  :class:`~collections.abc.MappingView` objects
+  returned by
+  :meth:`~bidict.OrderedBidict.keys`,
   :meth:`~bidict.OrderedBidict.values`, and
   :meth:`~bidict.OrderedBidict.items`
-  now return
-  :class:`reversible <collections.abc.Reversible>`
-  :class:`~collections.abc.MappingView` objects.
-  (Unordered bidicts already do so when running on Python 3.8+.)
+  are now
+  :class:`~collections.abc.Reversible`.
+  (This was already the case for unordered bidicts
+  when running on Python 3.8+.)
 
 - Add support for
   `PEP 584 <https://www.python.org/dev/peps/pep-0584/>`__-style
@@ -147,14 +144,15 @@ Development
 
 - :func:`~bidict.namedbidict` now requires *base_type*
   to be a subclass of :class:`~bidict.BidictBase`,
-  but no longer requires *base_type* to provide ``_isinv``,
-  which :class:`~bidict.BidictBase` subclasses no longer implement.
+  but no longer requires *base_type* to provide
+  an ``_isinv`` attribute,
+  which :class:`~bidict.BidictBase` subclasses no longer provide.
 
 - When attempting to pickle a bidict's inverse
   whose class was dynamically generated
   (as in :ref:`extending:Dynamic Inverse Class Generation`),
   and no reference to the dynamically-generated class has been stored
-  anywhere in :attr:`sys.modules` where :mod:`pickle` can find it,
+  anywhere in :data:`sys.modules` where :mod:`pickle` can find it,
   the pickle call is now more likely to succeed
   rather than failing with a :class:`~pickle.PicklingError`.
 

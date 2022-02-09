@@ -50,6 +50,10 @@ py==1.11.0
     #   pytest
 py-cpuinfo==8.0.0
     # via pytest-benchmark
+pygal==3.0.0
+    # via pytest-benchmark
+pygaljs==1.0.2
+    # via pytest-benchmark
 pygments==2.11.2
     # via sphinx
 pyparsing==3.0.7
@@ -60,7 +64,7 @@ pytest==6.2.5
     #   pytest-benchmark
     #   pytest-cov
     #   pytest-icdiff
-pytest-benchmark==3.4.1
+pytest-benchmark[histogram]==3.4.1
     # via -r tests.in
 pytest-cov==3.0.0
     # via -r tests.in

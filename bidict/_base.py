@@ -16,6 +16,7 @@
 
 import typing as t
 import weakref
+from functools import partial
 from itertools import starmap
 from operator import eq
 
@@ -28,8 +29,7 @@ from ._typing import KT, VT, MISSING, OKT, OVT, IterItems, MapOrIterItems
 
 OLDKV = t.Tuple[OKT[KT], OVT[VT]]
 DedupResult = t.Optional[OLDKV[KT, VT]]
-PartialWrite = t.Sequence[t.Any]
-Write = t.List[PartialWrite]
+Write = t.List[t.Callable[[], None]]
 Unwrite = Write
 PreparedWrite = t.Tuple[Write, Unwrite]
 BT = t.TypeVar('BT', bound='BidictBase[t.Any, t.Any]')
@@ -359,46 +359,46 @@ class BidictBase(BidirectionalMapping[KT, VT]):
 
     def _prep_write(self, newkey: KT, newval: VT, oldkey: OKT[KT], oldval: OVT[VT], save_unwrite: bool) -> PreparedWrite:
         fwdm, invm = self._fwdm, self._invm
-        write: Write = [
-            (fwdm.__setitem__, newkey, newval),
-            (invm.__setitem__, newval, newkey),
+        write: t.List[t.Callable[[], None]] = [
+            partial(fwdm.__setitem__, newkey, newval),
+            partial(invm.__setitem__, newval, newkey),
         ]
-        unwrite: Unwrite
+        unwrite: t.List[t.Callable[[], None]]
         if oldval is MISSING and oldkey is MISSING:  # no key or value duplication
             # {0: 1, 2: 3} + (4, 5) => {0: 1, 2: 3, 4: 5}
             unwrite = [
-                (fwdm.__delitem__, newkey),
-                (invm.__delitem__, newval),
+                partial(fwdm.__delitem__, newkey),
+                partial(invm.__delitem__, newval),
             ] if save_unwrite else []
         elif oldval is not MISSING and oldkey is not MISSING:  # key and value duplication across two different items
             # {0: 1, 2: 3} + (0, 3) => {0: 3}
             write.extend((
-                (fwdm.__delitem__, oldkey),
-                (invm.__delitem__, oldval),
+                partial(fwdm.__delitem__, oldkey),
+                partial(invm.__delitem__, oldval),
             ))
             unwrite = [
-                (fwdm.__setitem__, newkey, oldval),
-                (invm.__setitem__, oldval, newkey),
-                (fwdm.__setitem__, oldkey, newval),
-                (invm.__setitem__, newval, oldkey),
+                partial(fwdm.__setitem__, newkey, oldval),
+                partial(invm.__setitem__, oldval, newkey),
+                partial(fwdm.__setitem__, oldkey, newval),
+                partial(invm.__setitem__, newval, oldkey),
             ] if save_unwrite else []
         elif oldval is not MISSING:  # just key duplication
             # {0: 1, 2: 3} + (2, 4) => {0: 1, 2: 4}
             #        nk ov   nk  nv
-            write.append((invm.__delitem__, oldval))
+            write.append(partial(invm.__delitem__, oldval))
             unwrite = [
-                (fwdm.__setitem__, newkey, oldval),
-                (invm.__setitem__, oldval, newkey),
-                (invm.__delitem__, newval),
+                partial(fwdm.__setitem__, newkey, oldval),
+                partial(invm.__setitem__, oldval, newkey),
+                partial(invm.__delitem__, newval),
             ] if save_unwrite else []
         else:
             assert oldkey is not MISSING  # just value duplication
             # {0: 1, 2: 3} + (4, 3) => {0: 1, 4: 3}
-            write.append((fwdm.__delitem__, oldkey))
+            write.append(partial(fwdm.__delitem__, oldkey))
             unwrite = [
-                (fwdm.__setitem__, oldkey, newval),
-                (invm.__setitem__, newval, oldkey),
-                (fwdm.__delitem__, newkey),
+                partial(fwdm.__setitem__, oldkey, newval),
+                partial(invm.__setitem__, newval, oldkey),
+                partial(fwdm.__delitem__, newkey),
             ] if save_unwrite else []
         return write, unwrite
 
@@ -454,14 +454,14 @@ class BidictBase(BidirectionalMapping[KT, VT]):
                 if rbof:
                     while unwrites:  # apply saved unwrites
                         unwrite = unwrites.pop()
-                        for op, *opargs in unwrite:
-                            op(*opargs)
+                        for unwriteop in unwrite:
+                            unwriteop()
                 raise
             if dedup_result is None:  # no-op
                 continue
             write, unwrite = prep_write(key, val, *dedup_result, save_unwrite=rbof)
-            for op, *opargs in write:  # apply the write
-                op(*opargs)
+            for writeop in write:  # apply the write
+                writeop()
             if rbof and unwrite:  # save the unwrite for later application if needed
                 append_unwrite(unwrite)
 

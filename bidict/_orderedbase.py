@@ -15,6 +15,7 @@
 """Provide :class:`OrderedBidictBase`."""
 
 import typing as t
+from functools import partial
 from weakref import ref as weakref
 
 from ._base import BidictBase, PreparedWrite
@@ -103,9 +104,6 @@ class SentinelNode(Node):
         return new_last
 
 
-OBT = t.TypeVar('OBT', bound='OrderedBidictBase[t.Any, t.Any]')
-
-
 class OrderedBidictBase(BidictBase[KT, VT]):
     """Base class implementing an ordered :class:`BidirectionalMapping`."""
 
@@ -180,9 +178,9 @@ class OrderedBidictBase(BidictBase[KT, VT]):
         if oldval is MISSING and oldkey is MISSING:  # no key or value duplication
             # {0: 1, 2: 3} + (4, 5) => {0: 1, 2: 3, 4: 5}
             newnode = self._sntl.new_last_node()
-            write.append((assoc, newnode, newkey, newval))
+            write.append(partial(assoc, newnode, newkey, newval))
             if save_unwrite:
-                unwrite.append((dissoc, newnode))
+                unwrite.append(partial(dissoc, newnode))
         elif oldval is not MISSING and oldkey is not MISSING:  # key and value duplication across two different items
             # {0: 1, 2: 3} + (0, 3) => {0: 3}
             #    n1, n2             =>   n1   (collapse n1 and n2 into n1)
@@ -194,30 +192,30 @@ class OrderedBidictBase(BidictBase[KT, VT]):
                 oldnode = node_by_korv[newval]
                 newnode = node_by_korv[oldval]
             write.extend((
-                (dissoc, oldnode),
-                (assoc, newnode, newkey, newval),
+                partial(dissoc, oldnode),
+                partial(assoc, newnode, newkey, newval),
             ))
             if save_unwrite:
                 unwrite.extend((
-                    (assoc, newnode, newkey, oldval),
-                    (assoc, oldnode, oldkey, newval),
-                    (oldnode.relink,),
+                    partial(assoc, newnode, newkey, oldval),
+                    partial(assoc, oldnode, oldkey, newval),
+                    partial(oldnode.relink,),
                 ))
         elif oldval is not MISSING:  # just key duplication
             # {0: 1, 2: 3} + (2, 4) => {0: 1, 2: 4}
             # oldkey: MISSING, oldval: 3, newkey: 2, newval: 4
             node = node_by_korv[newkey if bykey else oldval]
-            write.append((assoc, node, newkey, newval))
+            write.append(partial(assoc, node, newkey, newval))
             if save_unwrite:
-                unwrite.append((assoc, node, newkey, oldval))
+                unwrite.append(partial(assoc, node, newkey, oldval))
         else:
             assert oldkey is not MISSING  # just value duplication
             # {0: 1, 2: 3} + (4, 3) => {0: 1, 4: 3}
             # oldkey: 2, oldval: MISSING, newkey: 4, newval: 3
             node = node_by_korv[oldkey if bykey else newval]
-            write.append((assoc, node, newkey, newval))
+            write.append(partial(assoc, node, newkey, newval))
             if save_unwrite:
-                unwrite.append((assoc, node, oldkey, newval))
+                unwrite.append(partial(assoc, node, oldkey, newval))
         return write, unwrite
 
     def __iter__(self) -> t.Iterator[KT]:
@@ -230,11 +228,15 @@ class OrderedBidictBase(BidictBase[KT, VT]):
 
     def _iter(self, *, reverse: bool = False) -> t.Iterator[KT]:
         nodes = self._sntl.iternodes(reverse=reverse)
-        # Use map() here because it's faster than using generator comprehensions.
+        korv_by_node = self._node_by_korv.inverse
         if self._bykey:
-            return map(self._node_by_korv._invm.__getitem__, nodes)
-        vals = map(self._node_by_korv._invm.__getitem__, nodes)
-        return map(self._invm.__getitem__, vals)
+            for node in nodes:
+                yield korv_by_node[node]
+            return
+        key_by_val = self._invm
+        for node in nodes:
+            val = korv_by_node[node]
+            yield key_by_val[val]
 
 
 #                             * Code review nav *

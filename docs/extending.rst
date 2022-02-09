@@ -131,15 +131,13 @@ Now you can insert items into *WeakrefBidict* without incrementing any refcounts
    WeakrefBidictInv({1: <MyObj id=1>, 2: <MyObj id=2>})
 
 If you drop your references to your objects,
-you can see that they get garbage collected on CPython right away,
+you can see that they get deallocated on CPython right away,
 since your *WeakrefBidict* isn't holding on to them:
 
 .. doctest::
    :skipif: not_cpython
 
    >>> del o1, o2
-   >>> len(id_by_obj)
-   0
    >>> id_by_obj
    WeakrefBidict()
 
@@ -229,7 +227,7 @@ that come with :mod:`bidict`.)
 However, when a bidict's
 :attr:`~bidict.BidictBase._fwdm_cls` and
 :attr:`~bidict.BidictBase._invm_cls` differ,
-as in the ``KeySortedBidict`` example above,
+as in the ``KeySortedBidict`` and ``WeakrefBidict`` recipes above,
 the inverse class of the bidict
 needs to have its
 :attr:`~bidict.BidictBase._fwdm_cls` and
@@ -284,14 +282,6 @@ because it's passed through to the backing ``SortedDict``:
 
    >>> elem_by_atomicnum.peekitem()
    (6, 'carbon')
-
-
-.. warning::
-   If you need to pickle a bidict instance whose class was dynamically generated,
-   either ensure you have a reference to its qualname in the namespace where
-   it's unpickled, or if possible, pickle its inverse whose class was not
-   dynamically generated instead.
-
 
 This goes to show how simple it can be
 to compose your own bidirectional mapping types

@@ -3,7 +3,7 @@ hypothesis
 coverage
 py
 pytest
-pytest-benchmark
+pytest-benchmark[histogram]
 pytest-cov
 pytest-icdiff
 sortedcollections
