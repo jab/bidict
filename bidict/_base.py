@@ -23,7 +23,7 @@ from operator import eq
 from ._abc import BidirectionalMapping
 from ._dup import ON_DUP_DEFAULT, RAISE, DROP_OLD, DROP_NEW, OnDup
 from ._exc import DuplicationError, KeyDuplicationError, ValueDuplicationError, KeyAndValueDuplicationError
-from ._iter import iteritems_args_kw
+from ._iter import iteritems_args
 from ._typing import KT, VT, MISSING, OKT, OVT, IterItems, MapOrIterItems
 
 
@@ -446,7 +446,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         unwrites: t.List[Unwrite] = []
         append_unwrite = unwrites.append
         prep_write = self._prep_write
-        for (key, val) in iteritems_args_kw(*args, **kw):
+        for (key, val) in iteritems_args(*args, **kw):
             try:
                 dedup_result = self._dedup(key, val, on_dup)
             except DuplicationError:

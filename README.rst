@@ -116,7 +116,7 @@ and the `issue tracker <https://github.com/jab/bidict/issues?q=is%3Aissue>`__
 in case your question has already been addressed.
 
 Otherwise, please feel free to
-`start a new discussion <https://github.com/jab/bidict/discussions/new>`__
+`start a new discussion <https://github.com/jab/bidict/discussions>`__
 or `create a new issue <https://github.com/jab/bidict/issues/new>`__ on GitHub,
 or ask in the `bidict chatroom <https://gitter.im/jab/bidict>`__
 for voluntary community support.
@@ -130,7 +130,7 @@ and especially if your usage or your organization is significant in some way,
 please let me know in any of the following ways:
 
 - `star bidict on GitHub <https://github.com/jab/bidict>`__
-- post in `GitHub Discussions <https://github.com/jab/bidict/discussions/new>`__
+- post in `GitHub Discussions <https://github.com/jab/bidict/discussions>`__
 - leave a message in the `chat room <https://gitter.im/jab/bidict>`__
 - `email me <mailto:jabronson@gmail.com>`__
 
@@ -230,13 +230,13 @@ that can't render and link this documentation properly
 and are seeing broken links,
 try these alternate links instead:
 
-.. [#fn-learning] `<docs/learning-from-bidict.rst>`__ | `<https://bidict.readthedocs.io/learning-from-bidict.html>`__
+.. [#fn-learning] `<https://bidict.readthedocs.io/learning-from-bidict.html>`__ | `<docs/learning-from-bidict.rst>`__
 
-.. [#fn-changelog] `<CHANGELOG.rst>`__ | `<https://bidict.readthedocs.io/changelog.html>`__
+.. [#fn-changelog] `<https://bidict.readthedocs.io/changelog.html>`__ | `<CHANGELOG.rst>`__ 
 
-.. [#fn-intro] `<docs/intro.rst>`__ | `<https://bidict.readthedocs.io/intro.html>`__
+.. [#fn-intro] | `<https://bidict.readthedocs.io/intro.html>`__ | `<docs/intro.rst>`__
 
-.. [#fn-contributing] `<docs/contributors-guide.rst>`__ | `<https://bidict.readthedocs.io/contributors-guide.html>`__
+.. [#fn-contributing] `<https://bidict.readthedocs.io/contributors-guide.html>`__ | `<CONTRIBUTING.rst>`__
 
 
 ----

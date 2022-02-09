@@ -409,7 +409,8 @@ Python's data model
     is :ref:`order-insensitive <eq-order-insensitive>`.
     So all contained items must participate in the hash order-insensitively.
 
-  - Can use `collections.abc.Set._hash <https://github.com/python/cpython/blob/a0374d/Lib/_collections_abc.py#L521>`__
+  - Can use `collections.abc.Set._hash
+    <https://github.com/python/cpython/blob/v3.10.2/Lib/_collections_abc.py#L674>`__
     which provides a pure Python implementation of the same hash algorithm
     used to hash :class:`frozenset`\s.
     (Since :class:`~collections.abc.ItemsView` extends
@@ -417,12 +418,7 @@ Python's data model
     :meth:`bidict.frozenbidict.__hash__`
     just calls ``ItemsView(self)._hash()``.)
 
-    - Does this argue for making :meth:`collections.abc.Set._hash` non-private?
-
-    - Why isn't the C implementation of this algorithm directly exposed in
-      CPython? The only way to use it is to call ``hash(frozenset(self.items()))``,
-      which wastes memory allocating the ephemeral frozenset,
-      and time copying all the items into it before they're hashed.
+    - See also `<https://bugs.python.org/issue46684>`__
 
   - Unlike other attributes, if a class implements ``__hash__()``,
     any subclasses of that class will not inherit it.

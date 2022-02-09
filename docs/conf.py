@@ -32,9 +32,6 @@ import bidict
 # -- General configuration ------------------------------------------------
 
 suppress_warnings = [
-    'image.nonlocal_uri',
-    'autodoc.import_object',
-    'autosectionlabel.*',
 ]
 
 # If your documentation needs a minimal Sphinx version, state it here.
