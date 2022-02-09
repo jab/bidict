@@ -81,7 +81,7 @@ def namedbidict(
                 key_by_val_name: get_val_by_key,
             }
 
-    NamedInv = NamedBidict._inv_cls  # type: ignore [misc]
+    NamedInv = NamedBidict._inv_cls
     assert NamedInv is not NamedBidict, 'namedbidict classes are not their own inverses'
     setattr(NamedBidict, val_by_key_name, get_val_by_key)
     setattr(NamedBidict, key_by_val_name, get_key_by_val)

@@ -35,6 +35,8 @@ class frozenbidict(BidictBase[KT, VT]):
         if getattr(self, '_hash', None) is None:
             # The following is like hash(frozenset(self.items()))
             # but more memory efficient. See also: https://bugs.python.org/issue46684
+            # Can remove the `type: ignore` comment in the following once the patch from
+            # https://github.com/python/typeshed/pull/7153 makes it into the next release.
             self._hash = t.ItemsView(self)._hash()  # type: ignore [attr-defined]  # https://github.com/python/typeshed/pull/7153
         return self._hash
 

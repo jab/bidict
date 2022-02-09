@@ -64,15 +64,14 @@ class BidictBase(BidirectionalMapping[KT, VT]):
     _fwdm: t.MutableMapping[KT, VT]  #: the backing forward mapping (*key* → *val*)
     _invm: t.MutableMapping[VT, KT]  #: the backing inverse mapping (*val* → *key*)
 
-    # The following should be `t.ClassVar`s, but annotating them as such results in
-    # "ClassVar cannot contain type variables":
-    _fwdm_cls: t.Type[t.MutableMapping[KT, VT]] = dict  #: class of the backing forward mapping
-    _invm_cls: t.Type[t.MutableMapping[VT, KT]] = dict  #: class of the backing inverse mapping
+    # Use Any rather than KT/VT in the following to avoid "ClassVar cannot contain type variables" errors:
+    _fwdm_cls: t.ClassVar[t.Type[t.MutableMapping[t.Any, t.Any]]] = dict  #: class of the backing forward mapping
+    _invm_cls: t.ClassVar[t.Type[t.MutableMapping[t.Any, t.Any]]] = dict  #: class of the backing inverse mapping
 
     #: The class of the inverse bidict instance.
     #: BidictBase itself is its own inverse (set after the class definition below).
     #: For subclasses, this is set automatically in :meth:`__init_subclass__`.
-    _inv_cls: 't.Type[BidictBase[VT, KT]]'
+    _inv_cls: 't.ClassVar[t.Type[BidictBase[t.Any, t.Any]]]'
 
     #: The object used by :meth:`__repr__` for representing the contained items.
     _repr_delegate: t.ClassVar[t.Any] = dict
