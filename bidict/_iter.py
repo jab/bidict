@@ -24,7 +24,7 @@ def iteritems_mapping_or_iterable(arg: MapOrIterItems[KT, VT]) -> IterItems[KT, 
     return iter(arg.items() if isinstance(arg, Mapping) else arg)
 
 
-def iteritems_args_kw(*args: MapOrIterItems[KT, VT], **kw: VT) -> IterItems[KT, VT]:
+def iteritems_args(*args: MapOrIterItems[KT, VT], **kw: VT) -> IterItems[KT, VT]:
     """Yield the items from the positional argument (if given) and then any from *kw*.
 
     :raises TypeError: if more than one positional argument is given.

@@ -75,7 +75,7 @@ A safer example of this type of customization would be something like:
 
    >>> from bidict import ON_DUP_RAISE
 
-   >>> class YodoBidict(bidict):
+   >>> class YodoBidict(bidict):  # Note, "Yodo" with a "d"
    ...     on_dup = ON_DUP_RAISE
 
    >>> b = YodoBidict({'one': 1})
