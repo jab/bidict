@@ -73,7 +73,7 @@ from ._exc import KeyDuplicationError as KeyDuplicationError, ValueDuplicationEr
 from ._iter import inverted as inverted
 from .metadata import (
     __author__ as __author__, __maintainer__ as __maintainer__, __copyright__ as __copyright__, __email__ as __email__,
-    __credits__ as __credits__, __url__ as __url__, __license__ as __license__, __status__ as __status__, __description__ as __description__,
+    __url__ as __url__, __license__ as __license__, __status__ as __status__, __description__ as __description__,
     __keywords__ as __keywords__, __version__ as __version__, __project_urls__ as __project_urls__,
 )
 

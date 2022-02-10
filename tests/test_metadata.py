@@ -14,7 +14,6 @@ __author__
 __maintainer__
 __copyright__
 __email__
-__credits__
 __description__
 __keywords__
 __license__

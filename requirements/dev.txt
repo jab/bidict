@@ -14,6 +14,8 @@ attrs==21.4.0
     #   pytest
 babel==2.9.1
     # via sphinx
+beautifulsoup4==4.10.0
+    # via furo
 build==0.7.0
     # via check-manifest
 certifi==2021.10.8
@@ -38,6 +40,8 @@ filelock==3.4.2
     # via
     #   tox
     #   virtualenv
+furo==2022.1.2
+    # via -r docs.in
 hypothesis==6.36.1
     # via
     #   -r lint.in
@@ -102,7 +106,9 @@ pygal==3.0.0
 pygaljs==1.0.2
     # via pytest-benchmark
 pygments==2.11.2
-    # via sphinx
+    # via
+    #   furo
+    #   sphinx
 pylint==2.12.2
     # via -r lint.in
 pyparsing==3.0.7
@@ -139,9 +145,12 @@ sortedcontainers==2.4.0
     #   -r tests.in
     #   hypothesis
     #   sortedcollections
+soupsieve==2.3.1
+    # via beautifulsoup4
 sphinx==4.4.0
     # via
     #   -r docs.in
+    #   furo
     #   sphinx-copybutton
 sphinx-copybutton==0.4.0
     # via -r docs.in

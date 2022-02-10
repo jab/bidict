@@ -11,7 +11,6 @@ bidict
    :imported-members:
    :member-order: bysource
    :special-members:
-   :private-members:
    :show-inheritance:
    :undoc-members:
    :inherited-members:
@@ -25,7 +24,7 @@ bidict
 
 
 .. autofunction:: bidict._iter.iteritems_mapping_or_iterable
-.. autofunction:: bidict._iter.iteritems_args_kw
+.. autofunction:: bidict._iter.iteritems_args
 
 .. attribute:: __version__
 

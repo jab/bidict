@@ -23,7 +23,7 @@ from operator import eq
 from ._abc import BidirectionalMapping
 from ._dup import ON_DUP_DEFAULT, RAISE, DROP_OLD, DROP_NEW, OnDup
 from ._exc import DuplicationError, KeyDuplicationError, ValueDuplicationError, KeyAndValueDuplicationError
-from ._iter import iteritems_args_kw
+from ._iter import iteritems_args
 from ._typing import KT, VT, MISSING, OKT, OVT, IterItems, MapOrIterItems
 
 
@@ -92,7 +92,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         """Set __reversed__ for subclasses that do not set it explicitly
         according to whether backing mappings are reversible.
         """
-        if cls is not __class__:  # type: ignore  # https://github.com/python/mypy/issues/4177
+        if cls is not BidictBase:
             resolved = cls.__reversed__
             overridden = resolved is not BidictBase.__reversed__
             if overridden:  # E.g. OrderedBidictBase, OrderedBidict, FrozenOrderedBidict
@@ -446,7 +446,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         unwrites: t.List[Unwrite] = []
         append_unwrite = unwrites.append
         prep_write = self._prep_write
-        for (key, val) in iteritems_args_kw(*args, **kw):
+        for (key, val) in iteritems_args(*args, **kw):
             try:
                 dedup_result = self._dedup(key, val, on_dup)
             except DuplicationError:

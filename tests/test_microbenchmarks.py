@@ -7,7 +7,6 @@
 """Microbenchmarks."""
 
 import pickle
-import sys
 import typing as t
 from collections import deque
 from functools import partial
@@ -18,23 +17,13 @@ import bidict as b
 
 
 consume = partial(deque, maxlen=0)
-
-
-def make_items(n: int) -> t.Iterable[t.Tuple[t.Any, t.Any]]:
-    """As in:
-    >>> tuple(make_items(3))
-    ((0, 0), (1, 1), (2, 2))
-    """
-    return zip(range(n), range(n))
-
-
-LENS = (99, 999, 9_999, 99_999)
-DICTS_BY_LEN = {n: dict(make_items(n)) for n in LENS}
+LENS = (99, 999, 9_999)
+DICTS_BY_LEN = {n: dict(zip(range(n), range(n))) for n in LENS}
 BIDICTS_BY_LEN = {n: b.bidict(DICTS_BY_LEN[n]) for n in LENS}
 ORDERED_BIDICTS_BY_LEN = {n: b.OrderedBidict(DICTS_BY_LEN[n]) for n in LENS}
 SMALL_BIDICT = b.bidict(zip(range(-9, 0), range(-9, 0)))
 DICTS_BY_LEN_LAST_ITEM_DUPVAL = {n: {**DICTS_BY_LEN[n], **{n - 1: 0}} for n in LENS}
-if sys.version_info >= (3, 8):  # dicts support reversed
+if isinstance(dict, t.Reversible):
     _checkd = next(iter(DICTS_BY_LEN_LAST_ITEM_DUPVAL.values()))
     _lastk, _lastv = next(reversed(_checkd.items()))
     _firstk, _firstv = next(iter(_checkd.items()))

@@ -7,8 +7,6 @@ Bidict has benefited from the assistance of many people and projects.
 People
 ======
 
-.. Remember to update "__credits__" in ../bidict/metadata.py when this is updated
-
 - Gregory Ewing for the name.
 
 - Terry Reedy for suggesting the slice syntax
@@ -37,11 +35,6 @@ People
 
 - Bernát Gábor for pyproject.toml support.
 
-- Muhammad Faisal for the
-  `CC BY 3.0 <https://creativecommons.org/licenses/by/3.0/us/>`__
-  `icon <https://thenounproject.com/term/book/1330481/>`__
-  that bidict's logo was derived from.
-
 - Richard Sanger, Zeyi Wang, and Amol Sahsrabudhe for reporting bugs.
 
 
@@ -51,13 +44,14 @@ Projects
 - `Python <https://www.python.org>`__
 - `GitHub <https://github.com>`__
 - `Tidelift <https://tidelift.com>`__
+- `mypy <https://mypy.readthedocs.io>`__
 - `Pytest <https://docs.pytest.org>`__
-- `Coverage <https://coverage.readthedocs.io>`__
 - `Hypothesis <https://hypothesis.readthedocs.io>`__
+- `Pytest-Benchmark <https://pytest-benchmark.readthedocs.io>`__
+- `Coverage <https://coverage.readthedocs.io>`__
+- `Codecov <https://codecov.io>`__
 - `Sphinx <https://www.sphinx-doc.org>`__
 - `Readthedocs <https://readthedocs.org>`__
-- `Codecov <https://codecov.io>`__
-- `Pylint <https://www.pylint.org>`__
 - `Flake8 <https://flake8.pycqa.org>`__
+- `Pylint <https://www.pylint.org>`__
 - `pre-commit <https://pre-commit.com>`__
-- `mypy <https://mypy.readthedocs.io>`__

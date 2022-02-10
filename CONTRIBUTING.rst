@@ -166,4 +166,4 @@ All participation in this project should respect the
 
 By participating, you are expected to honor this code.
 
-.. [#fn-coc] `<CODE_OF_CONDUCT.rst>`_ | `<https://bidict.readthedocs.io/code-of-conduct.html>`__
+.. [#fn-coc] `<https://bidict.readthedocs.io/code-of-conduct.html>`__ | `<CODE_OF_CONDUCT.rst>`__
