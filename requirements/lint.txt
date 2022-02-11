@@ -18,7 +18,7 @@ filelock==3.4.2
     # via virtualenv
 hypothesis==6.36.1
     # via -r lint.in
-identify==2.4.7
+identify==2.4.9
     # via pre-commit
 iniconfig==1.1.1
     # via pytest
@@ -32,7 +32,7 @@ nodeenv==1.6.0
     # via pre-commit
 packaging==21.3
     # via pytest
-platformdirs==2.4.1
+platformdirs==2.5.0
     # via
     #   pylint
     #   virtualenv
@@ -46,7 +46,7 @@ pylint==2.12.2
     # via -r lint.in
 pyparsing==3.0.7
     # via packaging
-pytest==6.2.5
+pytest==7.0.1
     # via -r lint.in
 pyyaml==6.0
     # via pre-commit
@@ -58,8 +58,9 @@ toml==0.10.2
     # via
     #   pre-commit
     #   pylint
-    #   pytest
-virtualenv==20.13.0
+tomli==2.0.1
+    # via pytest
+virtualenv==20.13.1
     # via pre-commit
 wrapt==1.13.3
     # via astroid

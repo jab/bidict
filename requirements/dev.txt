@@ -48,7 +48,7 @@ hypothesis==6.36.1
     #   -r tests.in
 icdiff==2.0.4
     # via pytest-icdiff
-identify==2.4.7
+identify==2.4.9
     # via pre-commit
 idna==3.3
     # via requests
@@ -78,9 +78,9 @@ pep517==0.12.0
     # via
     #   build
     #   pip-tools
-pip-tools==6.4.0
+pip-tools==6.5.1
     # via -r dev.in
-platformdirs==2.4.1
+platformdirs==2.5.0
     # via
     #   pylint
     #   virtualenv
@@ -113,7 +113,7 @@ pylint==2.12.2
     # via -r lint.in
 pyparsing==3.0.7
     # via packaging
-pytest==6.2.5
+pytest==7.0.1
     # via
     #   -r lint.in
     #   -r tests.in
@@ -152,7 +152,7 @@ sphinx==4.4.0
     #   -r docs.in
     #   furo
     #   sphinx-copybutton
-sphinx-copybutton==0.4.0
+sphinx-copybutton==0.5.0
     # via -r docs.in
 sphinxcontrib-applehelp==1.0.2
     # via sphinx
@@ -171,18 +171,18 @@ toml==0.10.2
     #   check-manifest
     #   pre-commit
     #   pylint
-    #   pytest
     #   tox
-tomli==2.0.0
+tomli==2.0.1
     # via
     #   build
     #   coverage
     #   pep517
+    #   pytest
 tox==3.24.5
     # via -r dev.in
 urllib3==1.26.8
     # via requests
-virtualenv==20.13.0
+virtualenv==20.13.1
     # via
     #   pre-commit
     #   tox
