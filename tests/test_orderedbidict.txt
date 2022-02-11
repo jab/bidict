@@ -114,11 +114,11 @@ and the doctests in the Sphinx docs don't get counted in the coverage report):
     >>> b.popitem()
     Traceback (most recent call last):
       ...
-    KeyError: 'mapping is empty'
+    KeyError: 'OrderedBidict is empty'
     >>> b.inverse.popitem()
     Traceback (most recent call last):
       ...
-    KeyError: 'mapping is empty'
+    KeyError: 'OrderedBidict is empty'
 
     >>> b._update(args=())
     >>> b

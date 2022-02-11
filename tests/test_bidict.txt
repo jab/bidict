@@ -131,7 +131,7 @@ The rest of the ``MutableMapping`` interface is supported:
     >>> bi.popitem()
     Traceback (most recent call last):
       ...
-    KeyError: 'mapping is empty'
+    KeyError: 'popitem(): dictionary is empty'
     >>> bi.inverse.setdefault(3, 'three')
     'three'
     >>> bi

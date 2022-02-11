@@ -29,6 +29,11 @@ class MutableBidict(BidictBase[KT, VT], MutableBidirectionalMapping[KT, VT]):
         @property
         def inverse(self) -> 'MutableBidict[VT, KT]': ...
 
+    def _pop(self, key: KT) -> VT:
+        val = self._fwdm.pop(key)
+        del self._invm[val]
+        return val
+
     def __delitem__(self, key: KT) -> None:
         """*x.__delitem__(y)　⟺　del x[y]*"""
         self._pop(key)
@@ -128,8 +133,6 @@ class MutableBidict(BidictBase[KT, VT], MutableBidirectionalMapping[KT, VT]):
 
         :raises KeyError: if *x* is empty.
         """
-        if not self:
-            raise KeyError('mapping is empty')
         key, val = self._fwdm.popitem()
         del self._invm[val]
         return key, val
@@ -137,7 +140,7 @@ class MutableBidict(BidictBase[KT, VT], MutableBidirectionalMapping[KT, VT]):
     @t.overload
     def update(self, __m: t.Mapping[KT, VT], **kw: VT) -> None: ...
     @t.overload
-    def update(self, __m: IterItems[KT, VT], **kw: VT) -> None: ...
+    def update(self, __i: IterItems[KT, VT], **kw: VT) -> None: ...
     @t.overload
     def update(self, **kw: VT) -> None: ...
 
@@ -147,9 +150,9 @@ class MutableBidict(BidictBase[KT, VT], MutableBidirectionalMapping[KT, VT]):
             self._update(args=args, kw=kw)
 
     @t.overload
-    def forceupdate(self, __arg: t.Mapping[KT, VT], **kw: VT) -> None: ...
+    def forceupdate(self, __m: t.Mapping[KT, VT], **kw: VT) -> None: ...
     @t.overload
-    def forceupdate(self, __arg: IterItems[KT, VT], **kw: VT) -> None: ...
+    def forceupdate(self, __i: IterItems[KT, VT], **kw: VT) -> None: ...
     @t.overload
     def forceupdate(self, **kw: VT) -> None: ...
 

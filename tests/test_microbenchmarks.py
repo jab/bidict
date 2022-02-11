@@ -21,7 +21,6 @@ LENS = (99, 999, 9_999)
 DICTS_BY_LEN = {n: dict(zip(range(n), range(n))) for n in LENS}
 BIDICTS_BY_LEN = {n: b.bidict(DICTS_BY_LEN[n]) for n in LENS}
 ORDERED_BIDICTS_BY_LEN = {n: b.OrderedBidict(DICTS_BY_LEN[n]) for n in LENS}
-SMALL_BIDICT = b.bidict(zip(range(-9, 0), range(-9, 0)))
 DICTS_BY_LEN_LAST_ITEM_DUPVAL = {n: {**DICTS_BY_LEN[n], **{n - 1: 0}} for n in LENS}
 if isinstance(dict, t.Reversible):
     _checkd = next(iter(DICTS_BY_LEN_LAST_ITEM_DUPVAL.values()))
@@ -56,7 +55,7 @@ for _i in LENS:
 
 @pytest.mark.parametrize('n', LENS)
 def test_bi_init_from_dict(n, benchmark):
-    """Benchmark initializing a new bidict from a dictionary."""
+    """Benchmark initializing a new bidict from a dict."""
     other = DICTS_BY_LEN[n]
     benchmark(b.bidict, other)
 
@@ -89,27 +88,26 @@ def test_empty_bi_update_from_bi(n, benchmark):
     """Benchmark updating an empty bidict from another bidict."""
     bi = b.bidict()
     other = BIDICTS_BY_LEN[n]
-    benchmark(lambda: bi.update(other))
-    assert dict(bi) == other
+    benchmark(bi.update, other)
+    assert bi == other
 
 
 @pytest.mark.parametrize('n', LENS)
 def test_small_bi_large_update_fails_worst_case(n, benchmark):
     """Benchmark updating a small bidict with a large update that fails on the final item and then rolls back."""
+    bi = b.bidict(zip(range(-9, 0), range(-9, 0)))
     other = DICTS_BY_LEN_LAST_ITEM_DUPVAL[n]
-    check = SMALL_BIDICT.copy()
-    expect = SMALL_BIDICT.copy()
 
     def apply_failing_update():
         try:
-            check.update(other)
+            bi.update(other)
         except b.DuplicationError:
             pass  # Rollback should happen here.
         else:
             raise Exception('Expected DuplicationError')
 
     benchmark(apply_failing_update)
-    assert dict(check) == dict(expect), 'Update did not roll back'
+    assert list(bi.items()) == list(zip(range(-9, 0), range(-9, 0)))
 
 
 @pytest.mark.parametrize('n', LENS)
@@ -128,7 +126,7 @@ def test_orderedbi_iter(n, benchmark):
 
 @pytest.mark.parametrize('n', LENS)
 def test_bi_contains_key_present(n, benchmark):
-    """Benchmark calling bidict.__contains__ with a contained key."""
+    """Benchmark bidict.__contains__ with a contained key."""
     bi = BIDICTS_BY_LEN[n]
     key = next(iter(bi))
     result = benchmark(bi.__contains__, key)
@@ -137,31 +135,31 @@ def test_bi_contains_key_present(n, benchmark):
 
 @pytest.mark.parametrize('n', LENS)
 def test_bi_contains_key_missing(n, benchmark):
-    """Benchmark calling bidict.__contains__ with a missing key."""
+    """Benchmark bidict.__contains__ with a missing key."""
     bi = BIDICTS_BY_LEN[n]
     result = benchmark(bi.__contains__, object())
     assert not result
 
 
 @pytest.mark.parametrize('n', LENS)
-def test_bi_equals_equivalent_dict_worst_case(n, benchmark):
-    """Benchmark calling bidict.__eq__ with an equivalent dict whose order is slightly different."""
+def test_bi_equals_with_equal_dict(n, benchmark):
+    """Benchmark bidict.__eq__ with an equivalent dict."""
     bi, d = BIDICT_AND_DICT_LAST_TWO_ITEMS_DIFFERENT_ORDER[n]
     result = benchmark(bi.__eq__, d)
     assert result
 
 
 @pytest.mark.parametrize('n', LENS)
-def test_orderedbi_equals_equivalent_dict_worst_case(n, benchmark):
-    """Benchmark calling OrderedBidict.__eq__ with an equivalent dict whose order is slightly different."""
+def test_orderedbi_equals_with_equal_dict(n, benchmark):
+    """Benchmark OrderedBidict.__eq__ with an equivalent dict."""
     ob, d = ORDERED_BIDICT_AND_DICT_LAST_TWO_ITEMS_DIFFERENT_ORDER[n]
     result = benchmark(ob.__eq__, d)
     assert result
 
 
 @pytest.mark.parametrize('n', LENS)
-def test_orderedbi_items_equals_equivalent_dict_items_worst_case(n, benchmark):
-    """Benchmark calling OrderedBidict.items().__eq__ with an equivalent dict.items() whose order is slightly different."""
+def test_orderedbi_items_equals_with_equal_dict_items(n, benchmark):
+    """Benchmark OrderedBidict.items().__eq__ with an equivalent dict_items."""
     ob, d = ORDERED_BIDICT_AND_DICT_LAST_TWO_ITEMS_DIFFERENT_ORDER[n]
     obi, di = ob.items(), d.items()
     result = benchmark(obi.__eq__, di)
@@ -169,16 +167,25 @@ def test_orderedbi_items_equals_equivalent_dict_items_worst_case(n, benchmark):
 
 
 @pytest.mark.parametrize('n', LENS)
-def test_bi_not_equals_dict_worst_case(n, benchmark):
-    """Benchmark calling bidict.__eq__ with an unequal dict that differs only in its last item."""
+def test_orderedbi_items_equals_with_unequal_dict_items(n, benchmark):
+    """Benchmark OrderedBidict.items().__eq__ with an unequal dict_items."""
+    ob, d = ORDERED_BIDICT_AND_DICT_ONLY_LAST_ITEM_DIFFERENT[n]
+    obi, di = ob.items(), d.items()
+    result = benchmark(obi.__eq__, di)
+    assert not result
+
+
+@pytest.mark.parametrize('n', LENS)
+def test_bi_equals_with_unequal_dict(n, benchmark):
+    """Benchmark bidict.__eq__ with an unequal dict."""
     bi, d = BIDICT_AND_DICT_ONLY_LAST_ITEM_DIFFERENT[n]
     result = benchmark(bi.__eq__, d)
     assert not result
 
 
 @pytest.mark.parametrize('n', LENS)
-def test_orderedbi_not_equals_dict_worst_case(n, benchmark):
-    """Benchmark calling OrderedBidict.__eq__ with an unequal dict that differs only in its last item."""
+def test_orderedbi_equals_with_unequal_dict(n, benchmark):
+    """Benchmark OrderedBidict.__eq__ with an unequal dict."""
     ob, d = ORDERED_BIDICT_AND_DICT_ONLY_LAST_ITEM_DIFFERENT[n]
     result = benchmark(ob.__eq__, d)
     assert not result
@@ -186,7 +193,7 @@ def test_orderedbi_not_equals_dict_worst_case(n, benchmark):
 
 @pytest.mark.parametrize('n', LENS)
 def test_bi_order_sensitive_equals_dict(n, benchmark):
-    """Benchmark calling bidict.equals_order_sensitive with an order-sensitive-equal dict."""
+    """Benchmark bidict.equals_order_sensitive with an order-sensitive-equal dict."""
     bi, d = BIDICTS_BY_LEN[n], DICTS_BY_LEN[n]
     result = benchmark(bi.equals_order_sensitive, d)
     assert result
@@ -194,21 +201,23 @@ def test_bi_order_sensitive_equals_dict(n, benchmark):
 
 @pytest.mark.parametrize('n', LENS)
 def test_orderedbi_order_sensitive_equals_dict(n, benchmark):
-    """Benchmark calling OrderedBidict.equals_order_sensitive with an order-sensitive-equal dict."""
+    """Benchmark OrderedBidict.equals_order_sensitive with an order-sensitive-equal dict."""
     ob, d = ORDERED_BIDICTS_BY_LEN[n], DICTS_BY_LEN[n]
     result = benchmark(ob.equals_order_sensitive, d)
     assert result
 
 
 @pytest.mark.parametrize('n', LENS)
-def test_bi_order_sensitive_not_equals_dict_worst_case(n, benchmark):
+def test_bi_equals_order_sensitive_with_unequal_dict(n, benchmark):
+    """Benchmark bidict.equals_order_sensitive with an order-sensitive-unequal dict."""
     bi, d = BIDICT_AND_DICT_LAST_TWO_ITEMS_DIFFERENT_ORDER[n]
     result = benchmark(bi.equals_order_sensitive, d)
     assert not result
 
 
 @pytest.mark.parametrize('n', LENS)
-def test_orderedbi_order_sensitive_not_equals_dict_worst_case(n, benchmark):
+def test_orderedbi_equals_order_sensitive_with_unequal_dict(n, benchmark):
+    """Benchmark OrderedBidict.equals_order_sensitive with an order-sensitive-unequal dict."""
     ob, d = ORDERED_BIDICT_AND_DICT_LAST_TWO_ITEMS_DIFFERENT_ORDER[n]
     result = benchmark(ob.equals_order_sensitive, d)
     assert not result

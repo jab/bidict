@@ -27,8 +27,8 @@ from ._iter import iteritems_args
 from ._typing import KT, VT, MISSING, OKT, OVT, IterItems, MapOrIterItems
 
 
-OLDKV = t.Tuple[OKT[KT], OVT[VT]]
-DedupResult = t.Optional[OLDKV[KT, VT]]
+OldKV = t.Tuple[OKT[KT], OVT[VT]]
+DedupResult = t.Optional[OldKV[KT, VT]]
 Write = t.List[t.Callable[[], None]]
 Unwrite = Write
 PreparedWrite = t.Tuple[Write, Unwrite]
@@ -69,11 +69,9 @@ class BidictBase(BidirectionalMapping[KT, VT]):
     _invm_cls: t.ClassVar[t.Type[t.MutableMapping[t.Any, t.Any]]] = dict  #: class of the backing inverse mapping
 
     #: The class of the inverse bidict instance.
-    #: BidictBase itself is its own inverse (set after the class definition below).
-    #: For subclasses, this is set automatically in :meth:`__init_subclass__`.
     _inv_cls: 't.ClassVar[t.Type[BidictBase[t.Any, t.Any]]]'
 
-    #: The object used by :meth:`__repr__` for representing the contained items.
+    #: Used by :meth:`__repr__` for the contained items.
     _repr_delegate: t.ClassVar[t.Any] = dict
 
     def __init_subclass__(cls) -> None:
@@ -107,7 +105,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
     def _ensure_inv_cls(cls) -> None:
         """Ensure :attr:`_inv_cls` is set, computing it dynamically if necessary.
 
-        Ref: https://bidict.readthedocs.io/extending.html#dynamic-inverse-class-generation
+        See: :ref:`extending:Dynamic Inverse Class Generation`
 
         Most subclasses will be their own inverse classes, but some
         (e.g. those created via namedbidict) will have distinct inverse classes.
@@ -137,19 +135,13 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         }
 
     @t.overload
-    def __init__(self: 'BidictBase[KT, VT]') -> None: ...
+    def __init__(self, **kw: VT) -> None: ...
     @t.overload
-    def __init__(self: 'BidictBase[KT, VT]', __m: t.Mapping[KT, VT]) -> None: ...
+    def __init__(self, __m: t.Mapping[KT, VT], **kw: VT) -> None: ...
     @t.overload
-    def __init__(self: 'BidictBase[KT, VT]', __i: IterItems[KT, VT]) -> None: ...
-    @t.overload
-    def __init__(self: 'BidictBase[str, VT]', **kw: VT) -> None: ...
-    @t.overload
-    def __init__(self: 'BidictBase[str, VT]', __m: t.Mapping[str, VT], **kw: VT) -> None: ...
-    @t.overload
-    def __init__(self: 'BidictBase[str, VT]', __i: IterItems[str, VT], **kw: VT) -> None: ...
+    def __init__(self, __i: IterItems[KT, VT], **kw: VT) -> None: ...
 
-    def __init__(self, *args: MapOrIterItems[t.Any, VT], **kw: VT) -> None:
+    def __init__(self, *args: MapOrIterItems[KT, VT], **kw: VT) -> None:
         """Make a new bidirectional mapping.
         The signature behaves like that of :class:`dict`.
         Items passed in are added in the order they are passed,
@@ -296,15 +288,6 @@ class BidictBase(BidirectionalMapping[KT, VT]):
             return False
         return all(starmap(eq, zip(self.items(), other.items())))
 
-    # The following methods are mutating and so are not public. But they are implemented in this
-    # non-mutable base class (rather than the mutable `bidict` subclass) because they are used
-    # during initialization. (`__init__` and `update` share a lot of the same behavior, so it makes
-    # sense for them to share implementation too.)
-    def _pop(self, key: KT) -> VT:
-        val = self._fwdm.pop(key)
-        del self._invm[val]
-        return val
-
     def _dedup(self, key: KT, val: VT, on_dup: OnDup) -> DedupResult[KT, VT]:
         """Check *key* and *val* for any duplication in self.
 
@@ -357,6 +340,17 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         return (oldkey, oldval)
 
     def _prep_write(self, newkey: KT, newval: VT, oldkey: OKT[KT], oldval: OVT[VT], save_unwrite: bool) -> PreparedWrite:
+        """Given (newkey, newval) to insert, return the list of operations necessary to perform the write.
+
+        *oldkey* and *oldval* are as returned by :meth:`_dedup`.
+
+        If *save_unwrite* is True, also return the list of inverse operations necessary to undo the write.
+        This design allows :meth:`_update` to roll back a partially applied update that fails part-way through
+        when necessary. This design also allows subclasses that require additional operations to complete
+        a write to easily extend this implementation. For example, :class:`bidict.OrderedBidictBase` calls this
+        inherited implementation, and then extends the list of ops returned with additional operations
+        needed to keep its internal linked list nodes consistent with its items' order as changes are made.
+        """
         fwdm, invm = self._fwdm, self._invm
         write: t.List[t.Callable[[], None]] = [
             partial(fwdm.__setitem__, newkey, newval),
@@ -383,7 +377,6 @@ class BidictBase(BidirectionalMapping[KT, VT]):
             ] if save_unwrite else []
         elif oldval is not MISSING:  # just key duplication
             # {0: 1, 2: 3} + (2, 4) => {0: 1, 2: 4}
-            #        nk ov   nk  nv
             write.append(partial(invm.__delitem__, oldval))
             unwrite = [
                 partial(fwdm.__setitem__, newkey, oldval),

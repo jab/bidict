@@ -38,9 +38,12 @@ to be notified when new versions of ``bidict`` are released.
   :class:`~bidict.BidictKeysView` type,
   which works better with mypy when type checking these methods.
 
-- Bidicts' inverses are now computed lazily the first time
+- Inverse bidict instances are now computed lazily the first time
   the :attr:`~bidict.BidictBase.inverse` attribute is accessed
   rather than being computed eagerly during initialization.
+  (A bidict's backing inverse one-way mapping
+  is still kept in sync as any mutations are made
+  to ensure key- and value-uniqueness.)
 
 - Optimize initializing a bidict with another bidict.
   In a microbenchmark on Python 3.10,

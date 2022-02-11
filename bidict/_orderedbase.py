@@ -84,13 +84,8 @@ class SentinelNode(Node):
         super().__init__(self, self)
 
     def iternodes(self, *, reverse: bool = False) -> t.Iterator[Node]:
-        """Iterator yielding nodes in the requested order,
-        i.e. traverse the linked list via :attr:`nxt`
-        (or :attr:`prv` if *reverse* is truthy),
-        until reaching the sentinel node.
-        """
+        """Iterator yielding nodes in the requested order."""
         attr = 'prv' if reverse else 'nxt'
-        # Use `while node := getattr(self, attr)` once support for Python 3.7 is dropped.
         node = getattr(self, attr)
         while node is not self:
             yield node
@@ -107,16 +102,15 @@ class SentinelNode(Node):
 class OrderedBidictBase(BidictBase[KT, VT]):
     """Base class implementing an ordered :class:`BidirectionalMapping`."""
 
-    #: The object used by :meth:`__repr__` for representing the contained items.
     _repr_delegate: t.ClassVar[t.Any] = list
 
     _node_by_korv: bidict[t.Any, Node]
     _bykey: bool
 
     @t.overload
-    def __init__(self, __arg: t.Mapping[KT, VT], **kw: VT) -> None: ...
+    def __init__(self, __m: t.Mapping[KT, VT], **kw: VT) -> None: ...
     @t.overload
-    def __init__(self, __arg: IterItems[KT, VT], **kw: VT) -> None: ...
+    def __init__(self, __i: IterItems[KT, VT], **kw: VT) -> None: ...
     @t.overload
     def __init__(self, **kw: VT) -> None: ...
 
@@ -165,13 +159,8 @@ class OrderedBidictBase(BidictBase[KT, VT]):
         for (k, v) in other.items():
             korv_by_node_set(new_node(), k if bykey else v)
 
-    def _pop(self, key: KT) -> VT:
-        val = super()._pop(key)
-        node = self._node_by_korv[key if self._bykey else val]
-        self._dissoc_node(node)
-        return val
-
     def _prep_write(self, newkey: KT, newval: VT, oldkey: OKT[KT], oldval: OVT[VT], save_unwrite: bool) -> PreparedWrite:
+        """See :meth:`bidict.BidictBase._prep_write`."""
         write, unwrite = super()._prep_write(newkey, newval, oldkey, oldval, save_unwrite)
         assoc, dissoc = self._assoc_node, self._dissoc_node
         node_by_korv, bykey = self._node_by_korv, self._bykey
@@ -232,11 +221,11 @@ class OrderedBidictBase(BidictBase[KT, VT]):
         if self._bykey:
             for node in nodes:
                 yield korv_by_node[node]
-            return
-        key_by_val = self._invm
-        for node in nodes:
-            val = korv_by_node[node]
-            yield key_by_val[val]
+        else:
+            key_by_val = self._invm
+            for node in nodes:
+                val = korv_by_node[node]
+                yield key_by_val[val]
 
 
 #                             * Code review nav *

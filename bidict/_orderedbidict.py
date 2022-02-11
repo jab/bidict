@@ -35,6 +35,12 @@ class OrderedBidict(OrderedBidictBase[KT, VT], MutableBidict[KT, VT]):
         self._node_by_korv.clear()
         self._sntl.nxt = self._sntl.prv = self._sntl
 
+    def _pop(self, key: KT) -> VT:
+        val = super()._pop(key)
+        node = self._node_by_korv[key if self._bykey else val]
+        self._dissoc_node(node)
+        return val
+
     def popitem(self, last: bool = True) -> t.Tuple[KT, VT]:
         """*b.popitem() → (k, v)*
 
@@ -44,7 +50,7 @@ class OrderedBidict(OrderedBidictBase[KT, VT], MutableBidict[KT, VT]):
         :raises KeyError: if *b* is empty.
         """
         if not self:
-            raise KeyError('mapping is empty')  # match {}.pop() and bidict().pop()
+            raise KeyError('OrderedBidict is empty')
         node = getattr(self._sntl, 'prv' if last else 'nxt')
         korv = self._node_by_korv.inverse[node]
         if self._bykey:
@@ -52,11 +58,9 @@ class OrderedBidict(OrderedBidictBase[KT, VT], MutableBidict[KT, VT]):
         return self.inverse._pop(korv), korv
 
     def move_to_end(self, key: KT, last: bool = True) -> None:
-        """Move an existing key to the beginning or end of this ordered bidict.
+        """Move the item with the given key to the end (or beginning if *last* is False).
 
-        The item is moved to the end if *last* is True, else to the beginning.
-
-        :raises KeyError: if the key does not exist
+        :raises KeyError: if *key* is missing
         """
         korv = key if self._bykey else self._fwdm[key]
         node = self._node_by_korv[korv]
@@ -74,7 +78,7 @@ class OrderedBidict(OrderedBidictBase[KT, VT], MutableBidict[KT, VT]):
             node.nxt = firstnode
             sntl.nxt = firstnode.prv = node
 
-    # Override the keys() and items() implementations we inherit from BidictBase,
+    # Override the keys() and items() implementations inherited from BidictBase,
     # which may delegate to the backing _fwdm dict, since this is a mutable ordered bidict,
     # and therefore the ordering of items can get out of sync with the backing mappings
     # after mutation. (Need not override values() because it delegates to .inverse.keys().)
@@ -108,9 +112,12 @@ class _OrderedBidictItemsView(t.ItemsView[KT, VT]):
             yield key, ob[key]
 
 
-# Although the OrderedBidict MappingViews above cannot delegate to a backing
-# dict's MappingViews for faster __iter__ and __reversed__ implementations,
-# they can for all the collections.abc.Set methods, which are not order-sensitive:
+# Although the OrderedBidict MappingViews above cannot delegate to a backing dict's
+# MappingViews for faster __iter__ and __reversed__ implementations, they can for all
+# the collections.abc.Set methods (since they're not order-sensitive), so we make that
+# happen below. https://bugs.python.org/issue46713 tracks providing C implementations
+# of the collections.abc MappingViews, which would make the below unnecessary.
+
 OBKeysOrItemsView = t.Union[_OrderedBidictKeysView[KT], _OrderedBidictItemsView[KT, VT]]
 OBKeysOrItemsViewT = t.Union[t.Type[_OrderedBidictKeysView[KT]], t.Type[_OrderedBidictItemsView[KT, VT]]]
 
@@ -134,10 +141,7 @@ def _add_proxy_methods(
                 other_bi = args[0]._mapping
                 other_view = getattr(other_bi._fwdm, viewname)()
                 args = (other_view,)
-            rv = getattr(fwdm_view, methodname)(*args)
-            if rv is NotImplemented:
-                print(f'{fwdm_view}.{methodname}(*{args}) is NotImplemented')
-            return rv
+            return getattr(fwdm_view, methodname)(*args)
         meth.__name__ = methodname
         meth.__qualname__ = f'{cls.__qualname__}.{methodname}'
         return meth
