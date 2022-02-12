@@ -14,6 +14,7 @@
 
 """Provide :class:`OrderedBidict`."""
 
+from collections.abc import Set
 import typing as t
 
 from ._base import BidictKeysView
@@ -112,46 +113,42 @@ class _OrderedBidictItemsView(t.ItemsView[KT, VT]):
             yield key, ob[key]
 
 
-# Although the OrderedBidict MappingViews above cannot delegate to a backing dict's
-# MappingViews for faster __iter__ and __reversed__ implementations, they can for all
-# the collections.abc.Set methods (since they're not order-sensitive), so we make that
-# happen below. https://bugs.python.org/issue46713 tracks providing C implementations
-# of the collections.abc MappingViews, which would make the below unnecessary.
-
-OBKeysOrItemsView = t.Union[_OrderedBidictKeysView[KT], _OrderedBidictItemsView[KT, VT]]
-OBKeysOrItemsViewT = t.Union[t.Type[_OrderedBidictKeysView[KT]], t.Type[_OrderedBidictItemsView[KT, VT]]]
-
-
-def _add_proxy_methods(
-    cls: OBKeysOrItemsViewT[KT, VT],
-    viewname: str,  # Use t.Literal['keys', 'items'] when support for Python 3.7 is dropped.
-    methods: t.Iterable[str] = (
-        '__lt__', '__le__', '__gt__', '__ge__', '__eq__', '__ne__',
-        '__or__', '__ror__', '__xor__', '__rxor__', '__and__', '__rand__',
-        '__sub__', '__rsub__', 'isdisjoint', '__contains__', '__len__',
+# For better performance, make _OrderedBidictKeysView and _OrderedBidictItemsView delegate
+# to backing dicts for the methods they inherit from collections.abc.Set. (Cannot delegate
+# for __iter__ and __reversed__ since they are order-sensitive.) See also: https://bugs.python.org/issue46713
+def _override_set_methods_to_use_backing_dict(
+    cls: t.Union[t.Type[_OrderedBidictKeysView[KT]], t.Type[_OrderedBidictItemsView[KT, VT]]],
+    viewname: str,
+    _setmethodnames: t.Iterable[str] = (
+        '__lt__', '__le__', '__gt__', '__ge__', '__eq__', '__ne__', '__sub__', '__rsub__',
+        '__or__', '__ror__', '__xor__', '__rxor__', '__and__', '__rand__', 'isdisjoint',
     )
 ) -> None:
-    assert viewname in ('keys', 'items')
-
     def make_proxy_method(methodname: str) -> t.Any:
-        def meth(self: OBKeysOrItemsView[KT, VT], *args: t.Any) -> t.Any:
-            self_bi = self._mapping
-            fwdm_view = getattr(self_bi._fwdm, viewname)()
-            if len(args) == 1 and isinstance(args[0], (_OrderedBidictKeysView, _OrderedBidictItemsView)):
-                other_bi = args[0]._mapping
-                other_view = getattr(other_bi._fwdm, viewname)()
-                args = (other_view,)
-            return getattr(fwdm_view, methodname)(*args)
-        meth.__name__ = methodname
-        meth.__qualname__ = f'{cls.__qualname__}.{methodname}'
-        return meth
+        def method(self: t.Union[_OrderedBidictKeysView[KT], _OrderedBidictItemsView[KT, VT]], *args: t.Any) -> t.Any:
+            fwdm = self._mapping._fwdm
+            if not isinstance(fwdm, dict):  # dict view speedup not available, fall back to Set's implementation.
+                return getattr(Set, methodname)(self, *args)
+            fwdm_dict_view = getattr(fwdm, viewname)()
+            fwdm_dict_view_method = getattr(fwdm_dict_view, methodname)
+            if len(args) != 1 or not isinstance(args[0], self.__class__) or not isinstance(args[0]._mapping._fwdm, dict):
+                return fwdm_dict_view_method(*args)
+            # self and arg are both _OrderedBidictKeysViews or _OrderedBidictItemsViews whose bidicts are backed by a dict.
+            # Use arg's backing dict's corresponding view instead of arg. Otherwise, e.g. `ob1.keys() < ob2.keys()` would give
+            # "TypeError: '<' not supported between instances of '_OrderedBidictKeysView' and '_OrderedBidictKeysView'", because
+            # both `dict_keys(ob1).__lt__(ob2.keys()) is NotImplemented` and `dict_keys(ob2).__gt__(ob1.keys()) is NotImplemented`.
+            arg_dict_view = getattr(args[0]._mapping._fwdm, viewname)()
+            return fwdm_dict_view_method(arg_dict_view)
+        method.__name__ = methodname
+        method.__qualname__ = f'{cls.__qualname__}.{methodname}'
+        return method
 
-    for methodname in methods:
-        setattr(cls, methodname, make_proxy_method(methodname))
+    for name in _setmethodnames:
+        setattr(cls, name, make_proxy_method(name))
 
 
-_add_proxy_methods(_OrderedBidictKeysView, 'keys')
-_add_proxy_methods(_OrderedBidictItemsView, 'items')
+_override_set_methods_to_use_backing_dict(_OrderedBidictKeysView, 'keys')
+_override_set_methods_to_use_backing_dict(_OrderedBidictItemsView, 'items')
 
 
 #                             * Code review nav *

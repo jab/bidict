@@ -7,6 +7,7 @@
 """Property-based tests using https://hypothesis.readthedocs.io."""
 
 import gc
+import operator as op
 import pickle
 import sys
 import unittest.mock
@@ -575,9 +576,8 @@ def test_inverted_bidict(bi_and_mapping):
     assert all(i == j for (i, j) in zip(inverted(inverted(bi)), mapping.items()))
 
 
-_SET_METHOD_NAMES = (
-    '__le__', '__lt__', '__gt__', '__ge__', '__eq__', '__ne__', '__and__', '__rand__',
-    '__or__', '__ror__', '__sub__', '__rsub__', '__xor__', '__rxor__', 'isdisjoint',
+_SET_OPS = (
+    op.le, op.lt, op.gt, op.ge, op.eq, op.ne, op.and_, op.or_, op.sub, op.xor, (lambda x, y: x.isdisjoint(y)),
 )
 
 
@@ -589,23 +589,26 @@ def test_views(bi, data):
         assert check.__len__() == oracle.__len__()
         assert list(check.__iter__()) == list(oracle.__iter__())
         # 1-arity methods: __contains__
-        draw_from = st.PAIRS if isinstance(oracle, ItemsView) else st.ATOMS
-        arg = data.draw(draw_from)
+        arg = data.draw(st.PAIRS if isinstance(oracle, ItemsView) else st.ATOMS)
         assert check.__contains__(arg) == oracle.__contains__(arg)
         # Methods of set-like views
-        if isinstance(oracle, ItemsView):
-            draw_from = st.SETS_PAIRS
-        elif isinstance(oracle, KeysView):
-            draw_from = st.SETS
-        else:
+        if isinstance(oracle, ValuesView):
             continue
-        arg = data.draw(draw_from)
-        for methname in _SET_METHOD_NAMES:
+        arg = data.draw(st.KEYSVIEW_SET_OP_ARGS if isinstance(oracle, KeysView) else st.ITEMSVIEW_SET_OP_ARGS)
+        for so in _SET_OPS:
             try:
-                expect = getattr(oracle, methname)(arg)
+                expect = so(oracle, arg)
             except TypeError:
                 with pytest.raises(TypeError):
-                    getattr(check, methname)(arg)
+                    so(check, arg)
             else:
-                check_ = getattr(check, methname)(arg)
-                assert check_ == expect, (check, methname, arg)
+                check_ = so(check, arg)
+                assert check_ == expect, (check, so, arg)
+            try:
+                expect = so(arg, oracle)
+            except TypeError:
+                with pytest.raises(TypeError):
+                    so(arg, check)
+            else:
+                check_ = so(arg, check)
+                assert check_ == expect, (check, so, arg)

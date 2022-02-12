@@ -6,9 +6,8 @@
 
 """Strategies for Hypothesis tests."""
 
-import string
 from collections import OrderedDict
-from operator import attrgetter, itemgetter
+from operator import attrgetter, itemgetter, methodcaller
 from os import getenv
 
 import hypothesis.strategies as st
@@ -45,8 +44,6 @@ BOOLEANS = st.booleans()
 # provides enough coverage; including more just slows down example generation.
 ATOMS = st.none() | BOOLEANS | st.integers()
 PAIRS = st.tuples(ATOMS, ATOMS)
-SETS = st.sets(ATOMS)
-SETS_PAIRS = st.sets(PAIRS)
 NON_MAPPINGS = ATOMS | st.iterables(ATOMS)
 ODICTS_KW_PAIRS = st.dictionaries(TEXT, ATOMS, dict_class=OrderedDict, max_size=MAX)
 L_PAIRS = st.lists(PAIRS, max_size=MAX)
@@ -79,11 +76,14 @@ FROZEN_BIDICTS = _bidict_strat(FROZEN_BIDICT_TYPES)
 MUTABLE_BIDICTS = _bidict_strat(MUTABLE_BIDICT_TYPES)
 ORDERED_BIDICTS = _bidict_strat(ORDERED_BIDICT_TYPES)
 
+callkeys, callitems = methodcaller('keys'), methodcaller('items')
+KEYSVIEW_SET_OP_ARGS = st.sets(ATOMS) | st.dictionaries(ATOMS, ATOMS).map(callkeys) | BIDICTS.map(callkeys)
+ITEMSVIEW_SET_OP_ARGS = st.sets(PAIRS) | st.dictionaries(ATOMS, ATOMS).map(callitems) | BIDICTS.map(callitems)
+
 NON_BI_MAPPINGS = st.tuples(NON_BI_MAPPING_TYPES, L_PAIRS).map(lambda i: i[0](i[1]))
 
 
-# _ALPHABET = tuple(chr(i) for i in range(0x10ffff) if chr(i).isidentifier())
-_ALPHABET = string.ascii_lowercase
+_ALPHABET = tuple(chr(i) for i in range(0x10ffff) if chr(i).isidentifier())
 _NAMEDBI_VALID_NAMES = st.text(_ALPHABET, min_size=1, max_size=16)
 NAMEDBIDICT_NAMES_ALL_VALID = st.lists(_NAMEDBI_VALID_NAMES, min_size=3, max_size=3, unique=True)
 NAMEDBIDICT_NAMES_SOME_INVALID = st.lists(st.text(min_size=1), min_size=3, max_size=3).filter(

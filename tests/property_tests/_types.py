@@ -19,6 +19,13 @@ class UserBidict(bidict):
     _invm_cls = UserDict
 
 
+class UserOrderedBidict(OrderedBidict):
+    """Custom OrderedBidict subclass."""
+
+    _fwdm_cls = UserDict
+    _invm_cls = UserDict
+
+
 class UserBidictNotOwnInverse(bidict):
     """Custom bidict subclass that is not its own inverse."""
 
@@ -40,9 +47,9 @@ NamedOrderedBidict = namedbidict('NamedOrderedBidict', 'key', 'val', base_type=O
 NamedUserBidict = namedbidict('NamedUserBidict', 'key', 'val', base_type=UserBidict)
 NAMED_BIDICT_TYPES = (NamedBidict, NamedFrozenBidict, NamedOrderedBidict, NamedUserBidict)
 
-MUTABLE_BIDICT_TYPES = (bidict, OrderedBidict, NamedBidict, UserBidict, UserBidictNotOwnInverse)
+MUTABLE_BIDICT_TYPES = (bidict, OrderedBidict, NamedBidict, UserBidict, UserOrderedBidict, UserBidictNotOwnInverse)
 FROZEN_BIDICT_TYPES = (frozenbidict, FrozenOrderedBidict, NamedFrozenBidict)
-ORDERED_BIDICT_TYPES = (OrderedBidict, FrozenOrderedBidict, NamedOrderedBidict)
+ORDERED_BIDICT_TYPES = (OrderedBidict, FrozenOrderedBidict, NamedOrderedBidict, UserOrderedBidict)
 ORDER_PRESERVING_BIDICT_TYPES = tuple(set(FROZEN_BIDICT_TYPES + ORDERED_BIDICT_TYPES))
 BIDICT_TYPES = tuple(set(MUTABLE_BIDICT_TYPES + FROZEN_BIDICT_TYPES + ORDERED_BIDICT_TYPES))
 NON_NAMED_BIDICT_TYPES = tuple(set(BIDICT_TYPES) - set(NAMED_BIDICT_TYPES))
