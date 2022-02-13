@@ -191,10 +191,10 @@ For order-sensitive equality tests, use
 
 Note that this differs from the behavior of
 :class:`collections.OrderedDict`\'s ``__eq__()``,
-by recommendation of Raymond Hettinger
-(the author of :class:`~collections.OrderedDict`) himself.
-He later said that making OrderedDict's ``__eq__()``
-intransitive was a mistake.
+`by recommendation of Raymond Hettinger
+<https://groups.google.com/g/comp.lang.python/c/eGSPciKcbPk/m/z_L7Ko09DQAJ>`__.
+(the author of :class:`~collections.OrderedDict`
+and the rest of Python's collections foundation).
 
 
 What about order-preserving dicts?

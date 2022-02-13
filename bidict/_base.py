@@ -6,9 +6,9 @@
 
 
 #                             * Code review nav *
-#                    (see comments in bidict/__init__.py)
+#                        (see comments in __init__.py)
 #==============================================================================
-# ← Prev: _abc.py             Current: _base.py   Next:     _frozenbidict.py →
+# ← Prev: _abc.py              Current: _base.py      Next: _frozenbidict.py →
 #==============================================================================
 
 
@@ -23,7 +23,7 @@ from operator import eq
 from ._abc import BidirectionalMapping
 from ._dup import ON_DUP_DEFAULT, RAISE, DROP_OLD, DROP_NEW, OnDup
 from ._exc import DuplicationError, KeyDuplicationError, ValueDuplicationError, KeyAndValueDuplicationError
-from ._iter import iteritems_args
+from ._iter import iteritems
 from ._typing import KT, VT, MISSING, OKT, OVT, IterItems, MapOrIterItems
 
 
@@ -49,6 +49,13 @@ BidictKeysView.register(dict_keys)
 def _fwdm_reversed(self: t.Any) -> t.Iterator[KT]:
     """Iterator over the contained keys in reverse order."""
     return reversed(self._fwdm)
+
+
+def get_arg(*args: MapOrIterItems[KT, VT]) -> MapOrIterItems[KT, VT]:
+    """Ensure there's only a single arg in *args*, then return it."""
+    if len(args) > 1:
+        raise TypeError(f'Expected at most 1 positional argument, got {len(args)}')
+    return args[0] if args else ()
 
 
 class BidictBase(BidirectionalMapping[KT, VT]):
@@ -150,7 +157,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         self._fwdm = self._fwdm_cls()
         self._invm = self._invm_cls()
         if args or kw:
-            self._update(args=args, kw=kw, rbof=False)
+            self._update(arg=get_arg(*args), kw=kw, rbof=False)
 
     @property
     def inverse(self) -> 'BidictBase[VT, KT]':
@@ -396,40 +403,36 @@ class BidictBase(BidirectionalMapping[KT, VT]):
 
     def _update(
         self,
-        args: t.Tuple[MapOrIterItems[KT, VT], ...] = (),
+        arg: MapOrIterItems[KT, VT],
         kw: t.Optional[t.Mapping[str, VT]] = None,
         rbof: t.Optional[bool] = None,
         on_dup: t.Optional[OnDup] = None,
     ) -> None:
         """Update, possibly rolling back on failure as per *rbof*."""
-        # Note: args[0] may be a generator that yields many items, so process input in a single pass.
-        if not args and not kw:
+        # Must process input in a single pass, since arg may be a generator.
+        if not arg and not kw:
             return
-        args_len = len(args)
-        if args_len > 1:
-            raise TypeError(f'Expected at most 1 positional argument, got {args_len}')
         if on_dup is None:
             on_dup = self.on_dup
         if rbof is None:
             rbof = RAISE in on_dup
         if kw is None:
             kw = {}
-        other = args[0] if args else ()
         if not self and not kw:
-            if isinstance(other, BidictBase):  # can skip dup check
-                self._init_from(other)
+            if isinstance(arg, BidictBase):  # can skip dup check
+                self._init_from(arg)
                 return
-            # If other is not a BidictBase, fall through to the general treatment below,
-            # which includes duplication checking. (If other is some BidirectionalMapping
+            # If arg is not a BidictBase, fall through to the general treatment below,
+            # which includes duplication checking. (If arg is some BidirectionalMapping
             # that does not inherit from BidictBase, it's a foreign implementation, so we
             # perform duplication checking to err on the safe side.)
 
         # If we roll back on failure and we know that there are more updates to process than
         # already-contained items, our rollback strategy is to update a copy of self (without
         # rolling back on failure), and then to become the copy if all updates succeed.
-        if rbof and isinstance(other, t.Sized) and len(other) + len(kw) > len(self):
+        if rbof and isinstance(arg, t.Sized) and len(arg) + len(kw) > len(self):
             target = self.copy()
-            target._update(args=args, kw=kw, rbof=False, on_dup=on_dup)
+            target._update(arg=arg, kw=kw, rbof=False, on_dup=on_dup)
             self._init_from(target)
             return
 
@@ -439,7 +442,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         unwrites: t.List[Unwrite] = []
         append_unwrite = unwrites.append
         prep_write = self._prep_write
-        for (key, val) in iteritems_args(*args, **kw):
+        for (key, val) in iteritems(arg, **kw):
             try:
                 dedup_result = self._dedup(key, val, on_dup)
             except DuplicationError:
@@ -482,7 +485,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         if not isinstance(other, t.Mapping):
             return NotImplemented
         new = self.copy()
-        new._update(args=(other,), rbof=False)
+        new._update(arg=other, rbof=False)
         return new
 
     def __ror__(self: BT, other: t.Mapping[KT, VT]) -> BT:
@@ -490,7 +493,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         if not isinstance(other, t.Mapping):
             return NotImplemented
         new = self.__class__(other)
-        new._update(args=(self,), rbof=False)
+        new._update(arg=self, rbof=False)
         return new
 
     def __len__(self) -> int:
@@ -528,11 +531,11 @@ class GeneratedBidictInverse(BidictBase[KT, VT]):
 
 def _reduce_factory(cls: t.Type[BidictBase[KT, VT]], fwdm: t.MutableMapping[KT, VT], invm: t.MutableMapping[VT, KT], invert: bool) -> t.Type[BidictBase[KT, VT]]:
     inst = cls()
-    inst._update(args=(zip(fwdm, invm),), rbof=False)
+    inst._update(arg=zip(fwdm, invm), rbof=False)
     return inst.inverse if invert else inst  # type: ignore [return-value]
 
 
 #                             * Code review nav *
 #==============================================================================
-# ← Prev: _abc.py             Current: _base.py   Next:     _frozenbidict.py →
+# ← Prev: _abc.py              Current: _base.py      Next: _frozenbidict.py →
 #==============================================================================

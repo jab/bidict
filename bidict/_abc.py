@@ -5,9 +5,9 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #                             * Code review nav *
-#                    (see comments in bidict/__init__.py)
+#                        (see comments in __init__.py)
 #==============================================================================
-#  ← Prev: __init__.py         Current: _abc.py              Next: _base.py →
+# ← Prev: __init__.py          Current: _abc.py               Next: _base.py →
 #==============================================================================
 
 
@@ -71,5 +71,5 @@ class MutableBidirectionalMapping(BidirectionalMapping[KT, VT], t.MutableMapping
 
 #                             * Code review nav *
 #==============================================================================
-#  ← Prev: __init__.py         Current: _abc.py              Next: _base.py →
+# ← Prev: __init__.py          Current: _abc.py               Next: _base.py →
 #==============================================================================

@@ -5,9 +5,9 @@
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 #                             * Code review nav *
-#                    (see comments in bidict/__init__.py)
+#                        (see comments in __init__.py)
 #==============================================================================
-# ← Prev: _base.py         Current: _frozenbidict.py        Next: _bidict.py →
+# ← Prev: _base.py          Current: _frozenbidict.py       Next: _bidict.py →
 #==============================================================================
 
 """Provide :class:`frozenbidict`, an immutable, hashable bidirectional mapping type."""
@@ -25,7 +25,6 @@ class frozenbidict(BidictBase[KT, VT]):
 
     # Work around lack of support for higher-kinded types in mypy.
     # Ref: https://github.com/python/typing/issues/548#issuecomment-621571821
-    # Remove this and similar type stubs from other classes if support is ever added.
     if t.TYPE_CHECKING:
         @property
         def inverse(self) -> 'frozenbidict[VT, KT]': ...
@@ -35,13 +34,11 @@ class frozenbidict(BidictBase[KT, VT]):
         if getattr(self, '_hash', None) is None:
             # The following is like hash(frozenset(self.items()))
             # but more memory efficient. See also: https://bugs.python.org/issue46684
-            # Can remove the `type: ignore` comment in the following once the patch from
-            # https://github.com/python/typeshed/pull/7153 makes it into the next release.
             self._hash = t.ItemsView(self)._hash()  # type: ignore [attr-defined]  # https://github.com/python/typeshed/pull/7153
         return self._hash
 
 
 #                             * Code review nav *
 #==============================================================================
-# ← Prev: _base.py         Current: _frozenbidict.py        Next: _bidict.py →
+# ← Prev: _base.py          Current: _frozenbidict.py       Next: _bidict.py →
 #==============================================================================

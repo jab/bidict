@@ -37,7 +37,6 @@ HASHABLE_MAPPING_TYPES = one_of(t.HASHABLE_MAPPING_TYPES)
 ON_DUP_ACTIONS = one_of((DROP_NEW, DROP_OLD, RAISE))
 ON_DUP = st.tuples(ON_DUP_ACTIONS, ON_DUP_ACTIONS, ON_DUP_ACTIONS).map(OnDup._make)
 
-TEXT = st.text()
 BOOLEANS = st.booleans()
 # Combine a few different strategies together that generate atomic values
 # that can be used to initialize test bidicts with. Including only None, bools, and ints
@@ -45,7 +44,9 @@ BOOLEANS = st.booleans()
 ATOMS = st.none() | BOOLEANS | st.integers()
 PAIRS = st.tuples(ATOMS, ATOMS)
 NON_MAPPINGS = ATOMS | st.iterables(ATOMS)
-ODICTS_KW_PAIRS = st.dictionaries(TEXT, ATOMS, dict_class=OrderedDict, max_size=MAX)
+ALPHABET = tuple(chr(i) for i in range(0x10ffff) if chr(i).isidentifier())
+VALID_NAMES = st.text(ALPHABET, min_size=1, max_size=16)
+DICTS_KW_PAIRS = st.dictionaries(VALID_NAMES, ATOMS, max_size=MAX)
 L_PAIRS = st.lists(PAIRS, max_size=MAX)
 I_PAIRS = st.iterables(PAIRS, max_size=MAX)
 FST_SND = (itemgetter(0), itemgetter(1))
@@ -83,9 +84,7 @@ ITEMSVIEW_SET_OP_ARGS = st.sets(PAIRS) | st.dictionaries(ATOMS, ATOMS).map(calli
 NON_BI_MAPPINGS = st.tuples(NON_BI_MAPPING_TYPES, L_PAIRS).map(lambda i: i[0](i[1]))
 
 
-_ALPHABET = tuple(chr(i) for i in range(0x10ffff) if chr(i).isidentifier())
-_NAMEDBI_VALID_NAMES = st.text(_ALPHABET, min_size=1, max_size=16)
-NAMEDBIDICT_NAMES_ALL_VALID = st.lists(_NAMEDBI_VALID_NAMES, min_size=3, max_size=3, unique=True)
+NAMEDBIDICT_NAMES_ALL_VALID = st.lists(VALID_NAMES, min_size=3, max_size=3, unique=True)
 NAMEDBIDICT_NAMES_SOME_INVALID = st.lists(st.text(min_size=1), min_size=3, max_size=3).filter(
     lambda i: not all(str.isidentifier(name) for name in i)
 )

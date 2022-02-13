@@ -6,9 +6,9 @@
 
 
 #                             * Code review nav *
-#                    (see comments in bidict/__init__.py)
+#                        (see comments in __init__.py)
 #==============================================================================
-#  ← Prev: _frozenbidict.py    Current: _bidict.py     Next: _orderedbase.py →
+# ← Prev: _frozenbidict.py     Current: _bidict.py     Next: _orderedbase.py →
 #==============================================================================
 
 
@@ -17,7 +17,7 @@
 import typing as t
 
 from ._abc import MutableBidirectionalMapping
-from ._base import BidictBase
+from ._base import BidictBase, get_arg
 from ._dup import OnDup, ON_DUP_RAISE, ON_DUP_DROP_OLD
 from ._typing import KT, VT, DT, ODT, MISSING, IterItems, MapOrIterItems
 
@@ -90,7 +90,7 @@ class MutableBidict(BidictBase[KT, VT], MutableBidirectionalMapping[KT, VT]):
             duplicates another existing item's, and *on_dup.kv* is
             :attr:`~bidict.RAISE`.
         """
-        self._update(args=(((key, val),),), on_dup=on_dup)
+        self._update(arg=((key, val),), on_dup=on_dup)
 
     def forceput(self, key: KT, val: VT) -> None:
         """Associate *key* with *val* unconditionally.
@@ -147,7 +147,7 @@ class MutableBidict(BidictBase[KT, VT], MutableBidirectionalMapping[KT, VT]):
     def update(self, *args: MapOrIterItems[KT, VT], **kw: VT) -> None:
         """Like calling :meth:`putall` with *self.on_dup* passed for *on_dup*."""
         if args or kw:
-            self._update(args=args, kw=kw)
+            self._update(arg=get_arg(*args), kw=kw)
 
     @t.overload
     def forceupdate(self, __m: t.Mapping[KT, VT], **kw: VT) -> None: ...
@@ -158,7 +158,8 @@ class MutableBidict(BidictBase[KT, VT], MutableBidirectionalMapping[KT, VT]):
 
     def forceupdate(self, *args: MapOrIterItems[KT, VT], **kw: VT) -> None:
         """Like a bulk :meth:`forceput`."""
-        self._update(args=args, kw=kw, on_dup=ON_DUP_DROP_OLD)
+        if args or kw:
+            self._update(arg=get_arg(*args), kw=kw, on_dup=ON_DUP_DROP_OLD)
 
     def __ior__(self, other: t.Mapping[KT, VT]) -> 'MutableBidict[KT, VT]':
         """Return self|=other."""
@@ -177,7 +178,7 @@ class MutableBidict(BidictBase[KT, VT], MutableBidirectionalMapping[KT, VT]):
         none of the items is inserted.
         """
         if items:
-            self._update(args=(items,), on_dup=on_dup)
+            self._update(arg=items, on_dup=on_dup)
 
 
 class bidict(MutableBidict[KT, VT]):
@@ -195,5 +196,5 @@ class bidict(MutableBidict[KT, VT]):
 
 #                             * Code review nav *
 #==============================================================================
-#  ← Prev: _frozenbidict.py    Current: _bidict.py     Next: _orderedbase.py →
+# ← Prev: _frozenbidict.py     Current: _bidict.py     Next: _orderedbase.py →
 #==============================================================================

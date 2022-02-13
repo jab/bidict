@@ -154,9 +154,12 @@ The rest of the ``MutableMapping`` interface is supported:
     >>> bi
     bidict()
 
-Empty update is a no-op:
+Empty updates are a no-op:
 
     >>> bi.update()
+    >>> bi
+    bidict()
+    >>> bi.forceupdate()
     >>> bi
     bidict()
 

@@ -6,7 +6,7 @@
 
 
 #                             * Code review nav *
-#                    (see comments in bidict/__init__.py)
+#                        (see comments in __init__.py)
 #==============================================================================
 #← Prev: _orderedbase.py  Current: _frozenordered.py  Next: _orderedbidict.py →
 #==============================================================================

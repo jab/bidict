@@ -120,7 +120,7 @@ and the doctests in the Sphinx docs don't get counted in the coverage report):
       ...
     KeyError: 'OrderedBidict is empty'
 
-    >>> b._update(args=())
+    >>> b._update(arg=())
     >>> b
     OrderedBidict()
 

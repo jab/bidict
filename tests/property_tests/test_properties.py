@@ -30,7 +30,7 @@ from bidict import (
     inverted,
     DuplicationError, KeyDuplicationError, ValueDuplicationError, KeyAndValueDuplicationError,
 )
-from bidict._iter import iteritems_args
+from bidict._iter import iteritems
 
 from . import _strategies as st
 from ._types import (
@@ -537,17 +537,17 @@ def test_deepcopy(bi):
     assert collect(bi.inv.items()) == collect(cp.inv.items())
 
 
-def test_iteritems_args_raises_on_too_many_args():
-    """:func:`iteritems_args` should raise if given too many arguments."""
+def test_iteritems_raises_on_too_many_args():
+    """:func:`iteritems` should raise if given too many arguments."""
     with pytest.raises(TypeError):
-        iteritems_args('too', 'many', 'args')
+        iteritems('too', 'many', 'args')  # pylint: disable=too-many-function-args
 
 
-@given(st.I_PAIRS, st.ODICTS_KW_PAIRS)
-def test_iteritems_args(arg0, kw):
-    """:func:`iteritems_args` should work correctly."""
+@given(st.I_PAIRS, st.DICTS_KW_PAIRS)
+def test_iteritems(arg0, kw):
+    """:func:`iteritems` should work correctly."""
     arg0_1, arg0_2 = tee(arg0)
-    it = iteritems_args(arg0_1, **kw)
+    it = iteritems(arg0_1, **kw)
     # Consume the first `len(arg0)` pairs, checking that they match `arg0`.
     assert all(check == expect for (check, expect) in zip(it, arg0_2))
     with pytest.raises(StopIteration):

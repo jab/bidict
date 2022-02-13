@@ -10,18 +10,18 @@
 #==============================================================================
 
 # Reading through the code? You'll find a "Code review nav" comment like the one
-# below at the top and bottom of the most important source files. This suggests
+# below at the top and bottom of the key source files. Follow these cues to take
 # a path through the code that's optimized for familiarizing yourself with it.
 #
-# You can find the latest version of this code at https://github.com/jab/bidict
-# if you're not reading this there already. While there, you can also star and
-# watch the project for updates, fork the code, and submit an issue or pull
-# request if you have something to contribute. More information can be found
-# linked from ../README.rst, and is also displayed on the page linked above.
+# If you're not reading this on https://github.com/jab/bidict already, go there
+# to ensure you have the latest version of the code. While there, you can also
+# star the project, watch it for updates, fork the code, and submit an issue or
+# pull request with any proposed changes. More information can be found linked
+# from README.rst, which is also shown on https://github.com/jab/bidict.
 
 #                             * Code review nav *
 #==============================================================================
-#                             Current: __init__.py            Next: _abc.py →
+#                             Current: __init__.py             Next: _abc.py →
 #==============================================================================
 
 
@@ -82,19 +82,18 @@ from .metadata import (
 OnDupAction = OD
 
 
-# Set __module__ of re-exported classes to the 'bidict' top-level module name
-# so that private/internal submodules are not exposed to users e.g. in repr strings.
-_locals = tuple(locals().items())
-for _name, _obj in _locals:  # pragma: no cover
+# Set __module__ of re-exported classes to the 'bidict' top-level module, so that e.g.
+# 'bidict.bidict' shows up as 'bidict.bidict` rather than 'bidict._bidict.bidict'.
+for _obj in tuple(locals().values()):  # pragma: no cover
     if not getattr(_obj, '__module__', '').startswith('bidict.'):
         continue
     try:
         _obj.__module__ = 'bidict'
-    except AttributeError:  # raised when __module__ is read-only (as in OnDup)
+    except AttributeError:  # __module__ is read-only (as in namedtuples like `OnDup`)
         pass
 
 
 #                             * Code review nav *
 #==============================================================================
-#                             Current: __init__.py            Next: _abc.py →
+#                             Current: __init__.py             Next: _abc.py →
 #==============================================================================

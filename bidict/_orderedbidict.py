@@ -6,9 +6,9 @@
 
 
 #                             * Code review nav *
-#                    (see comments in bidict/__init__.py)
+#                        (see comments in __init__.py)
 #==============================================================================
-#  ← Prev: _frozenordered.py  Current: _orderedbidict.py                <FIN>
+# ← Prev: _frozenordered.py   Current: _orderedbidict.py                 <FIN>
 #==============================================================================
 
 
@@ -153,5 +153,5 @@ _override_set_methods_to_use_backing_dict(_OrderedBidictItemsView, 'items')
 
 #                             * Code review nav *
 #==============================================================================
-#  ← Prev: _frozenordered.py  Current: _orderedbidict.py                <FIN>
+# ← Prev: _frozenordered.py   Current: _orderedbidict.py                 <FIN>
 #==============================================================================

@@ -24,19 +24,11 @@ def iteritems_mapping_or_iterable(arg: MapOrIterItems[KT, VT]) -> IterItems[KT, 
     return iter(arg.items() if isinstance(arg, Mapping) else arg)
 
 
-def iteritems_args(*args: MapOrIterItems[KT, VT], **kw: VT) -> IterItems[KT, VT]:
-    """Yield the items from the positional argument (if given) and then any from *kw*.
-
-    :raises TypeError: if more than one positional argument is given.
-    """
-    args_len = len(args)
-    if args_len > 1:
-        raise TypeError(f'Expected at most 1 positional argument, got {args_len}')
+def iteritems(arg: MapOrIterItems[KT, VT], **kw: VT) -> IterItems[KT, VT]:
+    """Yield the items from *arg* and then any from *kw* in the order given."""
     it: IterItems[t.Any, VT] = iter(())
-    if args:
-        arg = args[0]
-        if arg:
-            it = iteritems_mapping_or_iterable(arg)
+    if arg:
+        it = iteritems_mapping_or_iterable(arg)
     if kw:
         iterkw = iter(kw.items())
         it = chain(it, iterkw)
