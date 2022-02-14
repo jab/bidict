@@ -19,6 +19,7 @@ import weakref
 from functools import partial
 from itertools import starmap
 from operator import eq
+from types import MappingProxyType
 
 from ._abc import BidirectionalMapping
 from ._dup import ON_DUP_DEFAULT, RAISE, DROP_OLD, DROP_NEW, OnDup
@@ -157,7 +158,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         self._fwdm = self._fwdm_cls()
         self._invm = self._invm_cls()
         if args or kw:
-            self._update(arg=get_arg(*args), kw=kw, rbof=False)
+            self._update(get_arg(*args), kw, rbof=False)
 
     @property
     def inverse(self) -> 'BidictBase[VT, KT]':
@@ -351,7 +352,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
 
         *oldkey* and *oldval* are as returned by :meth:`_dedup`.
 
-        If *save_unwrite* is True, also return the list of inverse operations necessary to undo the write.
+        If *save_unwrite* is true, also return the list of inverse operations necessary to undo the write.
         This design allows :meth:`_update` to roll back a partially applied update that fails part-way through
         when necessary. This design also allows subclasses that require additional operations to complete
         a write to easily extend this implementation. For example, :class:`bidict.OrderedBidictBase` calls this
@@ -404,7 +405,8 @@ class BidictBase(BidirectionalMapping[KT, VT]):
     def _update(
         self,
         arg: MapOrIterItems[KT, VT],
-        kw: t.Optional[t.Mapping[str, VT]] = None,
+        kw: t.Mapping[str, VT] = MappingProxyType({}),
+        *,
         rbof: t.Optional[bool] = None,
         on_dup: t.Optional[OnDup] = None,
     ) -> None:
@@ -416,8 +418,6 @@ class BidictBase(BidirectionalMapping[KT, VT]):
             on_dup = self.on_dup
         if rbof is None:
             rbof = RAISE in on_dup
-        if kw is None:
-            kw = {}
         if not self and not kw:
             if isinstance(arg, BidictBase):  # can skip dup check
                 self._init_from(arg)
@@ -432,7 +432,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         # rolling back on failure), and then to become the copy if all updates succeed.
         if rbof and isinstance(arg, t.Sized) and len(arg) + len(kw) > len(self):
             target = self.copy()
-            target._update(arg=arg, kw=kw, rbof=False, on_dup=on_dup)
+            target._update(arg, kw, rbof=False, on_dup=on_dup)
             self._init_from(target)
             return
 
@@ -485,7 +485,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         if not isinstance(other, t.Mapping):
             return NotImplemented
         new = self.copy()
-        new._update(arg=other, rbof=False)
+        new._update(other, rbof=False)
         return new
 
     def __ror__(self: BT, other: t.Mapping[KT, VT]) -> BT:
@@ -493,7 +493,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         if not isinstance(other, t.Mapping):
             return NotImplemented
         new = self.__class__(other)
-        new._update(arg=self, rbof=False)
+        new._update(self, rbof=False)
         return new
 
     def __len__(self) -> int:
@@ -531,7 +531,7 @@ class GeneratedBidictInverse(BidictBase[KT, VT]):
 
 def _reduce_factory(cls: t.Type[BidictBase[KT, VT]], fwdm: t.MutableMapping[KT, VT], invm: t.MutableMapping[VT, KT], invert: bool) -> t.Type[BidictBase[KT, VT]]:
     inst = cls()
-    inst._update(arg=zip(fwdm, invm), rbof=False)
+    inst._update(zip(fwdm, invm), rbof=False)
     return inst.inverse if invert else inst  # type: ignore [return-value]
 
 

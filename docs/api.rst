@@ -22,10 +22,6 @@ bidict
 .. autodata:: bidict.ON_DUP_RAISE
 .. autodata:: bidict.ON_DUP_DROP_OLD
 
-
-.. autofunction:: bidict._iter.iteritems_mapping_or_iterable
-.. autofunction:: bidict._iter.iteritems_args
-
 .. attribute:: __version__
 
    The version of bidict represented as a string.

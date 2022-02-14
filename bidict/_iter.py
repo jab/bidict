@@ -9,7 +9,6 @@
 
 import typing as t
 from collections.abc import Mapping
-from itertools import chain
 from operator import itemgetter
 
 from ._typing import KT, VT, IterItems, MapOrIterItems
@@ -24,15 +23,16 @@ def iteritems_mapping_or_iterable(arg: MapOrIterItems[KT, VT]) -> IterItems[KT, 
     return iter(arg.items() if isinstance(arg, Mapping) else arg)
 
 
-def iteritems(arg: MapOrIterItems[KT, VT], **kw: VT) -> IterItems[KT, VT]:
+@t.overload
+def iteritems(__m: t.Mapping[KT, VT], **kw: VT) -> IterItems[KT, VT]: ...
+@t.overload
+def iteritems(__i: IterItems[KT, VT], **kw: VT) -> IterItems[KT, VT]: ...
+
+
+def iteritems(__arg: MapOrIterItems[t.Any, VT], **kw: VT) -> IterItems[t.Any, VT]:
     """Yield the items from *arg* and then any from *kw* in the order given."""
-    it: IterItems[t.Any, VT] = iter(())
-    if arg:
-        it = iteritems_mapping_or_iterable(arg)
-    if kw:
-        iterkw = iter(kw.items())
-        it = chain(it, iterkw)
-    return it
+    yield from iteritems_mapping_or_iterable(__arg)
+    yield from kw.items()
 
 
 swap = itemgetter(1, 0)

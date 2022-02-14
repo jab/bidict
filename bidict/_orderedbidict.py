@@ -45,8 +45,9 @@ class OrderedBidict(OrderedBidictBase[KT, VT], MutableBidict[KT, VT]):
     def popitem(self, last: bool = True) -> t.Tuple[KT, VT]:
         """*b.popitem() → (k, v)*
 
-        Remove and return the most recently added item as a (key, value) pair
-        if *last* is True, else the least recently added item.
+        If *last* is true,
+        remove and return the most recently added item as a (key, value) pair.
+        Otherwise, remove and return the least recently added item.
 
         :raises KeyError: if *b* is empty.
         """
@@ -59,7 +60,7 @@ class OrderedBidict(OrderedBidictBase[KT, VT], MutableBidict[KT, VT]):
         return self.inverse._pop(korv), korv
 
     def move_to_end(self, key: KT, last: bool = True) -> None:
-        """Move the item with the given key to the end (or beginning if *last* is False).
+        """Move the item with the given key to the end if *last* is true, else to the beginning.
 
         :raises KeyError: if *key* is missing
         """

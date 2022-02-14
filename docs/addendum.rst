@@ -214,8 +214,8 @@ But in CPython, beware of this unexpected behavior,
 which applies to :class:`~bidict.bidict`\s too.
 :mod:`bidict` contains no special-case logic
 for dealing with *nan* as a key,
-so the behavior will match :class:`dict`'s
-wherever :mod:`bidict` is running.
+so bidict's behavior will match :class:`dict`'s
+on whatever runtime you're using.
 
 See e.g. `these docs
 <https://doc.pypy.org/en/latest/cpython_differences.html>`__

@@ -28,7 +28,11 @@ AT = t.TypeVar('AT')  # attr type
 
 
 class WeakAttr(t.Generic[IT, AT]):
-    """Automatically handle referencing/dereferencing the given slot as a weakref."""
+    """Descriptor to automatically manage (de)referencing the given slot as a weakref.
+
+    See https://docs.python.org/3/howto/descriptor.html#managed-attributes
+    for an intro to using descriptors like this for managed attributes.
+    """
 
     def __init__(self, *, slot: str) -> None:
         self.slot = slot

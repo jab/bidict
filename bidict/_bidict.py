@@ -90,7 +90,7 @@ class MutableBidict(BidictBase[KT, VT], MutableBidirectionalMapping[KT, VT]):
             duplicates another existing item's, and *on_dup.kv* is
             :attr:`~bidict.RAISE`.
         """
-        self._update(arg=((key, val),), on_dup=on_dup)
+        self._update([(key, val)], on_dup=on_dup)
 
     def forceput(self, key: KT, val: VT) -> None:
         """Associate *key* with *val* unconditionally.
@@ -147,7 +147,7 @@ class MutableBidict(BidictBase[KT, VT], MutableBidirectionalMapping[KT, VT]):
     def update(self, *args: MapOrIterItems[KT, VT], **kw: VT) -> None:
         """Like calling :meth:`putall` with *self.on_dup* passed for *on_dup*."""
         if args or kw:
-            self._update(arg=get_arg(*args), kw=kw)
+            self._update(get_arg(*args), kw)
 
     @t.overload
     def forceupdate(self, __m: t.Mapping[KT, VT], **kw: VT) -> None: ...
@@ -159,7 +159,7 @@ class MutableBidict(BidictBase[KT, VT], MutableBidirectionalMapping[KT, VT]):
     def forceupdate(self, *args: MapOrIterItems[KT, VT], **kw: VT) -> None:
         """Like a bulk :meth:`forceput`."""
         if args or kw:
-            self._update(arg=get_arg(*args), kw=kw, on_dup=ON_DUP_DROP_OLD)
+            self._update(get_arg(*args), kw, on_dup=ON_DUP_DROP_OLD)
 
     def __ior__(self, other: t.Mapping[KT, VT]) -> 'MutableBidict[KT, VT]':
         """Return self|=other."""
@@ -178,7 +178,7 @@ class MutableBidict(BidictBase[KT, VT], MutableBidirectionalMapping[KT, VT]):
         none of the items is inserted.
         """
         if items:
-            self._update(arg=items, on_dup=on_dup)
+            self._update(items, on_dup=on_dup)
 
 
 class bidict(MutableBidict[KT, VT]):

@@ -26,6 +26,9 @@ Python syntax hacks
 (ab)using a specialized form of Python's :ref:`slice <slicings>` syntax
 for getting and setting keys by value:
 
+.. use `code-block` rather than `doctest` for this
+   since slice syntax is no longer supported:
+
 .. code-block:: python
 
    >>> element_by_symbol = bidict(H='hydrogen')
@@ -67,6 +70,7 @@ top of the file:
 - `_frozenordered.py <https://github.com/jab/bidict/blob/main/bidict/_frozenordered.py#L8>`__
 - `_orderedbidict.py <https://github.com/jab/bidict/blob/main/bidict/_orderedbidict.py#L8>`__
 
+
 Data structures are amazing
 ===========================
 
@@ -107,9 +111,9 @@ Stay for the rare, exotic bidirectional mapping breeds you'll rarely see at home
    with the nodes, providing the final piece of the puzzle.
 
    And since :class:`~bidict.OrderedBidictBase` needs to not only
-   look up nodes by key/value, but also key/values by nodes,
+   look up nodes by key/value, but also key/value by node,
    internally it uses an (unordered) :class:`~bidict.bidict` for this.
-   Eat your own dogfood for fun and profit!
+   Bidicts all the way down!
 
 Check out `_orderedbase.py <https://github.com/jab/bidict/blob/main/bidict/_orderedbase.py#L10>`__
 to see this in action.
@@ -138,99 +142,155 @@ and confidence that your code is correct.
 Bidict never would have survived so many refactorings with so few bugs
 if it weren't for property-based testing, enabled by the amazing
 `Hypothesis <https://hypothesis.readthedocs.io>`__ library.
-It's game-changing.
 
 Check out `bidict's property-based tests
 <https://github.com/jab/bidict/blob/main/tests/property_tests/test_properties.py>`__
 to see this in action.
 
 
-Python surprises, gotchas, regrets
-==================================
+Python surprises
+================
+
+- What should happen when checking equality of several ordered mappings
+  that contain the same items but in a different order?
+
+  What about when comparing an ordered mapping with an unordered mapping?
+
+  First let's see how :class:`collections.OrderedDict` works.
+  The results may surprise you:
+
+  .. doctest::
+
+     >>> from collections import OrderedDict
+     >>> x = OrderedDict({1: 1, 2: 2})
+     >>> y = {1: 1, 2: 2}
+     >>> z = OrderedDict({2: 2, 1: 1})
+     >>> x == y
+     True
+     >>> y == z
+     True
+     >>> x == z
+     False
+
+  So :class:`collections.OrderedDict` violates the
+  `transitive property of equality
+  <https://en.wikipedia.org/wiki/Equality_(mathematics)#Basic_properties>`__.
+  This can lead to some even more unusual behavior than the above.
+  As an example, let's see what would happen if
+  :class:`bidict.FrozenOrderedBidict.__eq__`
+  behaved this way:
+
+  .. testsetup::
+
+     from bidict import FrozenOrderedBidict, frozenbidict
+
+
+  .. doctest::
+
+     >>> class BadFrozenOrderedBidict(FrozenOrderedBidict):
+     ...     __hash__ = FrozenOrderedBidict.__hash__
+     ...
+     ...     def __eq__(self, other):  # (deliberately simplified)
+     ...         # Override to be order-sensitive, like collections.OrderedDict:
+     ...         return all(i == j for (i, j) in zip(self.items(), other.items()))
+
+
+     >>> x = BadFrozenOrderedBidict({1: 1, 2: 2})
+     >>> y = frozenbidict({1: 1, 2: 2})
+     >>> z = BadFrozenOrderedBidict({2: 2, 1: 1})
+     >>> assert x == y and y == z and x != z
+     >>> set1 = {x, y, z}
+     >>> len(set1)
+     2
+     >>> set2 = {y, x, z}
+     >>> len(set2)
+     1
+
+  Gotcha alert!
+
+  According to Raymond Hettinger,
+  the Python core developer who built Python's collections foundation,
+  if we had it to do over again,
+  we would make :meth:`collections.OrderedDict.__eq__`
+  order-insensitive.
+  Making ``__eq__`` order-sensitive not only violates the transitive property of equality,
+  but also the `Liskov substitution principle
+  <https://en.wikipedia.org/wiki/Liskov_substitution_principle>`__.
+  Unfortunately, it's too late now to fix this for :class:`collections.OrderedDict`.
+
+  Fortunately though, it's not too late for bidict to learn from this.
+  Hence :ref:`eq-order-insensitive`, even for ordered bidicts.
+  For an order-sensitive equality check, bidict provides the separate
+  :meth:`~bidict.BidictBase.equals_order_sensitive` method,
+  thanks in no small part to `Raymond's good advice
+  <https://groups.google.com/g/comp.lang.python/c/eGSPciKcbPk/m/z_L7Ko09DQAJ>`__.
 
 - See :ref:`addendum:\*nan\* as a Key`.
 
 - See :ref:`addendum:Equivalent but distinct \:class\:\`~collections.abc.Hashable\`\\s`.
 
-- What should happen when checking equality of several ordered mappings
-  that contain the same items but in a different order?
-  What about when comparing with an unordered mapping?
-
-  Check out what Python's :class:`collections.OrderedDict` does,
-  and the surprising results:
-
-  .. code-block:: python
-
-     >>> from collections import OrderedDict
-     >>> d = dict([(0, 1), (2, 3)])
-     >>> od = OrderedDict([(0, 1), (2, 3)])
-     >>> od2 = OrderedDict([(2, 3), (0, 1)])
-     >>> d == od
-     True
-     >>> d == od2
-     True
-     >>> od == od2
-     False
-
-     >>> class MyDict(dict):
-     ...   __hash__ = lambda self: 0
-     ...
-
-     >>> class MyOrderedDict(OrderedDict):
-     ...   __hash__ = lambda self: 0
-     ...
-
-     >>> d = MyDict([(0, 1), (2, 3)])
-     >>> od = MyOrderedDict([(0, 1), (2, 3)])
-     >>> od2 = MyOrderedDict([(2, 3), (0, 1)])
-     >>> len({d, od, od2})
-     1
-     >>> len({od, od2, d})
-     2
-
-  According to Raymond Hettinger
-  (Python core developer responsible for much of Python's collections),
-  this design was a mistake
-  (e.g. it violates the `Liskov substitution principle
-  <https://en.wikipedia.org/wiki/Liskov_substitution_principle>`__
-  and the `transitive property of equality
-  <https://en.wikipedia.org/wiki/Equality_(mathematics)#Basic_properties>`__),
-  but it's too late now to fix.
-
-  Fortunately, it wasn't too late for bidict to learn from this.
-  Hence :ref:`eq-order-insensitive` even for ordered bidicts.
-  For an order-sensitive equality check, bidict provides the separate
-  :meth:`~bidict.BidictBase.equals_order_sensitive` method.
-
-- If you define a custom :meth:`~object.__eq__` on a class,
-  it will *not* be used for ``!=`` comparisons on Python 2 automatically;
-  you must explicitly add an :meth:`~object.__ne__` implementation
-  that calls your :meth:`~object.__eq__` implementation.
-  If you don't, :meth:`object.__ne__` will be used instead,
-  which behaves like ``is not``. Python 3 thankfully fixes this.
-
 
 Better memory usage through ``__slots__``
 =========================================
 
-Using :ref:`slots` speeds up attribute access
+Using :ref:`slots` speeds up attribute access,
 and can dramatically reduce memory usage in CPython
 when creating many instances of the same class.
-Must be careful with pickling and weakrefs though!
+
+As an example,
+the ``Node`` class used internally by
+:class:`~bidict.OrderedBidictBase`
+to store the ordering of inserted items
+uses slots for better performance at scale,
+since as many node instances are kept in memory
+as there are items in every ordered bidict in memory.
+*See:* `_orderedbase.py <https://github.com/jab/bidict/blob/main/bidict/_orderedbase.py#L8>`__
+
+(Note that extra care must be taken
+when using slots with pickling and weakrefs.)
 
 
 Better memory usage through :mod:`weakref`
 ==========================================
 
-A :class:`~bidict.bidict` and its inverse use :mod:`weakref`
-to avoid creating a strong reference cycle,
-so that when you release your last reference to a bidict,
+A :class:`~bidict.bidict` and its inverse use :mod:`weakref` to
+:ref:`avoid creating a reference cycle
+<addendum:\`\`bidict\`\` Avoids Reference Cycles>`.
+As a result, when you drop your last reference to a bidict,
 its memory is reclaimed immediately in CPython
 rather than having to wait for the next garbage collection.
-See :ref:`addendum:\`\`bidict\`\` Avoids Reference Cycles`.
+*See:* `_base.py <https://github.com/jab/bidict/blob/main/bidict/_base.py#L8>`__
 
-The (doubly) linked lists that back ordered bidicts also use weakrefs
-to avoid creating strong reference cycles.
+As another example,
+the ``Node`` class used internally by
+:class:`~bidict.OrderedBidictBase`
+uses weakrefs to avoid creating reference cycles
+in the doubly-linked lists used
+to encode the ordering of inserted items.
+*See:* `_orderedbase.py <https://github.com/jab/bidict/blob/main/bidict/_orderedbase.py#L8>`__
+
+
+Using descriptors for managed attributes
+========================================
+
+To abstract the details of creating and dereferencing
+the weakrefs that :class:`~bidict.OrderedBidictBase`\'s
+aforementioned doubly-linked list nodes use
+to refer to their neighbor nodes,
+a ``WeakAttr`` descriptor is used to
+`manage access to these attributes automatically
+<https://docs.python.org/3/howto/descriptor.html#managed-attributes>`__.
+*See:* `_orderedbase.py <https://github.com/jab/bidict/blob/main/bidict/_orderedbase.py#L8>`__
+
+
+The implicit ``__class__`` reference
+====================================
+
+Anytime you have to reference the exact class of an instance
+(and not a potential subclass) from within a method body,
+you can use the implicit, lexically-scoped ``__class__`` reference
+rather than hard-coding the current class's name.
+*See:* https://docs.python.org/3/reference/datamodel.html#executing-the-class-body
 
 
 Subclassing :func:`~collections.namedtuple` classes
@@ -240,10 +300,15 @@ To get the performance benefits, intrinsic sortability, etc.
 of :func:`~collections.namedtuple`
 while customizing behavior, state, API, etc.,
 you can subclass a :func:`~collections.namedtuple` class.
-Just make sure to include ``__slots__ = ()``,
-or you'll lose a lot of the performance benefits.
+(Make sure to include ``__slots__ = ()``,
+if you want to keep the associated performance benefits –
+see the section about slots above.)
 
-Here's an example:
+See the *OnDup* class in
+`_dup.py <https://github.com/jab/bidict/blob/main/bidict/_dup.py>`__
+for an example.
+
+Here's another example:
 
 .. doctest::
 
@@ -310,11 +375,6 @@ How to deeply integrate with Python's :mod:`collections` and other built-in APIs
 
   - Override :meth:`~abc.ABCMeta.__subclasshook__`
     to check for the interface you require.
-    See :class:`~bidict.BidirectionalMapping`'s
-    `old (correct) implementation
-    <https://github.com/jab/bidict/blob/v0.14.2/bidict/_abc.py>`__
-    (this was later removed due to lack of use and maintenance cost
-    when it was discovered that a bug was introduced in v0.15.0).
 
   - Interesting consequence of the ``__subclasshook__()`` design:
     the "subclass" relation becomes intransitive.
@@ -339,32 +399,16 @@ How to deeply integrate with Python's :mod:`collections` and other built-in APIs
 
 - Notice that Python provides :class:`collections.abc.Reversible`
   but no ``collections.abc.Ordered`` or ``collections.abc.OrderedMapping``.
-  This was proposed in `bpo-28912 <https://bugs.python.org/issue28912>`__ but rejected.
-  Would have been useful for bidict's ``__repr__()`` implementation (see ``_base.py``),
-  and potentially for interop with other ordered mapping implementations
-  such as `SortedDict <http://www.grantjenks.com/docs/sortedcontainers/sorteddict.html>`__.
+  *See:* `<https://bugs.python.org/issue28912>`__
 
-How to make APIs Pythonic?
+- See the `Zen of Python <https://www.python.org/dev/peps/pep-0020/>`__
+  for how to make APIs Pythonic.
 
-- See the `Zen of Python <https://www.python.org/dev/peps/pep-0020/>`__.
-
-- "Errors should never pass silently.
-
-  Unless explicitly silenced.
-
-  In the face of ambiguity, refuse the temptation to guess."
-
-  Manifested in bidict's default :attr:`~bidict.bidict.on_dup` class attribute
-  (see :attr:`~bidict.ON_DUP_DEFAULT`).
-
-- "Readability counts."
-
-  "There should be one – and preferably only one – obvious way to do it."
-
-  An early version of bidict allowed using the ``~`` operator to access ``.inverse``
-  and a special slice syntax like ``b[:val]`` to look up a key by value,
-  but these were removed in preference to the more obvious and readable
-  ``.inverse``-based spellings.
+  The following Zen of Python guidelines have been particularly influential for bidict:
+  - "Errors should never pass silently. Unless explicitly silenced.
+  - "In the face of ambiguity, refuse the temptation to guess."
+  - "Readability counts."
+  - "There should be one – and preferably only one – obvious way to do it."
 
 
 Python's data model
@@ -376,32 +420,12 @@ Python's data model
   See the great write-up in https://eev.ee/blog/2012/03/24/python-faq-equality/
   for the answer.
 
-- If an instance of your special mapping type
-  is being compared against a mapping of some foreign mapping type
-  that contains the same items,
-  should your ``__eq__()`` method return true?
-
-  Bidict says yes, again based on the `Liskov substitution principle
-  <https://en.wikipedia.org/wiki/Liskov_substitution_principle>`__.
-  Only returning true when the types matched exactly would violate this.
-  And returning :obj:`NotImplemented` would cause Python to fall back on
-  using identity comparison, which is not what is being asked for.
-
-  (Just for fun, suppose you did only return true when the types matched exactly,
-  and suppose your special mapping type were also hashable.
-  Would it be worth having your ``__hash__()`` method include your type
-  as well as your items?
-  The only point would be to reduce collisions when multiple instances of different
-  types contained the same items
-  and were going to be inserted into the same :class:`dict` or :class:`set`,
-  since they'd now be unequal but would hash to the same value otherwise.)
-
 - Making an immutable type hashable
   (so it can be inserted into :class:`dict`\s and :class:`set`\s):
   Must implement :meth:`~object.__hash__` such that
   ``a == b ⇒ hash(a) == hash(b)``.
   See the :meth:`object.__hash__` and :meth:`object.__eq__` docs, and
-  the `implementation <https://github.com/jab/bidict/blob/main/bidict/_frozenbidict.py#L10>`__
+  the `implementation <https://github.com/jab/bidict/blob/main/bidict/_frozenbidict.py#L8>`__
   of :class:`~bidict.frozenbidict`.
 
   - Consider :class:`~bidict.FrozenOrderedBidict`:
@@ -427,7 +451,6 @@ Python's data model
     So if you do want a subclass to inherit a base class's ``__hash__()``
     implementation, you have to set that manually,
     e.g. by adding ``__hash__ = BaseClass.__hash__`` in the class body.
-    See :class:`~bidict.FrozenOrderedBidict`.
 
     This is consistent with the fact that
     :class:`object` implements ``__hash__()``,
@@ -450,22 +473,6 @@ Python's data model
 Portability
 ===========
 
-- Python 2 vs. Python 3
-
-  - As affects bidict, mostly :class:`dict` API changes,
-    but also functions like :func:`zip`, :func:`map`, :func:`filter`, etc.
-
-  - See the :meth:`~object.__ne__` gotcha for Python 2 above.
-
-  - Borrowing methods from other classes:
-
-    In Python 2, must grab the ``.im_func`` / ``__func__``
-    attribute off the borrowed method to avoid getting
-    ``TypeError: unbound method ...() must be called with ... instance as first argument``
-
-    See the `old implementation <https://github.com/jab/bidict/blob/v0.18.3/bidict/_frozenordered.py#L10>`__
-    of :class:`~bidict.FrozenOrderedBidict`.
-
 - CPython vs. PyPy (and other Python implementations)
 
   - See https://doc.pypy.org/en/latest/cpython_differences.html
@@ -478,6 +485,19 @@ Portability
     is skipped outside CPython.
 
   - primitives' identities, nan, etc.
+
+- Python 2 vs. Python 3
+
+  - As affects bidict, mostly :class:`dict` API changes,
+    but also functions like :func:`zip`, :func:`map`, :func:`filter`, etc.
+
+  - :meth:`~object.__ne__` fixed in Python 3
+
+  - Borrowing methods from other classes:
+
+    In Python 2, must grab the ``.im_func`` / ``__func__``
+    attribute off the borrowed method to avoid getting
+    ``TypeError: unbound method ...() must be called with ... instance as first argument``
 
 
 Other interesting stuff in the standard library
@@ -494,4 +514,4 @@ Tools
 
 See the :ref:`Thanks <thanks:Projects>` page for some of the fantastic tools
 for software verification, performance, code quality, etc.
-that bidict has provided an excuse to play with and learn.
+that bidict has provided a great opportunity to learn and use.
