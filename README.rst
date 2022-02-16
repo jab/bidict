@@ -44,11 +44,16 @@ Status
    :alt: Sponsor on GitHub
 
 
-bidict:
-^^^^^^^
+.. newline for better vertical spacing:
 
-- has been used for many years by several teams at
-  **Google, Venmo, CERN, Bank of America Merrill Lynch, Bloomberg, Two Sigma,** and many others
+|
+
+
+**bidict:**
+
+- has been used for many years at
+  **Google, Venmo, CERN, Two Sigma,**
+  and by many other teams
 - has carefully designed, Pythonic APIs for
   **safety, simplicity, flexibility, and ergonomics**
 - is **lightweight**, with no runtime dependencies
@@ -174,7 +179,7 @@ for more information.
 
 
 Sponsoring
-^^^^^^^^^^
+----------
 
 .. duplicated in CONTRIBUTING.rst
    (would use `.. include::` but GitHub doesn't understand it)
@@ -182,6 +187,10 @@ Sponsoring
 .. image:: https://img.shields.io/badge/GitHub-sponsor-ff69b4
   :target: https://github.com/sponsors/jab
   :alt: Sponsor through GitHub
+
+.. image:: https://img.shields.io/github/sponsors/jab
+   :target: https://github.com/sponsors/jab
+   :alt: Sponsors on GitHub
 
 Bidict is the product of thousands of hours of my unpaid work
 over the ~15 years that I've been the sole maintainer.
@@ -233,8 +242,3 @@ try these alternate links instead:
 .. [#fn-intro] | `<https://bidict.readthedocs.io/intro.html>`__ | `<docs/intro.rst>`__
 
 .. [#fn-contributing] `<https://bidict.readthedocs.io/contributors-guide.html>`__ | `<CONTRIBUTING.rst>`__
-
-
-----
-
-Next: :doc:`intro` [#fn-intro]_

@@ -286,5 +286,3 @@ because it's passed through to the backing ``SortedDict``:
 This goes to show how simple it can be
 to compose your own bidirectional mapping types
 out of the building blocks that :mod:`bidict` provides.
-
-Next proceed to :doc:`other-functionality`.

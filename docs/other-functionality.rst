@@ -39,6 +39,3 @@ can implement themselves:
    {'one': 1}
    >>> list(inverted(OrderedBidict([(2, 4), (3, 9)])))
    [(4, 2), (9, 3)]
-
-
-Perhaps you'd be interested in taking a look at the :doc:`addendum` next.

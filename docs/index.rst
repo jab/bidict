@@ -1,7 +1,6 @@
 .. toctree::
    :hidden:
 
-   Home <home>
    intro
    basic-usage
    other-bidict-types
@@ -15,4 +14,4 @@
    code-of-conduct
    thanks
 
-.. include:: home.rst
+.. include:: README.rst

@@ -133,6 +133,10 @@ Sponsoring
   :target: https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=jabronson%40gmail%2ecom&lc=US&item_name=Sponsor%20bidict
   :alt: Sponsor through PayPal
 
+.. image:: https://img.shields.io/github/sponsors/jab
+   :target: https://github.com/sponsors/jab
+   :alt: Sponsors on GitHub
+
 .. duplicated in README.rst
    (would use `.. include::` but GitHub doesn't understand it)
 
