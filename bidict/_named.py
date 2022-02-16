@@ -14,7 +14,7 @@ from ._bidict import bidict
 from ._typing import KT, VT
 
 
-class NamedBidictBase(BidictBase[KT, VT]):
+class NamedBidictBase:
     """Base class that namedbidicts derive from."""
 
 
@@ -64,7 +64,7 @@ def namedbidict(
     get_val_by_key = property(lambda self: self, doc=val_by_key_doc)
     get_key_by_val = property(lambda self: self.inverse, doc=key_by_val_doc)
 
-    class NamedBidict(base_type, NamedBidictBase[KT, VT]):  # type: ignore [valid-type,misc]  # https://github.com/python/mypy/issues/5865
+    class NamedBidict(base_type, NamedBidictBase):  # type: ignore [valid-type,misc]  # https://github.com/python/mypy/issues/5865
         """NamedBidict."""
 
         keyname = get_keyname

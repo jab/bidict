@@ -20,6 +20,7 @@ from weakref import ref as weakref
 
 from ._base import BidictBase, PreparedWrite
 from ._bidict import bidict
+from ._iter import iteritems
 from ._typing import KT, VT, OKT, OVT, MISSING, IterItems, MapOrIterItems
 
 
@@ -151,8 +152,8 @@ class OrderedBidictBase(BidictBase[KT, VT]):
         del self._node_by_korv.inverse[node]
         node.unlink()
 
-    def _init_from(self, other: BidictBase[KT, VT]) -> None:
-        """Efficiently clone this ordered bidict by copying its internal structure into *other*."""
+    def _init_from(self, other: MapOrIterItems[KT, VT]) -> None:
+        """See :meth:`BidictBase._init_from`."""
         super()._init_from(other)
         bykey = self._bykey
         korv_by_node = self._node_by_korv.inverse
@@ -160,7 +161,7 @@ class OrderedBidictBase(BidictBase[KT, VT]):
         korv_by_node_set = korv_by_node.__setitem__
         self._sntl.nxt = self._sntl.prv = self._sntl
         new_node = self._sntl.new_last_node
-        for (k, v) in other.items():
+        for (k, v) in iteritems(other):
             korv_by_node_set(new_node(), k if bykey else v)
 
     def _prep_write(self, newkey: KT, newval: VT, oldkey: OKT[KT], oldval: OVT[VT], save_unwrite: bool) -> PreparedWrite:

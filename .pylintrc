@@ -29,5 +29,6 @@ disable =
   too-many-branches,  # flags BidictBase._update()
   too-many-locals,  # flags BidictBase._update()
   unsubscriptable-object,  # flags _orderedbidict.py `node_by_korv.inverse[node]`
+  unsupported-assignment-operation,  # flags `myorderedbi.inverse[val] = key`
   useless-import-alias,  # pylint does not understand mypy-style "import foo as foo" explicit re-exports in bidict/__init__.py
   wrong-import-position,  # bidict/__init__.py

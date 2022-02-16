@@ -15,7 +15,8 @@ import pytest
 from bidict import (
     bidict, frozenbidict, namedbidict, FrozenOrderedBidict, OrderedBidict,
     BidirectionalMapping, MutableBidirectionalMapping,
-    BidictBase, MutableBidict, OrderedBidictBase, NamedBidictBase,
+    BidictBase, MutableBidict, OrderedBidictBase,
+    NamedBidictBase, GeneratedBidictInverse,
 )
 
 
@@ -23,7 +24,7 @@ class AbstractBimap(BidirectionalMapping):
     """Does not override `inverse` and therefore should not be instantiatable."""
 
 
-BIDICT_BASE_TYPES = (BidictBase, MutableBidict, OrderedBidictBase, NamedBidictBase)
+BIDICT_BASE_TYPES = (BidictBase, MutableBidict, OrderedBidictBase)
 BIDICT_TYPES = BIDICT_BASE_TYPES + (bidict, frozenbidict, FrozenOrderedBidict, OrderedBidict)
 MyNamedBidict = namedbidict('MyNamedBidict', 'key', 'val')
 BIMAP_TYPES = BIDICT_TYPES + (AbstractBimap, MyNamedBidict)
@@ -58,6 +59,12 @@ def test_issubclass_mutable_and_mutable_bidirectional_mapping(bi_cls):
     """All mutable bidict types should be mutable (bidirectional) mappings."""
     assert issubclass(bi_cls, MutableMapping)
     assert issubclass(bi_cls, MutableBidirectionalMapping)
+
+
+def test_issubclass_namedbidict():
+    """Named bidicts should derive from NamedBidictBase and their inverse classes from GeneratedBidictInverse."""
+    assert issubclass(MyNamedBidict, NamedBidictBase)
+    assert issubclass(MyNamedBidict._inv_cls, GeneratedBidictInverse)
 
 
 @pytest.mark.parametrize('bi_cls', HASHABLE_BIDICT_TYPES)
@@ -136,7 +143,7 @@ def test_bidict_reversible_matches_dict_reversible():
     assert issubclass(bidict, Reversible) == issubclass(dict, Reversible)
 
 
-@pytest.mark.skipif(sys.version_info < (3, 8), reason='reversible bidicts require Python 3.8+')
+@pytest.mark.skipif(sys.version_info < (3, 8), reason='reversible unordered bidicts require Python 3.8+')
 def test_bidict_reversible():
     """All bidicts are Reversible on Python 3.8+."""
     assert issubclass(bidict, Reversible)

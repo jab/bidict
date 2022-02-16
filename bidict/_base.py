@@ -24,7 +24,7 @@ from types import MappingProxyType
 from ._abc import BidirectionalMapping
 from ._dup import ON_DUP_DEFAULT, RAISE, DROP_OLD, DROP_NEW, OnDup
 from ._exc import DuplicationError, KeyDuplicationError, ValueDuplicationError, KeyAndValueDuplicationError
-from ._iter import iteritems
+from ._iter import iteritems, inverted
 from ._typing import KT, VT, MISSING, OKT, OVT, IterItems, MapOrIterItems
 
 
@@ -345,7 +345,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
             assert on_dup.val is DROP_OLD
             # Fall through to the return statement on the last line.
         # else neither isdupkey nor isdupval.
-        return (oldkey, oldval)
+        return oldkey, oldval
 
     def _prep_write(self, newkey: KT, newval: VT, oldkey: OKT[KT], oldval: OVT[VT], save_unwrite: bool) -> PreparedWrite:
         """Given (newkey, newval) to insert, return the list of operations necessary to perform the write.
@@ -464,17 +464,30 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         """Make a (shallow) copy of this bidict."""
         # Could just `return self.__class__(self)` here, but the below is faster. The former
         # would copy this bidict's items into a new instance one at a time (checking for duplication
-        # for each item), whereas the below makes copies of the backing mappings at once, at C speed,
-        # and does not check for item duplication (since the backing mappings have been checked already).
-        into = self.__class__()
-        into._init_from(self)
-        return into
+        # for each item), whereas the below copies from the backing mappings all at once, and foregoes
+        # item-by-item duplication checking since the backing mappings have been checked already.
+        return self._from_other(self.__class__, self)
 
-    def _init_from(self, other: 'BidictBase[KT, VT]') -> None:
+    @staticmethod
+    def _from_other(bt: t.Type[BT], other: MapOrIterItems[KT, VT], inv: bool = False) -> BT:
+        """Fast, private constructor based on :meth:`_init_from`.
+
+        If *inv* is true, return the inverse of the instance instead of the instance itself.
+        (Useful for pickling with dynamically-generated inverse classes -- see :meth:`__reduce__`.)
+        """
+        inst = bt()
+        inst._init_from(other)
+        return t.cast(BT, inst.inverse) if inv else inst
+
+    def _init_from(self, other: MapOrIterItems[KT, VT]) -> None:
+        """Fast init from *other*, bypassing item-by-item duplication checking."""
         self._fwdm.clear()
         self._invm.clear()
-        self._fwdm.update(other._fwdm)
-        self._invm.update(other._invm)
+        self._fwdm.update(other)
+        # If other is a bidict, use its existing backing inverse mapping, otherwise
+        # other could be a generator that's now exhausted, so invert self._fwdm on the fly.
+        inv = other.inverse if isinstance(other, BidictBase) else inverted(self._fwdm)
+        self._invm.update(inv)
 
     #: Used for the copy protocol.
     #: *See also* the :mod:`copy` module
@@ -510,29 +523,19 @@ class BidictBase(BidirectionalMapping[KT, VT]):
 
     def __reduce__(self) -> t.Tuple[t.Any, ...]:
         """Return state information for pickling."""
-        cls = self.__class__
-        fwdm, invm = self._fwdm, self._invm
-        is_generated = isinstance(self, GeneratedBidictInverse)
-        if is_generated:
-            # If this bidict's class is dynamically generated, pickle the inverse
-            # instead, whose (presumably not dynamically generated) class the caller
-            # is more likely to have a reference to in sys.modules that pickle can discover.
-            cls = cls._inv_cls
-            fwdm, invm = invm, fwdm  # type: ignore [assignment]
-        return (_reduce_factory, (cls, fwdm, invm, is_generated))
+        # If this bidict's class is dynamically generated, pickle the inverse instead, whose
+        # (presumably not dynamically generated) class the caller is more likely to have a reference to
+        # somewhere in sys.modules that pickle can discover.
+        should_invert = isinstance(self, GeneratedBidictInverse)
+        cls, init_from = (self._inv_cls, self.inverse) if should_invert else (self.__class__, self)
+        return self._from_other, (cls, dict(init_from), should_invert)  # type: ignore [call-overload] # https://github.com/python/mypy/issues/4975
 
 
 BidictBase._init_class()
 
 
-class GeneratedBidictInverse(BidictBase[KT, VT]):
+class GeneratedBidictInverse:
     """Base class for dynamically-generated inverse bidict classes."""
-
-
-def _reduce_factory(cls: t.Type[BidictBase[KT, VT]], fwdm: t.MutableMapping[KT, VT], invm: t.MutableMapping[VT, KT], invert: bool) -> t.Type[BidictBase[KT, VT]]:
-    inst = cls()
-    inst._update(zip(fwdm, invm), rbof=False)
-    return inst.inverse if invert else inst  # type: ignore [return-value]
 
 
 #                             * Code review nav *

@@ -457,9 +457,9 @@ def test_inv_aliases_inverse(bi):
 def test_inverse_readonly(bi):
     """Attempting to set the .inverse attribute should raise AttributeError."""
     with pytest.raises(AttributeError):
-        bi.inverse = 42
+        bi.inverse = bi.__class__(inverted(bi))
     with pytest.raises(AttributeError):
-        bi.inv = 42
+        bi.inv = bi.__class__(inverted(bi))
 
 
 @given(st.BIDICTS)
@@ -470,18 +470,32 @@ def test_pickle(bi):
     pickled = pickle.dumps(bi)
     roundtripped = pickle.loads(pickled)
     assert roundtripped is roundtripped.inv.inv
-    assert roundtripped == bi
-    assert roundtripped.inv == bi.inv
-    assert roundtripped.inv.inv == bi.inv.inv
+    assert roundtripped.equals_order_sensitive(bi)
+    assert roundtripped.inv.equals_order_sensitive(bi.inv)
+    assert roundtripped.inv.inv.equals_order_sensitive(bi.inv.inv)
     assert dict(roundtripped) == dict(bi)
     roundtripped_inv = pickle.loads(pickle.dumps(bi.inv))
-    assert roundtripped_inv == bi.inv
-    assert roundtripped_inv.inv == bi
-    assert roundtripped_inv.inv.inv == bi.inv
+    assert roundtripped_inv.equals_order_sensitive(bi.inv)
+    assert roundtripped_inv.inv.equals_order_sensitive(bi)
+    assert roundtripped_inv.inv.inv.equals_order_sensitive(bi.inv)
     assert dict(roundtripped_inv) == dict(bi.inv)
 
 
+def test_pickle_orderedbi_whose_order_disagrees_w_fwdm():
+    """An OrderedBidict whose order does not match its _fwdm's should pickle with the correct order."""
+    ob = OrderedBidict({0: 1, 2: 3})
+    # First get ob._fwdm's order to disagree with ob's, and confirm:
+    ob.inverse[1] = 4
+    assert next(iter(ob.items())) == (4, 1)
+    assert next(iter(ob.inverse.items())) == (1, 4)
+    assert next(iter(ob._fwdm.items())) == (2, 3)
+    # Now check that its order is preserved after pickling and unpickling:
+    roundtripped = pickle.loads(pickle.dumps(ob))
+    assert roundtripped.equals_order_sensitive(ob)
+
+
 class _UserBidict(bidict):
+    """See :func:`test_pickle_dynamically_generated_inverse_bidict` below."""
     _invm_cls = UserDict
 
 
