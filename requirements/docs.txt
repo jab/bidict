@@ -12,11 +12,11 @@ beautifulsoup4==4.10.0
     # via furo
 certifi==2021.10.8
     # via requests
-charset-normalizer==2.0.11
+charset-normalizer==2.0.12
     # via requests
 docutils==0.17.1
     # via sphinx
-furo==2022.1.2
+furo==2022.2.14.1
     # via -r docs.in
 idna==3.3
     # via requests
