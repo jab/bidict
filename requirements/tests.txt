@@ -18,15 +18,15 @@ certifi==2021.10.8
     # via requests
 charset-normalizer==2.0.12
     # via requests
-coverage[toml]==6.3.1
+coverage[toml]==6.3.2
     # via
     #   -r tests.in
     #   pytest-cov
 docutils==0.17.1
     # via sphinx
-furo==2022.2.14.1
+furo==2022.2.23
     # via -r docs.in
-hypothesis==6.36.2
+hypothesis==6.38.0
     # via -r tests.in
 icdiff==2.0.4
     # via pytest-icdiff
@@ -38,7 +38,7 @@ iniconfig==1.1.1
     # via pytest
 jinja2==3.0.3
     # via sphinx
-markupsafe==2.0.1
+markupsafe==2.1.0
     # via jinja2
 packaging==21.3
     # via

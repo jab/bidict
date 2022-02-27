@@ -26,9 +26,9 @@ charset-normalizer==2.0.12
     # via requests
 check-manifest==0.47
     # via -r dev.in
-click==8.0.3
+click==8.0.4
     # via pip-tools
-coverage[toml]==6.3.1
+coverage[toml]==6.3.2
     # via
     #   -r tests.in
     #   pytest-cov
@@ -36,19 +36,19 @@ distlib==0.3.4
     # via virtualenv
 docutils==0.17.1
     # via sphinx
-filelock==3.5.1
+filelock==3.6.0
     # via
     #   tox
     #   virtualenv
-furo==2022.2.14.1
+furo==2022.2.23
     # via -r docs.in
-hypothesis==6.36.2
+hypothesis==6.38.0
     # via
     #   -r lint.in
     #   -r tests.in
 icdiff==2.0.4
     # via pytest-icdiff
-identify==2.4.10
+identify==2.4.11
     # via pre-commit
 idna==3.3
     # via requests
@@ -62,7 +62,7 @@ jinja2==3.0.3
     # via sphinx
 lazy-object-proxy==1.7.1
     # via astroid
-markupsafe==2.0.1
+markupsafe==2.1.0
     # via jinja2
 mccabe==0.6.1
     # via pylint
@@ -80,7 +80,7 @@ pep517==0.12.0
     #   pip-tools
 pip-tools==6.5.1
     # via -r dev.in
-platformdirs==2.5.0
+platformdirs==2.5.1
     # via
     #   pylint
     #   virtualenv
@@ -182,7 +182,7 @@ tox==3.24.5
     # via -r dev.in
 urllib3==1.26.8
     # via requests
-virtualenv==20.13.1
+virtualenv==20.13.2
     # via
     #   pre-commit
     #   tox
