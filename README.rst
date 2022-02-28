@@ -149,8 +149,8 @@ Release Notifications
 .. duplicated in CHANGELOG.rst:
    (would use `.. include::` but GitHub doesn't understand it)
 
-Watch releases
-`on GitHub <https://github.blog/changelog/2018-11-27-watch-releases/>`__
+`Watch <https://github.blog/changelog/2018-11-27-watch-releases/>`__ releases
+`on GitHub <https://github.com/jab/bidict>`__
 to be notified when new versions of bidict are released.
 
 
@@ -196,14 +196,13 @@ Bidict is the product of thousands of hours of my unpaid work
 over the ~15 years that I've been the sole maintainer.
 
 If bidict has helped you or your company accomplish your work,
-especially work that you or your company were paid for,
-please `sponsor my work through GitHub <https://github.com/sponsors/jab>`__,
-and ask others you know who got value from my work to do the same.
+please `sponsor my work through GitHub <https://github.com/sponsors/jab>`__
+and/or ask your company to do the same.
 
 Choose a tier and GitHub handles everything else.
-Sponsorship just goes on the same bill that GitHub
-already charges you or your company for automatically,
-so after the one-time signup, there's nothing extra to do.
+Your GitHub sponsorship will automatically go
+on the same bill you already have set up with GitHub,
+so after the one-click signup, there's nothing else to do.
 
 See the following for rationale and examples of companies
 supporting the open source projects they depend on

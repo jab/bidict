@@ -1,45 +1,35 @@
 Learning from ``bidict``
 ------------------------
 
-Below is an outline of some of the more fascinating
-and lesser-known Python corners I got to explore further
-thanks to working on :mod:`bidict`.
+Working on :mod:`bidict` has taken me to
+some of the most interesting and unexpected places
+I've ever been to in many years of programming.
+(When I started :mod:`bidict` almost 15 years ago,
+I didn't know what higher-kinded types even were,
+let alone that I'd one day
+`explain to Guido
+<https://github.com/python/typing/issues/548#issuecomment-621195693>`__
+how they're useful for bidirectional mapping types.)
 
-If you would like to learn more about any of the topics below,
-you may find `reading bidict's code
-<https://github.com/jab/bidict/blob/main/bidict/__init__.py#L9>`__
-particularly interesting.
+The problem space that :mod:`bidict` inhabits
+is abundant with beautiful symmetries,
+delightful surprises, and rich opportunities
+to come up with elegant solutions.
 
-I've sought to optimize the code not just for correctness and performance,
-but also to make for a clear and enjoyable read,
-illuminating anything that could otherwise be obscure or subtle.
+You can check out :mod:`bidict`'s source
+to see for yourself.
+I've sought to optimize the code
+not just for correctness and performance,
+but also for clarity, maintainability,
+and to make for an enjoyable read.
 
-I hope it brings you some of the
+See below for more, and
+`let me know <mailto:jabronson@gmail.com>`__
+what you think.
+I hope reading :mod:`bidict`'s code
+gives you a taste of some of the immense
 `joy <https://joy.recurse.com/posts/148-bidict>`__
-it's brought me. 😊
-
-
-Python syntax hacks
-===================
-
-:mod:`bidict` used to support
-(ab)using a specialized form of Python's :ref:`slice <slicings>` syntax
-for getting and setting keys by value:
-
-.. use `code-block` rather than `doctest` for this
-   since slice syntax is no longer supported:
-
-.. code-block:: python
-
-   >>> element_by_symbol = bidict(H='hydrogen')
-   >>> element_by_symbol['H']  # [normal] syntax for the forward mapping
-   'hydrogen'
-   >>> element_by_symbol[:'hydrogen']  # [:slice] syntax for the inverse (no longer supported)
-   'H'
-
-See `this code <https://github.com/jab/bidict/blob/356dbe3/bidict/_bidict.py#L25>`__
-for how this was implemented,
-and `#19 <https://github.com/jab/bidict/issues/19>`__ for why this was dropped.
+that :mod:`bidict` has given me.
 
 
 Code structure
@@ -55,7 +45,7 @@ as appropriate.
 
 Factoring the code to maximize reuse, modularity, and
 adherence to `SOLID <https://en.wikipedia.org/wiki/SOLID>`__ design principles
-(while not missing any chances for special-case optimizations)
+(while not missing any chances for specialized optimizations)
 has been one of the most fun parts of working on bidict.
 
 To see how this is done, check out the code starting with
@@ -85,11 +75,8 @@ and you miss all the value that comes from ongoing, direct practical application
 Bidict shows how fundamental data structures
 can be implemented in Python for important real-world usage,
 with practical concerns at top of mind.
-Come to catch sight of a real, live, industrial-strength linked list in the wild.
-Stay for the rare, exotic bidirectional mapping breeds you'll rarely see at home.
-[#fn-data-struct]_
 
-.. [#fn-data-struct] To give you a taste:
+.. admonition:: To give you a taste...
 
    A regular :class:`~bidict.bidict`
    encapsulates two regular dicts,
@@ -112,14 +99,34 @@ Stay for the rare, exotic bidirectional mapping breeds you'll rarely see at home
 
    And since :class:`~bidict.OrderedBidictBase` needs to not only
    look up nodes by key/value, but also key/value by node,
-   internally it uses an (unordered) :class:`~bidict.bidict` for this.
+   it uses an (unordered) :class:`~bidict.bidict` for this internally.
    Bidicts all the way down!
 
-Check out `_orderedbase.py <https://github.com/jab/bidict/blob/main/bidict/_orderedbase.py#L10>`__
-to see this in action.
+
+Python syntax hacks
+===================
+
+:mod:`bidict` used to support
+(ab)using a specialized form of Python's :ref:`slice <slicings>` syntax
+for getting and setting keys by value:
+
+.. use `code-block` rather than `doctest` for this
+   since slice syntax is no longer supported:
+
+.. code-block:: python
+
+   >>> element_by_symbol = bidict(H='hydrogen')
+   >>> element_by_symbol['H']  # [normal] syntax for the forward mapping
+   'hydrogen'
+   >>> element_by_symbol[:'hydrogen']  # [:slice] syntax for the inverse (no longer supported)
+   'H'
+
+See `this code <https://github.com/jab/bidict/blob/356dbe3/bidict/_bidict.py#L25>`__
+for how this was implemented,
+and `#19 <https://github.com/jab/bidict/issues/19>`__ for why this was dropped.
 
 
-Property-based testing is revolutionary
+Property-based testing is indispensable
 =======================================
 
 When your automated tests run,

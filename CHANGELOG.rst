@@ -8,15 +8,25 @@
 Changelog
 =========
 
+.. image:: https://img.shields.io/badge/GitHub-sponsor-ff69b4
+  :target: https://github.com/sponsors/jab
+  :alt: Sponsor through GitHub
+
+.. image:: https://img.shields.io/github/sponsors/jab
+   :target: https://github.com/sponsors/jab
+   :alt: Sponsors on GitHub
+
+
 Release Notifications
 ---------------------
 
 .. duplicated in README.rst
    (would use `.. include::` but GitHub doesn't understand it)
 
-Tip: Watch releases
-`on GitHub <https://github.blog/changelog/2018-11-27-watch-releases/>`__
-to be notified when new versions of ``bidict`` are released.
+Tip:
+`Watch <https://github.blog/changelog/2018-11-27-watch-releases/>`__ releases
+`on GitHub <https://github.com/jab/bidict>`__
+to be notified when new versions of bidict are released.
 
 
 0.22.0 (not yet released)
@@ -57,10 +67,6 @@ to be notified when new versions of ``bidict`` are released.
   In a microbenchmark on Python 3.10,
   this now performs **5-30% faster**.
 
-- Optimize pickling bidicts.
-  In a microbenchmark on Python 3.10,
-  this now performs **5-10% faster**.
-
 - Optimize rolling back
   :ref:`failed updates to a bidict <basic-usage:Updates Fail Clean>`
   in the case that the number of items passed to the update call
@@ -68,13 +74,14 @@ to be notified when new versions of ``bidict`` are released.
   Previously this rollback was O(n) in the number of items passed.
   Now it is O(1), i.e. **unboundedly faster**.
 
-- Optimize :meth:`~bidict.BidictBase.__contains__`
-  (the method called when you run ``key in any_bidict``).
+- Optimize :meth:`bidict.BidictBase.__contains__`
+  (the method called when you run ``key in mybidict``).
   In a microbenchmark on Python 3.10,
   this now performs over **3x faster** in the False case,
   and at least **50% faster** in the True case.
 
-- Optimize :meth:`~bidict.BidictBase.__eq__`.
+- Optimize :meth:`bidict.BidictBase.__eq__`
+  (the method called when you run ``mybidict == other``).
   In a microbenchmark on Python 3.10,
   this now performs over **25x faster** for ordered bidicts,
   and at least **10x faster** for unordered bidicts.
@@ -151,9 +158,9 @@ to be notified when new versions of ``bidict`` are released.
   an ``_isinv`` attribute,
   which :class:`~bidict.BidictBase` subclasses no longer provide.
 
-- When attempting to pickle a bidict's inverse
-  whose class was dynamically generated
-  (as in :ref:`extending:Dynamic Inverse Class Generation`),
+- When attempting to pickle a bidict's inverse whose class was
+  :ref:`dynamically generated
+  <extending:Dynamic Inverse Class Generation>`,
   and no reference to the dynamically-generated class has been stored
   anywhere in :data:`sys.modules` where :mod:`pickle` can find it,
   the pickle call is now more likely to succeed
