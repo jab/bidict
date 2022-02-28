@@ -51,7 +51,7 @@ build_docs() (
 )
 
 main() {
-  cd assets
+  cd docs/_static
     update_graph
   cd -
   cd docs

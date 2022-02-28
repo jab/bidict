@@ -45,6 +45,19 @@ Making Changes
    to get an already-configured development environment inside your browser
    in which you can make, test, and submit your changes to bidict.
 
+.. note:: You can also work on bidict in a Visual Studio Code
+   `devcontainer environment <https://code.visualstudio.com/docs/remote/containers>`__
+   which will install development dependencies and some helpful VS Code
+   extensions for you.
+
+   Try ``Remote-Containers: Clone Repository in Container Volume...`` on this
+   repository. You may need to reload your VS Code window after it finishes
+   cloning and installing extensions, which it should prompt you to do.
+
+   In a devcontainer, you don't need to worry about the below steps of making a
+   virtualenv or configuring EditorConfig or pre-commit, those will be part of
+   your development environment by default.
+
 - Before making changes, please
   (create a `virtualenv <http://virtualenv.pypa.io>`__ and)
   install the extra packages required for development
