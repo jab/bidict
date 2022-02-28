@@ -2,9 +2,27 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "Run tox",
+            "label": "Run tox (all targets)",
             "type": "process",
             "command": "tox",
+            "group": "test",
+            "presentation": {
+                "echo": true,
+                "reveal": "always",
+                "focus": false,
+                "panel": "dedicated",
+                "showReuseMessage": false,
+                "clear": false
+            }
+        },
+        {
+            "label": "Lint",
+            "type": "process",
+            "command": "tox",
+            "args": [
+                "-e",
+                "lint"
+            ],
             "group": "test",
             "presentation": {
                 "echo": true,
@@ -35,7 +53,11 @@
         {
             "label": "Build docs",
             "type": "process",
-            "command": "build-docs.sh",
+            "command": "tox",
+            "args": [
+                "-e",
+                "docs"
+            ],
             "group": "build",
             "presentation": {
                 "echo": true,

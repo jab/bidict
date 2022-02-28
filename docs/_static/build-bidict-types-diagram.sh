@@ -13,7 +13,7 @@ log() {
 }
 
 # Generate a new graph image from its source file if it's been modified.
-update_graph() {
+main() {
   local -r graph_src="bidict-types-diagram.dot"
   local -r graph_dst="${graph_src%.*}.png"
 
@@ -43,20 +43,6 @@ update_graph() {
     log "optipng exited nonzero."
     return 0
   fi
-}
-
-# Use parentheses instead of braces around body so it runs in a subshell -> cd doesn't leak.
-build_docs() (
-  make clean html
-)
-
-main() {
-  cd docs/_static
-    update_graph
-  cd -
-  cd docs
-    build_docs
-  cd -
 }
 
 main

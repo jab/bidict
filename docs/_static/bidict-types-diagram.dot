@@ -5,7 +5,7 @@
 // file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 
-// See ../build-docs.sh for how to generate an image from this file.
+// See build-bidict-types-diagram.sh for how to generate a PNG from this file.
 
 digraph G {
   rankdir=BT
@@ -13,22 +13,22 @@ digraph G {
   node [fontsize="12", shape="box"]
 
   subgraph ABCs {
-    node [fillcolor="#EFEFEF", color="#666666", fontcolor="#333333", style="filled", fontname="Cousine Nerd Font Italic"]
+    node [fillcolor="#EFEFEF", color="#666666", fontcolor="#333333", style="filled", fontname="OperatorMono Nerd Font Book Italic"]
     Mapping [label="collections.abc.Mapping"]
     MutableMapping [label="collections.abc.MutableMapping"]
     Hashable [label="collections.abc.Hashable"]
     MutableMapping -> Mapping
     { rank=same Mapping MutableMapping Hashable }
 
-    BidirectionalMapping [label="bidict._abc.BidirectionalMapping", style="filled, bold", fontcolor="black", fontname="Cousine Nerd Font Bold Italic"]
-    MutableBidirectionalMapping [label="bidict._abc.MutableBidirectionalMapping", style="filled, bold", fontcolor="black", fontname="Cousine Nerd Font Bold Italic"]
+    BidirectionalMapping [label="bidict._abc.BidirectionalMapping", style="filled, bold", fontcolor="black", fontname="OperatorMono Nerd Font Book Italic"]
+    MutableBidirectionalMapping [label="bidict._abc.MutableBidirectionalMapping", style="filled, bold", fontcolor="black", fontname="OperatorMono Nerd Font Book Italic"]
     BidirectionalMapping -> Mapping
     MutableBidirectionalMapping -> BidirectionalMapping
     MutableBidirectionalMapping -> MutableMapping
   }
 
   subgraph {
-    node [style="bold", fontname="FiraMono Nerd Font Bold"]
+    node [style="bold", fontname="OperatorMono Nerd Font Book"]
 
     bidict [label="bidict.bidict"]
     frozenbidict [label="bidict.frozenbidict"]
