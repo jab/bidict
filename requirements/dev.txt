@@ -42,7 +42,7 @@ filelock==3.6.0
     #   virtualenv
 furo==2022.2.23
     # via -r docs.in
-hypothesis==6.38.0
+hypothesis==6.39.0
     # via
     #   -r lint.in
     #   -r tests.in
