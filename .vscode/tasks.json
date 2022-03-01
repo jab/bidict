@@ -67,6 +67,29 @@
                 "showReuseMessage": false,
                 "clear": true
             }
+        },
+        {
+            "label": "Host docs",
+            "type": "process",
+            "command": "python",
+            "args": [
+                "-m",
+                "http.server"
+            ],
+            "isBackground": true,
+            "options": {
+                "cwd": "${workspaceFolder}/docs/_build/html"
+            },
+            "dependsOn": "Build docs",
+            "presentation": {
+                "echo": true,
+                "reveal": "silent",
+                "focus": false,
+                "panel": "dedicated",
+                "showReuseMessage": false,
+                "clear": true
+            },
+            "problemMatcher": []
         }
     ]
 }
