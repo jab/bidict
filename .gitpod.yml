@@ -11,15 +11,17 @@ github:
     pullRequestsFromForks: true
     # add a "Review in Gitpod" button as a comment to pull requests (defaults to true)
     addComment: true
-    # add a "Review in Gitpod" button to pull requests (defaults to false)
+    # add a "Review in Gitpod" badge to pull requests (defaults to false)
     addBadge: false
     # add a label once the prebuild is ready to pull requests (defaults to false)
     addLabel: prebuilt-in-gitpod
 
 # https://www.gitpod.io/docs/languages/python
 tasks:
-  - init: |
-      python3 -m pip install -U pip
-      python3 -m pip install -r requirements/dev.txt
-      export PIP_USER=false  # Work around https://github.com/gitpod-io/gitpod/issues/4886
-      pre-commit install --install-hooks
+  - init: echo 'eval "$(pyenv init --path)"' >> ~/.bashrc.d/60-python `# https://github.com/gitpod-io/workspace-images/issues/664` && eval $(pyenv init --path) && pyenv install 3.10.2 && pyenv global 3.10.2 && pip -V | fgrep 'python 3.10' && pip install -U pip && pip install -r requirements/dev.txt && pre-commit install --install-hooks
+
+vscode:
+  extensions:
+    - EditorConfig.EditorConfig
+    - lextudio.restructuredtext
+    - trond-snekvik.simple-rst
