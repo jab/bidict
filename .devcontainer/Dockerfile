@@ -9,12 +9,14 @@ FROM mcr.microsoft.com/vscode/devcontainers/python:0-${VARIANT}
 ARG NODE_VERSION="none"
 RUN if [ "${NODE_VERSION}" != "none" ]; then su vscode -c "umask 0002 && . /usr/local/share/nvm/nvm.sh && nvm install ${NODE_VERSION} 2>&1"; fi
 
-# [Optional] If your pip requirements rarely change, uncomment this section to add them to the image.
+# Install dev dependencies globally in the image.
+# (Still easy to experiment with upgrades/new dependencies by installing them in --user scope,
+# and if you want to keep them, add them to the requirements file and rebuild the container.)
 COPY requirements/dev.txt /tmp/pip-tmp/requirements-dev.txt
 RUN pip3 --disable-pip-version-check --no-cache-dir install -r /tmp/pip-tmp/requirements-dev.txt \
   && rm -rf /tmp/pip-tmp
 
-# [Optional] Uncomment this section to install additional OS packages.
+# [Optional] Install additional OS packages.
 RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \
   && apt-get -y install --no-install-recommends \
   graphviz optipng  `# for docs/_static/build-bidict-types-diagram.sh` \
