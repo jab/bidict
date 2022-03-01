@@ -44,7 +44,9 @@
         "lextudio.restructuredtext",
         "trond-snekvik.simple-rst"
     ],
-    // Use 'forwardPorts' to make a list of ports inside the container available locally.
+    // Use 'forwardPorts' to make a list of ports inside the container available locally by default.
+    // (Even without this, by default VS Code will notice when a process starts listening on an
+    // unforwarded port, and will start forwarding that port automatically. Ref: remote.autoForwardPorts)
     // "forwardPorts": [],
     // Use 'postCreateCommand' to run commands after the container is created.
     // Note: esbonio and rstcheck are just for the restructuredtext vscode extension,
