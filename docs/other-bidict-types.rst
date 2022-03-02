@@ -98,7 +98,8 @@ It's like a bidirectional version of :class:`collections.OrderedDict`.
 
 Additional, efficiently-implemented, order-mutating APIs
 modeled after :class:`~collections.OrderedDict`, e.g.
-:meth:`popitem(last: bool) <bidict.OrderedBidict.popitem>` and
+:meth:`popitem(last: bool) <bidict.OrderedBidict.popitem>`,
+which makes ordered bidicts suitable for use as FIFO queues, and
 :meth:`move_to_end(last: bool) <bidict.OrderedBidict.move_to_end>`,
 are provided as well:
 
@@ -189,7 +190,8 @@ For order-sensitive equality tests, use
 (Note that this differs from the behavior of
 :meth:`collections.OrderedDict.__eq__`,
 and for good reason,
-by recommendation of the author of :class:`~collections.OrderedDict`.
+by recommendation of the Python core developer
+who designed and implemented :class:`~collections.OrderedDict`.
 For more about this, see
 :ref:`learning-from-bidict:Python surprises`.)
 
@@ -204,10 +206,10 @@ Given that, can you get away with
 using an unordered bidict
 in places where you need
 an order-preserving bidirectional mapping?
-(Assuming, of course, that
-you don't need the additional ordering-related APIs
-offered by :class:`~bidict.OrderedBidict`, such as
-:meth:`popitem(last: bool) <bidict.OrderedBidict.popitem>`?)
+Of course, this assumes you don't need the additional APIs
+offered only by :class:`~bidict.OrderedBidict`, such as
+:meth:`popitem(last=False) <bidict.OrderedBidict.popitem>`,
+which makes it suitable for use as a FIFO queue.
 
 Consider this example:
 
@@ -263,10 +265,13 @@ using an explicitly-ordered bidict type makes for clearer code.
 :class:`~bidict.OrderedBidict` also gives you
 additional, constant-time, order-mutating APIs, such as
 :meth:`move_to_end(last: bool) <bidict.OrderedBidict.move_to_end>` and
-:meth:`popitem(last: bool) <bidict.OrderedBidict.popitem>`,
-should you ever need them.
+:meth:`popitem(last: bool) <bidict.OrderedBidict.popitem>`.
+These additional APIs expand the range of use cases
+where an :class:`~bidict.OrderedBidict` can be used.
+For example, ``popitem(last=False)`` allows using an
+:class:`~bidict.OrderedBidict` as a FIFO queue.
 
-And if you're on Python <= 3.7,
+If you're on Python <= 3.7,
 :class:`~bidict.OrderedBidict` also gives you
 :meth:`~bidict.OrderedBidict.__reversed__`,
 which you don't get with unordered bidicts
