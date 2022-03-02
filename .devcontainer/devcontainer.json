@@ -42,6 +42,7 @@
         "joaompinto.vscode-graphviz",
         "mutantdino.resource-monitor",
         "lextudio.restructuredtext",
+        "tamasfe.even-better-toml",
         "trond-snekvik.simple-rst"
     ],
     // Use 'forwardPorts' to make a list of ports inside the container available locally by default.
