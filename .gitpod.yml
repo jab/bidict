@@ -18,10 +18,18 @@ github:
 
 # https://www.gitpod.io/docs/languages/python
 tasks:
-  - init: echo 'eval "$(pyenv init --path)"' >> ~/.bashrc.d/60-python `# https://github.com/gitpod-io/workspace-images/issues/664` && eval $(pyenv init --path) && pyenv install 3.10.2 && pyenv global 3.10.2 && pip -V | fgrep 'python 3.10' && pip install -U pip && pip install -r requirements/dev.txt && pre-commit install --install-hooks
+  - init: |
+      echo 'eval "$(pyenv init --path)"' >> ~/.bashrc.d/60-python
+      eval "$(pyenv init --path)"  # https://github.com/gitpod-io/workspace-images/issues/664
+      pyenv install 3.10.2
+      pyenv global 3.10.2
+      pip install -U pip
+      pip install -r requirements/dev.txt
+      pre-commit install --install-hooks
 
 vscode:
   extensions:
+    - ms-python.python
     - EditorConfig.EditorConfig
     - lextudio.restructuredtext
     - trond-snekvik.simple-rst
