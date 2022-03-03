@@ -118,7 +118,7 @@ class _OrderedBidictItemsView(t.ItemsView[KT, VT]):
 # to backing dicts for the methods they inherit from collections.abc.Set. (Cannot delegate
 # for __iter__ and __reversed__ since they are order-sensitive.) See also: https://bugs.python.org/issue46713
 def _override_set_methods_to_use_backing_dict(
-    cls: t.Union[t.Type[_OrderedBidictKeysView[KT]], t.Type[_OrderedBidictItemsView[KT, VT]]],
+    cls: t.Union[t.Type[_OrderedBidictKeysView[KT]], t.Type[_OrderedBidictItemsView[KT, t.Any]]],
     viewname: str,
     _setmethodnames: t.Iterable[str] = (
         '__lt__', '__le__', '__gt__', '__ge__', '__eq__', '__ne__', '__sub__', '__rsub__',
@@ -126,7 +126,7 @@ def _override_set_methods_to_use_backing_dict(
     )
 ) -> None:
     def make_proxy_method(methodname: str) -> t.Any:
-        def method(self: t.Union[_OrderedBidictKeysView[KT], _OrderedBidictItemsView[KT, VT]], *args: t.Any) -> t.Any:
+        def method(self: t.Union[_OrderedBidictKeysView[KT], _OrderedBidictItemsView[KT, t.Any]], *args: t.Any) -> t.Any:
             fwdm = self._mapping._fwdm
             if not isinstance(fwdm, dict):  # dict view speedup not available, fall back to Set's implementation.
                 return getattr(Set, methodname)(self, *args)
