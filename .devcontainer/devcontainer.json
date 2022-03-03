@@ -19,8 +19,6 @@
     },
     // Set *default* container specific settings.json values on container create.
     "settings": {
-        // Turn off Pylance type checking since it disagrees with mypy and flags too many bogus problems:
-        "python.analysis.typeCheckingMode": "off",
         "python.defaultInterpreterPath": "/usr/local/bin/python",
         "python.linting.enabled": true,
         "python.linting.mypyEnabled": true,
