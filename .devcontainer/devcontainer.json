@@ -5,16 +5,8 @@
     "build": {
         "dockerfile": "Dockerfile",
         "context": "..",
+        // ARGS set in ./Dockerfile can be overridden here:
         "args": {
-            // The following values override those set in ./Dockerfile:
-
-            // Update 'VARIANT' to pick a Python version: 3, 3.10, 3.9, 3.8, 3.7, 3.6
-            // Append -bullseye or -buster to pin to an OS version.
-            // Note: If on arm64/Apple Silicon, must use -bullseye variant.
-            "VARIANT": "3.10-bullseye",
-
-            // Options
-            "NODE_VERSION": "lts/*"
         }
     },
     // Set *default* container specific settings.json values on container create.
