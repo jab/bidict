@@ -19,6 +19,7 @@
     },
     // Set *default* container specific settings.json values on container create.
     "settings": {
+        // Turn off Pylance type checking since it disagrees with mypy and flags too many bogus problems:
         "python.analysis.typeCheckingMode": "off",
         "python.defaultInterpreterPath": "/usr/local/bin/python",
         "python.linting.enabled": true,
@@ -56,8 +57,7 @@
     // "forwardPorts": [],
     // Use 'postCreateCommand' to run commands after the container is created.
     // Note: esbonio and rstcheck are just for the restructuredtext vscode extension,
-    //       and jedi is just used for python.languageServer (see above), so
-    //       'pip install' them with --user in a postCreateCommand:
+    //       so 'pip install' them with --user in a postCreateCommand:
     "postCreateCommand": "pip3 install --user esbonio rstcheck",
     // Comment out to connect as root instead. More info: https://aka.ms/vscode-remote/containers/non-root.
     "remoteUser": "vscode",
