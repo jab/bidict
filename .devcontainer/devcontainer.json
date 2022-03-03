@@ -19,11 +19,10 @@
     },
     // Set *default* container specific settings.json values on container create.
     "settings": {
+        "python.analysis.typeCheckingMode": "off",
         "python.defaultInterpreterPath": "/usr/local/bin/python",
-        // Use Jedi and mypy rather than Pylance as long as Pylance is unhelpful:
-        "python.languageServer": "Jedi",
-        "python.linting.mypyEnabled": true,
         "python.linting.enabled": true,
+        "python.linting.mypyEnabled": true,
         "python.linting.pylintEnabled": true,
         "python.formatting.autopep8Path": "/usr/local/py-utils/bin/autopep8",
         "python.formatting.blackPath": "/usr/local/py-utils/bin/black",
@@ -41,8 +40,7 @@
     // Add the IDs of extensions you want installed when the container is created.
     "extensions": [
         "ms-python.python",
-        // As long as python.languageServer is Jedi (see above), omit Pylance:
-        // "ms-python.vscode-pylance",
+        "ms-python.vscode-pylance",
         "eamodio.gitlens",
         "EditorConfig.EditorConfig",
         "GitHub.vscode-pull-request-github",
@@ -60,7 +58,7 @@
     // Note: esbonio and rstcheck are just for the restructuredtext vscode extension,
     //       and jedi is just used for python.languageServer (see above), so
     //       'pip install' them with --user in a postCreateCommand:
-    "postCreateCommand": "pip3 install --user esbonio rstcheck jedi",
+    "postCreateCommand": "pip3 install --user esbonio rstcheck",
     // Comment out to connect as root instead. More info: https://aka.ms/vscode-remote/containers/non-root.
     "remoteUser": "vscode",
     "features": {
