@@ -6,10 +6,13 @@
         "dockerfile": "Dockerfile",
         "context": "..",
         "args": {
+            // The following values override those set in ./Dockerfile:
+
             // Update 'VARIANT' to pick a Python version: 3, 3.10, 3.9, 3.8, 3.7, 3.6
             // Append -bullseye or -buster to pin to an OS version.
-            // Use -bullseye variants on local on arm64/Apple Silicon.
+            // Note: If on arm64/Apple Silicon, must use -bullseye variant.
             "VARIANT": "3.10-bullseye",
+
             // Options
             "NODE_VERSION": "lts/*"
         }
@@ -17,6 +20,9 @@
     // Set *default* container specific settings.json values on container create.
     "settings": {
         "python.defaultInterpreterPath": "/usr/local/bin/python",
+        // Use Jedi and mypy rather than Pylance as long as Pylance is unhelpful:
+        "python.languageServer": "Jedi",
+        "python.linting.mypyEnabled": true,
         "python.linting.enabled": true,
         "python.linting.pylintEnabled": true,
         "python.formatting.autopep8Path": "/usr/local/py-utils/bin/autopep8",
@@ -35,7 +41,8 @@
     // Add the IDs of extensions you want installed when the container is created.
     "extensions": [
         "ms-python.python",
-        "ms-python.vscode-pylance",
+        // As long as python.languageServer is Jedi (see above), omit Pylance:
+        // "ms-python.vscode-pylance",
         "eamodio.gitlens",
         "EditorConfig.EditorConfig",
         "GitHub.vscode-pull-request-github",
@@ -51,8 +58,9 @@
     // "forwardPorts": [],
     // Use 'postCreateCommand' to run commands after the container is created.
     // Note: esbonio and rstcheck are just for the restructuredtext vscode extension,
-    //       so 'pip install' them with --user:
-    "postCreateCommand": "pip3 install --user esbonio rstcheck",
+    //       and jedi is just used for python.languageServer (see above), so
+    //       'pip install' them with --user in a postCreateCommand:
+    "postCreateCommand": "pip3 install --user esbonio rstcheck jedi",
     // Comment out to connect as root instead. More info: https://aka.ms/vscode-remote/containers/non-root.
     "remoteUser": "vscode",
     "features": {
