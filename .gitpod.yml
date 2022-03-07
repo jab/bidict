@@ -16,11 +16,11 @@ github:
     # add a label once the prebuild is ready to pull requests (defaults to false)
     addLabel: prebuilt-in-gitpod
 
+image: gitpod/workspace-python:latest
+
 # https://www.gitpod.io/docs/languages/python
 tasks:
   - init: |
-      echo 'eval "$(pyenv init --path)"' >> ~/.bashrc.d/60-python
-      eval "$(pyenv init --path)"  # https://github.com/gitpod-io/workspace-images/issues/664
       pyenv install 3.10.2
       pyenv global 3.10.2
       pip install -U pip
