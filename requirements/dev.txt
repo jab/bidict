@@ -40,9 +40,9 @@ filelock==3.6.0
     # via
     #   tox
     #   virtualenv
-furo==2022.2.23
+furo==2022.3.4
     # via -r docs.in
-hypothesis==6.39.0
+hypothesis==6.39.3
     # via
     #   -r lint.in
     #   -r tests.in
@@ -182,7 +182,7 @@ tox==3.24.5
     # via -r dev.in
 urllib3==1.26.8
     # via requests
-virtualenv==20.13.2
+virtualenv==20.13.3
     # via
     #   pre-commit
     #   tox
