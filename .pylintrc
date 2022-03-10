@@ -16,8 +16,8 @@ max-args = 6
 disable =
   abstract-method,
   arguments-differ,
+  assigning-non-slot,  # pylint does not understand descriptors like WeakAttr in _orderedbase.py
   attribute-defined-outside-init,
-  class-variable-slots-conflict,  # pylint does not understand descriptors like WeakAttr in _orderedbase.py
   invalid-name,
   line-too-long,
   missing-function-docstring,  # flags @typing.overload's

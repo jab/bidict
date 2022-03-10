@@ -3,6 +3,7 @@ name: pre-commit
   push:
     branches:
       - main
+      - dev
   pull_request:
     branches:
       - main

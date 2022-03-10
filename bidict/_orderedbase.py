@@ -56,8 +56,6 @@ class Node:
 
     prv: 'WeakAttr[Node, Node]' = WeakAttr(slot='_prv_weak')
     __slots__ = ('_prv_weak', 'nxt', '__weakref__')
-    if t.TYPE_CHECKING:  # no 'prv' in __slots__ makes mypy think we don't have a 'prv' attr, so trick it:
-        __slots__ = ('prv', 'nxt', '__weakref__')
 
     def __init__(self, prv: 'Node', nxt: 'Node') -> None:
         self.prv = prv

@@ -8,8 +8,8 @@
 """Provide :class:`OnDup` and related functionality."""
 
 
-from collections import namedtuple
 from enum import Enum
+import typing as t
 
 
 class OD(Enum):
@@ -31,7 +31,7 @@ DROP_OLD = OD.DROP_OLD
 DROP_NEW = OD.DROP_NEW
 
 
-class OnDup(namedtuple('_OnDup', 'key val kv')):
+class OnDup(t.NamedTuple('_OnDup', [('key', OD), ('val', OD), ('kv', OD)])):
     r"""A 3-tuple of :class:`OD`\s specifying how to handle the 3 kinds of duplication.
 
     *See also* :ref:`basic-usage:Values Must Be Unique`
@@ -42,7 +42,7 @@ class OnDup(namedtuple('_OnDup', 'key val kv')):
 
     __slots__ = ()
 
-    def __new__(cls, key: OD = DROP_OLD, val: OD = RAISE, kv: OD = RAISE) -> 'OnDup':
+    def __new__(cls, key: OD = DROP_OLD, val: OD = RAISE, kv: t.Optional[OD] = None) -> 'OnDup':
         """Override to provide user-friendly default values."""
         return super().__new__(cls, key, val, kv or val)
 

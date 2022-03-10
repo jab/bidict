@@ -47,12 +47,6 @@ dict_keys: t.Type[t.KeysView[t.Any]] = type({}.keys())
 BidictKeysView.register(dict_keys)
 
 
-# See _set_reversed() below.
-def _fwdm_reversed(self: t.Any) -> t.Iterator[KT]:
-    """Iterator over the contained keys in reverse order."""
-    return reversed(self._fwdm)
-
-
 def get_arg(*args: MapOrIterItems[KT, VT]) -> MapOrIterItems[KT, VT]:
     """Ensure there's only a single arg in *args*, then return it."""
     if len(args) > 1:
@@ -127,17 +121,17 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         cls._inv_cls = cls._make_inv_cls()
 
     @classmethod
-    def _make_inv_cls(cls, _miss: t.Any = object()) -> 't.Type[BidictBase[VT, KT]]':
+    def _make_inv_cls(cls: t.Type[BT], _miss: t.Any = object()) -> 't.Type[BT]':
         diff = cls._inv_cls_dict_diff()
         cls_is_own_inv = all(getattr(cls, k, _miss) == v for (k, v) in diff.items())
         if cls_is_own_inv:
-            return t.cast(t.Type[BidictBase[VT, KT]], cls)
+            return cls
         # Suppress auto-calculation of _inv_cls's _inv_cls since we know it already.
         # Works with the guard in BidictBase._ensure_inv_cls() to prevent infinite recursion.
         diff['_inv_cls'] = cls
         inv_cls = type(f'{cls.__name__}Inv', (cls, GeneratedBidictInverse), diff)
         inv_cls.__module__ = cls.__module__
-        return inv_cls
+        return t.cast(t.Type[BT], inv_cls)
 
     @classmethod
     def _inv_cls_dict_diff(cls) -> t.Dict[str, t.Any]:
@@ -535,6 +529,13 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         should_invert = isinstance(self, GeneratedBidictInverse)
         cls, init_from = (self._inv_cls, self.inverse) if should_invert else (self.__class__, self)
         return self._from_other, (cls, dict(init_from), should_invert)  # type: ignore [call-overload] # https://github.com/python/mypy/issues/4975
+
+
+# See BidictBase._set_reversed() above.
+def _fwdm_reversed(self: BidictBase[KT, t.Any]) -> t.Iterator[KT]:
+    """Iterator over the contained keys in reverse order."""
+    assert isinstance(self._fwdm, t.Reversible)
+    return reversed(self._fwdm)
 
 
 BidictBase._init_class()
