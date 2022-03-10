@@ -1,8 +1,8 @@
 github: "jab"
-tidelift: "pypi/bidict"
 custom:
   - https://gumroad.com/l/bidict
   - https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=jabronson%40gmail%2ecom&lc=US&item_name=Support%20bidict&button_subtype=services&currency_code=USD&bn=PP%2dBuyNowBF%3aPaypal%2dBuy%2520a%2520Drink%2dblue%2esvg%3aNonHosted
+tidelift: "pypi/bidict"
 
 patreon: # Replace with a single Patreon username
 open_collective: # Replace with a single Open Collective username

@@ -1,58 +1,57 @@
 // For format details, see https://aka.ms/devcontainer.json. For config options, see the README at:
 // https://github.com/microsoft/vscode-dev-containers/tree/v0.223.0/containers/python-3
 {
-    "name": "Python 3",
-    "build": {
-        "dockerfile": "Dockerfile",
-        "context": "..",
-        // ARGS set in ./Dockerfile can be overridden here:
-        "args": {
-        }
-    },
-    // Set *default* container specific settings.json values on container create.
-    "settings": {
-        "python.defaultInterpreterPath": "/usr/local/bin/python",
-        "python.linting.enabled": true,
-        "python.linting.mypyEnabled": true,
-        "python.linting.pylintEnabled": true,
-        "python.formatting.autopep8Path": "/usr/local/py-utils/bin/autopep8",
-        "python.formatting.blackPath": "/usr/local/py-utils/bin/black",
-        "python.formatting.yapfPath": "/usr/local/py-utils/bin/yapf",
-        "python.linting.banditPath": "/usr/local/py-utils/bin/bandit",
-        "python.linting.flake8Path": "/usr/local/py-utils/bin/flake8",
-        "python.linting.mypyPath": "/usr/local/py-utils/bin/mypy",
-        "python.linting.pycodestylePath": "/usr/local/py-utils/bin/pycodestyle",
-        "python.linting.pydocstylePath": "/usr/local/py-utils/bin/pydocstyle",
-        "python.linting.pylintPath": "/usr/local/py-utils/bin/pylint",
-        "python.testing.pytestEnabled": true,
-        "restructuredtext.confPath": "${workspaceFolder}/docs",
-        "restructuredtext.pythonRecommendation.disabled": true
-    },
-    // Add the IDs of extensions you want installed when the container is created.
-    "extensions": [
-        "ms-python.python",
-        "ms-python.vscode-pylance",
-        "eamodio.gitlens",
-        "EditorConfig.EditorConfig",
-        "GitHub.vscode-pull-request-github",
-        "joaompinto.vscode-graphviz",
-        "mutantdino.resource-monitor",
-        "lextudio.restructuredtext",
-        "tamasfe.even-better-toml",
-        "trond-snekvik.simple-rst"
-    ],
-    // Use 'forwardPorts' to make a list of ports inside the container available locally by default.
-    // (Even without this, by default VS Code will notice when a process starts listening on an
-    // unforwarded port, and will start forwarding that port automatically. Ref: remote.autoForwardPorts)
-    // "forwardPorts": [],
-    // Use 'postCreateCommand' to run commands after the container is created.
-    // Note: esbonio and rstcheck are just for the restructuredtext vscode extension,
-    //       so 'pip install' them with --user in a postCreateCommand:
-    "postCreateCommand": "pip3 install --user esbonio rstcheck",
-    // Comment out to connect as root instead. More info: https://aka.ms/vscode-remote/containers/non-root.
-    "remoteUser": "vscode",
-    "features": {
-        "git": "os-provided",
-        "github-cli": "latest"
-    }
+  "name": "Python 3",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": "..",
+    // ARGS set in ./Dockerfile can be overridden here:
+    "args": {}
+  },
+  // Set *default* container specific settings.json values on container create.
+  "settings": {
+    "python.defaultInterpreterPath": "/usr/local/bin/python",
+    "python.linting.enabled": true,
+    "python.linting.mypyEnabled": true,
+    "python.linting.pylintEnabled": true,
+    "python.formatting.autopep8Path": "/usr/local/py-utils/bin/autopep8",
+    "python.formatting.blackPath": "/usr/local/py-utils/bin/black",
+    "python.formatting.yapfPath": "/usr/local/py-utils/bin/yapf",
+    "python.linting.banditPath": "/usr/local/py-utils/bin/bandit",
+    "python.linting.flake8Path": "/usr/local/py-utils/bin/flake8",
+    "python.linting.mypyPath": "/usr/local/py-utils/bin/mypy",
+    "python.linting.pycodestylePath": "/usr/local/py-utils/bin/pycodestyle",
+    "python.linting.pydocstylePath": "/usr/local/py-utils/bin/pydocstyle",
+    "python.linting.pylintPath": "/usr/local/py-utils/bin/pylint",
+    "python.testing.pytestEnabled": true,
+    "restructuredtext.confPath": "${workspaceFolder}/docs",
+    "restructuredtext.pythonRecommendation.disabled": true
+  },
+  // Add the IDs of extensions you want installed when the container is created.
+  "extensions": [
+    "ms-python.python",
+    "ms-python.vscode-pylance",
+    "eamodio.gitlens",
+    "EditorConfig.EditorConfig",
+    "GitHub.vscode-pull-request-github",
+    "joaompinto.vscode-graphviz",
+    "mutantdino.resource-monitor",
+    "lextudio.restructuredtext",
+    "tamasfe.even-better-toml",
+    "trond-snekvik.simple-rst"
+  ],
+  // Use 'forwardPorts' to make a list of ports inside the container available locally by default.
+  // (Even without this, by default VS Code will notice when a process starts listening on an
+  // unforwarded port, and will start forwarding that port automatically. Ref: remote.autoForwardPorts)
+  // "forwardPorts": [],
+  // Use 'postCreateCommand' to run commands after the container is created.
+  // Note: esbonio and rstcheck are just for the restructuredtext vscode extension,
+  //       so 'pip install' them with --user in a postCreateCommand:
+  "postCreateCommand": "pip3 install --user esbonio rstcheck",
+  // Comment out to connect as root instead. More info: https://aka.ms/vscode-remote/containers/non-root.
+  "remoteUser": "vscode",
+  "features": {
+    "git": "os-provided",
+    "github-cli": "latest"
+  }
 }
