@@ -497,7 +497,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
     def __or__(self: BT, other: t.Mapping[KT, VT]) -> BT:
         """Return self|other."""
         if not isinstance(other, t.Mapping):
-            return NotImplemented
+            return NotImplemented  # flagged by pyright
         new = self.copy()
         new._update(other, rbof=False)
         return new
@@ -505,7 +505,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
     def __ror__(self: BT, other: t.Mapping[KT, VT]) -> BT:
         """Return other|self."""
         if not isinstance(other, t.Mapping):
-            return NotImplemented
+            return NotImplemented  # flagged by pyright
         new = self.__class__(other)
         new._update(self, rbof=False)
         return new
