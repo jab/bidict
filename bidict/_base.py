@@ -184,7 +184,8 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         self._invweak: 't.Optional[weakref.ReferenceType[BidictBase[VT, KT]]]' = None
         # Also store a weak reference back to `instance` on its inverse instance, so that
         # the second `.inverse` access in `bi.inverse.inverse` hits the cached weakref.
-        inv._inv, inv._invweak = None, weakref.ref(self)
+        inv._inv = None
+        inv._invweak = weakref.ref(self)
         # In e.g. `bidict().inverse.inverse`, this design ensures that a strong reference
         # back to the original instance is retained before its refcount drops to zero,
         # avoiding an unintended potential deallocation.
@@ -486,7 +487,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         self._fwdm.update(other)
         # If other is a bidict, use its existing backing inverse mapping, otherwise
         # other could be a generator that's now exhausted, so invert self._fwdm on the fly.
-        inv = other.inverse if isinstance(other, BidictBase) else inverted(self._fwdm)
+        inv: MapOrIterItems[t.Any, t.Any] = other.inverse if isinstance(other, BidictBase) else inverted(self._fwdm)
         self._invm.update(inv)
 
     #: Used for the copy protocol.

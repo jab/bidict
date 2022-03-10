@@ -55,9 +55,8 @@ class OrderedBidict(OrderedBidictBase[KT, VT], MutableBidict[KT, VT]):
             raise KeyError('OrderedBidict is empty')
         node = getattr(self._sntl, 'prv' if last else 'nxt')
         korv = self._node_by_korv.inverse[node]
-        if self._bykey:
-            return korv, self._pop(korv)
-        return self.inverse._pop(korv), korv
+        kv = (korv, self._pop(korv)) if self._bykey else (self.inverse._pop(korv), korv)
+        return t.cast(t.Tuple[KT, VT], kv)
 
     def move_to_end(self, key: KT, last: bool = True) -> None:
         """Move the item with the given key to the end if *last* is true, else to the beginning.

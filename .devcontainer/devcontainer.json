@@ -10,6 +10,8 @@
   },
   // Set *default* container specific settings.json values on container create.
   "settings": {
+    // Enable pylance's pyright integration (disabled by default):
+    "python.analysis.typeCheckingMode": "basic",
     "python.defaultInterpreterPath": "/usr/local/bin/python",
     "python.linting.enabled": true,
     "python.linting.mypyEnabled": true,

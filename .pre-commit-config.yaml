@@ -41,6 +41,12 @@ repos:
         language: system
         types: [python]
         exclude: setup.py|run_tests.py|docs/conf.py
+      - id: pyright
+        name: pyright
+        entry: pyright
+        language: node
+        types: [python]
+        exclude: setup.py|run_tests.py|docs/conf.py
 
   - repo: https://github.com/Lucas-C/pre-commit-hooks
     rev: v1.1.10
