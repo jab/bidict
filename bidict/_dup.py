@@ -35,6 +35,7 @@ class OnDup(namedtuple('_OnDup', 'key val kv')):
     r"""A 3-tuple of :class:`OD`\s specifying how to handle the 3 kinds of duplication.
 
     *See also* :ref:`basic-usage:Values Must Be Unique`
+    (https://bidict.rtfd.io/basic-usage.html#values-must-be-unique)
 
     If *kv* is not specified, *val* will be used for *kv*.
     """

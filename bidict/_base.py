@@ -38,7 +38,8 @@ BT = t.TypeVar('BT', bound='BidictBase[t.Any, t.Any]')
 
 class BidictKeysView(t.KeysView[KT], t.ValuesView[KT]):
     """Since the keys of a bidict are the values of its inverse (and vice versa),
-    the ValuesView result of calling *bi.values()* is also a KeysView of *bi.inverse*.
+    the :class:`~collections.abc.ValuesView` result of calling *bi.values()*
+    is also a :class:`~collections.abc.KeysView` of *bi.inverse*.
     """
 
 
@@ -66,7 +67,9 @@ class BidictBase(BidirectionalMapping[KT, VT]):
     #: that governs behavior when a provided item
     #: duplicates the key or value of other item(s).
     #:
-    #: *See also* :ref:`basic-usage:Values Must Be Unique`, :doc:`extending`
+    #: *See also*
+    #: :ref:`basic-usage:Values Must Be Unique` (https://bidict.rtfd.io/basic-usage.html#values-must-be-unique),
+    #: :doc:`extending` (https://bidict.rtfd.io/extending.html)
     on_dup = ON_DUP_DEFAULT
 
     _fwdm: t.MutableMapping[KT, VT]  #: the backing forward mapping (*key* → *val*)
@@ -105,7 +108,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
                 return
         # The following will be False for MutableBidict, bidict, and frozenbidict on Python < 3.8,
         # and True for them on 3.8+ (where dicts are reversible). Will also be True for custom
-        # subclasses like SortedBidict (see :ref:`extending:SortedBidict Recipes`).
+        # subclasses like SortedBidict (see https://bidict.rtfd.io/extending.html#sortedbidict-recipes).
         backing_reversible = all(issubclass(i, t.Reversible) for i in (cls._fwdm_cls, cls._invm_cls))
         cls.__reversed__ = _fwdm_reversed if backing_reversible else None
 
@@ -114,6 +117,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         """Ensure :attr:`_inv_cls` is set, computing it dynamically if necessary.
 
         See: :ref:`extending:Dynamic Inverse Class Generation`
+        (https://bidict.rtfd.io/extending.html#dynamic-inverse-class-generation)
 
         Most subclasses will be their own inverse classes, but some
         (e.g. those created via namedbidict) will have distinct inverse classes.
@@ -278,7 +282,8 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         is inherited by subclasses,
         in particular by the ordered bidict subclasses,
         so even with ordered bidicts,
-        :ref:`== comparison is order-insensitive <eq-order-insensitive>`.
+        :ref:`== comparison is order-insensitive <eq-order-insensitive>`
+        (https://bidict.rtfd.io/other-bidict-types.html#eq-is-order-insensitive).
 
         *See also* :meth:`equals_order_sensitive`
         """
@@ -291,6 +296,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         """Order-sensitive equality check.
 
         *See also* :ref:`eq-order-insensitive`
+        (https://bidict.rtfd.io/other-bidict-types.html#eq-is-order-insensitive)
         """
         if not isinstance(other, t.Mapping) or len(self) != len(other):
             return False

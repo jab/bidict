@@ -6,10 +6,10 @@ some of the most interesting and unexpected places
 I've ever been to in many years of programming.
 (When I started :mod:`bidict` almost 15 years ago,
 I didn't know what higher-kinded types even were,
-let alone that I'd one day
-`explain to Guido
+let alone that I'd one day get to
+`share an example with Guido
 <https://github.com/python/typing/issues/548#issuecomment-621195693>`__
-how they're useful for bidirectional mapping types.)
+of how they're useful for bidirectional mapping types.)
 
 The problem space that :mod:`bidict` inhabits
 is abundant with beautiful symmetries,

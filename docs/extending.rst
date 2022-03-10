@@ -212,8 +212,32 @@ will yield their items in *the same* order:
    [('hydrogen', 1), ('helium', 2), ('beryllium', 4), ('carbon', 6)]
 
 
+Automatic "Get Attribute" Pass-Through
+######################################
+
+Python makes it easy to customize a class's "get attribute" behavior.
+You can take advantage of this to pass attribute access
+through to the backing ``_fwdm`` mapping, for example,
+when an attribute is not provided by the bidict class itself:
+
+   >>> def __getattribute__(self, name):
+   ...     try:
+   ...         return object.__getattribute__(self, name)
+   ...     except AttributeError:
+   ...         return getattr(self._fwdm, name)
+
+   >>> KeySortedBidict.__getattribute__ = __getattribute__
+
+Now, even though this ``KeySortedBidict`` itself provides no ``peekitem`` attribute,
+the following call still succeeds
+because it's passed through to the backing ``SortedDict``:
+
+   >>> elem_by_atomicnum.peekitem()
+   (6, 'carbon')
+
+
 Dynamic Inverse Class Generation
-::::::::::::::::::::::::::::::::
+################################
 
 When a bidict class's
 :attr:`~bidict.BidictBase._fwdm_cls` and
@@ -263,26 +287,9 @@ are the opposite of ``KeySortedBidict``'s:
    >>> KeySortedBidict(atomicnum_by_elem.inverse) == elem_by_atomicnum
    True
 
-You can even play tricks with attribute lookup redirection here too.
-For example, to pass attribute access through to the backing ``_fwdm`` mapping
-when an attribute is not provided by the bidict class itself,
-you can override :meth:`~object.__getattribute__` as follows:
 
-   >>> def __getattribute__(self, name):
-   ...     try:
-   ...         return object.__getattribute__(self, name)
-   ...     except AttributeError:
-   ...         return getattr(self._fwdm, name)
+-----
 
-   >>> KeySortedBidict.__getattribute__ = __getattribute__
-
-Now, even though this ``KeySortedBidict`` itself provides no ``peekitem`` attribute,
-the following call still succeeds
-because it's passed through to the backing ``SortedDict``:
-
-   >>> elem_by_atomicnum.peekitem()
-   (6, 'carbon')
-
-This goes to show how simple it can be
+This all goes to show how simple it can be
 to compose your own bidirectional mapping types
 out of the building blocks that :mod:`bidict` provides.

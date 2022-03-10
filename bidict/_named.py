@@ -40,13 +40,15 @@ def namedbidict(
 
     *See also* the :ref:`namedbidict usage documentation
     <other-bidict-types:\:func\:\`~bidict.namedbidict\`>`
+    (https://bidict.rtfd.io/other-bidict-types.html#namedbidict)
 
     :raises ValueError: if any of the *typename*, *keyname*, or *valname*
         strings is not a valid Python identifier, or if *keyname == valname*.
 
     :raises TypeError: if *base_type* is not a :class:`bidict.BidictBase` subclass.
         Any of the concrete bidict types pictured in the
-        :ref:`other-bidict-types:Bidict Types Diagram` may be provided.
+        :ref:`other-bidict-types:Bidict Types Diagram` may be provided
+        (https://bidict.rtfd.io/other-bidict-types.html#bidict-types-diagram).
     """
     if not issubclass(base_type, BidictBase):
         raise TypeError(f'{base_type} is not a BidictBase subclass')

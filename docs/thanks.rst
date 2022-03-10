@@ -23,11 +23,12 @@ People
   Tom Viner for being bidict's Adopt Pytest helper for the month,
   and Brianna Laugher for coordinating.
 
-- Daniel Pope for suggestions, code reviews, and design discussion.
+- Daniel Pope, Leif Walsh, David Turner, and Michael Arntzenius
+  for suggestions, code reviews, and design discussion.
 
-- David Turner for code reviews and design discussion.
-
-- Michael Arntzenius for design discussion.
+- Leif Walsh for contributing the initial
+  `devcontainer <https://code.visualstudio.com/docs/remote/containers>`__
+  setup.
 
 - Jozef Knaperek for the bugfix.
 

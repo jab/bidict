@@ -185,8 +185,7 @@ class bidict(MutableBidict[KT, VT]):
     """The main bidirectional mapping type.
 
     See :ref:`intro:Introduction` and :ref:`basic-usage:Basic Usage`
-    (also available at `<https://bidict.readthedocs.io>`__)
-    to get started.
+    to get started (also available at https://bidict.rtfd.io).
     """
 
     if t.TYPE_CHECKING:
