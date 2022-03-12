@@ -19,6 +19,7 @@
   "reportSelfClsParameterName": "error",
   "reportUnknownLambdaType": "error",
   "reportUnknownParameterType": "error",
+  "reportUnnecessaryTypeIgnoreComment": "warning",
   "reportUnsupportedDunderAll": "error",
   "reportUntypedBaseClass": "error",
   "reportUntypedClassDecorator": "error",

@@ -7,7 +7,6 @@
 
 """Functions for iterating over items in a mapping."""
 
-from collections.abc import Mapping
 from operator import itemgetter
 import typing as t
 
@@ -16,8 +15,7 @@ from ._typing import KT, VT, IterItems, MapOrIterItems
 
 def iteritems_mapping_or_iterable(arg: MapOrIterItems[KT, VT]) -> IterItems[KT, VT]:
     """Yield the items in *arg* based on whether it's a mapping."""
-    it = iter(arg.items() if isinstance(arg, Mapping) else arg)
-    return t.cast(IterItems[KT, VT], it)
+    yield from arg.items() if isinstance(arg, t.Mapping) else arg  # pyright: ignore [reportGeneralTypeIssues]
 
 
 def iteritems(__arg: MapOrIterItems[KT, VT], **kw: VT) -> IterItems[KT, VT]:

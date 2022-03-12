@@ -529,7 +529,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         # somewhere in sys.modules that pickle can discover.
         should_invert = isinstance(self, GeneratedBidictInverse)
         cls, init_from = (self._inv_cls, self.inverse) if should_invert else (self.__class__, self)
-        return self._from_other, (cls, dict(init_from), should_invert)  # type: ignore [call-overload] # https://github.com/python/mypy/issues/4975
+        return self._from_other, (cls, dict(init_from), should_invert)  # type: ignore [call-overload]
 
 
 # See BidictBase._set_reversed() above.

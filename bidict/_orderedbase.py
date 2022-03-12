@@ -58,7 +58,7 @@ class Node:
     __slots__ = ('_prv_weak', 'nxt', '__weakref__')
 
     def __init__(self, prv: 'Node', nxt: 'Node') -> None:
-        self.prv = prv  # flagged by pyright
+        self.prv = prv
         self.nxt = nxt
 
     def unlink(self) -> None:
@@ -98,7 +98,7 @@ class SentinelNode(Node):
         """Create and return a new terminal node."""
         old_last = self.prv
         new_last = Node(old_last, self)
-        old_last.nxt = self.prv = new_last  # flagged by pyright
+        old_last.nxt = self.prv = new_last  # pyright: ignore  # https://github.com/microsoft/pyright/issues/3172
         return new_last
 
 
