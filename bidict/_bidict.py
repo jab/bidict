@@ -135,7 +135,7 @@ class MutableBidict(BidictBase[KT, VT], MutableBidirectionalMapping[KT, VT]):
         del self._invm[val]
         return key, val
 
-    @t.overload
+    @t.overload  # type: ignore [override]
     def update(self, __m: t.Mapping[KT, VT], **kw: VT) -> None: ...
     @t.overload
     def update(self, __i: IterItems[KT, VT], **kw: VT) -> None: ...
