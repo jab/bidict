@@ -28,6 +28,10 @@ from ._iter import iteritems, inverted
 from ._typing import KT, VT, MISSING, OKT, OVT, IterItems, MapOrIterItems
 
 
+# Disable some pyright strict diagnostics that are not helpful in this file:
+# pyright: reportPrivateUsage=false, reportUnknownArgumentType=false, reportUnknownMemberType=false, reportUnknownVariableType=false, reportUnnecessaryIsInstance=false
+
+
 OldKV = t.Tuple[OKT[KT], OVT[VT]]
 DedupResult = t.Optional[OldKV[KT, VT]]
 Write = t.List[t.Callable[[], None]]
@@ -487,8 +491,8 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         self._fwdm.update(other)
         # If other is a bidict, use its existing backing inverse mapping, otherwise
         # other could be a generator that's now exhausted, so invert self._fwdm on the fly.
-        inv: MapOrIterItems[t.Any, t.Any] = other.inverse if isinstance(other, BidictBase) else inverted(self._fwdm)
-        self._invm.update(inv)
+        inv = other.inverse if isinstance(other, BidictBase) else inverted(self._fwdm)
+        self._invm.update(inv)  # pyright: ignore
 
     #: Used for the copy protocol.
     #: *See also* the :mod:`copy` module
@@ -497,7 +501,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
     def __or__(self: BT, other: t.Mapping[KT, VT]) -> BT:
         """Return self|other."""
         if not isinstance(other, t.Mapping):
-            return NotImplemented  # flagged by pyright
+            return NotImplemented
         new = self.copy()
         new._update(other, rbof=False)
         return new
@@ -505,7 +509,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
     def __ror__(self: BT, other: t.Mapping[KT, VT]) -> BT:
         """Return other|self."""
         if not isinstance(other, t.Mapping):
-            return NotImplemented  # flagged by pyright
+            return NotImplemented
         new = self.__class__(other)
         new._update(self, rbof=False)
         return new

@@ -35,16 +35,15 @@ repos:
   # https://pre-commit.com/#repository-local-hooks
   - repo: local
     hooks:
-      - id: pylint
-        name: pylint
-        entry: pylint
-        language: system
-        types: [python]
-        exclude: setup.py|run_tests.py|docs/conf.py
       - id: pyright
         name: pyright
         entry: pyright
         language: node
+        types: [python]
+      - id: pylint
+        name: pylint
+        entry: pylint
+        language: system
         types: [python]
         exclude: setup.py|run_tests.py|docs/conf.py
 

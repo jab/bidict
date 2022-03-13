@@ -14,6 +14,9 @@ from ._bidict import bidict
 from ._typing import KT, VT
 
 
+# pyright: reportPrivateUsage=false, reportUnnecessaryIsInstance=false
+
+
 class NamedBidictBase:
     """Base class that namedbidicts derive from."""
 
@@ -93,4 +96,4 @@ def namedbidict(
     NamedInv.__doc__ = f'NamedBidictInv({basename}) {typename!r}: {valname} -> {keyname}'
     caller_module = _getframe(1).f_globals.get('__name__', '__main__')
     NamedBidict.__module__ = NamedInv.__module__ = caller_module
-    return NamedBidict
+    return NamedBidict  # pyright: ignore [reportUnknownVariableType]

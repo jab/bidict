@@ -23,6 +23,9 @@ from ._orderedbase import OrderedBidictBase
 from ._typing import KT, VT
 
 
+# pyright: reportPrivateUsage=false
+
+
 class OrderedBidict(OrderedBidictBase[KT, VT], MutableBidict[KT, VT]):
     """Mutable bidict type that maintains items in insertion order."""
 

@@ -36,7 +36,7 @@ class FrozenOrderedBidict(OrderedBidictBase[KT, VT]):
     the ordering of the items can make the ordering dependence more explicit.
     """
 
-    __hash__: t.Callable[[t.Any], int] = frozenbidict.__hash__
+    __hash__: t.Callable[[t.Any], int] = frozenbidict.__hash__  # pyright: ignore
 
     if t.TYPE_CHECKING:
         @property
