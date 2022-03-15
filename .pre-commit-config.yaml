@@ -16,7 +16,7 @@ repos:
       - id: codespell
 
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v0.940
+    rev: v0.941
     hooks:
       - id: mypy
         exclude: setup.py|docs/conf.py|tests
