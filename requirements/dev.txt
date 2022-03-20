@@ -67,7 +67,9 @@ markupsafe==2.1.0
 mccabe==0.6.1
     # via pylint
 nodeenv==1.6.0
-    # via pre-commit
+    # via
+    #   pre-commit
+    #   pyright
 packaging==21.3
     # via
     #   build
@@ -113,6 +115,8 @@ pylint==2.12.2
     # via -r lint.in
 pyparsing==3.0.7
     # via packaging
+pyright==1.1.231
+    # via -r lint.in
 pytest==7.0.1
     # via
     #   -r lint.in

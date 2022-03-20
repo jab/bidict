@@ -105,12 +105,10 @@ class MutableBidict(BidictBase[KT, VT], MutableBidirectionalMapping[KT, VT]):
         self._fwdm.clear()
         self._invm.clear()
 
-    @t.overload
-    def pop(self, __key: KT, __default: DT) -> t.Union[VT, DT]: ...
-    @t.overload
+    @t.overload  # type: ignore [override]  # https://github.com/python/mypy/issues/12390
     def pop(self, __key: KT) -> VT: ...
     @t.overload
-    def pop(self, __key: KT, __default: t.Union[VT, DT] = ...) -> t.Union[VT, DT]: ...
+    def pop(self, __key: KT, __default: DT) -> t.Union[VT, DT]: ...
 
     def pop(self, key: KT, default: ODT[DT] = MISSING) -> t.Union[VT, DT]:
         """*x.pop(k[, d]) → v*
@@ -137,7 +135,7 @@ class MutableBidict(BidictBase[KT, VT], MutableBidirectionalMapping[KT, VT]):
         del self._invm[val]
         return key, val
 
-    @t.overload
+    @t.overload  # type: ignore [override]  # https://github.com/jab/bidict/pull/242#discussion_r825464731
     def update(self, __m: t.Mapping[KT, VT], **kw: VT) -> None: ...
     @t.overload
     def update(self, __i: IterItems[KT, VT], **kw: VT) -> None: ...

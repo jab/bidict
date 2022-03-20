@@ -28,6 +28,10 @@ from ._iter import iteritems, inverted
 from ._typing import KT, VT, MISSING, OKT, OVT, IterItems, MapOrIterItems
 
 
+# Disable pyright strict diagnostics that are causing many false positives or are just not helpful in this file:
+# pyright: reportPrivateUsage=false, reportUnknownArgumentType=false, reportUnknownMemberType=false, reportUnknownVariableType=false, reportUnnecessaryIsInstance=false
+
+
 OldKV = t.Tuple[OKT[KT], OVT[VT]]
 DedupResult = t.Optional[OldKV[KT, VT]]
 Write = t.List[t.Callable[[], None]]
@@ -158,6 +162,9 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         if args or kw:
             self._update(get_arg(*args), kw, rbof=False)
 
+    # If Python ever adds support for higher-kinded types, `inverse` could use them, e.g.
+    #     def inverse(self: BT[KT, VT]) -> BT[VT, KT]:
+    # Ref: https://github.com/python/typing/issues/548#issuecomment-621571821
     @property
     def inverse(self) -> 'BidictBase[VT, KT]':
         """The inverse of this bidirectional mapping instance."""
@@ -184,7 +191,8 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         self._invweak: 't.Optional[weakref.ReferenceType[BidictBase[VT, KT]]]' = None
         # Also store a weak reference back to `instance` on its inverse instance, so that
         # the second `.inverse` access in `bi.inverse.inverse` hits the cached weakref.
-        inv._inv, inv._invweak = None, weakref.ref(self)
+        inv._inv = None
+        inv._invweak = weakref.ref(self)
         # In e.g. `bidict().inverse.inverse`, this design ensures that a strong reference
         # back to the original instance is retained before its refcount drops to zero,
         # avoiding an unintended potential deallocation.
@@ -487,7 +495,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         # If other is a bidict, use its existing backing inverse mapping, otherwise
         # other could be a generator that's now exhausted, so invert self._fwdm on the fly.
         inv = other.inverse if isinstance(other, BidictBase) else inverted(self._fwdm)
-        self._invm.update(inv)
+        self._invm.update(inv)  # pyright: ignore  # https://github.com/jab/bidict/pull/242#discussion_r824223403
 
     #: Used for the copy protocol.
     #: *See also* the :mod:`copy` module
@@ -528,7 +536,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         # somewhere in sys.modules that pickle can discover.
         should_invert = isinstance(self, GeneratedBidictInverse)
         cls, init_from = (self._inv_cls, self.inverse) if should_invert else (self.__class__, self)
-        return self._from_other, (cls, dict(init_from), should_invert)  # type: ignore [call-overload] # https://github.com/python/mypy/issues/4975
+        return self._from_other, (cls, dict(init_from), should_invert)  # type: ignore [call-overload]
 
 
 # See BidictBase._set_reversed() above.

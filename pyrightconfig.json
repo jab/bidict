@@ -1,0 +1,14 @@
+{
+  "include": [
+    "bidict",
+  ],
+  "exclude": [
+    "docs",
+    "tests",
+    "run_tests.py",
+  ],
+  "strict": [
+    "bidict",
+  ],
+  "reportUnnecessaryTypeIgnoreComment": "warning",
+}

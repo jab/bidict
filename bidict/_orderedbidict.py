@@ -23,6 +23,9 @@ from ._orderedbase import OrderedBidictBase
 from ._typing import KT, VT
 
 
+# pyright: reportPrivateUsage=false
+
+
 class OrderedBidict(OrderedBidictBase[KT, VT], MutableBidict[KT, VT]):
     """Mutable bidict type that maintains items in insertion order."""
 
@@ -57,7 +60,7 @@ class OrderedBidict(OrderedBidictBase[KT, VT], MutableBidict[KT, VT]):
         korv = self._node_by_korv.inverse[node]
         if self._bykey:
             return korv, self._pop(korv)
-        return self.inverse._pop(korv), korv
+        return self.inverse._pop(korv), korv  # pyright: ignore [reportGeneralTypeIssues]
 
     def move_to_end(self, key: KT, last: bool = True) -> None:
         """Move the item with the given key to the end if *last* is true, else to the beginning.
