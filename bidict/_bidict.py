@@ -105,7 +105,7 @@ class MutableBidict(BidictBase[KT, VT], MutableBidirectionalMapping[KT, VT]):
         self._fwdm.clear()
         self._invm.clear()
 
-    @t.overload  # type: ignore [override]
+    @t.overload  # type: ignore [override]  # https://github.com/python/mypy/issues/12390
     def pop(self, __key: KT) -> VT: ...
     @t.overload
     def pop(self, __key: KT, __default: DT) -> t.Union[VT, DT]: ...
