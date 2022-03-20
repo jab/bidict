@@ -24,7 +24,7 @@ cfgv==3.3.1
     # via pre-commit
 charset-normalizer==2.0.12
     # via requests
-check-manifest==0.47
+check-manifest==0.48
     # via -r dev.in
 click==8.0.4
     # via pip-tools
@@ -42,13 +42,13 @@ filelock==3.6.0
     #   virtualenv
 furo==2022.3.4
     # via -r docs.in
-hypothesis==6.39.3
+hypothesis==6.39.4
     # via
     #   -r lint.in
     #   -r tests.in
 icdiff==2.0.4
     # via pytest-icdiff
-identify==2.4.11
+identify==2.4.12
     # via pre-commit
 idna==3.3
     # via requests
@@ -62,7 +62,7 @@ jinja2==3.0.3
     # via sphinx
 lazy-object-proxy==1.7.1
     # via astroid
-markupsafe==2.1.0
+markupsafe==2.1.1
     # via jinja2
 mccabe==0.6.1
     # via pylint
@@ -117,7 +117,7 @@ pyparsing==3.0.7
     # via packaging
 pyright==1.1.231
     # via -r lint.in
-pytest==7.0.1
+pytest==7.1.1
     # via
     #   -r lint.in
     #   -r tests.in
@@ -130,7 +130,7 @@ pytest-cov==3.0.0
     # via -r tests.in
 pytest-icdiff==0.5
     # via -r tests.in
-pytz==2021.3
+pytz==2022.1
     # via babel
 pyyaml==6.0
     # via pre-commit
@@ -172,21 +172,21 @@ sphinxcontrib-serializinghtml==1.1.5
     # via sphinx
 toml==0.10.2
     # via
-    #   check-manifest
     #   pre-commit
     #   pylint
     #   tox
 tomli==2.0.1
     # via
     #   build
+    #   check-manifest
     #   coverage
     #   pep517
     #   pytest
 tox==3.24.5
     # via -r dev.in
-urllib3==1.26.8
+urllib3==1.26.9
     # via requests
-virtualenv==20.13.3
+virtualenv==20.13.4
     # via
     #   pre-commit
     #   tox

@@ -16,9 +16,9 @@ distlib==0.3.4
     # via virtualenv
 filelock==3.6.0
     # via virtualenv
-hypothesis==6.39.3
+hypothesis==6.39.4
     # via -r lint.in
-identify==2.4.11
+identify==2.4.12
     # via pre-commit
 iniconfig==1.1.1
     # via pytest
@@ -50,7 +50,7 @@ pyparsing==3.0.7
     # via packaging
 pyright==1.1.231
     # via -r lint.in
-pytest==7.0.1
+pytest==7.1.1
     # via -r lint.in
 pyyaml==6.0
     # via pre-commit
@@ -64,7 +64,7 @@ toml==0.10.2
     #   pylint
 tomli==2.0.1
     # via pytest
-virtualenv==20.13.3
+virtualenv==20.13.4
     # via pre-commit
 wrapt==1.13.3
     # via astroid
