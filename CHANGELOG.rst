@@ -34,38 +34,38 @@ to be notified when new versions of bidict are released.
 
 - Drop support for Python 3.6, which reached end of life on 2021-12-23
   and is no longer supported by pip as of pip version 22.
-  Take advantage of this to simplify bidict's implementation
-  and reduce maintenance costs.
+  Take advantage of this to reduce bidict's maintenance costs.
 
 - Use mypy-appeasing explicit re-exports in ``__init__.py``
   (e.g. ``import x as x``)
-  so that mypy no longer gives errors if you enable its
-  ``--no-implicit-reexport`` or ``--strict`` options.
+  so that mypy no longer gives you an implicit re-export error
+  if you run it with ``--no-implicit-reexport`` (or ``--strict``)
+  against code that imports from :mod:`bidict`.
 
 - Update the implementations and type annotations of
   :meth:`bidict.BidictBase.keys` and
   :meth:`bidict.BidictBase.values` to make use of the new
   :class:`~bidict.BidictKeysView` type,
-  which works better with mypy when type checking these methods.
+  which works a bit better with type checkers.
 
 - Inverse bidict instances are now computed lazily the first time
   the :attr:`~bidict.BidictBase.inverse` attribute is accessed
   rather than being computed eagerly during initialization.
-  (A bidict's backing inverse one-way mapping
-  is still kept in sync as any mutations are made
-  to ensure key- and value-uniqueness.)
+  (A bidict's backing, inverse, one-way mapping
+  is still kept in sync eagerly as any mutations are made,
+  to preserve key- and value-uniqueness.)
 
 - Optimize initializing a bidict with another bidict.
   In a microbenchmark on Python 3.10,
-  this now performs over **20x faster**.
+  this now performs over **2x faster**.
 
 - Optimize updating an empty bidict with another bidict.
   In a microbenchmark on Python 3.10,
-  this now performs **2x faster**.
+  this now performs **60-75% faster**.
 
 - Optimize :meth:`~bidict.BidictBase.copy`.
   In a microbenchmark on Python 3.10,
-  this now performs **5-30% faster**.
+  this now performs **10-20x faster**.
 
 - Optimize rolling back
   :ref:`failed updates to a bidict <basic-usage:Updates Fail Clean>`
@@ -77,19 +77,19 @@ to be notified when new versions of bidict are released.
 - Optimize :meth:`bidict.BidictBase.__contains__`
   (the method called when you run ``key in mybidict``).
   In a microbenchmark on Python 3.10,
-  this now performs over **3x faster** in the False case,
+  this now performs over **3-10x faster** in the False case,
   and at least **50% faster** in the True case.
 
 - Optimize :meth:`bidict.BidictBase.__eq__`
   (the method called when you run ``mybidict == other``).
   In a microbenchmark on Python 3.10,
-  this now performs over **25x faster** for ordered bidicts,
-  and at least **10x faster** for unordered bidicts.
+  this now performs **15-25x faster** for ordered bidicts,
+  and **7-12x faster** for unordered bidicts.
 
 - Optimize :meth:`~bidict.BidictBase.equals_order_sensitive`.
   In a microbenchmark on Python 3.10,
-  this now performs over **2x faster** for ordered bidicts
-  and at least **70% faster** for unordered bidicts.
+  this now performs **2x faster** for ordered bidicts
+  and **60-90% faster** for unordered bidicts.
 
 - Optimize the
   :class:`~collections.abc.MappingView` objects returned by
@@ -100,7 +100,7 @@ to be notified when new versions of bidict are released.
   objects if available, which are much faster in CPython.
   For example, in a microbenchmark on Python 3.10,
   ``orderedbi.items() == d.items()``
-  now performs **40-50x faster**.
+  now performs **30-50x faster**.
 
 - Fix a bug where
   :meth:`bidict.BidictBase.__eq__` was always returning False
