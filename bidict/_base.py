@@ -28,7 +28,7 @@ from ._iter import iteritems, inverted
 from ._typing import KT, VT, MISSING, OKT, OVT, IterItems, MapOrIterItems
 
 
-# Disable some pyright strict diagnostics that are not helpful in this file:
+# Disable pyright strict diagnostics that are causing many false positives or are just not helpful in this file:
 # pyright: reportPrivateUsage=false, reportUnknownArgumentType=false, reportUnknownMemberType=false, reportUnknownVariableType=false, reportUnnecessaryIsInstance=false
 
 
@@ -162,6 +162,9 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         if args or kw:
             self._update(get_arg(*args), kw, rbof=False)
 
+    # If Python ever adds support for higher-kinded types, `inverse` could use them, e.g.
+    #     def inverse(self: BT[KT, VT]) -> BT[VT, KT]:
+    # Ref: https://github.com/python/typing/issues/548#issuecomment-621571821
     @property
     def inverse(self) -> 'BidictBase[VT, KT]':
         """The inverse of this bidirectional mapping instance."""
@@ -492,7 +495,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         # If other is a bidict, use its existing backing inverse mapping, otherwise
         # other could be a generator that's now exhausted, so invert self._fwdm on the fly.
         inv = other.inverse if isinstance(other, BidictBase) else inverted(self._fwdm)
-        self._invm.update(inv)  # pyright: ignore
+        self._invm.update(inv)  # pyright: ignore  # https://github.com/jab/bidict/pull/242#discussion_r824223403
 
     #: Used for the copy protocol.
     #: *See also* the :mod:`copy` module
