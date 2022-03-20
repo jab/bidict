@@ -48,7 +48,7 @@ pylint==2.12.2
     # via -r lint.in
 pyparsing==3.0.7
     # via packaging
-pyright==1.1.229
+pyright==1.1.231
     # via -r lint.in
 pytest==7.0.1
     # via -r lint.in
