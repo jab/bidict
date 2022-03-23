@@ -62,9 +62,9 @@ Features
   concise, well-factored, fully type-hinted Python code
   that is optimized for running efficiently
   as well as for long-term maintenance and stability
-  (and also, to be honest, `joy <#learning-from-bidict>`__)
+  (not to mention `joy <#learning-from-bidict>`__ :)
 
-- Extensively `documentated <https://bidict.readthedocs.io>`__
+- Extensively `documented <https://bidict.readthedocs.io>`__
 
 - 100% test coverage
   running continuously across all supported Python versions
