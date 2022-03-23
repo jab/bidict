@@ -1,9 +1,10 @@
-name: pre-commit
+name: Lint
 "on":
   push:
     branches:
       - main
       - dev
+      - deps
   pull_request:
     branches:
       - main

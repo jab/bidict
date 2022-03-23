@@ -1,4 +1,4 @@
-name: Tests
+name: Test
 "on":  # quotes ensure this is never parsed as `true`
   schedule:
     - cron: "0 11 * * 5"
@@ -20,14 +20,16 @@ jobs:
         include:
           # See the following link for all available Python versions:
           # https://raw.githubusercontent.com/actions/python-versions/main/versions-manifest.json
-          - {name: '3.10', python: '3.10',   tox: py310}
-          - {name: '3.9',  python: '3.9',    tox: py39}
-          - {name: '3.8',  python: '3.8',    tox: py38}
-          - {name: '3.7',  python: '3.7',    tox: py37}
-          - {name: PyPy3.7,  python: pypy-3.7, tox: pypy37}
-          - {name: PyPy3.8,  python: pypy-3.8, tox: pypy38}
-          # - {name: Mac,     python: '3.10', tox: py310, os: macos-latest}
-          # - {name: Windows, python: '3.10', tox: py310, os: windows-latest}
+          - {name: '3.10',  python: '3.10',   tox: py310}
+          - {name: '3.9',   python: '3.9',    tox: py39}
+          - {name: '3.8',   python: '3.8',    tox: py38}
+          - {name: '3.7',   python: '3.7',    tox: py37}
+          - {name: PyPy3.9, python: pypy-3.9, tox: pypy39}
+          - {name: PyPy3.8, python: pypy-3.8, tox: pypy38}
+          - {name: PyPy3.7, python: pypy-3.7, tox: pypy37}
+        # Skip Mac and Windows as nothing in bidict varies by OS.
+        # - {name: Mac,     python: '3.10',   tox: py310, os: macos-latest}
+        # - {name: Windows, python: '3.10',   tox: py310, os: windows-latest}
     steps:
       - uses: actions/checkout@v2
       - uses: actions/setup-python@v2
@@ -50,4 +52,4 @@ jobs:
         if: matrix.tox == 'py37' || matrix.tox == 'py310'
         with:
           verbose: true
-          fail_ci_if_error: true
+          fail_ci_if_error: false  # https://github.com/codecov/codecov-action/issues/557
