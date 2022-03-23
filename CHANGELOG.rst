@@ -29,8 +29,8 @@ Tip:
 to be notified when new versions of bidict are released.
 
 
-0.22.0 (not yet released)
--------------------------
+0.22.0 (2022-03-23)
+-------------------
 
 - Drop support for Python 3.6, which reached end of life on 2021-12-23
   and is no longer supported by pip as of pip version 22.
