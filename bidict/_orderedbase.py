@@ -98,7 +98,7 @@ class SentinelNode(Node):
         """Create and return a new terminal node."""
         old_last = self.prv
         new_last = Node(old_last, self)
-        old_last.nxt = self.prv = new_last  # pyright: ignore  # https://github.com/microsoft/pyright/issues/3183
+        old_last.nxt = self.prv = new_last
         return new_last
 
 

@@ -13,14 +13,23 @@ log() {
 }
 
 main() {
-  git checkout -b deps main
+  if ! type pre-commit || ! type pip-compile; then
+    log "Fatal error. Hint: pip install -r requirements/dev.txt"
+    exit 1
+  fi
 
-  pre-commit autoupdate
-  pre-commit clean
+  git checkout -b deps main
 
   cd requirements
   pip-compile -U docs.in && pip-compile -U tests.in && pip-compile -U lint.in && pip-compile -U dev.in
   cd -
+
+  pip install -r requirements/dev.txt
+
+  pre-commit autoupdate
+  pre-commit clean
+
+  log "Dev dependencies upgraded. Run 'tox' to ensure everything still works."
 }
 
 main
