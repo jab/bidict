@@ -3,13 +3,13 @@ Learning from ``bidict``
 
 Working on :mod:`bidict` has taken me to
 some of the most interesting and unexpected places
-I've ever been to in many years of programming.
-(When I started :mod:`bidict` almost 15 years ago,
-I didn't know what higher-kinded types even were,
-let alone that I'd one day get to
-`share an example with Guido
+I've ever gotten to visit in many years of programming.
+(When I started this project almost 15 years ago,
+I'd never heard of things like higher-kinded types.
+Thanks to :mod:`bidict`, I not only came across them,
+I even got to `share an example with Guido
 <https://github.com/python/typing/issues/548#issuecomment-621195693>`__
-of how they're useful for bidirectional mapping types.)
+of how they might be useful for bidirectional mapping types.)
 
 The problem space that :mod:`bidict` inhabits
 is abundant with beautiful symmetries,
@@ -23,13 +23,12 @@ not just for correctness and performance,
 but also for clarity, maintainability,
 and to make for an enjoyable read.
 
-See below for more, and
-`let me know <mailto:jabronson@gmail.com>`__
-what you think.
+See below for more, and feel free to
+let me know what you think.
 I hope reading :mod:`bidict`'s code
-gives you a taste of some of the immense
+brings you some of the
 `joy <https://joy.recurse.com/posts/148-bidict>`__
-that :mod:`bidict` has given me.
+that :mod:`bidict` has brought me.
 
 
 Code structure

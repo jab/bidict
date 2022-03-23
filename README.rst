@@ -9,7 +9,7 @@
 bidict
 ======
 
-The bidirectional mapping library for Python.
+*The bidirectional mapping library for Python.*
 
 
 Status
@@ -44,27 +44,30 @@ Status
    :alt: Sponsor on GitHub
 
 
-.. newline for better vertical spacing:
+Features
+--------
 
-|
+- Depended on by
+  Google, Venmo, CERN, Baidu, Tencent,
+  and teams across the world since 2009
 
+- Familiar, Pythonic APIs
+  that are carefully designed for
+  safety, simplicity, flexibility, and ergonomics
 
-**bidict:**
+- Lightweight, with no runtime dependencies
+  outside Python's standard library
 
-- has been used for many years at
-  **Google, Venmo, CERN, Two Sigma,**
-  and by many other teams
-- has carefully designed, Pythonic APIs for
-  **safety, simplicity, flexibility, and ergonomics**
-- is **lightweight**, with no runtime dependencies
-  other than Python's standard library
-- provides **type hints** for all public APIs
-- is implemented in **concise, well-factored, pure Python code**
-- is **optimized for running efficiently**
-  as well as for **reading, learning, and maintaining** [#fn-learning]_
-- has **extensive docs and test coverage**
-  (including property-based tests and benchmarks)
-  run continuously on all supported Python versions
+- Implemented in
+  concise, well-factored, fully type-hinted Python code
+  that is optimized for running efficiently
+  as well as for long-term maintenance and stability
+  (and also, to be honest, `joy <#learning-from-bidict>`__)
+
+- Extensively `documentated <https://bidict.readthedocs.io>`__
+
+- 100% test coverage
+  running continuously across all supported Python versions
 
 
 Installation

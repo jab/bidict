@@ -136,9 +136,9 @@ to be notified when new versions of bidict are released.
   (This was already the case for unordered bidicts
   when running on Python 3.8+.)
 
-- Add support for
-  `PEP 584 <https://www.python.org/dev/peps/pep-0584/>`__-style
-  dict merge operators (introduced in Python 3.9).
+- Add support for Python 3.9-style dict merge operators
+  (`PEP 584 <https://www.python.org/dev/peps/pep-0584/>`__).
+
   See `the tests <https://github.com/jab/bidict/blob/main/tests/>`__
   for examples.
 
