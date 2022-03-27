@@ -112,7 +112,7 @@ def test_issubclass_internal():
 
     # Regression test for #111, Bug in BidirectionalMapping.__subclasshook__():
     # Any class with an inverse attribute is considered a collections.abc.Mapping
-    OnlyHasInverse = type('OnlyHasInverse', (), {'inverse': ...})
+    OnlyHasInverse = type('OnlyHasInverse', (), {'inverse': 'foo'})
     assert not issubclass(OnlyHasInverse, Mapping)
 
 

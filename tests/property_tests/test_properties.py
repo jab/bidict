@@ -236,9 +236,12 @@ def test_bijectivity(bi):
 
 @given(st.MUTABLE_BIDICTS)
 def test_cleared_bidicts_have_no_items(bi):
+    """A cleared bidict should contain no items."""
     bi.clear()
     assert not bi
     assert len(bi) == 0
+    sntl = object()
+    assert next(iter(bi), sntl) is sntl
 
 
 @given(st.BI_AND_CMPDICT_FROM_SAME_ITEMS, st.DATA)
@@ -485,7 +488,7 @@ def test_pickle_orderedbi_whose_order_disagrees_w_fwdm():
     """An OrderedBidict whose order does not match its _fwdm's should pickle with the correct order."""
     ob = OrderedBidict({0: 1, 2: 3})
     # First get ob._fwdm's order to disagree with ob's, and confirm:
-    ob.inverse[1] = 4
+    ob.inverse[1] = 4  # pylint: disable=unsupported-assignment-operation
     assert next(iter(ob.items())) == (4, 1)
     assert next(iter(ob.inverse.items())) == (1, 4)
     assert next(iter(ob._fwdm.items())) == (2, 3)

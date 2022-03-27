@@ -29,7 +29,8 @@ main() {
   pre-commit autoupdate
   pre-commit clean
 
-  log "Dev dependencies upgraded. Run 'tox' to ensure everything still works."
+  log "Dev dependencies upgraded."
+  log "Run tests via 'tox' or by pushing to the 'deps' branch to ensure everything still works."
 }
 
 main

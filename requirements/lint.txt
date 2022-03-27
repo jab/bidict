@@ -4,7 +4,7 @@
 #
 #    pip-compile lint.in
 #
-astroid==2.9.3
+astroid==2.11.2
     # via pylint
 attrs==21.4.0
     # via
@@ -12,11 +12,13 @@ attrs==21.4.0
     #   pytest
 cfgv==3.3.1
     # via pre-commit
+dill==0.3.4
+    # via pylint
 distlib==0.3.4
     # via virtualenv
 filelock==3.6.0
     # via virtualenv
-hypothesis==6.39.4
+hypothesis==6.39.5
     # via -r lint.in
 identify==2.4.12
     # via pre-commit
@@ -26,7 +28,7 @@ isort==5.10.1
     # via pylint
 lazy-object-proxy==1.7.1
     # via astroid
-mccabe==0.6.1
+mccabe==0.7.0
     # via pylint
 nodeenv==1.6.0
     # via
@@ -44,11 +46,11 @@ pre-commit==2.17.0
     # via -r lint.in
 py==1.11.0
     # via pytest
-pylint==2.12.2
+pylint==2.13.2
     # via -r lint.in
 pyparsing==3.0.7
     # via packaging
-pyright==1.1.232
+pyright==1.1.233
     # via -r lint.in
 pytest==7.1.1
     # via -r lint.in
@@ -59,14 +61,14 @@ six==1.16.0
 sortedcontainers==2.4.0
     # via hypothesis
 toml==0.10.2
-    # via
-    #   pre-commit
-    #   pylint
-tomli==2.0.1
-    # via pytest
-virtualenv==20.13.4
     # via pre-commit
-wrapt==1.13.3
+tomli==2.0.1
+    # via
+    #   pylint
+    #   pytest
+virtualenv==20.14.0
+    # via pre-commit
+wrapt==1.14.0
     # via astroid
 
 # The following packages are considered to be unsafe in a requirements file:

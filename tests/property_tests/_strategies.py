@@ -20,6 +20,7 @@ MAX = int(getenv('HYPOTHESIS_GEN_MAX_SIZE', '0')) or None
 
 
 def one_of(items):
+    """Create a one_of strategy using the given items."""
     return st.one_of((st.just(i) for i in items))
 
 

@@ -16,19 +16,16 @@ max-args = 6
 disable =
   abstract-method,
   arguments-differ,
-  assigning-non-slot,  # pylint does not understand descriptors like WeakAttr in _orderedbase.py
+  assigning-non-slot,  # pylint does not understand descriptors like WeakAttr in _orderedbase.py (https://github.com/PyCQA/pylint/issues/6001)
   attribute-defined-outside-init,
   invalid-name,
   line-too-long,
-  missing-function-docstring,  # flags @typing.overload's
-  multiple-statements,  # flags @typing.overload's
-  not-callable,  # pylint doesn't understand that the invweak weakref is callable
+  multiple-statements,  # flags workarounds for https://github.com/python/typing/issues/548
+  not-callable,  # pylint doesn't understand that the invweak weakref is callable (https://github.com/PyCQA/pylint/issues/6005)
   protected-access,
-  signature-differs,  # flags MutableBidict.pop against OrderedBidict.pop (which adds a last kwarg just like OrderedDict)
+  signature-differs,  # flags MutableBidict.pop against OrderedBidict.pop (which adds a 'last' kwarg just like OrderedDict)
   too-few-public-methods,  # flags BiMappingView et al.
   too-many-branches,  # flags BidictBase._update()
   too-many-locals,  # flags BidictBase._update()
-  unsubscriptable-object,  # flags _orderedbidict.py `node_by_korv.inverse[node]`
-  unsupported-assignment-operation,  # flags `mutable_bidict.inverse[val] = key`
-  useless-import-alias,  # pylint does not understand mypy-style "import foo as foo" explicit re-exports in bidict/__init__.py
+  useless-import-alias,  # pylint does not understand mypy-style "import foo as foo" explicit re-exports in bidict/__init__.py (https://github.com/PyCQA/pylint/issues/6006)
   wrong-import-position,  # bidict/__init__.py

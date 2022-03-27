@@ -6,7 +6,7 @@
 #
 alabaster==0.7.12
     # via sphinx
-astroid==2.9.3
+astroid==2.11.2
     # via pylint
 attrs==21.4.0
     # via
@@ -32,6 +32,8 @@ coverage[toml]==6.3.2
     # via
     #   -r tests.in
     #   pytest-cov
+dill==0.3.4
+    # via pylint
 distlib==0.3.4
     # via virtualenv
 docutils==0.17.1
@@ -42,7 +44,7 @@ filelock==3.6.0
     #   virtualenv
 furo==2022.3.4
     # via -r docs.in
-hypothesis==6.39.4
+hypothesis==6.39.5
     # via
     #   -r lint.in
     #   -r tests.in
@@ -58,13 +60,13 @@ iniconfig==1.1.1
     # via pytest
 isort==5.10.1
     # via pylint
-jinja2==3.0.3
+jinja2==3.1.1
     # via sphinx
 lazy-object-proxy==1.7.1
     # via astroid
 markupsafe==2.1.1
     # via jinja2
-mccabe==0.6.1
+mccabe==0.7.0
     # via pylint
 nodeenv==1.6.0
     # via
@@ -111,11 +113,11 @@ pygments==2.11.2
     # via
     #   furo
     #   sphinx
-pylint==2.12.2
+pylint==2.13.2
     # via -r lint.in
 pyparsing==3.0.7
     # via packaging
-pyright==1.1.232
+pyright==1.1.233
     # via -r lint.in
 pytest==7.1.1
     # via
@@ -151,7 +153,7 @@ sortedcontainers==2.4.0
     #   sortedcollections
 soupsieve==2.3.1
     # via beautifulsoup4
-sphinx==4.4.0
+sphinx==4.5.0
     # via
     #   -r docs.in
     #   furo
@@ -173,7 +175,6 @@ sphinxcontrib-serializinghtml==1.1.5
 toml==0.10.2
     # via
     #   pre-commit
-    #   pylint
     #   tox
 tomli==2.0.1
     # via
@@ -181,18 +182,19 @@ tomli==2.0.1
     #   check-manifest
     #   coverage
     #   pep517
+    #   pylint
     #   pytest
 tox==3.24.5
     # via -r dev.in
 urllib3==1.26.9
     # via requests
-virtualenv==20.13.4
+virtualenv==20.14.0
     # via
     #   pre-commit
     #   tox
 wheel==0.37.1
     # via pip-tools
-wrapt==1.13.3
+wrapt==1.14.0
     # via astroid
 
 # The following packages are considered to be unsafe in a requirements file:
