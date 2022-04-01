@@ -50,7 +50,7 @@ pylint==2.13.2
     # via -r lint.in
 pyparsing==3.0.7
     # via packaging
-pyright==1.1.233
+pyright==1.1.234
     # via -r lint.in
 pytest==7.1.1
     # via -r lint.in
