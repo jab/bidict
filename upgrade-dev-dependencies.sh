@@ -6,15 +6,16 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-set -euxo pipefail
+set -euo pipefail
 
 log() {
-  echo >&2 " *" "$@"
+  echo -e >&2 "$@"
 }
 
 main() {
   if ! type pre-commit || ! type pip-compile; then
-    log "Fatal error. Hint: pip install -r requirements/dev.txt"
+    log "Error: pre-commit or pip-compile not found." \
+      "\n       Hint: pip install -r requirements/dev.txt"
     exit 1
   fi
 
@@ -30,7 +31,10 @@ main() {
   pre-commit clean
 
   log "Dev dependencies upgraded."
-  log "Run tests via 'tox' or by pushing to the 'deps' branch to ensure everything still works."
+  log "Reminders:" \
+    "\n - Check release notes of upgraded packages for anything that affects bidict." \
+    "\n - Run tests via 'tox' or by pushing to the 'deps' branch to ensure everything still works." \
+    "\n - Check output for any new warnings, not just test failures."
 }
 
 main

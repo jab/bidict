@@ -26,7 +26,7 @@ docutils==0.17.1
     # via sphinx
 furo==2022.3.4
     # via -r docs.in
-hypothesis==6.39.5
+hypothesis==6.40.2
     # via -r tests.in
 icdiff==2.0.4
     # via pytest-icdiff

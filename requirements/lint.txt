@@ -18,7 +18,7 @@ distlib==0.3.4
     # via virtualenv
 filelock==3.6.0
     # via virtualenv
-hypothesis==6.39.5
+hypothesis==6.40.2
     # via -r lint.in
 identify==2.4.12
     # via pre-commit
@@ -46,11 +46,11 @@ pre-commit==2.17.0
     # via -r lint.in
 py==1.11.0
     # via pytest
-pylint==2.13.2
+pylint==2.13.4
     # via -r lint.in
 pyparsing==3.0.7
     # via packaging
-pyright==1.1.233
+pyright==1.1.234
     # via -r lint.in
 pytest==7.1.1
     # via -r lint.in

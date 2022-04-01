@@ -26,7 +26,7 @@ charset-normalizer==2.0.12
     # via requests
 check-manifest==0.48
     # via -r dev.in
-click==8.0.4
+click==8.1.2
     # via pip-tools
 coverage[toml]==6.3.2
     # via
@@ -44,7 +44,7 @@ filelock==3.6.0
     #   virtualenv
 furo==2022.3.4
     # via -r docs.in
-hypothesis==6.39.5
+hypothesis==6.40.2
     # via
     #   -r lint.in
     #   -r tests.in
@@ -113,11 +113,11 @@ pygments==2.11.2
     # via
     #   furo
     #   sphinx
-pylint==2.13.2
+pylint==2.13.4
     # via -r lint.in
 pyparsing==3.0.7
     # via packaging
-pyright==1.1.233
+pyright==1.1.234
     # via -r lint.in
 pytest==7.1.1
     # via
