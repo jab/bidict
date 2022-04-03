@@ -2,6 +2,6 @@
 -r tests.in
 -r lint.in
 check-manifest
-pip-tools
+pip-compile-multi
 pre-commit
 tox

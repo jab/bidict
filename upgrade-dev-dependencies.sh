@@ -13,18 +13,15 @@ log() {
 }
 
 main() {
-  if ! type pre-commit || ! type pip-compile; then
-    log "Error: pre-commit or pip-compile not found." \
+  if ! type pre-commit || ! type pip-compile-multi; then
+    log "Error: pre-commit or pip-compile-multi not found." \
       "\n       Hint: pip install -r requirements/dev.txt"
     exit 1
   fi
 
   git checkout -b deps main
 
-  cd requirements
-  pip-compile -U docs.in && pip-compile -U tests.in && pip-compile -U lint.in && pip-compile -U dev.in
-  cd -
-
+  pip-compile-multi
   pip install -r requirements/dev.txt
 
   pre-commit autoupdate
