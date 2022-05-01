@@ -14,9 +14,9 @@ coverage[toml]==6.3.2
     # via
     #   -r requirements/tests.in
     #   pytest-cov
-hypothesis==6.41.0
+hypothesis==6.46.1
     # via -r requirements/tests.in
-icdiff==2.0.4
+icdiff==2.0.5
     # via pytest-icdiff
 iniconfig==1.1.1
     # via pytest
@@ -34,7 +34,7 @@ pygal==3.0.0
     # via pytest-benchmark
 pygaljs==1.0.2
     # via pytest-benchmark
-pytest==7.1.1
+pytest==7.1.2
     # via
     #   -r requirements/tests.in
     #   pytest-benchmark

@@ -12,7 +12,7 @@ build==0.7.0
     # via check-manifest
 check-manifest==0.48
     # via -r requirements/dev.in
-click==8.1.2
+click==8.1.3
     # via
     #   pip-compile-multi
     #   pip-tools
@@ -22,11 +22,11 @@ pep517==0.12.0
     #   pip-tools
 pip-compile-multi==2.4.5
     # via -r requirements/dev.in
-pip-tools==6.5.1
+pip-tools==6.6.0
     # via pip-compile-multi
 toposort==1.7
     # via pip-compile-multi
-tox==3.24.5
+tox==3.25.0
     # via -r requirements/dev.in
 wheel==0.37.1
     # via pip-tools

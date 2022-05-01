@@ -35,7 +35,7 @@ class frozenbidict(BidictBase[KT, VT]):
         if getattr(self, '_hash', None) is None:
             # The following is like hash(frozenset(self.items()))
             # but more memory efficient. See also: https://bugs.python.org/issue46684
-            self._hash = t.ItemsView(self)._hash()  # type: ignore [attr-defined]  # https://github.com/python/typeshed/pull/7153
+            self._hash = t.ItemsView(self)._hash()
         return self._hash
 
 

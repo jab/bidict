@@ -19,7 +19,15 @@ main() {
     exit 1
   fi
 
-  git checkout -b deps main
+  local -r gitbranch=$(git branch --show-current)
+  if [ "$gitbranch" = "deps" ]; then
+    log "Already on branch 'deps'"
+  elif [ "$gitbranch" = "main" ]; then
+    git checkout -b deps main
+  else
+    log "On unsupported branch '$gitbranch'. Switch to 'main' and try again."
+    exit 1
+  fi
 
   pip-compile-multi
   pip install -r requirements/dev.txt
