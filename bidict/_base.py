@@ -410,10 +410,12 @@ class BidictBase(BidirectionalMapping[KT, VT]):
             ] if save_unwrite else []
         return write, unwrite
 
+    __NO_KW: t.Mapping[str, t.Any] = MappingProxyType({})
+
     def _update(
         self,
         arg: MapOrIterItems[KT, VT],
-        kw: t.Mapping[str, VT] = MappingProxyType({}),
+        kw: t.Mapping[str, VT] = __NO_KW,
         *,
         rbof: t.Optional[bool] = None,
         on_dup: t.Optional[OnDup] = None,
