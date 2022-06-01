@@ -20,6 +20,7 @@ jobs:
         include:
           # See the following link for all available Python versions:
           # https://raw.githubusercontent.com/actions/python-versions/main/versions-manifest.json
+          - {name: '3.11-beta',  python: '3.11.0-beta.2',   tox: py311}  # remove workaround from pytest.ini once on beta3+
           - {name: '3.10',  python: '3.10',   tox: py310}
           - {name: '3.9',   python: '3.9',    tox: py39}
           - {name: '3.8',   python: '3.8',    tox: py38}
