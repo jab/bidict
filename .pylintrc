@@ -27,5 +27,6 @@ disable =
   too-few-public-methods,  # flags BiMappingView et al.
   too-many-branches,  # flags BidictBase._update()
   too-many-locals,  # flags BidictBase._update()
+  unnecessary-lambda-assignment,  # covered by flake8's E731
   useless-import-alias,  # pylint does not understand mypy-style "import foo as foo" explicit re-exports in bidict/__init__.py (https://github.com/PyCQA/pylint/issues/6006)
   wrong-import-position,  # bidict/__init__.py

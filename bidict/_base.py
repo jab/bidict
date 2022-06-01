@@ -494,7 +494,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         self._fwdm.update(other)
         # If other is a bidict, use its existing backing inverse mapping, otherwise
         # other could be a generator that's now exhausted, so invert self._fwdm on the fly.
-        inv = other.inverse if isinstance(other, BidictBase) else inverted(self._fwdm)
+        inv = other.inverse if isinstance(other, BidictBase) else inverted(self._fwdm)  # pyright: ignore  # https://github.com/jab/bidict/pull/242#discussion_r824223403
         self._invm.update(inv)  # pyright: ignore  # https://github.com/jab/bidict/pull/242#discussion_r824223403
 
     #: Used for the copy protocol.

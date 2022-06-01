@@ -8,7 +8,7 @@
 -r docs.txt
 -r lint.txt
 -r tests.txt
-build==0.7.0
+build==0.8.0
     # via check-manifest
 check-manifest==0.48
     # via -r requirements/dev.in
@@ -22,7 +22,7 @@ pep517==0.12.0
     #   pip-tools
 pip-compile-multi==2.4.5
     # via -r requirements/dev.in
-pip-tools==6.6.0
+pip-tools==6.6.2
     # via pip-compile-multi
 toposort==1.7
     # via pip-compile-multi

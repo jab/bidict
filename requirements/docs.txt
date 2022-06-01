@@ -11,7 +11,7 @@ babel==2.10.1
     # via sphinx
 beautifulsoup4==4.11.1
     # via furo
-certifi==2021.10.8
+certifi==2022.5.18.1
     # via requests
 charset-normalizer==2.0.12
     # via requests
@@ -33,7 +33,7 @@ pygments==2.12.0
     # via
     #   furo
     #   sphinx
-pyparsing==3.0.8
+pyparsing==3.0.9
     # via packaging
 pytz==2022.1
     # via babel

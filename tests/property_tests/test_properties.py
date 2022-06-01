@@ -603,6 +603,7 @@ def test_views(bi, data):
     """Optimized view APIs should be equivalent to using the corresponding MappingViews from :mod:`collections.abc`."""
     for check, oracle in (bi.keys(), KeysView(bi)), (bi.values(), ValuesView(bi)), (bi.items(), ItemsView(bi)):
         # 0-arity methods: __len__, __iter__
+        # pylint: disable=unnecessary-dunder-call
         assert check.__len__() == oracle.__len__()
         assert list(check.__iter__()) == list(oracle.__iter__())
         # 1-arity methods: __contains__

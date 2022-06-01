@@ -10,11 +10,11 @@ attrs==21.4.0
     # via
     #   hypothesis
     #   pytest
-coverage[toml]==6.3.2
+coverage[toml]==6.4
     # via
     #   -r requirements/tests.in
     #   pytest-cov
-hypothesis==6.46.1
+hypothesis==6.46.10
     # via -r requirements/tests.in
 icdiff==2.0.5
     # via pytest-icdiff
