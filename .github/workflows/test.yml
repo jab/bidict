@@ -12,38 +12,34 @@ name: Test
       - main
 jobs:
   tests:
-    name: ${{ matrix.name }}
-    runs-on: ${{ matrix.os || 'ubuntu-latest' }}
+    name: ${{ matrix.pyversion }}
+    runs-on: ubuntu-latest  # Skip Mac and Windows as nothing in bidict varies by OS.
     strategy:
       fail-fast: false
       matrix:
         include:
-          # See the following link for all available Python versions:
-          # https://raw.githubusercontent.com/actions/python-versions/main/versions-manifest.json
-          - {name: '3.11-beta',  python: '3.11.0-beta.2',   tox: py311}  # remove workaround from pytest.ini once on beta3+
-          - {name: '3.10',  python: '3.10',   tox: py310}
-          - {name: '3.9',   python: '3.9',    tox: py39}
-          - {name: '3.8',   python: '3.8',    tox: py38}
-          - {name: '3.7',   python: '3.7',    tox: py37}
-          - {name: PyPy3.9, python: pypy-3.9, tox: pypy39}
-          - {name: PyPy3.8, python: pypy-3.8, tox: pypy38}
-          - {name: PyPy3.7, python: pypy-3.7, tox: pypy37}
-        # Skip Mac and Windows as nothing in bidict varies by OS.
-        # - {name: Mac,     python: '3.10',   tox: py310, os: macos-latest}
-        # - {name: Windows, python: '3.10',   tox: py310, os: windows-latest}
+          # https://github.com/actions/setup-python#available-versions-of-python
+          - {pyversion: '3.11.0-beta - 3.11.*',   tox: py311}  # remove workaround from pytest.ini once on beta3+
+          - {pyversion: '3.10',   tox: py310}
+          - {pyversion: '3.9',    tox: py39}
+          - {pyversion: '3.8',    tox: py38}
+          - {pyversion: '3.7',    tox: py37}
+          - {pyversion: pypy-3.9, tox: pypy39}
+          - {pyversion: pypy-3.8, tox: pypy38}
+          - {pyversion: pypy-3.7, tox: pypy37}
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-python@v2
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v3
         with:
-          python-version: ${{ matrix.python }}
+          python-version: ${{ matrix.pyversion }}
           cache: pip
-          cache-dependency-path: ${{ matrix.reqs || 'requirements/tests.txt' }}
+          cache-dependency-path: requirements/tests.txt
       - run: pip install -U pip && pip install -U setuptools wheel
       - name: cache .hypothesis dir
-        uses: actions/cache@v2
+        uses: actions/cache@v3
         with:
           path: .hypothesis
-          key: hypothesis|${{ runner.os }}|${{ matrix.python }}
+          key: hypothesis|${{ runner.os }}|${{ matrix.pyversion }}
       - run: pip install tox
       - run: tox -e ${{ matrix.tox }}
       # https://github.com/codecov/codecov-action
