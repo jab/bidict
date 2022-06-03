@@ -410,7 +410,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
             ] if save_unwrite else []
         return write, unwrite
 
-    __NO_KW: t.Mapping[str, t.Any] = MappingProxyType({})
+    __NO_KW: t.Mapping[str, t.Any] = MappingProxyType({})  # https://github.com/microsoft/pyright/issues/3534
 
     def _update(
         self,

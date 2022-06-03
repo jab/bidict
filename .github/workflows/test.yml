@@ -19,7 +19,7 @@ jobs:
       matrix:
         include:
           # https://github.com/actions/setup-python#available-versions-of-python
-          - {pyversion: '3.11.0-beta - 3.11.*',   tox: py311}  # remove workaround from pytest.ini once on beta3+
+          - {pyversion: '3.11.0-beta - 3.11.*',   tox: py311}
           - {pyversion: '3.10',   tox: py310}
           - {pyversion: '3.9',    tox: py39}
           - {pyversion: '3.8',    tox: py38}

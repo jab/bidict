@@ -212,6 +212,9 @@ supporting the open source projects they depend on
 in this manner:
 
 - `<https://www.onepercent.dev>`__
+- `<https://sethmlarson.dev/blog/people-in-your-software-supply-chain>`__
+- `<https://engineering.atspotify.com/2022/04/announcing-the-spotify-foss-fund/>`__
+- `<https://blog.sentry.io/2021/10/21/we-just-gave-154-999-dollars-and-89-cents-to-open-source-maintainers>`__
 - `<https://www.cognitect.com/blog/supporting-open-source-developers>`__
 - `<https://vorpus.org/blog/the-unreasonable-effectiveness-of-investment-in-open-source-infrastructure/>`__
 
