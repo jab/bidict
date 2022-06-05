@@ -19,7 +19,7 @@ distlib==0.3.4
     # via virtualenv
 filelock==3.7.1
     # via virtualenv
-hypothesis==6.46.10
+hypothesis==6.46.11
     # via -r requirements/lint.in
 identify==2.5.1
     # via pre-commit
@@ -51,7 +51,7 @@ pylint==2.14.0
     # via -r requirements/lint.in
 pyparsing==3.0.9
     # via packaging
-pyright==1.1.251
+pyright==1.1.252
     # via -r requirements/lint.in
 pytest==7.1.2
     # via -r requirements/lint.in
