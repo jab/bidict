@@ -12,9 +12,9 @@ RUN if [ "${NODE_VERSION}" != "none" ]; then su vscode -c "umask 0002 && . /usr/
 # Install dev dependencies globally in the image.
 # (Still easy to experiment with upgrades/new dependencies by installing them in --user scope,
 # and if you want to keep them, add them to the requirements file and rebuild the container.)
-COPY requirements/dev.txt /tmp/pip-tmp/requirements-dev.txt
-RUN pip3 --disable-pip-version-check --no-cache-dir install -r /tmp/pip-tmp/requirements-dev.txt \
-  && rm -rf /tmp/pip-tmp
+COPY requirements/*.txt /tmp/bidict-requirements/
+RUN pip3 --disable-pip-version-check --no-cache-dir install -r /tmp/bidict-requirements/dev.txt \
+  && rm -rf /tmp/bidict-requirements
 
 # [Optional] Install additional OS packages.
 RUN apt-get update && export DEBIAN_FRONTEND=noninteractive \

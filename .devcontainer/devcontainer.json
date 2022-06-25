@@ -26,7 +26,7 @@
     "python.linting.pydocstylePath": "/usr/local/py-utils/bin/pydocstyle",
     "python.linting.pylintPath": "/usr/local/py-utils/bin/pylint",
     "python.testing.pytestEnabled": true,
-    "restructuredtext.confPath": "${workspaceFolder}/docs",
+    "esbonio.sphinx.confDir": "${workspaceFolder}/docs",
     "restructuredtext.pythonRecommendation.disabled": true
   },
   // Add the IDs of extensions you want installed when the container is created.
