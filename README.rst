@@ -247,3 +247,6 @@ try these alternate links instead:
 .. [#fn-intro] | `<https://bidict.readthedocs.io/intro.html>`__ | `<docs/intro.rst>`__
 
 .. [#fn-contributing] `<https://bidict.readthedocs.io/contributors-guide.html>`__ | `<CONTRIBUTING.rst>`__
+
+
+.. image:: https://static.scarf.sh/a.png?x-pxid=05e3c4e4-eaa7-41a1-84c2-ec14413115f8

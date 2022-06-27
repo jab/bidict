@@ -16,4 +16,5 @@ document.addEventListener('DOMContentLoaded', function() {
 
   var sidebarUl = document.querySelector('.sidebar-tree > ul');
   sidebarUl.insertAdjacentHTML('beforeend', '<li class="toctree l1"><a class="reference external" href="https://github.com/jab/bidict">GitHub Repository</a></li>');
+  sidebarUl.insertAdjacentHTML('afterend', '<div><img src="https://static.scarf.sh/a.png?x-pxid=15b5b7c1-9453-4ab6-8a82-8cfa0f4db4f9" /></div>')
 });
