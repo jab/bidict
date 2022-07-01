@@ -141,7 +141,8 @@ def _override_set_methods_to_use_backing_dict(
             # Use arg's backing dict's corresponding view instead of arg. Otherwise, e.g. `ob1.keys() < ob2.keys()` would give
             # "TypeError: '<' not supported between instances of '_OrderedBidictKeysView' and '_OrderedBidictKeysView'", because
             # both `dict_keys(ob1).__lt__(ob2.keys()) is NotImplemented` and `dict_keys(ob2).__gt__(ob1.keys()) is NotImplemented`.
-            arg_dict_view = getattr(args[0]._mapping._fwdm, viewname)()
+            arg_dict: t.Dict[t.Any, t.Any] = args[0]._mapping._fwdm
+            arg_dict_view = getattr(arg_dict, viewname)()
             return fwdm_dict_view_method(arg_dict_view)
         method.__name__ = methodname
         method.__qualname__ = f'{cls.__qualname__}.{methodname}'

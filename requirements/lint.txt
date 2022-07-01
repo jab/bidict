@@ -5,7 +5,7 @@
 #
 #    pip-compile-multi
 #
-astroid==2.11.5
+astroid==2.11.6
     # via pylint
 attrs==21.4.0
     # via
@@ -17,9 +17,11 @@ dill==0.3.5.1
     # via pylint
 distlib==0.3.4
     # via virtualenv
+exceptiongroup==1.0.0rc8
+    # via hypothesis
 filelock==3.7.1
     # via virtualenv
-hypothesis==6.46.11
+hypothesis==6.48.2
     # via -r requirements/lint.in
 identify==2.5.1
     # via pre-commit
@@ -31,7 +33,7 @@ lazy-object-proxy==1.7.1
     # via astroid
 mccabe==0.7.0
     # via pylint
-nodeenv==1.6.0
+nodeenv==1.7.0
     # via
     #   pre-commit
     #   pyright
@@ -47,11 +49,11 @@ pre-commit==2.19.0
     # via -r requirements/lint.in
 py==1.11.0
     # via pytest
-pylint==2.14.0
+pylint==2.14.4
     # via -r requirements/lint.in
 pyparsing==3.0.9
     # via packaging
-pyright==1.1.252
+pyright==1.1.256
     # via -r requirements/lint.in
 pytest==7.1.2
     # via -r requirements/lint.in
@@ -69,7 +71,7 @@ tomli==2.0.1
     #   pytest
 tomlkit==0.11.0
     # via pylint
-virtualenv==20.14.1
+virtualenv==20.15.1
     # via pre-commit
 wrapt==1.14.1
     # via astroid
