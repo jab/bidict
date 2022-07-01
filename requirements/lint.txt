@@ -17,10 +17,12 @@ dill==0.3.5.1
     # via pylint
 distlib==0.3.4
     # via virtualenv
+exceptiongroup==1.0.0rc8
+    # via hypothesis
 filelock==3.7.1
     # via virtualenv
-hypothesis==6.46.11
-    # via -r requirements/lint.in
+hypothesis==6.48.2
+    # via -r lint.in
 identify==2.5.1
     # via pre-commit
 iniconfig==1.1.1
@@ -44,17 +46,17 @@ platformdirs==2.5.2
 pluggy==1.0.0
     # via pytest
 pre-commit==2.19.0
-    # via -r requirements/lint.in
+    # via -r lint.in
 py==1.11.0
     # via pytest
 pylint==2.14.0
-    # via -r requirements/lint.in
+    # via -r lint.in
 pyparsing==3.0.9
     # via packaging
 pyright==1.1.252
-    # via -r requirements/lint.in
+    # via -r lint.in
 pytest==7.1.2
-    # via -r requirements/lint.in
+    # via -r lint.in
 pyyaml==6.0
     # via pre-commit
 six==1.16.0
