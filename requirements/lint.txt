@@ -21,7 +21,7 @@ exceptiongroup==1.0.0rc8
     # via hypothesis
 filelock==3.7.1
     # via virtualenv
-hypothesis==6.48.2
+hypothesis==6.48.3
     # via -r requirements/lint.in
 identify==2.5.1
     # via pre-commit
@@ -53,7 +53,7 @@ pylint==2.14.4
     # via -r requirements/lint.in
 pyparsing==3.0.9
     # via packaging
-pyright==1.1.256
+pyright==1.1.257
     # via -r requirements/lint.in
 pytest==7.1.2
     # via -r requirements/lint.in
