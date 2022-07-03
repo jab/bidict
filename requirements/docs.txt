@@ -15,12 +15,12 @@ certifi==2022.6.15
     # via requests
 charset-normalizer==2.1.0
     # via requests
-docutils==0.17.1
+docutils==0.18.1
     # via
-    #   -r requirements/docs.in
+    #   -r docs.in
     #   sphinx
 furo==2022.6.21
-    # via -r requirements/docs.in
+    # via -r docs.in
 idna==3.3
     # via requests
 imagesize==1.4.1
@@ -47,14 +47,14 @@ soupsieve==2.3.2.post1
     # via beautifulsoup4
 sphinx==5.0.2
     # via
-    #   -r requirements/docs.in
+    #   -r docs.in
     #   furo
     #   sphinx-basic-ng
     #   sphinx-copybutton
 sphinx-basic-ng==0.0.1a12
     # via furo
 sphinx-copybutton==0.5.0
-    # via -r requirements/docs.in
+    # via -r docs.in
 sphinxcontrib-applehelp==1.0.2
     # via sphinx
 sphinxcontrib-devhelp==1.0.2
