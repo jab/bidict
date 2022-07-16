@@ -142,8 +142,7 @@ please let me know in any of the following ways:
 Changelog
 ---------
 
-See the :doc:`changelog` [#fn-changelog]_
-for a history of notable changes to bidict.
+For bidict release notes, see the :doc:`changelog`. [#fn-changelog]_
 
 
 Release Notifications
@@ -152,9 +151,9 @@ Release Notifications
 .. duplicated in CHANGELOG.rst:
    (would use `.. include::` but GitHub doesn't understand it)
 
-`Watch <https://github.blog/changelog/2018-11-27-watch-releases/>`__ releases
-`on GitHub <https://github.com/jab/bidict>`__
-to be notified when new versions of bidict are released.
+Watch `bidict releases on GitHub <https://github.com/jab/bidict/releases>`__
+to be notified when new versions of bidict are published.
+Click the "Watch" dropdown, choose "Custom", and then choose "Releases".
 
 
 Learning from bidict
@@ -174,7 +173,7 @@ Contributing
 
 I have been bidict's sole maintainer
 and `active contributor <https://github.com/jab/bidict/graphs/contributors>`__
-since I started the project almost 15 years ago.
+since I started the project ~15 years ago.
 
 Your help would be most welcome!
 See the :doc:`contributors-guide` [#fn-contributing]_
@@ -215,8 +214,9 @@ in this manner:
 - `<https://sethmlarson.dev/blog/people-in-your-software-supply-chain>`__
 - `<https://engineering.atspotify.com/2022/04/announcing-the-spotify-foss-fund/>`__
 - `<https://blog.sentry.io/2021/10/21/we-just-gave-154-999-dollars-and-89-cents-to-open-source-maintainers>`__
-- `<https://www.cognitect.com/blog/supporting-open-source-developers>`__
-- `<https://vorpus.org/blog/the-unreasonable-effectiveness-of-investment-in-open-source-infrastructure/>`__
+
+.. - `<https://www.cognitect.com/blog/supporting-open-source-developers>`__
+.. - `<https://vorpus.org/blog/the-unreasonable-effectiveness-of-investment-in-open-source-infrastructure/>`__
 
 You can also support my work through
 `Gumroad <https://gumroad.com/l/bidict>`__ or

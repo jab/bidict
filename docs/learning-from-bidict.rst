@@ -4,12 +4,12 @@ Learning from ``bidict``
 Working on :mod:`bidict` has taken me to
 some of the most interesting and unexpected places
 I've ever gotten to visit in many years of programming.
-(When I started this project almost 15 years ago,
+(When I started this project ~15 years ago,
 I'd never heard of things like higher-kinded types.
 Thanks to :mod:`bidict`, I not only came across them,
-I even got to `share an example with Guido
+I even got to `share a practical, real-world example with Guido
 <https://github.com/python/typing/issues/548#issuecomment-621195693>`__
-of how they might be useful for bidirectional mapping types.)
+where they would be beneficial for Python.)
 
 The problem space that :mod:`bidict` inhabits
 is abundant with beautiful symmetries,

@@ -17,16 +17,14 @@ Changelog
    :alt: Sponsors on GitHub
 
 
-Release Notifications
----------------------
+:sup:`If you or your organization depends on bidict,
+please consider sponsoring bidict on GitHub.`
 
-.. duplicated in README.rst
-   (would use `.. include::` but GitHub doesn't understand it)
 
-Tip:
-`Watch <https://github.blog/changelog/2018-11-27-watch-releases/>`__ releases
-`on GitHub <https://github.com/jab/bidict>`__
-to be notified when new versions of bidict are released.
+.. tip::
+   Watch `bidict releases on GitHub <https://github.com/jab/bidict/releases>`__
+   to be notified when new versions of bidict are published.
+   Click the "Watch" dropdown, choose "Custom", and then choose "Releases".
 
 
 0.22.0 (2022-03-23)
