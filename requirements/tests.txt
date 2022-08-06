@@ -6,17 +6,17 @@
 #    pip-compile-multi
 #
 -r docs.txt
-attrs==21.4.0
+attrs==22.1.0
     # via
     #   hypothesis
     #   pytest
-coverage[toml]==6.4.1
+coverage[toml]==6.4.2
     # via
     #   -r requirements/tests.in
     #   pytest-cov
 exceptiongroup==1.0.0rc8
     # via hypothesis
-hypothesis==6.48.3
+hypothesis==6.54.1
     # via -r requirements/tests.in
 icdiff==2.0.5
     # via pytest-icdiff

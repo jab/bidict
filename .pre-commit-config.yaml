@@ -16,7 +16,7 @@ repos:
       - id: codespell
 
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v0.961
+    rev: v0.971
     hooks:
       - id: mypy
         exclude: setup.py|docs/conf.py|tests
@@ -28,7 +28,7 @@ repos:
         exclude: setup.py|docs/conf.py|tests
 
   - repo: https://github.com/pycqa/flake8
-    rev: 4.0.1
+    rev: 5.0.4
     hooks:
       - id: flake8
 
@@ -48,7 +48,7 @@ repos:
         exclude: setup.py|run_tests.py|docs/conf.py
 
   - repo: https://github.com/Lucas-C/pre-commit-hooks
-    rev: v1.2.0
+    rev: v1.3.0
     hooks:
       - id: forbid-crlf
       - id: remove-crlf

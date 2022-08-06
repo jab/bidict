@@ -244,7 +244,7 @@ try these alternate links instead:
 
 .. [#fn-changelog] `<https://bidict.readthedocs.io/changelog.html>`__ | `<CHANGELOG.rst>`__
 
-.. [#fn-intro] | `<https://bidict.readthedocs.io/intro.html>`__ | `<docs/intro.rst>`__
+.. [#fn-intro] `<https://bidict.readthedocs.io/intro.html>`__ | `<docs/intro.rst>`__
 
 .. [#fn-contributing] `<https://bidict.readthedocs.io/contributors-guide.html>`__ | `<CONTRIBUTING.rst>`__
 

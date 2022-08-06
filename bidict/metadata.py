@@ -10,7 +10,7 @@
 __version__ = '0.22.1.dev0'
 __author__ = 'Joshua Bronson'
 __maintainer__ = 'Joshua Bronson'
-__copyright__ = 'Copyright 2009-2022 Joshua Bronson'
+__copyright__ = '© 2009-2022 Joshua Bronson'
 __email__ = 'jabronson@gmail.com'
 __description__ = 'The bidirectional mapping library for Python.'
 __keywords__ = 'dict dictionary mapping datastructure bimap bijection bijective ' \

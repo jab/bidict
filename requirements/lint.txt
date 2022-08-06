@@ -5,9 +5,9 @@
 #
 #    pip-compile-multi
 #
-astroid==2.11.6
+astroid==2.11.7
     # via pylint
-attrs==21.4.0
+attrs==22.1.0
     # via
     #   hypothesis
     #   pytest
@@ -15,15 +15,15 @@ cfgv==3.3.1
     # via pre-commit
 dill==0.3.5.1
     # via pylint
-distlib==0.3.4
+distlib==0.3.5
     # via virtualenv
 exceptiongroup==1.0.0rc8
     # via hypothesis
 filelock==3.7.1
     # via virtualenv
-hypothesis==6.48.3
+hypothesis==6.54.1
     # via -r requirements/lint.in
-identify==2.5.1
+identify==2.5.3
     # via pre-commit
 iniconfig==1.1.1
     # via pytest
@@ -45,22 +45,20 @@ platformdirs==2.5.2
     #   virtualenv
 pluggy==1.0.0
     # via pytest
-pre-commit==2.19.0
+pre-commit==2.20.0
     # via -r requirements/lint.in
 py==1.11.0
     # via pytest
-pylint==2.14.4
+pylint==2.14.5
     # via -r requirements/lint.in
 pyparsing==3.0.9
     # via packaging
-pyright==1.1.257
+pyright==1.1.265
     # via -r requirements/lint.in
 pytest==7.1.2
     # via -r requirements/lint.in
 pyyaml==6.0
     # via pre-commit
-six==1.16.0
-    # via virtualenv
 sortedcontainers==2.4.0
     # via hypothesis
 toml==0.10.2
@@ -69,9 +67,9 @@ tomli==2.0.1
     # via
     #   pylint
     #   pytest
-tomlkit==0.11.0
+tomlkit==0.11.1
     # via pylint
-virtualenv==20.15.1
+virtualenv==20.16.3
     # via pre-commit
 wrapt==1.14.1
     # via astroid

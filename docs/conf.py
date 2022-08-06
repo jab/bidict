@@ -68,7 +68,7 @@ master_doc = 'index'
 # General information about the project.
 project = 'bidict'
 author = bidict.__author__
-copyright = bidict.__copyright__
+copyright = bidict.__copyright__.lstrip('© ')
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -159,6 +159,10 @@ html_static_path = ['_static']
 # directly to the root of the documentation.
 #html_extra_path = []
 
+# https://docs.readthedocs.io/en/stable/guides/adding-custom-css.html#adding-custom-css-or-javascript-to-sphinx-documentation
+html_css_files = ['custom.css']
+html_js_files = ['custom.js']
+
 # If not '', a 'Last updated on:' timestamp is inserted at every page bottom,
 # using the given strftime format.
 html_last_updated_fmt = '%b %d, %Y'
@@ -240,8 +244,3 @@ not_cpython = sys.implementation.name != 'cpython'
 
 # https://sphinx-copybutton.readthedocs.io/en/latest/#strip-and-configure-input-prompts-for-code-cells
 copybutton_prompt_text = '>>> '
-
-
-def setup(app):
-    """https://docs.readthedocs.io/en/latest/guides/adding-custom-css.html#adding-custom-css-or-javascript-to-a-sphinx-project"""
-    app.add_js_file('custom.js')

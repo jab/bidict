@@ -1,4 +1,3 @@
 furo
 sphinx
-docutils==0.17.1  # TODO: remove this line once https://github.com/sphinx-doc/sphinx/issues/10531 is fixed
 sphinx-copybutton
