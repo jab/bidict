@@ -1,1 +1,1 @@
-aside.footnote>p{display:inline-block;margin-left:1rem;} // https://github.com/pradyunsg/furo/discussions/489
+div.citation > span { float:left; padding-right: 0.25rem; } // https://github.com/pradyunsg/furo/discussions/489#discussioncomment-3345304

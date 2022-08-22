@@ -19,9 +19,9 @@ distlib==0.3.5
     # via virtualenv
 exceptiongroup==1.0.0rc8
     # via hypothesis
-filelock==3.7.1
+filelock==3.8.0
     # via virtualenv
-hypothesis==6.54.1
+hypothesis==6.54.4
     # via -r requirements/lint.in
 identify==2.5.3
     # via pre-commit
@@ -53,7 +53,7 @@ pylint==2.14.5
     # via -r requirements/lint.in
 pyparsing==3.0.9
     # via packaging
-pyright==1.1.265
+pyright==1.1.267
     # via -r requirements/lint.in
 pytest==7.1.2
     # via -r requirements/lint.in
@@ -67,7 +67,7 @@ tomli==2.0.1
     # via
     #   pylint
     #   pytest
-tomlkit==0.11.1
+tomlkit==0.11.4
     # via pylint
 virtualenv==20.16.3
     # via pre-commit
