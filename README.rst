@@ -210,11 +210,12 @@ See the following for rationale and examples of companies
 supporting the open source projects they depend on
 in this manner:
 
-- `<https://www.onepercent.dev>`__
-- `<https://sethmlarson.dev/blog/people-in-your-software-supply-chain>`__
+- `<https://engineering.indeedblog.com/blog/2019/07/foss-fund-six-months-in/>`__
 - `<https://engineering.atspotify.com/2022/04/announcing-the-spotify-foss-fund/>`__
 - `<https://blog.sentry.io/2021/10/21/we-just-gave-154-999-dollars-and-89-cents-to-open-source-maintainers>`__
 
+.. - `<https://www.onepercent.dev>`__
+.. - `<https://sethmlarson.dev/blog/people-in-your-software-supply-chain>`__
 .. - `<https://www.cognitect.com/blog/supporting-open-source-developers>`__
 .. - `<https://vorpus.org/blog/the-unreasonable-effectiveness-of-investment-in-open-source-infrastructure/>`__
 
@@ -240,11 +241,11 @@ that can't render and link this documentation properly
 and are seeing broken links,
 try these alternate links instead:
 
-.. [#fn-learning] `<https://bidict.readthedocs.io/learning-from-bidict.html>`__ | `<docs/learning-from-bidict.rst>`__
+.. [#fn-intro] `<https://bidict.readthedocs.io/intro.html>`__ | `<docs/intro.rst>`__
 
 .. [#fn-changelog] `<https://bidict.readthedocs.io/changelog.html>`__ | `<CHANGELOG.rst>`__
 
-.. [#fn-intro] `<https://bidict.readthedocs.io/intro.html>`__ | `<docs/intro.rst>`__
+.. [#fn-learning] `<https://bidict.readthedocs.io/learning-from-bidict.html>`__ | `<docs/learning-from-bidict.rst>`__
 
 .. [#fn-contributing] `<https://bidict.readthedocs.io/contributors-guide.html>`__ | `<CONTRIBUTING.rst>`__
 
