@@ -22,7 +22,7 @@ exceptiongroup==1.0.0rc8
 filelock==3.8.0
     # via virtualenv
 hypothesis==6.54.4
-    # via -r requirements/lint.in
+    # via -r lint.in
 identify==2.5.3
     # via pre-commit
 iniconfig==1.1.1
@@ -46,17 +46,17 @@ platformdirs==2.5.2
 pluggy==1.0.0
     # via pytest
 pre-commit==2.20.0
-    # via -r requirements/lint.in
+    # via -r lint.in
 py==1.11.0
     # via pytest
 pylint==2.14.5
-    # via -r requirements/lint.in
+    # via -r lint.in
 pyparsing==3.0.9
     # via packaging
-pyright==1.1.267
-    # via -r requirements/lint.in
+pyright==1.1.269
+    # via -r lint.in
 pytest==7.1.2
-    # via -r requirements/lint.in
+    # via -r lint.in
 pyyaml==6.0
     # via pre-commit
 sortedcontainers==2.4.0
