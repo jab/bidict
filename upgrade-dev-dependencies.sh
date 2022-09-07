@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 # Copyright 2009-2022 Joshua Bronson. All rights reserved.
 #

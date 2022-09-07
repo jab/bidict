@@ -8,6 +8,7 @@
 .idea
 .mypy_cache
 .tox
+.devenv
 .venv
 .vscode/settings.json
 __pycache__
