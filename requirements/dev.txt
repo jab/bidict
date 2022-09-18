@@ -28,7 +28,7 @@ six==1.16.0
     # via tox
 toposort==1.7
     # via pip-compile-multi
-tox==3.25.1
+tox==3.26.0
     # via -r requirements/dev.in
 wheel==0.37.1
     # via pip-tools

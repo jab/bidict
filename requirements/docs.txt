@@ -11,19 +11,17 @@ babel==2.10.3
     # via sphinx
 beautifulsoup4==4.11.1
     # via furo
-certifi==2022.6.15
+certifi==2022.9.14
     # via requests
 charset-normalizer==2.1.1
     # via requests
 docutils==0.19
     # via sphinx
-furo==2022.6.21
+furo==2022.9.15
     # via -r requirements/docs.in
-idna==3.3
+idna==3.4
     # via requests
 imagesize==1.4.1
-    # via sphinx
-importlib-metadata==4.12.0
     # via sphinx
 jinja2==3.1.2
     # via sphinx
@@ -69,5 +67,3 @@ sphinxcontrib-serializinghtml==1.1.5
     # via sphinx
 urllib3==1.26.12
     # via requests
-zipp==3.8.1
-    # via importlib-metadata

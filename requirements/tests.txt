@@ -16,7 +16,7 @@ coverage[toml]==6.4.4
     #   pytest-cov
 exceptiongroup==1.0.0rc9
     # via hypothesis
-hypothesis==6.54.5
+hypothesis==6.54.6
     # via -r requirements/tests.in
 icdiff==2.0.5
     # via pytest-icdiff
