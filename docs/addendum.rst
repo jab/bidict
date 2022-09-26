@@ -221,6 +221,21 @@ See e.g. `these docs
 <https://doc.pypy.org/en/latest/cpython_differences.html>`__
 for more info (search the page for "nan").
 
+Simultaneous assignment
+^^^^^^^^^^^^^^^^^^^^^^^
+bidict :class:`~bidict.bidict` behaves differently than built-in dict with respect to simultaneous assignment. For example, for a built-in dict e.g. ``b = {1:1, 2:2}`` one can swap two values with ``b[1], b[2] = b[2], b[1]``, which results in ``b`` being equal to ``{1:2, 2:1}`` but if ``b = bidict({1:1, 2:2})`` then ``b[1], b[2] = b[2], b[1]`` results in a ``KeyAndValueDuplicationError: (1, 2)`` and to swap the values one must run:
+
+    >>> val2 = b.pop(2)
+    >>> b[1],b[2] = val2, b[1]
+
+This limitation is a direct consequence of the fact that the statement ``b[1], b[2] = b[2], b[1]`` is by definition equivalent to
+
+    >>> _temporary_internal_tuple = b[2], b[1]
+    >>> b[1] = _temporary_internal_tuple[0]
+    >>> b[2] = _temporary_internal_tuple[1]
+
+as described in https://docs.python.org/3/reference/simple_stmts.html docs.
+
 ----
 
 For more in this vein,
