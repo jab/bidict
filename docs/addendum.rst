@@ -221,6 +221,57 @@ See e.g. `these docs
 <https://doc.pypy.org/en/latest/cpython_differences.html>`__
 for more info (search the page for "nan").
 
+
+Simultaneous Assignment
+^^^^^^^^^^^^^^^^^^^^^^^
+
+:class:`~bidict.bidict`\s may behave differently
+from dicts with respect to so-called "simultaneous assignment".
+
+Consider the following:
+
+.. doctest::
+
+   >>> m = {'a': 'a', 'b': 'b'}
+   >>> m['a'], m['b'] = m['b'], m['a']  # swap two values
+   >>> m
+   {'a': 'b', 'b': 'a'}
+
+With a :class:`~bidict.bidict`,
+simultaneous assignment cannot be used
+to swap two values in this way:
+
+.. doctest::
+
+   >>> m = bidict({'a': 'a', 'b': 'b'})
+   >>> m['a'], m['b'] = m['b'], m['a']
+   Traceback (most recent call last):
+       ...
+   KeyAndValueDuplicationError: ('a', 'b')
+
+This is because "simultaneous" assignments like the above
+are `by definition <https://docs.python.org/3/reference/simple_stmts.html#assignment-statements>`__
+just syntax sugar for:
+
+.. code-block:: python
+
+   >>> # desugaring: m['a'], m['b'] = m['b'], m['a']
+   >>> tmp = (m['b'], m['a'])
+   >>> m['a'] = tmp[0]
+   >>> m['b'] = tmp[1]
+
+and so the intermediate ``m['a'] = tmp[0]`` assignment
+raises :class:`~bidict.KeyAndValueDuplicationError`
+before the second half of the swap assignment has a chance to run.
+
+For a working alternative, you can write:
+
+.. doctest::
+
+   >>> m.forceupdate({m['a']: m['b'], m['b']: m['a']})
+   >>> m
+   bidict({'a': 'b', 'b': 'a'})
+
 ----
 
 For more in this vein,
