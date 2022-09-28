@@ -4,20 +4,18 @@ Addendum
 Performance
 -----------
 
-:mod:`bidict` strives to be as performant as possible
-while being faithful to its purpose.
-The need for speed
-is balanced with the responsibility
-to protect users from shooting themselves in the foot.
+:mod:`bidict` is written to be as performant as possible
+without sacrificing other important goals,
+such as safety, portability, and maintainability.
 
-In general,
-accomplishing some task using :mod:`bidict`
-should have about the same performance
-as keeping two inverse dicts in sync manually.
-The test suite includes benchmarks for common workloads
-to catch any performance regressions.
+In general, using a :mod:`bidict` to maintain a bidirectional mapping
+should exhibit about the same performance as
+keeping two mutually-inverse one-directional mappings
+in sync manually.
+The test suite includes benchmarks so that bidict's performance
+can be continuously measured and improved.
 
-If you spot a case where :mod:`bidict`'s performance could be improved,
+If you spot an opportunity to improve :mod:`bidict`'s performance further,
 please don't hesitate to
 :doc:`file an issue or submit a pull request <contributors-guide>`.
 
