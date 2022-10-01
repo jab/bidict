@@ -11,13 +11,13 @@ babel==2.10.3
     # via sphinx
 beautifulsoup4==4.11.1
     # via furo
-certifi==2022.9.14
+certifi==2022.9.24
     # via requests
 charset-normalizer==2.1.1
     # via requests
 docutils==0.19
     # via sphinx
-furo==2022.9.15
+furo==2022.9.29
     # via -r requirements/docs.in
 idna==3.4
     # via requests
@@ -43,13 +43,13 @@ snowballstemmer==2.2.0
     # via sphinx
 soupsieve==2.3.2.post1
     # via beautifulsoup4
-sphinx==5.1.1
+sphinx==5.2.3
     # via
     #   -r requirements/docs.in
     #   furo
     #   sphinx-basic-ng
     #   sphinx-copybutton
-sphinx-basic-ng==0.0.1a12
+sphinx-basic-ng==1.0.0b1
     # via furo
 sphinx-copybutton==0.5.0
     # via -r requirements/docs.in
