@@ -33,6 +33,11 @@ repos:
     hooks:
       - id: flake8
 
+  - repo: https://github.com/dosisod/refurb
+    rev: v1.2.0
+    hooks:
+      - id: refurb
+
   # https://pre-commit.com/#repository-local-hooks
   - repo: local
     hooks:

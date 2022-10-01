@@ -58,6 +58,9 @@ from sys import version_info as _version_info
 if _version_info < (3, 7):  # pragma: no cover
     raise ImportError('Python 3.7+ is required.')
 
+
+from contextlib import suppress as _suppress
+
 from ._abc import BidirectionalMapping as BidirectionalMapping, MutableBidirectionalMapping as MutableBidirectionalMapping
 from ._base import BidictBase as BidictBase, GeneratedBidictInverse as GeneratedBidictInverse, BidictKeysView as BidictKeysView
 from ._bidict import MutableBidict as MutableBidict, bidict as bidict
@@ -87,10 +90,8 @@ OnDupAction = OD
 for _obj in tuple(locals().values()):  # pragma: no cover
     if not getattr(_obj, '__module__', '').startswith('bidict.'):
         continue
-    try:
+    with _suppress(AttributeError):
         _obj.__module__ = 'bidict'
-    except AttributeError:  # __module__ is read-only (as in namedtuples like `OnDup`)
-        pass
 
 
 #                             * Code review nav *

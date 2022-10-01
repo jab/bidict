@@ -11,11 +11,6 @@ Ref: https://github.com/pypa/sampleproject/blob/main/setup.py
 """
 
 import sys
-import types
-from os.path import abspath, dirname, join
-
-from setuptools import setup
-
 
 PY2_ERR = """
 This version of bidict does not support Python 2.
@@ -34,16 +29,17 @@ elif sys.version_info < (3, 7):
     sys.exit('Python < 3.7 is not supported by this version of bidict.')
 
 
-CWD = abspath(dirname(__file__))
+from pathlib import Path
+from types import SimpleNamespace
 
-with open(join(CWD, 'README.rst'), encoding='utf8') as f:
-    LONG_DESCRIPTION = f.read()
 
-# Get bidict's package metadata from ./bidict/metadata.py.
-metadata = {}
-with open(join(CWD, 'bidict', 'metadata.py'), encoding='utf8') as f:
-    exec(f.read(), metadata)
-metadata = types.SimpleNamespace(**metadata)
+cwd = Path(__file__).parent.resolve()
+long_description = (cwd / 'README.rst').read_text(encoding='utf8')
+metadata = SimpleNamespace()
+exec((cwd / 'bidict' / 'metadata.py').read_text(encoding='utf8'), metadata.__dict__)
+
+
+from setuptools import setup
 
 
 setup(
@@ -51,7 +47,7 @@ setup(
     author=metadata.__author__,
     author_email=metadata.__email__,
     description=metadata.__description__,
-    long_description=LONG_DESCRIPTION,
+    long_description=long_description,
     long_description_content_type='text/x-rst',
     keywords=metadata.__keywords__,
     url=metadata.__url__,
