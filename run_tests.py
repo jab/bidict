@@ -8,21 +8,18 @@
 
 """Run all tests."""
 
-import sys
-from functools import reduce
-from operator import or_
+from functools import partial
 
 from pytest import main as pytest_main
 from sphinx.cmd.build import main as sphinx_main
 
 
-TEST_FUNCS = [
+TEST_FUNCS = (
     pytest_main,
-
     # pytest's doctest support doesn't support Sphinx extensions
     # (see https://www.sphinx-doc.org/en/latest/usage/extensions/doctest.html)
-    # so †est the code in the Sphinx docs using Sphinx's own doctest support.
-    lambda: sphinx_main('-b doctest -d docs/_build/doctrees docs docs/_build/doctest'.split()),
-]
+    # so test the code in the Sphinx docs using Sphinx's own doctest support.
+    partial(sphinx_main, '-b doctest -d docs/_build/doctrees docs docs/_build/doctest'.split()),
+)
 
-sys.exit(reduce(or_, (f() for f in TEST_FUNCS)))
+raise SystemExit(sum(bool(f()) for f in TEST_FUNCS))
