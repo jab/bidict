@@ -6,9 +6,15 @@ repos:
       - id: end-of-file-fixer
       - id: mixed-line-ending
       - id: double-quote-string-fixer
-      # This stopped working so comment out for now (started applying to files that didn't need it):
-      # - id: fix-encoding-pragma
       - id: check-yaml
+
+  - repo: https://github.com/Lucas-C/pre-commit-hooks
+    rev: v1.3.1
+    hooks:
+      - id: forbid-crlf
+      - id: remove-crlf
+      - id: forbid-tabs
+      - id: remove-tabs
 
   - repo: https://github.com/codespell-project/codespell
     rev: v2.2.1
@@ -38,25 +44,17 @@ repos:
     hooks:
       - id: refurb
 
+  - repo: https://github.com/RobertCraigie/pyright-python
+    rev: v1.1.277
+    hooks:
+    - id: pyright
+
   # https://pre-commit.com/#repository-local-hooks
   - repo: local
     hooks:
-      - id: pyright
-        name: pyright
-        entry: pyright
-        language: node
-        types: [python]
       - id: pylint
         name: pylint
         entry: pylint
         language: system
         types: [python]
         exclude: setup.py|run_tests.py|docs/conf.py
-
-  - repo: https://github.com/Lucas-C/pre-commit-hooks
-    rev: v1.3.1
-    hooks:
-      - id: forbid-crlf
-      - id: remove-crlf
-      - id: forbid-tabs
-      - id: remove-tabs

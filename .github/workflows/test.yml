@@ -1,5 +1,6 @@
 name: Test
-"on":  # quotes ensure this is never parsed as `true`
+
+"on":
   schedule:
     - cron: "0 11 * * 5"
   push:
@@ -11,22 +12,24 @@ name: Test
     branches:
       - main
 jobs:
-  tests:
+  Test:
     name: ${{ matrix.pyversion }}
-    runs-on: ubuntu-latest  # Skip Mac and Windows as nothing in bidict varies by OS.
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
         include:
-          # https://github.com/actions/setup-python#available-versions-of-python
-          - {pyversion: '3.11.0-beta - 3.11.*',   tox: py311}
-          - {pyversion: '3.10',   tox: py310}
-          - {pyversion: '3.9',    tox: py39}
-          - {pyversion: '3.8',    tox: py38}
-          - {pyversion: '3.7',    tox: py37}
-          - {pyversion: pypy-3.9, tox: pypy39}
-          - {pyversion: pypy-3.8, tox: pypy38}
-          - {pyversion: pypy-3.7, tox: pypy37}
+          # https://github.com/actions/setup-python/blob/main/docs/advanced-usage.md#available-versions-of-python-and-pypy
+          - pyversion: '3.11'
+            enable_coverage: true
+          - pyversion: '3.10'
+          - pyversion: '3.9'
+          - pyversion: '3.8'
+          - pyversion: '3.7'
+            enable_coverage: true
+          - pyversion: pypy-3.9
+          - pyversion: pypy-3.8
+          - pyversion: pypy-3.7
     steps:
       - uses: actions/checkout@v3
       - uses: actions/setup-python@v3
@@ -34,19 +37,21 @@ jobs:
           python-version: ${{ matrix.pyversion }}
           cache: pip
           cache-dependency-path: requirements/tests.txt
-      - run: pip install -U pip && pip install -U setuptools wheel
+      - run: python -m pip install -U pip setuptools wheel tox
       - name: cache .hypothesis dir
         uses: actions/cache@v3
         with:
           path: .hypothesis
           key: hypothesis|${{ runner.os }}|${{ matrix.pyversion }}
-      - run: pip install tox
-      - run: tox -e ${{ matrix.tox }}
-      # https://github.com/codecov/codecov-action
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v2
-        # coverage only enabled for "py37" and "py310" envs in tox.ini
-        if: matrix.tox == 'py37' || matrix.tox == 'py310'
+      - name: Configure pytest to enable coverage
+        if: matrix.enable_coverage
+        run: |
+          echo PYTEST_ADDOPTS="${PYTEST_ADDOPTS} --cov=bidict --cov-config=.coveragerc --cov-report=xml" >> $GITHUB_ENV
+          echo TOX_TESTENV_PASSENV=PYTEST_ADDOPTS >> $GITHUB_ENV
+      - run: tox -e py
+      - name: Upload coverage to Codecov  # https://github.com/codecov/codecov-action
+        uses: codecov/codecov-action@v3
+        if: matrix.enable_coverage
         with:
           verbose: true
           fail_ci_if_error: false  # https://github.com/codecov/codecov-action/issues/557
