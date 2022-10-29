@@ -13,7 +13,7 @@ RUN if [ "${NODE_VERSION}" != "none" ]; then su vscode -c "umask 0002 && . /usr/
 # (Still easy to experiment with upgrades/new dependencies by installing them in --user scope,
 # and if you want to keep them, add them to the requirements file and rebuild the container.)
 COPY requirements/*.txt /tmp/bidict-requirements/
-RUN pip3 --disable-pip-version-check --no-cache-dir install -r /tmp/bidict-requirements/dev.txt \
+RUN pip3 --disable-pip-version-check install -U pip && pip3 --disable-pip-version-check --no-cache-dir install -r /tmp/bidict-requirements/dev.txt \
   && rm -rf /tmp/bidict-requirements
 
 # [Optional] Install additional OS packages.

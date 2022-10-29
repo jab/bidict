@@ -14,9 +14,11 @@ coverage[toml]==6.5.0
     # via
     #   -r requirements/tests.in
     #   pytest-cov
-exceptiongroup==1.0.0rc9
-    # via hypothesis
-hypothesis==6.55.0
+exceptiongroup==1.0.0
+    # via
+    #   hypothesis
+    #   pytest
+hypothesis==6.56.4
     # via -r requirements/tests.in
 icdiff==2.0.5
     # via pytest-icdiff
@@ -27,22 +29,20 @@ pluggy==1.0.0
 pprintpp==0.4.0
     # via pytest-icdiff
 py==1.11.0
-    # via
-    #   -r requirements/tests.in
-    #   pytest
-py-cpuinfo==8.0.0
+    # via -r requirements/tests.in
+py-cpuinfo==9.0.0
     # via pytest-benchmark
 pygal==3.0.0
     # via pytest-benchmark
 pygaljs==1.0.2
     # via pytest-benchmark
-pytest==7.1.3
+pytest==7.2.0
     # via
     #   -r requirements/tests.in
     #   pytest-benchmark
     #   pytest-cov
     #   pytest-icdiff
-pytest-benchmark[histogram]==3.4.1
+pytest-benchmark[histogram]==4.0.0
     # via -r requirements/tests.in
 pytest-cov==4.0.0
     # via -r requirements/tests.in
