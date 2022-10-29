@@ -2,7 +2,8 @@ name: Test
 
 "on":
   schedule:
-    - cron: "0 11 * * 5"
+    # Every Friday at noon
+    - cron: "0 12 * * 5"
   push:
     branches:
       - main
@@ -11,6 +12,7 @@ name: Test
   pull_request:
     branches:
       - main
+
 jobs:
   Test:
     name: ${{ matrix.pyversion }}
@@ -20,12 +22,12 @@ jobs:
       matrix:
         include:
           # https://github.com/actions/setup-python/blob/main/docs/advanced-usage.md#available-versions-of-python-and-pypy
-          - pyversion: '3.11'
+          - pyversion: "3.11"
             enable_coverage: true
-          - pyversion: '3.10'
-          - pyversion: '3.9'
-          - pyversion: '3.8'
-          - pyversion: '3.7'
+          - pyversion: "3.10"
+          - pyversion: "3.9"
+          - pyversion: "3.8"
+          - pyversion: "3.7"
             enable_coverage: true
           - pyversion: pypy-3.9
           - pyversion: pypy-3.8

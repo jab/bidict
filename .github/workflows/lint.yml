@@ -1,4 +1,5 @@
 name: Lint
+
 "on":
   push:
     branches:
@@ -8,6 +9,7 @@ name: Lint
   pull_request:
     branches:
       - main
+
 jobs:
   Lint:
     runs-on: ubuntu-latest
