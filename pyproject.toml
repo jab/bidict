@@ -1,11 +1,3 @@
 [build-system]
 requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
-
-# Move to dedicated config file if https://github.com/dosisod/refurb/issues/29 is fixed:
-[tool.refurb]
-ignore = [
-  # Don't pass an argument if it's the same as the default value.
-  # Can remove if https://github.com/dosisod/refurb/issues/30 is fixed:
-  120,
-]
