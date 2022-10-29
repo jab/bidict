@@ -2,7 +2,8 @@ name: Test
 
 "on":
   schedule:
-    - cron: "0 11 * * 5"
+    # Every Friday at noon
+    - cron: "0 12 * * 5"
   push:
     branches:
       - main
@@ -11,8 +12,9 @@ name: Test
   pull_request:
     branches:
       - main
+
 jobs:
-  Test:
+  _:
     name: ${{ matrix.pyversion }}
     runs-on: ubuntu-latest
     strategy:
@@ -20,26 +22,26 @@ jobs:
       matrix:
         include:
           # https://github.com/actions/setup-python/blob/main/docs/advanced-usage.md#available-versions-of-python-and-pypy
-          - pyversion: '3.11'
+          - pyversion: "3.11"
             enable_coverage: true
-          - pyversion: '3.10'
-          - pyversion: '3.9'
-          - pyversion: '3.8'
-          - pyversion: '3.7'
+          - pyversion: "3.10"
+          - pyversion: "3.9"
+          - pyversion: "3.8"
+          - pyversion: "3.7"
             enable_coverage: true
           - pyversion: pypy-3.9
           - pyversion: pypy-3.8
           - pyversion: pypy-3.7
     steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-python@v3
+      - uses: actions/checkout@v3.1.0
+      - uses: actions/setup-python@v4.3.0
         with:
           python-version: ${{ matrix.pyversion }}
           cache: pip
           cache-dependency-path: requirements/tests.txt
       - run: python -m pip install -U pip setuptools wheel tox
       - name: cache .hypothesis dir
-        uses: actions/cache@v3
+        uses: actions/cache@v3.0.11
         with:
           path: .hypothesis
           key: hypothesis|${{ runner.os }}|${{ matrix.pyversion }}
@@ -50,7 +52,7 @@ jobs:
           echo TOX_TESTENV_PASSENV=PYTEST_ADDOPTS >> $GITHUB_ENV
       - run: tox -e py
       - name: Upload coverage to Codecov  # https://github.com/codecov/codecov-action
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v3.1.1
         if: matrix.enable_coverage
         with:
           verbose: true

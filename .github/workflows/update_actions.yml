@@ -1,0 +1,19 @@
+# https://github.com/marketplace/actions/github-actions-version-updater
+
+name: Update GitHub Actions
+
+"on":
+  schedule:
+    # First day of each month at noon
+    - cron: "0 12 1 * *"
+
+jobs:
+  _:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3.1.0
+        with:
+          token: ${{ secrets.ACTIONS_VERSION_UPDATER_TOKEN }}
+      - uses: saadmk11/github-actions-version-updater@v0.7.1
+        with:
+          token: ${{ secrets.ACTIONS_VERSION_UPDATER_TOKEN }}
