@@ -46,7 +46,7 @@ repos:
         args: ["--config-file", ".refurb.toml"]
 
   - repo: https://github.com/RobertCraigie/pyright-python
-    rev: v1.1.277
+    rev: v1.1.278
     hooks:
     - id: pyright
 

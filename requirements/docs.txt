@@ -7,7 +7,7 @@
 #
 alabaster==0.7.12
     # via sphinx
-babel==2.10.3
+babel==2.11.0
     # via sphinx
 beautifulsoup4==4.11.1
     # via furo
@@ -35,7 +35,7 @@ pygments==2.13.0
     #   sphinx
 pyparsing==3.0.9
     # via packaging
-pytz==2022.5
+pytz==2022.6
     # via babel
 requests==2.28.1
     # via sphinx
