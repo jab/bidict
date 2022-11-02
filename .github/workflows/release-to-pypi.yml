@@ -6,7 +6,7 @@ name: Release to PyPI
       - "v[0-9]+.[0-9]+.[0-9]+"
 
 jobs:
-  _:
+  main:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3.1.0

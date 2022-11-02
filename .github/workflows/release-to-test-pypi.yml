@@ -1,4 +1,5 @@
 name: Release to Test PyPI
+
 "on":
   push:
     tags:
@@ -12,8 +13,9 @@ name: Release to Test PyPI
       #     git tag -d 0.21.3.rc1
       #     git push origin :0.21.3.rc1
       - "[0-9]+.[0-9]+.[0-9]+.rc[0-9]+"
+
 jobs:
-  _:
+  main:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3.1.0

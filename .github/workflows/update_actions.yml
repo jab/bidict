@@ -8,7 +8,7 @@ name: Update GitHub Actions
     - cron: "0 12 1 * *"
 
 jobs:
-  _:
+  main:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3.1.0

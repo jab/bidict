@@ -11,7 +11,7 @@ name: Lint
       - main
 
 jobs:
-  _:
+  main:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3.1.0

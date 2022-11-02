@@ -14,7 +14,7 @@ name: Test
       - main
 
 jobs:
-  _:
+  main:
     name: ${{ matrix.pyversion }}
     runs-on: ubuntu-latest
     strategy:
