@@ -17,10 +17,6 @@ dill==0.3.6
     # via pylint
 distlib==0.3.6
     # via virtualenv
-exceptiongroup==1.0.0
-    # via
-    #   hypothesis
-    #   pytest
 filelock==3.8.0
     # via virtualenv
 hypothesis==6.56.4
@@ -59,10 +55,6 @@ sortedcontainers==2.4.0
     # via hypothesis
 toml==0.10.2
     # via pre-commit
-tomli==2.0.1
-    # via
-    #   pylint
-    #   pytest
 tomlkit==0.11.6
     # via pylint
 virtualenv==20.16.6

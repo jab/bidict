@@ -14,10 +14,6 @@ coverage[toml]==6.5.0
     # via
     #   -r requirements/tests.in
     #   pytest-cov
-exceptiongroup==1.0.0
-    # via
-    #   hypothesis
-    #   pytest
 hypothesis==6.56.4
     # via -r requirements/tests.in
 icdiff==2.0.5
@@ -55,7 +51,3 @@ sortedcontainers==2.4.0
     #   -r requirements/tests.in
     #   hypothesis
     #   sortedcollections
-tomli==2.0.1
-    # via
-    #   coverage
-    #   pytest

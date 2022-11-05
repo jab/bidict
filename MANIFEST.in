@@ -1,22 +1,25 @@
-# Tip: pip install check-manifest && check-manifest -uv
+# Tip: pre-commit run check-manifest
 
 include LICENSE
 include *.py
+include *.md
 include *.rst
 include *.sh
+include *.json
 include *.yaml
 include *.yml
+include *.ini
 include .coveragerc
+include .flake8
 include .editorconfig
 include .pre-commit-config.yaml
 include .pylintrc
-include mypy.ini
+include .vscode/tasks.json
 include pyproject.toml
-include pytest.ini
-include tox.ini
 include docs/_static/custom.css
 include docs/_static/bidict-types-diagram.dot
 include bidict/py.typed
+recursive-include .devcontainer *
 recursive-include assets *.*
 recursive-include docs/_static *.*
 recursive-include docs *.py

@@ -10,7 +10,6 @@
 .tox
 .devenv
 .venv
-.vscode/settings.json
 __pycache__
 _build
 bidict.egg-info

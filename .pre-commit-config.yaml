@@ -40,15 +40,19 @@ repos:
       - id: flake8
 
   - repo: https://github.com/dosisod/refurb
-    rev: v1.4.0
+    rev: v1.5.0
     hooks:
       - id: refurb
-        args: ["--config-file", ".refurb.toml"]
 
   - repo: https://github.com/RobertCraigie/pyright-python
     rev: v1.1.278
     hooks:
-    - id: pyright
+      - id: pyright
+
+  - repo: https://github.com/mgedmin/check-manifest
+    rev: "0.48"
+    hooks:
+      - id: check-manifest
 
   # https://pre-commit.com/#repository-local-hooks
   - repo: local
