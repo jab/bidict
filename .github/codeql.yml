@@ -1,0 +1,9 @@
+query-filters:
+  - exclude:
+      id: py/missing-equals
+  - exclude:
+      id: py/conflicting-attributes
+  - exclude:
+      id: py/unused-import
+  - exclude:
+      id: py/import-and-import-from
