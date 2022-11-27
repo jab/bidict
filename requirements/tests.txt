@@ -14,7 +14,7 @@ coverage[toml]==6.5.0
     # via
     #   -r requirements/tests.in
     #   pytest-cov
-hypothesis==6.56.4
+hypothesis==6.59.0
     # via -r requirements/tests.in
 icdiff==2.0.5
     # via pytest-icdiff

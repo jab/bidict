@@ -51,7 +51,7 @@ sphinx==5.3.0
     #   sphinx-copybutton
 sphinx-basic-ng==1.0.0b1
     # via furo
-sphinx-copybutton==0.5.0
+sphinx-copybutton==0.5.1
     # via -r requirements/docs.in
 sphinxcontrib-applehelp==1.0.2
     # via sphinx
@@ -65,5 +65,5 @@ sphinxcontrib-qthelp==1.0.3
     # via sphinx
 sphinxcontrib-serializinghtml==1.1.5
     # via sphinx
-urllib3==1.26.12
+urllib3==1.26.13
     # via requests

@@ -5,7 +5,7 @@
 #
 #    pip-compile-multi
 #
-astroid==2.12.12
+astroid==2.12.13
     # via pylint
 attrs==22.1.0
     # via
@@ -19,9 +19,9 @@ distlib==0.3.6
     # via virtualenv
 filelock==3.8.0
     # via virtualenv
-hypothesis==6.56.4
+hypothesis==6.59.0
     # via -r requirements/lint.in
-identify==2.5.8
+identify==2.5.9
     # via pre-commit
 iniconfig==1.1.1
     # via pytest
@@ -35,7 +35,7 @@ nodeenv==1.7.0
     # via pre-commit
 packaging==21.3
     # via pytest
-platformdirs==2.5.2
+platformdirs==2.5.4
     # via
     #   pylint
     #   virtualenv
@@ -43,7 +43,7 @@ pluggy==1.0.0
     # via pytest
 pre-commit==2.20.0
     # via -r requirements/lint.in
-pylint==2.15.5
+pylint==2.15.7
     # via -r requirements/lint.in
 pyparsing==3.0.9
     # via packaging
@@ -57,7 +57,7 @@ toml==0.10.2
     # via pre-commit
 tomlkit==0.11.6
     # via pylint
-virtualenv==20.16.6
+virtualenv==20.17.0
     # via pre-commit
 wrapt==1.14.1
     # via astroid
