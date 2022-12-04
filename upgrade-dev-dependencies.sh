@@ -19,8 +19,8 @@ main() {
   fi
 
   local -r gitbranch=$(git branch --show-current)
-  if [ "$gitbranch" = "deps" ]; then
-    log "Already on branch 'deps'"
+  if [ "$gitbranch" = "deps" ] || [ "$gitbranch" = "dev" ]; then
+    log "Already on branch '$gitbranch'"
   elif [ "$gitbranch" = "main" ]; then
     git checkout -b deps main
   else

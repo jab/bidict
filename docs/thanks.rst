@@ -45,7 +45,6 @@ Projects
 - `Python <https://www.python.org>`__
 - `GitHub <https://github.com>`__
 - `Tidelift <https://tidelift.com>`__
-- `mypy <https://mypy.readthedocs.io>`__
 - `Pytest <https://docs.pytest.org>`__
 - `Hypothesis <https://hypothesis.readthedocs.io>`__
 - `Pytest-Benchmark <https://pytest-benchmark.readthedocs.io>`__
@@ -53,6 +52,9 @@ Projects
 - `Codecov <https://codecov.io>`__
 - `Sphinx <https://www.sphinx-doc.org>`__
 - `Readthedocs <https://readthedocs.org>`__
+- `mypy <https://mypy.readthedocs.io>`__
+- `pyright <https://github.com/microsoft/pyright>`__
+- `ruff <https://github.com/charliermarsh/ruff>`__
 - `Flake8 <https://flake8.pycqa.org>`__
 - `Pylint <https://www.pylint.org>`__
 - `pre-commit <https://pre-commit.com>`__

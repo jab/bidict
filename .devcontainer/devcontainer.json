@@ -1,3 +1,4 @@
+/* vim: set ft=json5: */
 // For format details, see https://aka.ms/devcontainer.json. For config options, see the README at:
 // https://github.com/microsoft/vscode-dev-containers/tree/v0.223.0/containers/python-3
 {
@@ -11,11 +12,11 @@
   // Set *default* container specific settings.json values on container create.
   "settings": {
     // Enable pylance's pyright integration (disabled by default):
-    "python.analysis.typeCheckingMode": "basic",
+    "python.analysis.typeCheckingMode": "strict",
     "python.defaultInterpreterPath": "/usr/local/bin/python",
     "python.linting.enabled": true,
     "python.linting.mypyEnabled": true,
-    "python.linting.pylintEnabled": true,
+    "python.linting.pylintEnabled": false,
     "python.formatting.autopep8Path": "/usr/local/py-utils/bin/autopep8",
     "python.formatting.blackPath": "/usr/local/py-utils/bin/black",
     "python.formatting.yapfPath": "/usr/local/py-utils/bin/yapf",
@@ -27,20 +28,22 @@
     "python.linting.pylintPath": "/usr/local/py-utils/bin/pylint",
     "python.testing.pytestEnabled": true,
     "esbonio.sphinx.confDir": "${workspaceFolder}/docs",
-    "restructuredtext.pythonRecommendation.disabled": true
+    "restructuredtext.pythonRecommendation.disabled": true,
+    "terminal.integrated.defaultProfile.linux": "fish",
   },
   // Add the IDs of extensions you want installed when the container is created.
   "extensions": [
-    "ms-python.python",
-    "ms-python.vscode-pylance",
-    "eamodio.gitlens",
     "EditorConfig.EditorConfig",
     "GitHub.vscode-pull-request-github",
+    "charliermarsh.ruff",
+    "eamodio.gitlens",
     "joaompinto.vscode-graphviz",
-    "mutantdino.resource-monitor",
     "lextudio.restructuredtext",
+    "ms-python.python",
+    "ms-python.vscode-pylance",
+    "mutantdino.resource-monitor",
     "tamasfe.even-better-toml",
-    "trond-snekvik.simple-rst"
+    "trond-snekvik.simple-rst",
   ],
   // Use 'forwardPorts' to make a list of ports inside the container available locally by default.
   // (Even without this, by default VS Code will notice when a process starts listening on an

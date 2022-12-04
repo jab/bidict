@@ -48,8 +48,8 @@ jobs:
       - name: Configure pytest to enable coverage
         if: matrix.enable_coverage
         run: |
-          echo PYTEST_ADDOPTS="${PYTEST_ADDOPTS} --cov=bidict --cov-config=.coveragerc --cov-report=xml" >> $GITHUB_ENV
-          echo TOX_TESTENV_PASSENV=PYTEST_ADDOPTS >> $GITHUB_ENV
+          echo PYTEST_ADDOPTS="${PYTEST_ADDOPTS} --cov=bidict --cov-config=.coveragerc --cov-report=xml" >> "${GITHUB_ENV}"
+          echo TOX_TESTENV_PASSENV=PYTEST_ADDOPTS >> "${GITHUB_ENV}"
       - run: tox -e py
       - name: Upload coverage to Codecov  # https://github.com/codecov/codecov-action
         uses: codecov/codecov-action@v3.1.1

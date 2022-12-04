@@ -4,62 +4,26 @@
 #
 #    pip-compile --allow-unsafe --extra=lint --output-file=dev-deps/lint.txt --resolver=backtracking pyproject.toml
 #
-astroid==2.12.13
-    # via pylint
-attrs==22.1.0
-    # via
-    #   hypothesis
-    #   pytest
 cfgv==3.3.1
     # via pre-commit
-dill==0.3.6
-    # via pylint
 distlib==0.3.6
     # via virtualenv
 filelock==3.8.0
     # via virtualenv
-hypothesis==6.59.0
-    # via bidict (pyproject.toml)
 identify==2.5.9
     # via pre-commit
-iniconfig==1.1.1
-    # via pytest
-isort==5.10.1
-    # via pylint
-lazy-object-proxy==1.8.0
-    # via astroid
-mccabe==0.7.0
-    # via pylint
 nodeenv==1.7.0
     # via pre-commit
-packaging==21.3
-    # via pytest
 platformdirs==2.5.4
-    # via
-    #   pylint
-    #   virtualenv
-pluggy==1.0.0
-    # via pytest
+    # via virtualenv
 pre-commit==2.20.0
-    # via bidict (pyproject.toml)
-pylint==2.15.7
-    # via bidict (pyproject.toml)
-pyparsing==3.0.9
-    # via packaging
-pytest==7.2.0
     # via bidict (pyproject.toml)
 pyyaml==6.0
     # via pre-commit
-sortedcontainers==2.4.0
-    # via hypothesis
 toml==0.10.2
     # via pre-commit
-tomlkit==0.11.6
-    # via pylint
 virtualenv==20.17.0
     # via pre-commit
-wrapt==1.14.1
-    # via astroid
 
 # The following packages are considered to be unsafe in a requirements file:
 setuptools==65.6.3

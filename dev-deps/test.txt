@@ -22,7 +22,7 @@ coverage[toml]==6.5.0
     #   pytest-cov
 docutils==0.19
     # via sphinx
-hypothesis==6.59.0
+hypothesis==6.60.0
     # via bidict (pyproject.toml)
 icdiff==2.0.5
     # via pytest-icdiff

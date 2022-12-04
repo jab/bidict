@@ -64,14 +64,21 @@ test = [
 ]
 lint = [
     "pre-commit",
-    # pre-commit would ideally be the only direct dependency needed for linting, but the
-    # pylint pre-commit hooks requires "repo: local", so it's included in lint dependencies:
-    "pylint",
-    # pylint runs against tests/*.py, which depend on pytest and hypothesis:
-    "pytest",
-    "hypothesis",
 ]
 dev = [
     "pip-tools",
     "tox",
 ]
+
+
+[tool.ruff]  # https://github.com/charliermarsh/ruff#configuration
+ignore = ["E501"]  # line too long
+fix = true
+
+[tool.ruff.per-file-ignores]
+"docs/conf.py" = ["E402"]  # import not at top of file
+# __init__.py collects functionality implemented in the rest of the package
+# for the sole purpose of exporting it under the `bidict` module namespace,
+# and does not understand mypy-style "import foo as foo" explicit re-exports,
+# so ignore F401 in this file ("imported but unused").
+"bidict/__init__.py" = ["F401"]
