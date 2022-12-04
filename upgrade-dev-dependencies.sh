@@ -9,13 +9,12 @@
 set -euo pipefail
 
 log() {
-  echo -e >&2 "$@"
+  >&2 echo -e "$@"
 }
 
 main() {
-  if ! type pre-commit || ! type pip-compile-multi; then
-    log "Error: pre-commit or pip-compile-multi not found." \
-      "\n       Hint: pip install -r requirements/dev.txt"
+  if ! type pre-commit || ! type pip-compile; then
+    log "Error: pre-commit or pip-compile not found."
     exit 1
   fi
 
@@ -29,8 +28,13 @@ main() {
     exit 1
   fi
 
-  pip-compile-multi
-  pip install -r requirements/dev.txt
+  # Not adding --generate-hashes due to https://github.com/jazzband/pip-tools/issues/1326
+  local -r pip_compile="pip-compile pyproject.toml --upgrade --resolver=backtracking --allow-unsafe"
+  ${pip_compile} --extra=test -o dev-deps/test.txt
+  ${pip_compile} --extra=docs -o dev-deps/docs.txt
+  ${pip_compile} --extra=lint -o dev-deps/lint.txt
+  ${pip_compile} --extra=dev -o dev-deps/dev.txt
+  pip install -U -r dev-deps/test.txt -r dev-deps/docs.txt -r dev-deps/lint.txt -r dev-deps/dev.txt
 
   pre-commit autoupdate
   pre-commit clean

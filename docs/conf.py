@@ -40,7 +40,6 @@ import bidict
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or custom ones.
 extensions = [
-    'sphinx_copybutton',
     'sphinx.ext.autodoc',
     'sphinx.ext.autosectionlabel',
     'sphinx.ext.coverage',
@@ -49,6 +48,12 @@ extensions = [
     'sphinx.ext.viewcode',
     'sphinx.ext.todo',
 ]
+try:
+    import sphinx_copybutton  # noqa: F401
+except ImportError:
+    pass
+else:
+    extensions.append('sphinx_copybutton')
 
 intersphinx_mapping = {'python': ('https://docs.python.org/3', None)}
 #todo_include_todos = True
@@ -67,8 +72,8 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'bidict'
-author = bidict.__author__
-copyright = bidict.__copyright__.lstrip('© ')
+author = bidict.metadata.__author__['name']
+copyright = bidict.metadata.__copyright__.lstrip('© ')
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the

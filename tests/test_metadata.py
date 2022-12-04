@@ -11,16 +11,11 @@ import bidict
 
 METADATA_ATTRS = """
 __author__
-__maintainer__
 __copyright__
-__email__
 __description__
-__keywords__
 __license__
-__status__
 __url__
 __version__
-__project_urls__
 """.split()
 
 

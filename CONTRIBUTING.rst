@@ -62,7 +62,7 @@ Making Changes
   (create a `virtualenv <http://virtualenv.pypa.io>`__ and)
   install the extra packages required for development
   if you haven't already:
-  ``pip install -r requirements/dev.txt``
+  ``pip install -r requirements/test.txt -r requirements/lint.txt -r requirements/docs.txt``
 
   We use `EditorConfig <https://editorconfig.org/>`__
   and `pre-commit <https://pre-commit.com/>`__

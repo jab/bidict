@@ -1,9 +1,7 @@
-.. Forward declarations for all the custom interpreted text roles that
-   Sphinx defines and that are used below. This helps Sphinx-unaware tools
-   (e.g. rst2html, PyPI's and GitHub's renderers, etc.).
 .. role:: doc
-
-.. Use :doc: rather than :ref: references below for better interop as well.
+.. (Forward declaration for the "doc" role that Sphinx defines for interop with renderers that
+   are often used to show this doc and that are unaware of Sphinx (GitHub.com, PyPI.org, etc.).
+   Use :doc: rather than :ref: here for better interop as well.)
 
 
 bidict

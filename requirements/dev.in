@@ -1,7 +1,0 @@
--r docs.in
--r tests.in
--r lint.in
-check-manifest
-pip-compile-multi
-pre-commit
-tox

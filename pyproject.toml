@@ -1,3 +1,77 @@
+[project]
+name = "bidict"
+dynamic = ["version"]
+description = "The bidirectional mapping library for Python."
+authors = [{name="Joshua Bronson", email="jabronson@gmail.com"}]
+license = {text="MPL 2.0"}
+dependencies = []
+requires-python = ">=3.7"
+readme = "README.rst"
+keywords = [
+    "bidict", "bimap", "bidirectional", "dict", "dictionary", "mapping", "collections",
+]
+classifiers = [
+    "License :: OSI Approved :: Mozilla Public License 2.0 (MPL 2.0)",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3 :: Only",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Programming Language :: Python :: Implementation :: PyPy",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Typing :: Typed",
+]
+
+[project.urls]
+Homepage = "https://bidict.readthedocs.io"
+Repository = "https://github.com/jab/bidict"
+Documentation = "https://bidict.readthedocs.io"
+Donate = "https://github.com/sponsors/jab"
+Changelog = "https://bidict.readthedocs.io/changelog.html"
+Chat = "https://gitter.im/jab/bidict"
+"Source Code" = "https://github.com/jab/bidict"
+"Issue Tracker" = "https://github.com/jab/bidict/issues"
+"Enterprise Support" = "https://bidict.readthedocs.io/#enterprise-support"
+
 [build-system]
-requires = ["setuptools"]
+requires = ["setuptools >= 40.9.0"]
 build-backend = "setuptools.build_meta"
+
+[tool.setuptools]
+packages = ["bidict"]
+
+[project.optional-dependencies]
+docs = [
+    "sphinx",
+    "sphinx-copybutton",
+    "furo",
+]
+test = [
+    "hypothesis",
+    "coverage",
+    "py",
+    "pytest",
+    "pytest-benchmark[histogram]",
+    "pytest-cov",
+    "pytest-icdiff",
+    "sortedcollections",
+    "sortedcontainers",
+    # run_tests.py depends on Sphinx to run doctests (see note in run_tests.py)
+    "sphinx",
+]
+lint = [
+    "pre-commit",
+    # pre-commit would ideally be the only direct dependency needed for linting, but the
+    # pylint pre-commit hooks requires "repo: local", so it's included in lint dependencies:
+    "pylint",
+    # pylint runs against tests/*.py, which depend on pytest and hypothesis:
+    "pytest",
+    "hypothesis",
+]
+dev = [
+    "pip-tools",
+    "tox",
+]

@@ -1,7 +1,0 @@
-pre-commit
-# pre-commit would ideally be the only direct dependency needed for linting, but the
-# pylint pre-commit hooks requires "repo: local", so we add it to our lint dependencies:
-pylint
-# pylint runs against tests/*.py which import pytest and hypothesis
-pytest
-hypothesis
