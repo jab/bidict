@@ -12,7 +12,7 @@ attrs==22.1.0
     #   pytest
 babel==2.11.0
     # via sphinx
-certifi==2022.9.24
+certifi==2022.12.7
     # via requests
 charset-normalizer==2.1.1
     # via requests
@@ -36,7 +36,7 @@ jinja2==3.1.2
     # via sphinx
 markupsafe==2.1.1
     # via jinja2
-packaging==21.3
+packaging==22.0
     # via
     #   pytest
     #   sphinx
@@ -54,8 +54,6 @@ pygaljs==1.0.2
     # via pytest-benchmark
 pygments==2.13.0
     # via sphinx
-pyparsing==3.0.9
-    # via packaging
 pytest==7.2.0
     # via
     #   bidict (pyproject.toml)

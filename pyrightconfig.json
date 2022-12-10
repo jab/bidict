@@ -1,14 +1,17 @@
+// vim: set ft=json5:
 {
   "include": [
     "bidict",
-  ],
-  "exclude": [
-    "docs",
-    "tests",
     "run_tests.py",
+    "tests",
   ],
-  "strict": [
-    "bidict",
-  ],
+  "typeCheckingMode": "strict",
+  // https://github.com/microsoft/pyright/blob/main/docs/configuration.md#diagnostic-rule-defaults
+  "reportGeneralTypeIssues": "warning",
+  "reportPrivateUsage": "warning",
+  "reportUnknownArgumentType": "warning",
+  "reportUnknownMemberType": "warning",
+  "reportUnknownVariableType": "warning",
+  "reportUnnecessaryIsInstance": "warning",
   "reportUnnecessaryTypeIgnoreComment": "warning",
 }

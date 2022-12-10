@@ -8,13 +8,13 @@ cfgv==3.3.1
     # via pre-commit
 distlib==0.3.6
     # via virtualenv
-filelock==3.8.0
+filelock==3.8.2
     # via virtualenv
 identify==2.5.9
     # via pre-commit
 nodeenv==1.7.0
     # via pre-commit
-platformdirs==2.5.4
+platformdirs==2.6.0
     # via virtualenv
 pre-commit==2.20.0
     # via bidict (pyproject.toml)
@@ -22,7 +22,7 @@ pyyaml==6.0
     # via pre-commit
 toml==0.10.2
     # via pre-commit
-virtualenv==20.17.0
+virtualenv==20.17.1
     # via pre-commit
 
 # The following packages are considered to be unsafe in a requirements file:

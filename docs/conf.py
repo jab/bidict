@@ -165,7 +165,7 @@ html_static_path = ['_static']
 #html_extra_path = []
 
 # https://docs.readthedocs.io/en/stable/guides/adding-custom-css.html#adding-custom-css-or-javascript-to-sphinx-documentation
-html_css_files = ['custom.css']
+# html_css_files = ['custom.css']
 html_js_files = ['custom.js']
 
 # If not '', a 'Last updated on:' timestamp is inserted at every page bottom,

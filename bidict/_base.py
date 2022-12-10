@@ -28,10 +28,6 @@ from ._iter import iteritems, inverted
 from ._typing import KT, VT, MISSING, OKT, OVT, IterItems, MapOrIterItems
 
 
-# Disable pyright strict diagnostics that are causing many false positives or are just not helpful in this file:
-# pyright: reportPrivateUsage=false, reportUnknownArgumentType=false, reportUnknownMemberType=false, reportUnknownVariableType=false, reportUnnecessaryIsInstance=false
-
-
 OldKV = t.Tuple[OKT[KT], OVT[VT]]
 DedupResult = t.Optional[OldKV[KT, VT]]
 Write = t.List[t.Callable[[], None]]
@@ -45,10 +41,6 @@ class BidictKeysView(t.KeysView[KT], t.ValuesView[KT]):
     the :class:`~collections.abc.ValuesView` result of calling *bi.values()*
     is also a :class:`~collections.abc.KeysView` of *bi.inverse*.
     """
-
-
-dict_keys: t.Type[t.KeysView[t.Any]] = type({}.keys())
-BidictKeysView.register(dict_keys)
 
 
 def get_arg(*args: MapOrIterItems[KT, VT]) -> MapOrIterItems[KT, VT]:
@@ -495,7 +487,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         # If other is a bidict, use its existing backing inverse mapping, otherwise
         # other could be a generator that's now exhausted, so invert self._fwdm on the fly.
         inv = other.inverse if isinstance(other, BidictBase) else inverted(self._fwdm)
-        self._invm.update(inv)  # pyright: ignore  # https://github.com/jab/bidict/pull/242#discussion_r824223403
+        self._invm.update(inv)
 
     #: Used for the copy protocol.
     #: *See also* the :mod:`copy` module

@@ -29,7 +29,7 @@ repos:
         args: ["--uri-ignore-words-list", "*"]  # https://github.com/codespell-project/codespell/issues/2473
 
   - repo: https://github.com/RobertCraigie/pyright-python
-    rev: v1.1.278
+    rev: v1.1.283
     hooks:
       - id: pyright
 
@@ -40,7 +40,7 @@ repos:
         exclude: setup.py|docs/conf.py|tests
 
   - repo: https://github.com/charliermarsh/ruff-pre-commit
-    rev: v0.0.156
+    rev: v0.0.172
     hooks:
       - id: ruff
 

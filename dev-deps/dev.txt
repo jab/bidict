@@ -6,35 +6,40 @@
 #
 build==0.9.0
     # via pip-tools
+cachetools==5.2.0
+    # via tox
+chardet==5.1.0
+    # via tox
 click==8.1.3
     # via pip-tools
+colorama==0.4.6
+    # via tox
 distlib==0.3.6
     # via virtualenv
-filelock==3.8.0
+filelock==3.8.2
     # via
     #   tox
     #   virtualenv
-packaging==21.3
+packaging==22.0
     # via
     #   build
+    #   pyproject-api
     #   tox
 pep517==0.13.0
     # via build
 pip-tools==6.11.0
     # via bidict (pyproject.toml)
-platformdirs==2.5.4
-    # via virtualenv
+platformdirs==2.6.0
+    # via
+    #   tox
+    #   virtualenv
 pluggy==1.0.0
     # via tox
-py==1.11.0
+pyproject-api==1.2.1
     # via tox
-pyparsing==3.0.9
-    # via packaging
-six==1.16.0
-    # via tox
-tox==3.27.1
+tox==4.0.5
     # via bidict (pyproject.toml)
-virtualenv==20.17.0
+virtualenv==20.17.1
     # via tox
 wheel==0.38.4
     # via pip-tools
