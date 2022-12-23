@@ -1,9 +1,9 @@
 // vim: set ft=json5:
 {
-  "include": [
-    "bidict",
-    "run_tests.py",
+  "exclude": [
+    "docs",
     "tests",
+    "run_tests.py",
   ],
   "typeCheckingMode": "strict",
   // https://github.com/microsoft/pyright/blob/main/docs/configuration.md#diagnostic-rule-defaults

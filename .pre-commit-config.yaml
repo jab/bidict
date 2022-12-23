@@ -5,7 +5,6 @@ repos:
       - id: trailing-whitespace
       - id: end-of-file-fixer
       - id: mixed-line-ending
-      - id: double-quote-string-fixer
       - id: check-toml
       - id: check-yaml
 
@@ -29,7 +28,7 @@ repos:
         args: ["--uri-ignore-words-list", "*"]  # https://github.com/codespell-project/codespell/issues/2473
 
   - repo: https://github.com/RobertCraigie/pyright-python
-    rev: v1.1.283
+    rev: v1.1.285
     hooks:
       - id: pyright
 
@@ -40,11 +39,6 @@ repos:
         exclude: setup.py|docs/conf.py|tests
 
   - repo: https://github.com/charliermarsh/ruff-pre-commit
-    rev: v0.0.172
+    rev: v0.0.192
     hooks:
       - id: ruff
-
-  - repo: https://github.com/dosisod/refurb
-    rev: v1.8.0
-    hooks:
-      - id: refurb

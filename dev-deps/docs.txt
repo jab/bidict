@@ -32,7 +32,7 @@ pygments==2.13.0
     # via
     #   furo
     #   sphinx
-pytz==2022.6
+pytz==2022.7
     # via babel
 requests==2.28.1
     # via sphinx

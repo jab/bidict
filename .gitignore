@@ -2,7 +2,7 @@
 .DS_Store
 .benchmarks
 .cache
-.coverage
+.coverage*
 .eggs
 .hypothesis
 .idea

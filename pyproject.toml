@@ -44,6 +44,8 @@ build-backend = "setuptools.build_meta"
 packages = ["bidict"]
 
 [project.optional-dependencies]
+# See dev-deps/*.txt for pip-compiled sets of these dependencies.
+lint = ["pre-commit"]
 docs = [
     "sphinx",
     "sphinx-copybutton",
@@ -51,23 +53,14 @@ docs = [
 ]
 test = [
     "hypothesis",
-    "coverage",
-    "py",
     "pytest",
     "pytest-benchmark[histogram]",
     "pytest-cov",
-    "pytest-icdiff",
+    "pytest-xdist",
     "sortedcollections",
     "sortedcontainers",
     # run_tests.py depends on Sphinx to run doctests (see note in run_tests.py)
     "sphinx",
-]
-lint = [
-    "pre-commit",
-]
-dev = [
-    "pip-tools",
-    "tox",
 ]
 
 

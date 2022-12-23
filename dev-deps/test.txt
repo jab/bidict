@@ -6,7 +6,7 @@
 #
 alabaster==0.7.12
     # via sphinx
-attrs==22.1.0
+attrs==22.2.0
     # via
     #   hypothesis
     #   pytest
@@ -16,16 +16,14 @@ certifi==2022.12.7
     # via requests
 charset-normalizer==2.1.1
     # via requests
-coverage[toml]==6.5.0
-    # via
-    #   bidict (pyproject.toml)
-    #   pytest-cov
+coverage[toml]==7.0.1
+    # via pytest-cov
 docutils==0.19
     # via sphinx
-hypothesis==6.60.0
+execnet==1.9.0
+    # via pytest-xdist
+hypothesis==6.61.0
     # via bidict (pyproject.toml)
-icdiff==2.0.5
-    # via pytest-icdiff
 idna==3.4
     # via requests
 imagesize==1.4.1
@@ -42,10 +40,6 @@ packaging==22.0
     #   sphinx
 pluggy==1.0.0
     # via pytest
-pprintpp==0.4.0
-    # via pytest-icdiff
-py==1.11.0
-    # via bidict (pyproject.toml)
 py-cpuinfo==9.0.0
     # via pytest-benchmark
 pygal==3.0.0
@@ -59,14 +53,14 @@ pytest==7.2.0
     #   bidict (pyproject.toml)
     #   pytest-benchmark
     #   pytest-cov
-    #   pytest-icdiff
+    #   pytest-xdist
 pytest-benchmark[histogram]==4.0.0
     # via bidict (pyproject.toml)
 pytest-cov==4.0.0
     # via bidict (pyproject.toml)
-pytest-icdiff==0.6
+pytest-xdist==3.1.0
     # via bidict (pyproject.toml)
-pytz==2022.6
+pytz==2022.7
     # via babel
 requests==2.28.1
     # via sphinx

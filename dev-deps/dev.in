@@ -1,0 +1,6 @@
+-r lint.txt
+-r docs.txt
+-r test.txt
+pip-tools
+pytest-icdiff
+tox
