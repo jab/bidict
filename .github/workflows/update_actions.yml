@@ -12,12 +12,12 @@ jobs:
   main:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3.1.0
+      - uses: actions/checkout@755da8c3cf115ac066823e79a1e1788f8940201b
         with:
           token: ${{ secrets.ACTIONS_VERSION_UPDATER_TOKEN }}
       # https://github.com/saadmk11/github-actions-version-updater/issues/49#issuecomment-1356182123
       # - uses: saadmk11/github-actions-version-updater@v0.7.1
-      - uses: saadmk11/github-actions-version-updater@safe-dir
+      - uses: saadmk11/github-actions-version-updater@66922a38bf9dfb2afa06dee9592da2d8a158ceec
         with:
           token: ${{ secrets.ACTIONS_VERSION_UPDATER_TOKEN }}
           update_version_with: release-commit-sha
