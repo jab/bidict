@@ -21,3 +21,7 @@ jobs:
         with:
           token: ${{ secrets.ACTIONS_VERSION_UPDATER_TOKEN }}
           update_version_with: release-commit-sha
+
+permissions:
+  contents: read
+  pull-requests: write
