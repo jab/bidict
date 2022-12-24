@@ -14,9 +14,7 @@ let's look at some other bidirectional mapping types.
 Bidict Types Diagram
 --------------------
 
-.. image:: _static/bidict-types-diagram.png
-   :target: _static/bidict-types-diagram.png
-   :alt: bidict types diagram
+.. graphviz:: _static/bidict-types-diagram.dot
 
 All bidirectional mapping types that :mod:`bidict` provides
 are subclasses of :class:`bidict.BidirectionalMapping`.

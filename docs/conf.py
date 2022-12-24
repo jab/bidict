@@ -42,11 +42,12 @@ import bidict
 extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.autosectionlabel',
-    'sphinx.ext.coverage',
+    # 'sphinx.ext.coverage',
+    'sphinx.ext.graphviz',
     'sphinx.ext.doctest',
     'sphinx.ext.intersphinx',
     'sphinx.ext.viewcode',
-    'sphinx.ext.todo',
+    # 'sphinx.ext.todo',
 ]
 try:
     import sphinx_copybutton  # noqa: F401

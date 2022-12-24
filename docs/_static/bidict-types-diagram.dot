@@ -20,15 +20,15 @@ digraph G {
     MutableMapping -> Mapping
     { rank=same Mapping MutableMapping Hashable }
 
-    BidirectionalMapping [label="bidict._abc.BidirectionalMapping", style="filled, bold", fontcolor="black", fontname="OperatorMono Nerd Font Book Italic"]
-    MutableBidirectionalMapping [label="bidict._abc.MutableBidirectionalMapping", style="filled, bold", fontcolor="black", fontname="OperatorMono Nerd Font Book Italic"]
+    BidirectionalMapping [label="bidict._abc.BidirectionalMapping", style="filled", fontcolor="black", fontname="OperatorMono Nerd Font Book Italic"]
+    MutableBidirectionalMapping [label="bidict._abc.MutableBidirectionalMapping", style="filled", fontcolor="black", fontname="OperatorMono Nerd Font Book Italic"]
     BidirectionalMapping -> Mapping
     MutableBidirectionalMapping -> BidirectionalMapping
     MutableBidirectionalMapping -> MutableMapping
   }
 
   subgraph {
-    node [style="bold", fontname="OperatorMono Nerd Font Book"]
+    node [fontname="OperatorMono Nerd Font Book"]
 
     bidict [label="bidict.bidict"]
     frozenbidict [label="bidict.frozenbidict"]
