@@ -13,6 +13,9 @@ name: Test
     branches:
       - main
 
+env:
+  FORCE_COLOR: "1"
+
 jobs:
   main:
     name: ${{ matrix.pyversion }}
