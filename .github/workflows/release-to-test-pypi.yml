@@ -1,6 +1,7 @@
 name: Release to Test PyPI
 
 "on":
+  workflow_dispatch:
   push:
     tags:
       # To publish a test release to test.pypi.org,

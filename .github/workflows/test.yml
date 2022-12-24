@@ -1,6 +1,7 @@
 name: Test
 
 "on":
+  workflow_dispatch:
   schedule:
     # Every Friday at noon
     - cron: "0 12 * * 5"
