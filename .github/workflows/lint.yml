@@ -15,13 +15,13 @@ jobs:
   main:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3.1.0
-      - uses: actions/setup-python@v4.3.0
+      - uses: actions/checkout@755da8c3cf115ac066823e79a1e1788f8940201b
+      - uses: actions/setup-python@5ccb29d8773c3f3f653e1705f474dfaa8a06a912
         with:
           python-version: '3.11'
       - run: python -m pip install -U pip setuptools wheel
       - name: install dependencies
         run: pip install -r dev-deps/lint.txt
-      - uses: pre-commit/action@v3.0.0
+      - uses: pre-commit/action@646c83fcd040023954eafda54b4db0192ce70507
         with:
           extra_args: --verbose

@@ -9,14 +9,14 @@ jobs:
   main:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3.1.0
-      - uses: actions/setup-python@v4.3.0
+      - uses: actions/checkout@755da8c3cf115ac066823e79a1e1788f8940201b
+      - uses: actions/setup-python@5ccb29d8773c3f3f653e1705f474dfaa8a06a912
         with:
           python-version: '3.11'
       - run: python -m pip install -U pip setuptools build
       - run: python -m build
       - name: Publish
-        uses: pypa/gh-action-pypi-publish@v1.6.1
+        uses: pypa/gh-action-pypi-publish@c7f29f7adef1a245bd91520e94867e5c6eedddcc
         with:
           user: __token__
           password: ${{ secrets.PYPI_API_TOKEN }}
