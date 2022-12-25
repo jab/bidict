@@ -122,7 +122,7 @@ for getting and setting keys by value:
 
 See `this code <https://github.com/jab/bidict/blob/356dbe3/bidict/_bidict.py#L25>`__
 for how this was implemented,
-and `#19 <https://github.com/jab/bidict/issues/19>`__ for why this was dropped.
+and :issue:`19` for why this was dropped.
 
 
 Property-based testing is indispensable

@@ -42,11 +42,12 @@ import bidict
 extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.autosectionlabel',
-    'sphinx.ext.coverage',
+    # 'sphinx.ext.coverage',
     'sphinx.ext.doctest',
+    'sphinx.ext.extlinks',
     'sphinx.ext.intersphinx',
     'sphinx.ext.viewcode',
-    'sphinx.ext.todo',
+    # 'sphinx.ext.todo',
 ]
 try:
     import sphinx_copybutton  # noqa: F401
@@ -220,6 +221,13 @@ html_show_copyright = True
 
 # Output file base name for HTML help builder.
 htmlhelp_basename = 'bidictdoc'
+
+
+# https://www.sphinx-doc.org/en/master/usage/extensions/extlinks.html
+extlinks = {
+    'issue': ('https://github.com/jab/bidict/issues/%s', '#%s')
+}
+
 
 # Ignore urls matching these regex strings when doing "make linkcheck"
 linkcheck_ignore = [

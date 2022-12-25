@@ -321,7 +321,7 @@ Remove APIs deprecated in the previous release:
   Fixes a bug introduced in 0.15.0
   that caused any class with an ``inverse`` attribute
   to be incorrectly considered a subclass of :class:`collections.abc.Mapping`.
-  `#111 <https://github.com/jab/bidict/issues/111>`__
+  :issue:`111`
 
 
 0.19.0 (2020-01-09)
@@ -440,7 +440,7 @@ Remove APIs deprecated in the previous release:
   :func:`deepcopied <copy.deepcopy>` and
   :func:`unpickled <pickle.loads>`
   bidicts to have their inverses set incorrectly.
-  `#94 <https://github.com/jab/bidict/issues/94>`__
+  :issue:`94`
 
 
 0.18.0 (2019-02-14)
@@ -448,7 +448,7 @@ Remove APIs deprecated in the previous release:
 
 - Rename ``bidict.BidirectionalMapping.inv`` to :attr:`~bidict.BidirectionalMapping.inverse`
   and make :attr:`bidict.BidictBase.inv` an alias for :attr:`~bidict.BidictBase.inverse`.
-  `#86 <https://github.com/jab/bidict/issues/86>`__
+  :issue:`86`
 
 - :meth:`bidict.BidirectionalMapping.__subclasshook__` now requires an ``inverse`` attribute
   rather than an ``inv`` attribute for a class to qualify as a virtual subclass.
@@ -632,7 +632,7 @@ The following breaking changes are expected to affect few if any users.
   See the new
   :ref:`addendum:\`\`bidict\`\` Avoids Reference Cycles`
   documentation.
-  `#24 <https://github.com/jab/bidict/issues/20>`__
+  :issue:`24`
 
 - Make :func:`bidict.BidictBase.__eq__` significantly
   more speed- and memory-efficient when comparing to
@@ -763,7 +763,7 @@ The following breaking changes are expected to affect few if any users.
 - Fix a bug introduced in 0.14.0 for Python 2 users
   where attempting to call ``viewitems()``
   would cause a ``TypeError``.
-  `#48 <https://github.com/jab/bidict/issues/48>`__
+  :issue:`48`
 
 
 0.14.0 (2017-11-20)
@@ -1062,7 +1062,7 @@ This release includes multiple API simplifications and improvements.
   for use with the :mod:`copy` module.
 
 - Fix issue preventing a client class from inheriting from ``loosebidict``.
-  `#34 <https://github.com/jab/bidict/issues/34>`__
+  :issue:`34`
 
 - Add benchmarking to tests.
 
@@ -1138,7 +1138,7 @@ This release includes multiple API simplifications and improvements.
 - In the interest of protecting data safety more proactively, by default
   bidict now raises an error on attempting to insert a non-unique value,
   rather than allowing its associated key to be silently overwritten.
-  See discussion in `#21 <https://github.com/jab/bidict/issues/21>`__.
+  See discussion in :issue:`21`.
 
 - New :meth:`~bidict.bidict.forceupdate` method
   provides a bulk :meth:`~bidict.bidict.forceput` operation.
@@ -1152,30 +1152,30 @@ This release includes multiple API simplifications and improvements.
 
 - Remove ``bidict.__invert__``, and with it, support for the ``~b`` syntax.
   Use :attr:`~bidict.BidictBase.inv` instead.
-  `#19 <https://github.com/jab/bidict/issues/19>`__
+  :issue:`19`
 
 - Remove support for the slice syntax.
   Use ``b.inv[val]`` rather than ``b[:val]``.
-  `#19 <https://github.com/jab/bidict/issues/19>`__
+  :issue:`19`
 
 - Remove ``bidict.invert``.
   Use :attr:`~bidict.BidictBase.inv`
   rather than inverting a bidict in place.
-  `#20 <https://github.com/jab/bidict/issues/20>`__
+  :issue:`20`
 
 - Raise ``ValueExistsException``
   when attempting to insert a mapping with a non-unique key.
-  `#21 <https://github.com/jab/bidict/issues/21>`__
+  :issue:`21`
 
 - Rename ``collapsingbidict`` → ``loosebidict``
   now that it suppresses
   ``ValueExistsException``
   rather than the less general ``CollapseException``.
-  `#21 <https://github.com/jab/bidict/issues/21>`__
+  :issue:`21`
 
 - ``CollapseException`` has been subsumed by
   ``ValueExistsException``.
-  `#21 <https://github.com/jab/bidict/issues/21>`__
+  :issue:`21`
 
 - :meth:`~bidict.bidict.put` now raises ``KeyExistsException``
   when attempting to insert an already-existing
