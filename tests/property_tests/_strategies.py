@@ -8,15 +8,11 @@
 
 from collections import OrderedDict
 from operator import attrgetter, itemgetter, methodcaller
-from os import getenv
 
 import hypothesis.strategies as st
 from bidict import DROP_NEW, DROP_OLD, RAISE, OnDup, OrderedBidictBase, namedbidict
 
 from . import _types as t
-
-
-MAX = int(getenv('HYPOTHESIS_GEN_MAX_SIZE', '0')) or None
 
 
 def one_of(items):
@@ -47,21 +43,21 @@ PAIRS = st.tuples(ATOMS, ATOMS)
 NON_MAPPINGS = ATOMS | st.iterables(ATOMS)
 ALPHABET = tuple(chr(i) for i in range(0x10ffff) if chr(i).isidentifier())
 VALID_NAMES = st.text(ALPHABET, min_size=1, max_size=16)
-DICTS_KW_PAIRS = st.dictionaries(VALID_NAMES, ATOMS, max_size=MAX)
-L_PAIRS = st.lists(PAIRS, max_size=MAX)
-I_PAIRS = st.iterables(PAIRS, max_size=MAX)
+DICTS_KW_PAIRS = st.dictionaries(VALID_NAMES, ATOMS)
+L_PAIRS = st.lists(PAIRS)
+I_PAIRS = st.iterables(PAIRS)
 FST_SND = (itemgetter(0), itemgetter(1))
-L_PAIRS_NODUP = st.lists(PAIRS, unique_by=FST_SND, max_size=MAX)
-I_PAIRS_NODUP = st.iterables(PAIRS, unique_by=FST_SND, max_size=MAX)
+L_PAIRS_NODUP = st.lists(PAIRS, unique_by=FST_SND)
+I_PAIRS_NODUP = st.iterables(PAIRS, unique_by=FST_SND)
 # Reserve a disjoint set of atoms as a source of values guaranteed not to have been
 # inserted into a test bidict already.
 DIFF_ATOMS = st.characters()
 DIFF_PAIRS = st.tuples(DIFF_ATOMS, DIFF_ATOMS)
-L_DIFF_PAIRS_NODUP = st.lists(DIFF_PAIRS, unique_by=FST_SND, min_size=1, max_size=MAX)
+L_DIFF_PAIRS_NODUP = st.lists(DIFF_PAIRS, unique_by=FST_SND, min_size=1)
 DIFF_ITEMS = st.tuples(L_PAIRS_NODUP, L_DIFF_PAIRS_NODUP)
 RANDOMS = st.randoms(use_true_random=False)
 SAME_ITEMS_DIFF_ORDER = st.tuples(
-    st.lists(PAIRS, unique_by=FST_SND, min_size=2, max_size=MAX), RANDOMS
+    st.lists(PAIRS, unique_by=FST_SND, min_size=2), RANDOMS
 ).map(
     lambda i: (i[0], i[1].sample(i[0], len(i[0])))  # (seq, shuffled seq)
 ).filter(lambda i: i[0] != i[1])
