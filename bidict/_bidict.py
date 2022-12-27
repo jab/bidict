@@ -14,6 +14,7 @@
 
 """Provide :class:`MutableBidict`."""
 
+from __future__ import annotations
 import typing as t
 
 from ._abc import MutableBidirectionalMapping
@@ -27,7 +28,7 @@ class MutableBidict(BidictBase[KT, VT], MutableBidirectionalMapping[KT, VT]):
 
     if t.TYPE_CHECKING:
         @property
-        def inverse(self) -> 'MutableBidict[VT, KT]': ...
+        def inverse(self) -> MutableBidict[VT, KT]: ...
 
     def _pop(self, key: KT) -> VT:
         val = self._fwdm.pop(key)
@@ -108,9 +109,9 @@ class MutableBidict(BidictBase[KT, VT], MutableBidirectionalMapping[KT, VT]):
     @t.overload
     def pop(self, __key: KT) -> VT: ...
     @t.overload
-    def pop(self, __key: KT, __default: DT = ...) -> t.Union[VT, DT]: ...
+    def pop(self, __key: KT, __default: DT = ...) -> VT | DT: ...
 
-    def pop(self, key: KT, default: ODT[DT] = MISSING) -> t.Union[VT, DT]:
+    def pop(self, key: KT, default: ODT[DT] = MISSING) -> VT | DT:
         """*x.pop(k[, d]) → v*
 
         Remove specified key and return the corresponding value.
@@ -124,7 +125,7 @@ class MutableBidict(BidictBase[KT, VT], MutableBidirectionalMapping[KT, VT]):
                 raise
             return default
 
-    def popitem(self) -> t.Tuple[KT, VT]:
+    def popitem(self) -> tuple[KT, VT]:
         """*x.popitem() → (k, v)*
 
         Remove and return some item as a (key, value) pair.
@@ -159,7 +160,7 @@ class MutableBidict(BidictBase[KT, VT], MutableBidirectionalMapping[KT, VT]):
         if args or kw:
             self._update(get_arg(*args), kw, on_dup=ON_DUP_DROP_OLD)
 
-    def __ior__(self, other: t.Mapping[KT, VT]) -> 'MutableBidict[KT, VT]':
+    def __ior__(self, other: t.Mapping[KT, VT]) -> MutableBidict[KT, VT]:
         """Return self|=other."""
         self.update(other)
         return self
@@ -188,7 +189,7 @@ class bidict(MutableBidict[KT, VT]):
 
     if t.TYPE_CHECKING:
         @property
-        def inverse(self) -> 'bidict[VT, KT]': ...
+        def inverse(self) -> bidict[VT, KT]: ...
 
 
 #                             * Code review nav *

@@ -13,6 +13,7 @@
 
 """Provide :class:`FrozenOrderedBidict`, an immutable, hashable, ordered bidict."""
 
+from __future__ import annotations
 import typing as t
 
 from ._frozenbidict import frozenbidict
@@ -40,7 +41,7 @@ class FrozenOrderedBidict(OrderedBidictBase[KT, VT]):
 
     if t.TYPE_CHECKING:
         @property
-        def inverse(self) -> 'FrozenOrderedBidict[VT, KT]': ...
+        def inverse(self) -> FrozenOrderedBidict[VT, KT]: ...
 
 
 #                             * Code review nav *

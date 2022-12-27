@@ -52,6 +52,7 @@ if you are reading this elsewhere.
 """
 
 # Use private aliases to not re-export these publicly (for Sphinx automodule with imported-members).
+from __future__ import annotations as _annotations
 from sys import version_info as _version_info
 
 

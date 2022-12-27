@@ -14,9 +14,10 @@
 
 """Provide :class:`OrderedBidictBase`."""
 
-import typing as t
+from __future__ import annotations
 from functools import partial
 from weakref import ref as weakref
+import typing as t
 
 from ._base import BidictBase, PreparedWrite
 from ._bidict import bidict
@@ -54,10 +55,10 @@ class Node:
     Referencing/dereferencing the weakref is handled automatically by :class:`WeakAttr`.
     """
 
-    prv: 'WeakAttr[Node, Node]' = WeakAttr(slot='_prv_weak')
+    prv: WeakAttr[Node, Node] = WeakAttr(slot='_prv_weak')
     __slots__ = ('_prv_weak', 'nxt', '__weakref__')
 
-    def __init__(self, prv: 'Node', nxt: 'Node') -> None:
+    def __init__(self, prv: Node, nxt: Node) -> None:
         self.prv = prv
         self.nxt = nxt
 
@@ -133,9 +134,9 @@ class OrderedBidictBase(BidictBase[KT, VT]):
 
     if t.TYPE_CHECKING:
         @property
-        def inverse(self) -> 'OrderedBidictBase[VT, KT]': ...
+        def inverse(self) -> OrderedBidictBase[VT, KT]: ...
 
-    def _make_inverse(self) -> 'OrderedBidictBase[VT, KT]':
+    def _make_inverse(self) -> OrderedBidictBase[VT, KT]:
         inv = t.cast(OrderedBidictBase[VT, KT], super()._make_inverse())
         inv._sntl = self._sntl
         inv._node_by_korv = self._node_by_korv
@@ -214,7 +215,7 @@ class OrderedBidictBase(BidictBase[KT, VT]):
         """Iterator over the contained keys in insertion order."""
         return self._iter(reverse=False)
 
-    def __reversed__(self: 'OrderedBidictBase[KT, VT]') -> t.Iterator[KT]:
+    def __reversed__(self) -> t.Iterator[KT]:
         """Iterator over the contained keys in reverse insertion order."""
         return self._iter(reverse=True)
 

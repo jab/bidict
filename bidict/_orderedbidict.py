@@ -14,6 +14,7 @@
 
 """Provide :class:`OrderedBidict`."""
 
+from __future__ import annotations
 from collections.abc import Set
 import typing as t
 
@@ -28,7 +29,7 @@ class OrderedBidict(OrderedBidictBase[KT, VT], MutableBidict[KT, VT]):
 
     if t.TYPE_CHECKING:
         @property
-        def inverse(self) -> 'OrderedBidict[VT, KT]': ...
+        def inverse(self) -> OrderedBidict[VT, KT]: ...
 
     def clear(self) -> None:
         """Remove all items."""
@@ -42,7 +43,7 @@ class OrderedBidict(OrderedBidictBase[KT, VT], MutableBidict[KT, VT]):
         self._dissoc_node(node)
         return val
 
-    def popitem(self, last: bool = True) -> t.Tuple[KT, VT]:
+    def popitem(self, last: bool = True) -> tuple[KT, VT]:
         """*b.popitem() → (k, v)*
 
         If *last* is true,
@@ -108,7 +109,7 @@ class _OrderedBidictKeysView(BidictKeysView[KT]):
 class _OrderedBidictItemsView(t.ItemsView[KT, VT]):
     _mapping: OrderedBidict[KT, VT]
 
-    def __reversed__(self) -> t.Iterator[t.Tuple[KT, VT]]:
+    def __reversed__(self) -> t.Iterator[tuple[KT, VT]]:
         ob = self._mapping
         for key in reversed(ob):
             yield key, ob[key]
@@ -118,7 +119,7 @@ class _OrderedBidictItemsView(t.ItemsView[KT, VT]):
 # to backing dicts for the methods they inherit from collections.abc.Set. (Cannot delegate
 # for __iter__ and __reversed__ since they are order-sensitive.) See also: https://bugs.python.org/issue46713
 def _override_set_methods_to_use_backing_dict(
-    cls: t.Union[t.Type[_OrderedBidictKeysView[KT]], t.Type[_OrderedBidictItemsView[KT, t.Any]]],
+    cls: t.Type[_OrderedBidictKeysView[KT]] | t.Type[_OrderedBidictItemsView[KT, t.Any]],
     viewname: str,
     _setmethodnames: t.Iterable[str] = (
         '__lt__', '__le__', '__gt__', '__ge__', '__eq__', '__ne__', '__sub__', '__rsub__',
@@ -126,7 +127,7 @@ def _override_set_methods_to_use_backing_dict(
     )
 ) -> None:
     def make_proxy_method(methodname: str) -> t.Any:
-        def method(self: t.Union[_OrderedBidictKeysView[KT], _OrderedBidictItemsView[KT, t.Any]], *args: t.Any) -> t.Any:
+        def method(self: _OrderedBidictKeysView[KT] | _OrderedBidictItemsView[KT, t.Any], *args: t.Any) -> t.Any:
             fwdm = self._mapping._fwdm
             if not isinstance(fwdm, dict):  # dict view speedup not available, fall back to Set's implementation.
                 return getattr(Set, methodname)(self, *args)

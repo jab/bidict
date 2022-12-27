@@ -7,6 +7,7 @@
 
 """Functions for iterating over items in a mapping."""
 
+from __future__ import annotations
 from operator import itemgetter
 import typing as t
 

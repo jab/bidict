@@ -13,6 +13,7 @@
 
 """Provide :class:`frozenbidict`, an immutable, hashable bidirectional mapping type."""
 
+from __future__ import annotations
 import typing as t
 
 from ._base import BidictBase
@@ -28,7 +29,7 @@ class frozenbidict(BidictBase[KT, VT]):
     # Ref: https://github.com/python/typing/issues/548#issuecomment-621571821
     if t.TYPE_CHECKING:
         @property
-        def inverse(self) -> 'frozenbidict[VT, KT]': ...
+        def inverse(self) -> frozenbidict[VT, KT]: ...
 
     def __hash__(self) -> int:
         """The hash of this bidict as determined by its items."""

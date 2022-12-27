@@ -6,8 +6,9 @@
 
 """Provide :func:`bidict.namedbidict`."""
 
-import typing as t
+from __future__ import annotations
 from sys import _getframe
+import typing as t
 
 from ._base import BidictBase
 from ._bidict import bidict
@@ -73,7 +74,7 @@ def namedbidict(
         valname = get_valname
 
         @classmethod
-        def _inv_cls_dict_diff(cls) -> t.Dict[str, t.Any]:
+        def _inv_cls_dict_diff(cls) -> dict[str, t.Any]:
             base_diff = super()._inv_cls_dict_diff()
             return {
                 **base_diff,
