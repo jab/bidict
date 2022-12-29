@@ -55,5 +55,4 @@ Projects
 - `mypy <https://mypy.readthedocs.io>`__
 - `ruff <https://github.com/charliermarsh/ruff>`__
 - `Flake8 <https://flake8.pycqa.org>`__
-- `Pylint <https://www.pylint.org>`__
 - `pre-commit <https://pre-commit.com>`__

@@ -488,7 +488,7 @@ def test_pickle_orderedbi_whose_order_disagrees_w_fwdm():
     """An OrderedBidict whose order does not match its _fwdm's should pickle with the correct order."""
     ob = OrderedBidict({0: 1, 2: 3})
     # First get ob._fwdm's order to disagree with ob's, and confirm:
-    ob.inverse[1] = 4  # pylint: disable=unsupported-assignment-operation
+    ob.inverse[1] = 4
     assert next(iter(ob.items())) == (4, 1)
     assert next(iter(ob.inverse.items())) == (1, 4)
     assert next(iter(ob._fwdm.items())) == (2, 3)
@@ -557,7 +557,7 @@ def test_deepcopy(bi):
 def test_iteritems_raises_on_too_many_args():
     """:func:`iteritems` should raise if given too many arguments."""
     with pytest.raises(TypeError):
-        iteritems('too', 'many', 'args')  # pylint: disable=too-many-function-args
+        iteritems('too', 'many', 'args')
 
 
 @given(st.I_PAIRS, st.DICTS_KW_PAIRS)
@@ -603,7 +603,6 @@ def test_views(bi, data):
     """Optimized view APIs should be equivalent to using the corresponding MappingViews from :mod:`collections.abc`."""
     for check, oracle in (bi.keys(), KeysView(bi)), (bi.values(), ValuesView(bi)), (bi.items(), ItemsView(bi)):
         # 0-arity methods: __len__, __iter__
-        # pylint: disable=unnecessary-dunder-call
         assert check.__len__() == oracle.__len__()
         assert list(check.__iter__()) == list(oracle.__iter__())
         # 1-arity methods: __contains__

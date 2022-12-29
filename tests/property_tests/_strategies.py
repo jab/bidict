@@ -112,7 +112,7 @@ OBI_AND_OMAP_FROM_SAME_ITEMS_DIFF_ORDER = st.tuples(
 
 _cmpdict = lambda i: (OrderedDict if isinstance(i, OrderedBidictBase) else dict)  # noqa: E731
 BI_AND_CMPDICT_FROM_SAME_ITEMS = L_PAIRS_NODUP.map(
-    lambda items: (lambda b: (b, _cmpdict(b)(items)))(_bidict_strat(BIDICT_TYPES, items))  # pylint: disable=unnecessary-direct-lambda-call
+    lambda items: (lambda b: (b, _cmpdict(b)(items)))(_bidict_strat(BIDICT_TYPES, items))
 )
 
 ARGS_ATOM = st.tuples(ATOMS)

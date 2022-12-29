@@ -120,7 +120,7 @@ def test_abstract_bimap_init_fails():
     """Instantiating `AbstractBimap` should fail with expected TypeError."""
     excmatch = r"Can't instantiate abstract class AbstractBimap with abstract methods .* inverse"
     with pytest.raises(TypeError, match=excmatch):
-        AbstractBimap()  # pylint: disable=abstract-class-instantiated
+        AbstractBimap()
 
 
 def test_bimap_inverse_notimplemented():
