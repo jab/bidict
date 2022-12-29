@@ -21,8 +21,9 @@ KT = t.TypeVar('KT')
 VT = t.TypeVar('VT')
 
 
-IterItems: TypeAlias = 't.Iterable[tuple[KT, VT]]'
-MapOrIterItems: TypeAlias = 't.Mapping[KT, VT] | IterItems[KT, VT]'
+Items: TypeAlias = 't.Iterable[tuple[KT, VT]]'
+MapOrItems: TypeAlias = 't.Mapping[KT, VT] | Items[KT, VT]'
+ItemsIter: TypeAlias = 't.Iterator[tuple[KT, VT]]'
 
 
 class MissingT(Enum):

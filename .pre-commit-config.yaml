@@ -31,7 +31,9 @@ repos:
     rev: v0.991
     hooks:
       - id: mypy
-        exclude: setup.py|docs/conf.py|tests
+        additional_dependencies:
+          - hypothesis
+          - pytest
 
   - repo: https://github.com/charliermarsh/ruff-pre-commit
     rev: v0.0.192

@@ -22,4 +22,4 @@ TEST_FUNCS = (
     partial(sphinx_main, '-b doctest -d docs/_build/doctrees docs docs/_build/doctest'.split()),
 )
 
-raise SystemExit(sum(bool(f()) for f in TEST_FUNCS))
+raise SystemExit(sum(bool(f()) for f in TEST_FUNCS))  # type: ignore

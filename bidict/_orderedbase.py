@@ -22,7 +22,7 @@ import typing as t
 from ._base import BidictBase, PreparedWrite
 from ._bidict import bidict
 from ._iter import iteritems
-from ._typing import KT, VT, OKT, OVT, MISSING, IterItems, MapOrIterItems
+from ._typing import KT, VT, OKT, OVT, MISSING, Items, MapOrItems
 
 
 IT = t.TypeVar('IT')  # instance type
@@ -114,11 +114,11 @@ class OrderedBidictBase(BidictBase[KT, VT]):
     @t.overload
     def __init__(self, __m: t.Mapping[KT, VT], **kw: VT) -> None: ...
     @t.overload
-    def __init__(self, __i: IterItems[KT, VT], **kw: VT) -> None: ...
+    def __init__(self, __i: Items[KT, VT], **kw: VT) -> None: ...
     @t.overload
     def __init__(self, **kw: VT) -> None: ...
 
-    def __init__(self, *args: MapOrIterItems[KT, VT], **kw: VT) -> None:
+    def __init__(self, *args: MapOrItems[KT, VT], **kw: VT) -> None:
         """Make a new ordered bidirectional mapping.
         The signature behaves like that of :class:`dict`.
         Items passed in are added in the order they are passed,
@@ -151,7 +151,7 @@ class OrderedBidictBase(BidictBase[KT, VT]):
         del self._node_by_korv.inverse[node]
         node.unlink()
 
-    def _init_from(self, other: MapOrIterItems[KT, VT]) -> None:
+    def _init_from(self, other: MapOrItems[KT, VT]) -> None:
         """See :meth:`BidictBase._init_from`."""
         super()._init_from(other)
         bykey = self._bykey

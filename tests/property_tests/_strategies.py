@@ -6,31 +6,33 @@
 
 """Strategies for Hypothesis tests."""
 
+from __future__ import annotations
 from collections import OrderedDict
 from operator import attrgetter, itemgetter, methodcaller
+import typing as t
 
 import hypothesis.strategies as st
 from bidict import DROP_NEW, DROP_OLD, RAISE, OnDup, OrderedBidictBase, namedbidict
 
-from . import _types as t
+from . import _types as _t
 
 
-def one_of(items):
+def one_of(items: t.Any) -> t.Any:
     """Create a one_of strategy using the given items."""
-    return st.one_of((st.just(i) for i in items))
+    return st.one_of((st.just(i) for i in items))  # type: ignore [call-overload]
 
 
 DATA = st.data()
-BIDICT_TYPES = one_of(t.BIDICT_TYPES)
-MUTABLE_BIDICT_TYPES = one_of(t.MUTABLE_BIDICT_TYPES)
-FROZEN_BIDICT_TYPES = one_of(t.FROZEN_BIDICT_TYPES)
-ORDERED_BIDICT_TYPES = one_of(t.ORDERED_BIDICT_TYPES)
-REVERSIBLE_BIDICT_TYPES = one_of(t.REVERSIBLE_BIDICT_TYPES)
-MAPPING_TYPES = one_of(t.MAPPING_TYPES)
-NON_BI_MAPPING_TYPES = one_of(t.NON_BI_MAPPING_TYPES)
-NON_NAMED_BIDICT_TYPES = one_of(t.NON_NAMED_BIDICT_TYPES)
-ORDERED_MAPPING_TYPES = one_of(t.ORDERED_MAPPING_TYPES)
-HASHABLE_MAPPING_TYPES = one_of(t.HASHABLE_MAPPING_TYPES)
+BIDICT_TYPES = one_of(_t.BIDICT_TYPES)
+MUTABLE_BIDICT_TYPES = one_of(_t.MUTABLE_BIDICT_TYPES)
+FROZEN_BIDICT_TYPES = one_of(_t.FROZEN_BIDICT_TYPES)
+ORDERED_BIDICT_TYPES = one_of(_t.ORDERED_BIDICT_TYPES)
+REVERSIBLE_BIDICT_TYPES = one_of(_t.REVERSIBLE_BIDICT_TYPES)
+MAPPING_TYPES = one_of(_t.MAPPING_TYPES)
+NON_BI_MAPPING_TYPES = one_of(_t.NON_BI_MAPPING_TYPES)
+NON_NAMED_BIDICT_TYPES = one_of(_t.NON_NAMED_BIDICT_TYPES)
+ORDERED_MAPPING_TYPES = one_of(_t.ORDERED_MAPPING_TYPES)
+HASHABLE_MAPPING_TYPES = one_of(_t.HASHABLE_MAPPING_TYPES)
 ON_DUP_ACTIONS = one_of((DROP_NEW, DROP_OLD, RAISE))
 ON_DUP = st.tuples(ON_DUP_ACTIONS, ON_DUP_ACTIONS, ON_DUP_ACTIONS).map(OnDup._make)
 
@@ -63,8 +65,8 @@ SAME_ITEMS_DIFF_ORDER = st.tuples(
 ).filter(lambda i: i[0] != i[1])
 
 
-def _bidict_strat(bi_types, init_items=I_PAIRS_NODUP, _inv=attrgetter('inverse')):
-    fwd_bidicts = st.tuples(bi_types, init_items).map(lambda i: i[0](i[1]))
+def _bidict_strat(bi_types: t.Any, init_items: t.Any = I_PAIRS_NODUP, _inv: t.Any = attrgetter('inverse')) -> t.Any:
+    fwd_bidicts = st.tuples(bi_types, init_items).map(lambda i: i[0](i[1]))  # type: ignore
     inv_bidicts = fwd_bidicts.map(_inv)
     return fwd_bidicts | inv_bidicts
 
@@ -78,7 +80,7 @@ callkeys, callitems = methodcaller('keys'), methodcaller('items')
 KEYSVIEW_SET_OP_ARGS = st.sets(ATOMS) | st.dictionaries(ATOMS, ATOMS).map(callkeys) | BIDICTS.map(callkeys)
 ITEMSVIEW_SET_OP_ARGS = st.sets(PAIRS) | st.dictionaries(ATOMS, ATOMS).map(callitems) | BIDICTS.map(callitems)
 
-NON_BI_MAPPINGS = st.tuples(NON_BI_MAPPING_TYPES, L_PAIRS).map(lambda i: i[0](i[1]))
+NON_BI_MAPPINGS = st.tuples(NON_BI_MAPPING_TYPES, L_PAIRS).map(lambda i: i[0](i[1]))  # type: ignore
 
 
 NAMEDBIDICT_NAMES_ALL_VALID = st.lists(VALID_NAMES, min_size=3, max_size=3, unique=True)
@@ -91,7 +93,7 @@ NAMEDBIDICT_TYPES = st.tuples(NAMEDBIDICT_NAMES_ALL_VALID, NON_NAMED_BIDICT_TYPE
 NAMEDBIDICTS = _bidict_strat(NAMEDBIDICT_TYPES)
 
 
-def _bi_and_map(bi_types, map_types=MAPPING_TYPES, init_items=L_PAIRS_NODUP):
+def _bi_and_map(bi_types: t.Any, map_types: t.Any = MAPPING_TYPES, init_items: t.Any = L_PAIRS_NODUP) -> t.Any:
     """Given bidict types and mapping types, return a pair of each type created from init_items."""
     return st.tuples(bi_types, map_types, init_items).map(
         lambda i: (i[0](i[2]), i[1](i[2]))
@@ -110,7 +112,7 @@ OBI_AND_OMAP_FROM_SAME_ITEMS_DIFF_ORDER = st.tuples(
     ORDERED_BIDICT_TYPES, ORDERED_MAPPING_TYPES, SAME_ITEMS_DIFF_ORDER
 ).map(_unpack)
 
-_cmpdict = lambda i: (OrderedDict if isinstance(i, OrderedBidictBase) else dict)  # noqa: E731
+_cmpdict: t.Any = lambda i: (OrderedDict if isinstance(i, OrderedBidictBase) else dict)  # noqa: E731
 BI_AND_CMPDICT_FROM_SAME_ITEMS = L_PAIRS_NODUP.map(
     lambda items: (lambda b: (b, _cmpdict(b)(items)))(_bidict_strat(BIDICT_TYPES, items))
 )

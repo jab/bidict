@@ -6,6 +6,8 @@
 
 """Test bidict metadata."""
 
+from __future__ import annotations
+
 import bidict
 
 
@@ -19,7 +21,7 @@ __version__
 """.split()
 
 
-def test_metadata():
+def test_metadata() -> None:
     """Ensure bidict has expected metadata attributes."""
     for i in METADATA_ATTRS:
         assert getattr(bidict, i)

@@ -26,7 +26,7 @@ from ._abc import BidirectionalMapping
 from ._dup import ON_DUP_DEFAULT, RAISE, DROP_OLD, DROP_NEW, OnDup
 from ._exc import DuplicationError, KeyDuplicationError, ValueDuplicationError, KeyAndValueDuplicationError
 from ._iter import iteritems, inverted
-from ._typing import KT, VT, MISSING, OKT, OVT, IterItems, MapOrIterItems, TypeAlias
+from ._typing import KT, VT, MISSING, OKT, OVT, Items, MapOrItems, TypeAlias
 
 
 OldKV: TypeAlias = 'tuple[OKT[KT], OVT[VT]]'
@@ -44,7 +44,7 @@ class BidictKeysView(t.KeysView[KT], t.ValuesView[KT]):
     """
 
 
-def get_arg(*args: MapOrIterItems[KT, VT]) -> MapOrIterItems[KT, VT]:
+def get_arg(*args: MapOrItems[KT, VT]) -> MapOrItems[KT, VT]:
     """Ensure there's only a single arg in *args*, then return it."""
     if len(args) > 1:
         raise TypeError(f'Expected at most 1 positional argument, got {len(args)}')
@@ -142,9 +142,9 @@ class BidictBase(BidirectionalMapping[KT, VT]):
     @t.overload
     def __init__(self, __m: t.Mapping[KT, VT], **kw: VT) -> None: ...
     @t.overload
-    def __init__(self, __i: IterItems[KT, VT], **kw: VT) -> None: ...
+    def __init__(self, __i: Items[KT, VT], **kw: VT) -> None: ...
 
-    def __init__(self, *args: MapOrIterItems[KT, VT], **kw: VT) -> None:
+    def __init__(self, *args: MapOrItems[KT, VT], **kw: VT) -> None:
         """Make a new bidirectional mapping.
         The signature behaves like that of :class:`dict`.
         Items passed in are added in the order they are passed,
@@ -405,7 +405,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
 
     def _update(
         self,
-        arg: MapOrIterItems[KT, VT],
+        arg: MapOrItems[KT, VT],
         kw: t.Mapping[str, VT] = MappingProxyType({}),
         *,
         rbof: bool | None = None,
@@ -470,7 +470,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         return self._from_other(self.__class__, self)
 
     @staticmethod
-    def _from_other(bt: t.Type[BT], other: MapOrIterItems[KT, VT], inv: bool = False) -> BT:
+    def _from_other(bt: t.Type[BT], other: MapOrItems[KT, VT], inv: bool = False) -> BT:
         """Fast, private constructor based on :meth:`_init_from`.
 
         If *inv* is true, return the inverse of the instance instead of the instance itself.
@@ -480,7 +480,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         inst._init_from(other)
         return t.cast(BT, inst.inverse) if inv else inst
 
-    def _init_from(self, other: MapOrIterItems[KT, VT]) -> None:
+    def _init_from(self, other: MapOrItems[KT, VT]) -> None:
         """Fast init from *other*, bypassing item-by-item duplication checking."""
         self._fwdm.clear()
         self._invm.clear()

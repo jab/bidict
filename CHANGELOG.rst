@@ -27,6 +27,18 @@ please consider sponsoring bidict on GitHub.`
    Click the "Watch" dropdown, choose "Custom", and then choose "Releases".
 
 
+0.22.1 (2022-12-31)
+-------------------
+
+- Only include the source code in the source distribution.
+  This reduces the size of the source distribution
+  from ~200kB to ~30kB.
+
+- Fix the return type hint of :func:`bidict.inverted`
+  to return an :class:`~collections.abc.Iterator`,
+  rather than an :class:`~collections.abc.Iterable`.
+
+
 0.22.0 (2022-03-23)
 -------------------
 

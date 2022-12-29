@@ -6,10 +6,11 @@
 
 """Microbenchmarks."""
 
-import pickle
-import typing as t
+from __future__ import annotations
 from collections import deque
 from functools import partial
+import pickle
+import typing as t
 
 import pytest
 
@@ -54,25 +55,25 @@ for _i in LENS:
 
 
 @pytest.mark.parametrize('n', LENS)
-def test_bi_init_from_dict(n, benchmark):
+def test_bi_init_from_dict(n: int, benchmark: t.Any) -> None:
     """Benchmark initializing a new bidict from a dict."""
     other = DICTS_BY_LEN[n]
     benchmark(b.bidict, other)
 
 
 @pytest.mark.parametrize('n', LENS)
-def test_bi_init_from_bi(n, benchmark):
+def test_bi_init_from_bi(n: int, benchmark: t.Any) -> None:
     """Benchmark initializing a bidict from another bidict."""
     other = BIDICTS_BY_LEN[n]
     benchmark(b.bidict, other)
 
 
 @pytest.mark.parametrize('n', LENS)
-def test_bi_init_fail_worst_case(n, benchmark):
+def test_bi_init_fail_worst_case(n: int, benchmark: t.Any) -> None:
     """Benchmark initializing a bidict from a dict with a final duplicate value."""
     other = DICTS_BY_LEN_LAST_ITEM_DUPVAL[n]
 
-    def expect_failing_init():
+    def expect_failing_init() -> None:
         try:
             b.bidict(other)
         except b.DuplicationError:
@@ -84,21 +85,21 @@ def test_bi_init_fail_worst_case(n, benchmark):
 
 
 @pytest.mark.parametrize('n', LENS)
-def test_empty_bi_update_from_bi(n, benchmark):
+def test_empty_bi_update_from_bi(n: int, benchmark: t.Any) -> None:
     """Benchmark updating an empty bidict from another bidict."""
-    bi = b.bidict()
+    bi: b.bidict[int, int] = b.bidict()
     other = BIDICTS_BY_LEN[n]
     benchmark(bi.update, other)
     assert bi == other
 
 
 @pytest.mark.parametrize('n', LENS)
-def test_small_bi_large_update_fails_worst_case(n, benchmark):
+def test_small_bi_large_update_fails_worst_case(n: int, benchmark: t.Any) -> None:
     """Benchmark updating a small bidict with a large update that fails on the final item and then rolls back."""
     bi = b.bidict(zip(range(-9, 0), range(-9, 0)))
     other = DICTS_BY_LEN_LAST_ITEM_DUPVAL[n]
 
-    def apply_failing_update():
+    def apply_failing_update() -> None:
         try:
             bi.update(other)
         except b.DuplicationError:
@@ -111,21 +112,21 @@ def test_small_bi_large_update_fails_worst_case(n, benchmark):
 
 
 @pytest.mark.parametrize('n', LENS)
-def test_bi_iter(n, benchmark):
+def test_bi_iter(n: int, benchmark: t.Any) -> None:
     """Benchmark iterating over a bidict."""
     bi = BIDICTS_BY_LEN[n]
     benchmark(consume, iter(bi))
 
 
 @pytest.mark.parametrize('n', LENS)
-def test_orderedbi_iter(n, benchmark):
+def test_orderedbi_iter(n: int, benchmark: t.Any) -> None:
     """Benchmark iterating over an OrderedBidict."""
     ob = ORDERED_BIDICTS_BY_LEN[n]
     benchmark(consume, iter(ob))
 
 
 @pytest.mark.parametrize('n', LENS)
-def test_bi_contains_key_present(n, benchmark):
+def test_bi_contains_key_present(n: int, benchmark: t.Any) -> None:
     """Benchmark bidict.__contains__ with a contained key."""
     bi = BIDICTS_BY_LEN[n]
     key = next(iter(bi))
@@ -134,7 +135,7 @@ def test_bi_contains_key_present(n, benchmark):
 
 
 @pytest.mark.parametrize('n', LENS)
-def test_bi_contains_key_missing(n, benchmark):
+def test_bi_contains_key_missing(n: int, benchmark: t.Any) -> None:
     """Benchmark bidict.__contains__ with a missing key."""
     bi = BIDICTS_BY_LEN[n]
     result = benchmark(bi.__contains__, object())
@@ -142,7 +143,7 @@ def test_bi_contains_key_missing(n, benchmark):
 
 
 @pytest.mark.parametrize('n', LENS)
-def test_bi_equals_with_equal_dict(n, benchmark):
+def test_bi_equals_with_equal_dict(n: int, benchmark: t.Any) -> None:
     """Benchmark bidict.__eq__ with an equivalent dict."""
     bi, d = BIDICT_AND_DICT_LAST_TWO_ITEMS_DIFFERENT_ORDER[n]
     result = benchmark(bi.__eq__, d)
@@ -150,7 +151,7 @@ def test_bi_equals_with_equal_dict(n, benchmark):
 
 
 @pytest.mark.parametrize('n', LENS)
-def test_orderedbi_equals_with_equal_dict(n, benchmark):
+def test_orderedbi_equals_with_equal_dict(n: int, benchmark: t.Any) -> None:
     """Benchmark OrderedBidict.__eq__ with an equivalent dict."""
     ob, d = ORDERED_BIDICT_AND_DICT_LAST_TWO_ITEMS_DIFFERENT_ORDER[n]
     result = benchmark(ob.__eq__, d)
@@ -158,7 +159,7 @@ def test_orderedbi_equals_with_equal_dict(n, benchmark):
 
 
 @pytest.mark.parametrize('n', LENS)
-def test_orderedbi_items_equals_with_equal_dict_items(n, benchmark):
+def test_orderedbi_items_equals_with_equal_dict_items(n: int, benchmark: t.Any) -> None:
     """Benchmark OrderedBidict.items().__eq__ with an equivalent dict_items."""
     ob, d = ORDERED_BIDICT_AND_DICT_LAST_TWO_ITEMS_DIFFERENT_ORDER[n]
     obi, di = ob.items(), d.items()
@@ -167,7 +168,7 @@ def test_orderedbi_items_equals_with_equal_dict_items(n, benchmark):
 
 
 @pytest.mark.parametrize('n', LENS)
-def test_orderedbi_items_equals_with_unequal_dict_items(n, benchmark):
+def test_orderedbi_items_equals_with_unequal_dict_items(n: int, benchmark: t.Any) -> None:
     """Benchmark OrderedBidict.items().__eq__ with an unequal dict_items."""
     ob, d = ORDERED_BIDICT_AND_DICT_ONLY_LAST_ITEM_DIFFERENT[n]
     obi, di = ob.items(), d.items()
@@ -176,7 +177,7 @@ def test_orderedbi_items_equals_with_unequal_dict_items(n, benchmark):
 
 
 @pytest.mark.parametrize('n', LENS)
-def test_bi_equals_with_unequal_dict(n, benchmark):
+def test_bi_equals_with_unequal_dict(n: int, benchmark: t.Any) -> None:
     """Benchmark bidict.__eq__ with an unequal dict."""
     bi, d = BIDICT_AND_DICT_ONLY_LAST_ITEM_DIFFERENT[n]
     result = benchmark(bi.__eq__, d)
@@ -184,7 +185,7 @@ def test_bi_equals_with_unequal_dict(n, benchmark):
 
 
 @pytest.mark.parametrize('n', LENS)
-def test_orderedbi_equals_with_unequal_dict(n, benchmark):
+def test_orderedbi_equals_with_unequal_dict(n: int, benchmark: t.Any) -> None:
     """Benchmark OrderedBidict.__eq__ with an unequal dict."""
     ob, d = ORDERED_BIDICT_AND_DICT_ONLY_LAST_ITEM_DIFFERENT[n]
     result = benchmark(ob.__eq__, d)
@@ -192,7 +193,7 @@ def test_orderedbi_equals_with_unequal_dict(n, benchmark):
 
 
 @pytest.mark.parametrize('n', LENS)
-def test_bi_order_sensitive_equals_dict(n, benchmark):
+def test_bi_order_sensitive_equals_dict(n: int, benchmark: t.Any) -> None:
     """Benchmark bidict.equals_order_sensitive with an order-sensitive-equal dict."""
     bi, d = BIDICTS_BY_LEN[n], DICTS_BY_LEN[n]
     result = benchmark(bi.equals_order_sensitive, d)
@@ -200,7 +201,7 @@ def test_bi_order_sensitive_equals_dict(n, benchmark):
 
 
 @pytest.mark.parametrize('n', LENS)
-def test_orderedbi_order_sensitive_equals_dict(n, benchmark):
+def test_orderedbi_order_sensitive_equals_dict(n: int, benchmark: t.Any) -> None:
     """Benchmark OrderedBidict.equals_order_sensitive with an order-sensitive-equal dict."""
     ob, d = ORDERED_BIDICTS_BY_LEN[n], DICTS_BY_LEN[n]
     result = benchmark(ob.equals_order_sensitive, d)
@@ -208,7 +209,7 @@ def test_orderedbi_order_sensitive_equals_dict(n, benchmark):
 
 
 @pytest.mark.parametrize('n', LENS)
-def test_bi_equals_order_sensitive_with_unequal_dict(n, benchmark):
+def test_bi_equals_order_sensitive_with_unequal_dict(n: int, benchmark: t.Any) -> None:
     """Benchmark bidict.equals_order_sensitive with an order-sensitive-unequal dict."""
     bi, d = BIDICT_AND_DICT_LAST_TWO_ITEMS_DIFFERENT_ORDER[n]
     result = benchmark(bi.equals_order_sensitive, d)
@@ -216,7 +217,7 @@ def test_bi_equals_order_sensitive_with_unequal_dict(n, benchmark):
 
 
 @pytest.mark.parametrize('n', LENS)
-def test_orderedbi_equals_order_sensitive_with_unequal_dict(n, benchmark):
+def test_orderedbi_equals_order_sensitive_with_unequal_dict(n: int, benchmark: t.Any) -> None:
     """Benchmark OrderedBidict.equals_order_sensitive with an order-sensitive-unequal dict."""
     ob, d = ORDERED_BIDICT_AND_DICT_LAST_TWO_ITEMS_DIFFERENT_ORDER[n]
     result = benchmark(ob.equals_order_sensitive, d)
@@ -224,21 +225,21 @@ def test_orderedbi_equals_order_sensitive_with_unequal_dict(n, benchmark):
 
 
 @pytest.mark.parametrize('n', LENS)
-def test_copy(n, benchmark):
+def test_copy(n: int, benchmark: t.Any) -> None:
     """Benchmark creating a copy of a bidict."""
     bi = BIDICTS_BY_LEN[n]
     benchmark(bi.copy)
 
 
 @pytest.mark.parametrize('n', LENS)
-def test_pickle(n, benchmark):
+def test_pickle(n: int, benchmark: t.Any) -> None:
     """Benchmark pickling a bidict."""
     bi = BIDICTS_BY_LEN[n]
     benchmark(pickle.dumps, bi)
 
 
 @pytest.mark.parametrize('n', LENS)
-def test_unpickle(n, benchmark):
+def test_unpickle(n: int, benchmark: t.Any) -> None:
     """Benchmark unpickling a bidict."""
     bp = pickle.dumps(BIDICTS_BY_LEN[n])
     benchmark(pickle.loads, bp)
