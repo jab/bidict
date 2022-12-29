@@ -1,0 +1,10 @@
+// vim: set ft=json5
+{
+    "files.insertFinalNewline": true,
+    "files.trimFinalNewlines": true,
+    "files.trimTrailingWhitespace": true,
+    // Prefer mypy over Pyright:
+    "python.analysis.typeCheckingMode": "off",
+    "python.linting.mypyEnabled": true,
+    "python.testing.pytestEnabled": true,
+}

@@ -53,7 +53,6 @@ Projects
 - `Sphinx <https://www.sphinx-doc.org>`__
 - `Readthedocs <https://readthedocs.org>`__
 - `mypy <https://mypy.readthedocs.io>`__
-- `pyright <https://github.com/microsoft/pyright>`__
 - `ruff <https://github.com/charliermarsh/ruff>`__
 - `Flake8 <https://flake8.pycqa.org>`__
 - `Pylint <https://www.pylint.org>`__

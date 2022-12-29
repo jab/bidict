@@ -27,11 +27,6 @@ repos:
       - id: codespell
         args: ["--uri-ignore-words-list", "*"]  # https://github.com/codespell-project/codespell/issues/2473
 
-  - repo: https://github.com/RobertCraigie/pyright-python
-    rev: v1.1.285
-    hooks:
-      - id: pyright
-
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: v0.991
     hooks:

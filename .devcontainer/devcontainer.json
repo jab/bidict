@@ -9,14 +9,11 @@
     // ARGS set in ./Dockerfile can be overridden here:
     "args": {}
   },
-  // Set *default* container specific settings.json values on container create.
+  // Default, container-specific settings here are set on container create.
+  // Note: The project's .vscode/settings.json is still the right place
+  // for non-container-specific settings.
   "settings": {
-    // Enable pylance's pyright integration (disabled by default):
-    "python.analysis.typeCheckingMode": "strict",
     "python.defaultInterpreterPath": "/usr/local/bin/python",
-    "python.linting.enabled": true,
-    "python.linting.mypyEnabled": true,
-    "python.linting.pylintEnabled": false,
     "python.formatting.autopep8Path": "/usr/local/py-utils/bin/autopep8",
     "python.formatting.blackPath": "/usr/local/py-utils/bin/black",
     "python.formatting.yapfPath": "/usr/local/py-utils/bin/yapf",
@@ -26,10 +23,9 @@
     "python.linting.pycodestylePath": "/usr/local/py-utils/bin/pycodestyle",
     "python.linting.pydocstylePath": "/usr/local/py-utils/bin/pydocstyle",
     "python.linting.pylintPath": "/usr/local/py-utils/bin/pylint",
-    "python.testing.pytestEnabled": true,
     "esbonio.sphinx.confDir": "${workspaceFolder}/docs",
     "restructuredtext.pythonRecommendation.disabled": true,
-    "terminal.integrated.defaultProfile.linux": "fish",
+    "terminal.integrated.defaultProfile.linux": "fish"
   },
   // Add the IDs of extensions you want installed when the container is created.
   "extensions": [
@@ -43,7 +39,7 @@
     "ms-python.vscode-pylance",
     "mutantdino.resource-monitor",
     "tamasfe.even-better-toml",
-    "trond-snekvik.simple-rst",
+    "trond-snekvik.simple-rst"
   ],
   // Use 'forwardPorts' to make a list of ports inside the container available locally by default.
   // (Even without this, by default VS Code will notice when a process starts listening on an

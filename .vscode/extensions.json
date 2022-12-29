@@ -1,0 +1,11 @@
+// vim: set ft=json5
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=827846 to learn about workspace recommendations.
+    "recommendations": [
+      "charliermarsh.ruff",
+      // "tamasfe.even-better-toml",
+      // "lextudio.restructuredtext",
+      // "trond-snekvik.simple-rst",
+    ],
+    "unwantedRecommendations": [],
+}

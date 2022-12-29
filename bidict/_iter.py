@@ -16,7 +16,7 @@ from ._typing import KT, VT, IterItems, MapOrIterItems
 
 def iteritems_mapping_or_iterable(arg: MapOrIterItems[KT, VT]) -> IterItems[KT, VT]:
     """Yield the items in *arg* based on whether it's a mapping."""
-    yield from arg.items() if isinstance(arg, t.Mapping) else arg  # pyright: ignore
+    yield from arg.items() if isinstance(arg, t.Mapping) else arg
 
 
 def iteritems(__arg: MapOrIterItems[KT, VT], **kw: VT) -> IterItems[KT, VT]:
