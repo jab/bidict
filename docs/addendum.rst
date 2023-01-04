@@ -25,10 +25,6 @@ please don't hesitate to
 
 A careful reader might notice the following...
 
-.. testsetup::
-
-   from bidict import bidict
-
 .. doctest::
 
    >>> fwd = bidict(one=1)
@@ -245,7 +241,7 @@ to swap two values in this way:
    >>> m['a'], m['b'] = m['b'], m['a']
    Traceback (most recent call last):
        ...
-   KeyAndValueDuplicationError: ('a', 'b')
+   bidict.KeyAndValueDuplicationError: ('a', 'b')
 
 This is because "simultaneous" assignments like the above
 are `by definition <https://docs.python.org/3/reference/simple_stmts.html#assignment-statements>`__
@@ -253,10 +249,10 @@ just syntax sugar for:
 
 .. code-block:: python
 
-   >>> # desugaring: m['a'], m['b'] = m['b'], m['a']
-   >>> tmp = (m['b'], m['a'])
-   >>> m['a'] = tmp[0]
-   >>> m['b'] = tmp[1]
+   # desugaring: m['a'], m['b'] = m['b'], m['a']
+   tmp = (m['b'], m['a'])
+   m['a'] = tmp[0]
+   m['b'] = tmp[1]
 
 and so the intermediate ``m['a'] = tmp[0]`` assignment
 raises :class:`~bidict.KeyAndValueDuplicationError`

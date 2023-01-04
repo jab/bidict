@@ -36,7 +36,8 @@ main() {
   pip install -r dev-deps/dev.txt
 
   pre-commit autoupdate
-  pre-commit clean
+  git add .
+  pre-commit run --all-files
 
   log "Dev dependencies upgraded."
   log "Reminders:" \

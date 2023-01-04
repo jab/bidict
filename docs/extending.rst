@@ -134,12 +134,20 @@ If you drop your references to your objects,
 you can see that they get deallocated on CPython right away,
 since your *WeakrefBidict* isn't holding on to them:
 
-.. doctest::
-   :skipif: not_cpython
+.. Restore this test once https://github.com/thisch/pytest-sphinx/issues/9 is fixed:
+   # .. doctest::
+   #    :skipif: pypy
+   #
+   #    >>> del o1, o2
+   #    >>> id_by_obj
+   #    WeakrefBidict()
 
-   >>> del o1, o2
-   >>> id_by_obj
-   WeakrefBidict()
+   In the meantime, show (but don't actually run) this, since it fails under PyPY:
+
+.. code-block:: python
+
+   del o1, o2
+   id_by_obj  # ==> WeakrefBidict()
 
 
 ``SortedBidict`` Recipes

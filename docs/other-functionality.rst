@@ -29,10 +29,6 @@ Pass in a mapping to get the inverse mapping:
 which objects that already know their own inverses (such as bidicts)
 can implement themselves:
 
-.. testsetup::
-
-   from bidict import bidict, OrderedBidict
-
 .. doctest::
 
    >>> dict(inverted(bidict({1: 'one'})))

@@ -4,40 +4,20 @@
 #
 #    pip-compile --allow-unsafe --extra=test --output-file=dev-deps/test.txt --resolver=backtracking pyproject.toml
 #
-alabaster==0.7.12
-    # via sphinx
 attrs==22.2.0
     # via
     #   hypothesis
     #   pytest
-babel==2.11.0
-    # via sphinx
-certifi==2022.12.7
-    # via requests
-charset-normalizer==2.1.1
-    # via requests
-coverage[toml]==7.0.1
+coverage[toml]==7.0.3
     # via pytest-cov
-docutils==0.19
-    # via sphinx
 execnet==1.9.0
     # via pytest-xdist
 hypothesis==6.61.0
     # via bidict (pyproject.toml)
-idna==3.4
-    # via requests
-imagesize==1.4.1
-    # via sphinx
 iniconfig==1.1.1
     # via pytest
-jinja2==3.1.2
-    # via sphinx
-markupsafe==2.1.1
-    # via jinja2
 packaging==22.0
-    # via
-    #   pytest
-    #   sphinx
+    # via pytest
 pluggy==1.0.0
     # via pytest
 py-cpuinfo==9.0.0
@@ -46,26 +26,21 @@ pygal==3.0.0
     # via pytest-benchmark
 pygaljs==1.0.2
     # via pytest-benchmark
-pygments==2.13.0
-    # via sphinx
 pytest==7.2.0
     # via
     #   bidict (pyproject.toml)
     #   pytest-benchmark
     #   pytest-cov
+    #   pytest-sphinx
     #   pytest-xdist
 pytest-benchmark[histogram]==4.0.0
     # via bidict (pyproject.toml)
 pytest-cov==4.0.0
     # via bidict (pyproject.toml)
+pytest-sphinx==0.5.0
+    # via bidict (pyproject.toml)
 pytest-xdist==3.1.0
     # via bidict (pyproject.toml)
-pytz==2022.7
-    # via babel
-requests==2.28.1
-    # via sphinx
-snowballstemmer==2.2.0
-    # via sphinx
 sortedcollections==2.1.0
     # via bidict (pyproject.toml)
 sortedcontainers==2.4.0
@@ -73,19 +48,3 @@ sortedcontainers==2.4.0
     #   bidict (pyproject.toml)
     #   hypothesis
     #   sortedcollections
-sphinx==5.3.0
-    # via bidict (pyproject.toml)
-sphinxcontrib-applehelp==1.0.2
-    # via sphinx
-sphinxcontrib-devhelp==1.0.2
-    # via sphinx
-sphinxcontrib-htmlhelp==2.0.0
-    # via sphinx
-sphinxcontrib-jsmath==1.0.1
-    # via sphinx
-sphinxcontrib-qthelp==1.0.3
-    # via sphinx
-sphinxcontrib-serializinghtml==1.1.5
-    # via sphinx
-urllib3==1.26.13
-    # via requests

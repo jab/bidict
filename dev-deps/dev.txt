@@ -7,7 +7,6 @@
 alabaster==0.7.12
     # via
     #   -r dev-deps/docs.txt
-    #   -r dev-deps/test.txt
     #   sphinx
 attrs==22.2.0
     # via
@@ -17,7 +16,6 @@ attrs==22.2.0
 babel==2.11.0
     # via
     #   -r dev-deps/docs.txt
-    #   -r dev-deps/test.txt
     #   sphinx
 beautifulsoup4==4.11.1
     # via
@@ -30,7 +28,6 @@ cachetools==5.2.0
 certifi==2022.12.7
     # via
     #   -r dev-deps/docs.txt
-    #   -r dev-deps/test.txt
     #   requests
 cfgv==3.3.1
     # via
@@ -41,13 +38,14 @@ chardet==5.1.0
 charset-normalizer==2.1.1
     # via
     #   -r dev-deps/docs.txt
-    #   -r dev-deps/test.txt
     #   requests
 click==8.1.3
     # via pip-tools
 colorama==0.4.6
     # via tox
-coverage[toml]==7.0.1
+commonmark==0.9.1
+    # via rich
+coverage[toml]==7.0.3
     # via
     #   -r dev-deps/test.txt
     #   pytest-cov
@@ -58,13 +56,12 @@ distlib==0.3.6
 docutils==0.19
     # via
     #   -r dev-deps/docs.txt
-    #   -r dev-deps/test.txt
     #   sphinx
 execnet==1.9.0
     # via
     #   -r dev-deps/test.txt
     #   pytest-xdist
-filelock==3.8.2
+filelock==3.9.0
     # via
     #   -r dev-deps/lint.txt
     #   tox
@@ -75,19 +72,17 @@ hypothesis==6.61.0
     # via -r dev-deps/test.txt
 icdiff==2.0.6
     # via pytest-icdiff
-identify==2.5.11
+identify==2.5.12
     # via
     #   -r dev-deps/lint.txt
     #   pre-commit
 idna==3.4
     # via
     #   -r dev-deps/docs.txt
-    #   -r dev-deps/test.txt
     #   requests
 imagesize==1.4.1
     # via
     #   -r dev-deps/docs.txt
-    #   -r dev-deps/test.txt
     #   sphinx
 iniconfig==1.1.1
     # via
@@ -96,12 +91,10 @@ iniconfig==1.1.1
 jinja2==3.1.2
     # via
     #   -r dev-deps/docs.txt
-    #   -r dev-deps/test.txt
     #   sphinx
 markupsafe==2.1.1
     # via
     #   -r dev-deps/docs.txt
-    #   -r dev-deps/test.txt
     #   jinja2
 nodeenv==1.7.0
     # via
@@ -122,7 +115,7 @@ pip==22.3.1
     # via pip-tools
 pip-tools==6.12.1
     # via -r dev-deps/dev.in
-platformdirs==2.6.0
+platformdirs==2.6.2
     # via
     #   -r dev-deps/lint.txt
     #   tox
@@ -133,8 +126,10 @@ pluggy==1.0.0
     #   pytest
     #   tox
 pprintpp==0.4.0
-    # via pytest-icdiff
-pre-commit==2.20.0
+    # via
+    #   pytest-clarity
+    #   pytest-icdiff
+pre-commit==2.21.0
     # via -r dev-deps/lint.txt
 py-cpuinfo==9.0.0
     # via
@@ -148,33 +143,38 @@ pygaljs==1.0.2
     # via
     #   -r dev-deps/test.txt
     #   pytest-benchmark
-pygments==2.13.0
+pygments==2.14.0
     # via
     #   -r dev-deps/docs.txt
-    #   -r dev-deps/test.txt
     #   furo
+    #   rich
     #   sphinx
-pyproject-api==1.2.1
+pyproject-api==1.3.0
     # via tox
 pytest==7.2.0
     # via
     #   -r dev-deps/test.txt
     #   pytest-benchmark
+    #   pytest-clarity
     #   pytest-cov
     #   pytest-icdiff
+    #   pytest-sphinx
     #   pytest-xdist
 pytest-benchmark[histogram]==4.0.0
     # via -r dev-deps/test.txt
+pytest-clarity==1.0.1
+    # via -r dev-deps/dev.in
 pytest-cov==4.0.0
     # via -r dev-deps/test.txt
 pytest-icdiff==0.6
     # via -r dev-deps/dev.in
+pytest-sphinx==0.5.0
+    # via -r dev-deps/test.txt
 pytest-xdist==3.1.0
     # via -r dev-deps/test.txt
 pytz==2022.7
     # via
     #   -r dev-deps/docs.txt
-    #   -r dev-deps/test.txt
     #   babel
 pyyaml==6.0
     # via
@@ -183,8 +183,9 @@ pyyaml==6.0
 requests==2.28.1
     # via
     #   -r dev-deps/docs.txt
-    #   -r dev-deps/test.txt
     #   sphinx
+rich==13.0.0
+    # via pytest-clarity
 setuptools==65.6.3
     # via
     #   -r dev-deps/lint.txt
@@ -193,7 +194,6 @@ setuptools==65.6.3
 snowballstemmer==2.2.0
     # via
     #   -r dev-deps/docs.txt
-    #   -r dev-deps/test.txt
     #   sphinx
 sortedcollections==2.1.0
     # via -r dev-deps/test.txt
@@ -206,10 +206,9 @@ soupsieve==2.3.2.post1
     # via
     #   -r dev-deps/docs.txt
     #   beautifulsoup4
-sphinx==5.3.0
+sphinx==6.0.0
     # via
     #   -r dev-deps/docs.txt
-    #   -r dev-deps/test.txt
     #   furo
     #   sphinx-basic-ng
     #   sphinx-copybutton
@@ -222,43 +221,32 @@ sphinx-copybutton==0.5.1
 sphinxcontrib-applehelp==1.0.2
     # via
     #   -r dev-deps/docs.txt
-    #   -r dev-deps/test.txt
     #   sphinx
 sphinxcontrib-devhelp==1.0.2
     # via
     #   -r dev-deps/docs.txt
-    #   -r dev-deps/test.txt
     #   sphinx
 sphinxcontrib-htmlhelp==2.0.0
     # via
     #   -r dev-deps/docs.txt
-    #   -r dev-deps/test.txt
     #   sphinx
 sphinxcontrib-jsmath==1.0.1
     # via
     #   -r dev-deps/docs.txt
-    #   -r dev-deps/test.txt
     #   sphinx
 sphinxcontrib-qthelp==1.0.3
     # via
     #   -r dev-deps/docs.txt
-    #   -r dev-deps/test.txt
     #   sphinx
 sphinxcontrib-serializinghtml==1.1.5
     # via
     #   -r dev-deps/docs.txt
-    #   -r dev-deps/test.txt
     #   sphinx
-toml==0.10.2
-    # via
-    #   -r dev-deps/lint.txt
-    #   pre-commit
-tox==4.0.16
+tox==4.2.0
     # via -r dev-deps/dev.in
 urllib3==1.26.13
     # via
     #   -r dev-deps/docs.txt
-    #   -r dev-deps/test.txt
     #   requests
 virtualenv==20.17.1
     # via

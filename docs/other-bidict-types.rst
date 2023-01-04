@@ -5,11 +5,6 @@ Now that we've covered
 :doc:`basic-usage` with the :class:`bidict.bidict` type,
 let's look at some other bidirectional mapping types.
 
-.. testsetup::
-
-   from bidict import bidict, BidirectionalMapping, FrozenOrderedBidict
-   from collections.abc import Mapping, MutableMapping
-
 
 Bidict Types Diagram
 --------------------

@@ -40,8 +40,8 @@ from ._types import (
 )
 
 
-require_cpython_refcounting = pytest.mark.skipif(
-    sys.implementation.name != 'cpython',
+skip_if_pypy = pytest.mark.skipif(
+    sys.implementation.name == 'pypy',
     reason='Requires CPython refcounting behavior',
 )
 
@@ -396,7 +396,7 @@ def test_namedbidict(nb: t.Any) -> None:
     assert all(keyfor[val] == key for (key, val) in nb.items())
 
 
-@require_cpython_refcounting
+@skip_if_pypy
 @given(st.BIDICT_TYPES)
 def test_bidicts_freed_on_zero_refcount(bi_cls: t.Type[Bi]) -> None:
     """On CPython, the moment you have no more (strong) references to a bidict,
@@ -415,7 +415,7 @@ def test_bidicts_freed_on_zero_refcount(bi_cls: t.Type[Bi]) -> None:
         gc.enable()
 
 
-@require_cpython_refcounting
+@skip_if_pypy
 @given(st.ORDERED_BIDICTS)
 def test_orderedbidict_nodes_freed_on_zero_refcount(ob: OBi) -> None:
     """On CPython, the moment you have no more references to an ordered bidict,

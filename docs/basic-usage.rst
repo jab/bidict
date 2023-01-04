@@ -3,10 +3,6 @@ Basic Usage
 
 Let's return to the example from the :doc:`intro`:
 
-.. testsetup::
-
-   from bidict import bidict
-
 .. doctest::
 
    >>> element_by_symbol = bidict(H='hydrogen')
@@ -115,7 +111,7 @@ and resolve the conflict before it causes problems later on:
    >>> b['two'] = 1
    Traceback (most recent call last):
        ...
-   ValueDuplicationError: 1
+   bidict.ValueDuplicationError: 1
 
 The purpose of this is to be more in line with the
 `Zen of Python <https://www.python.org/dev/peps/pep-0020/>`__,
@@ -142,13 +138,13 @@ raise an exception too:
    >>> bidict({'one': 1, 'uno': 1})
    Traceback (most recent call last):
        ...
-   ValueDuplicationError: 1
+   bidict.ValueDuplicationError: 1
 
    >>> b = bidict({'one': 1})
    >>> b.update([('uno', 1)])
    Traceback (most recent call last):
        ...
-   ValueDuplicationError: 1
+   bidict.ValueDuplicationError: 1
 
    >>> b
    bidict({'one': 1})
@@ -207,13 +203,11 @@ for each type of duplication that can occur.
 
 .. doctest::
 
-   >>> from bidict import OnDup, RAISE
-
    >>> b = bidict({1: 'one'})
    >>> b.put(1, 'uno', OnDup(key=RAISE))
    Traceback (most recent call last):
        ...
-   KeyDuplicationError: 2
+   bidict.KeyDuplicationError: 1
    >>> b
    bidict({1: 'one'})
 
@@ -249,7 +243,7 @@ and the value of the third item dulicates the second item's value:
 
 .. code-block:: python
 
-   >>> b.putall([(1, 2), (3, 4), (1, 4)], OnDup(key=...))
+   b.putall([(1, 2), (3, 4), (1, 4)], OnDup(key=...))
 
 What should happen next?
 
@@ -273,7 +267,7 @@ without ambiguity:
    >>> b.putall([(1, 2), (3, 4), (1, 4)], on_dup)
    Traceback (most recent call last):
        ...
-   KeyAndValueDuplicationError: (1, 4)
+   bidict.KeyAndValueDuplicationError: (1, 4)
 
 If not specified, *kv* defaults to whatever was provided for *val*.
 
@@ -309,7 +303,7 @@ before processing the update:
    >>> b.putall([(3, 'three'), (1, 'uno')])
    Traceback (most recent call last):
        ...
-   KeyDuplicationError: 1
+   bidict.KeyDuplicationError: 1
 
    >>> # (1, 'uno') was the problem...
    >>> b  # ...but (3, 'three') was not added either:

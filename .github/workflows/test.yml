@@ -46,7 +46,7 @@ jobs:
         if: ${{ github.event_name == 'schedule' && matrix.more_hypothesis_examples_if_cron }}
         run: |
           echo PYTEST_ADDOPTS="${PYTEST_ADDOPTS} --hypothesis-profile=more-examples" >> "${GITHUB_ENV}"
-      - run: python -m pip install -U pip setuptools wheel tox==4.0.16
+      - run: python -m pip install -U pip setuptools wheel tox==4.2.0
       - name: cache .hypothesis dir
         uses: actions/cache@4723a57e26efda3a62cbde1812113b730952852d
         with:

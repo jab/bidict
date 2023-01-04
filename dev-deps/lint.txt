@@ -8,21 +8,19 @@ cfgv==3.3.1
     # via pre-commit
 distlib==0.3.6
     # via virtualenv
-filelock==3.8.2
+filelock==3.9.0
     # via virtualenv
-identify==2.5.11
+identify==2.5.12
     # via pre-commit
 nodeenv==1.7.0
     # via pre-commit
-platformdirs==2.6.0
+platformdirs==2.6.2
     # via virtualenv
-pre-commit==2.20.0
+pre-commit==2.21.0
     # via bidict (pyproject.toml)
 pyyaml==6.0
     # via pre-commit
 setuptools==65.6.3
     # via nodeenv
-toml==0.10.2
-    # via pre-commit
 virtualenv==20.17.1
     # via pre-commit

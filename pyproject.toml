@@ -56,11 +56,10 @@ test = [
     "pytest",
     "pytest-benchmark[histogram]",
     "pytest-cov",
+    "pytest-sphinx",
     "pytest-xdist",
     "sortedcollections",
     "sortedcontainers",
-    # run_tests.py depends on Sphinx to run doctests (see note in run_tests.py)
-    "sphinx",
 ]
 
 

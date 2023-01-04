@@ -1100,24 +1100,21 @@ This release includes multiple API simplifications and improvements.
 
   For example:
 
-  .. code:: python
+  .. code-block:: python
 
-     >>> from bidict import orderedbidict  # doctest: +SKIP
-     >>> o = orderedbidict([(0, 1), (2, 3)])  # doctest: +SKIP
-     >>> o.forceput(4, 1)  # doctest: +SKIP
+     o = orderedbidict([(0, 1), (2, 3)])
+     o.forceput(4, 1)
 
   previously would have resulted in:
 
-  .. code:: python
+  .. code-block:: python
 
-     >>> o  # doctest: +SKIP
      orderedbidict([(2, 3), (4, 1)])
 
   but now results in:
 
-  .. code:: python
+  .. code-block:: python
 
-     >>> o  # doctest: +SKIP
      orderedbidict([(4, 1), (2, 3)])
 
 

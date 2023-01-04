@@ -18,14 +18,12 @@
 
 """Sphinx configuration."""
 
-import sys
-import os
 
 
-# If extensions (or modules to document with autodoc) are in another directory,
-# add these directories to sys.path here. If the directory is relative to the
-# documentation root, use os.path.abspath to make it absolute, like shown here.
-sys.path.insert(0, os.path.abspath('..'))
+# Prefer having to run `pip install .` to get bidict on PYTHONPATH over the
+# typical `sys.path.insert(0, os.path.abspath('..'))` hack so that we avoid the
+# `bidict` module incorrectly importing as a _frozen_importlib_external.NamespaceLoader
+# object, which doesn't allow accessing e.g. the .metadata submodule.
 
 import bidict
 
@@ -42,12 +40,12 @@ import bidict
 extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.autosectionlabel',
-    # 'sphinx.ext.coverage',
+    'sphinx.ext.coverage',
     'sphinx.ext.doctest',
     'sphinx.ext.extlinks',
     'sphinx.ext.intersphinx',
+    'sphinx.ext.todo',
     'sphinx.ext.viewcode',
-    # 'sphinx.ext.todo',
 ]
 try:
     import sphinx_copybutton  # noqa: F401
@@ -249,11 +247,9 @@ autosectionlabel_prefix_document = True
 # https://www.sphinx-doc.org/en/3.x/usage/extensions/autodoc.html#confval-autodoc_typehints
 autodoc_typehints = 'description'
 
-# http://www.sphinx-doc.org/en/master/usage/extensions/doctest.html
-doctest_global_setup = """
-import sys
-not_cpython = sys.implementation.name != 'cpython'
-"""
+# pytest-sphinx does not support doctest_global_setup. We use conftest.py instead.
+# Ref: https://github.com/thisch/pytest-sphinx/issues/5#issuecomment-618072237
+# doctest_global_setup = """"""
 
 # https://sphinx-copybutton.readthedocs.io/en/latest/#strip-and-configure-input-prompts-for-code-cells
 copybutton_prompt_text = '>>> '

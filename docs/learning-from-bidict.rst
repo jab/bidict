@@ -109,16 +109,13 @@ Python syntax hacks
 (ab)using a specialized form of Python's :ref:`slice <slicings>` syntax
 for getting and setting keys by value:
 
-.. use `code-block` rather than `doctest` for this
-   since slice syntax is no longer supported:
-
 .. code-block:: python
 
-   >>> element_by_symbol = bidict(H='hydrogen')
-   >>> element_by_symbol['H']  # [normal] syntax for the forward mapping
-   'hydrogen'
-   >>> element_by_symbol[:'hydrogen']  # [:slice] syntax for the inverse (no longer supported)
-   'H'
+   element_by_symbol = bidict(H='hydrogen')
+   # [normal] syntax for the forward mapping lookup:
+   element_by_symbol['H']  # ==> 'hydrogen'
+   # [:slice] syntax for the inverse lookup (no longer supported):
+   element_by_symbol[:'hydrogen']  # ==> 'H'
 
 See `this code <https://github.com/jab/bidict/blob/356dbe3/bidict/_bidict.py#L25>`__
 for how this was implemented,
@@ -185,11 +182,6 @@ Python surprises
   As an example, let's see what would happen if
   :class:`bidict.FrozenOrderedBidict.__eq__`
   behaved this way:
-
-  .. testsetup::
-
-     from bidict import FrozenOrderedBidict, frozenbidict
-
 
   .. doctest::
 

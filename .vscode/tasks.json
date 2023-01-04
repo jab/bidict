@@ -36,10 +36,7 @@
         {
             "label": "Run tests",
             "type": "process",
-            "command": "python",
-            "args": [
-                "run_tests.py"
-            ],
+            "command": "pytest",
             "isTestCommand": true,
             "presentation": {
                 "echo": true,

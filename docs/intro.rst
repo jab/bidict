@@ -15,10 +15,6 @@ is the main bidirectional mapping data structure provided.
 It allows looking up the value associated with a key,
 just like a :class:`dict`:
 
-.. testsetup::
-
-   from bidict import bidict
-
 .. doctest::
 
    >>> element_by_symbol = bidict({'H': 'hydrogen'})
@@ -82,15 +78,15 @@ and we try to do so naively:
 
 .. code-block:: python
 
-   >>> el_by_sym = {'H': 'hydrogen', 'hydrogen': 'H'}
-   >>> # Later we need to associate 'H' with a different value
-   >>> el_by_sym.update({'H': 'hydrogène', 'hydrogène': 'H'}  # Too naive
+   el_by_sym = {'H': 'hydrogen', 'hydrogen': 'H'}
+   # Later we need to associate 'H' with a different value
+   el_by_sym.update({'H': 'hydrogène', 'hydrogène': 'H'}  # Too naive
 
 Here is what we're left with:
 
 .. code-block:: python
 
-   >>> el_by_sym
+   # el_by_sym:
    {'H': 'hydrogène', 'hydrogène': 'H', 'hydrogen': 'H'}
 
 Oops.
