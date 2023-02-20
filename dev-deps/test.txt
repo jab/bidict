@@ -8,15 +8,15 @@ attrs==22.2.0
     # via
     #   hypothesis
     #   pytest
-coverage[toml]==7.0.3
+coverage[toml]==7.1.0
     # via pytest-cov
 execnet==1.9.0
     # via pytest-xdist
-hypothesis==6.61.0
+hypothesis==6.68.2
     # via bidict (pyproject.toml)
-iniconfig==1.1.1
+iniconfig==2.0.0
     # via pytest
-packaging==22.0
+packaging==23.0
     # via pytest
 pluggy==1.0.0
     # via pytest
@@ -26,7 +26,7 @@ pygal==3.0.0
     # via pytest-benchmark
 pygaljs==1.0.2
     # via pytest-benchmark
-pytest==7.2.0
+pytest==7.2.1
     # via
     #   bidict (pyproject.toml)
     #   pytest-benchmark
@@ -39,7 +39,7 @@ pytest-cov==4.0.0
     # via bidict (pyproject.toml)
 pytest-sphinx==0.5.0
     # via bidict (pyproject.toml)
-pytest-xdist==3.1.0
+pytest-xdist==3.2.0
     # via bidict (pyproject.toml)
 sortedcollections==2.1.0
     # via bidict (pyproject.toml)

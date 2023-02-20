@@ -10,17 +10,19 @@ distlib==0.3.6
     # via virtualenv
 filelock==3.9.0
     # via virtualenv
-identify==2.5.12
+identify==2.5.18
     # via pre-commit
 nodeenv==1.7.0
     # via pre-commit
-platformdirs==2.6.2
+platformdirs==3.0.0
     # via virtualenv
-pre-commit==2.21.0
+pre-commit==3.0.4
     # via bidict (pyproject.toml)
 pyyaml==6.0
     # via pre-commit
-setuptools==65.6.3
-    # via nodeenv
-virtualenv==20.17.1
+virtualenv==20.19.0
     # via pre-commit
+
+# The following packages are considered to be unsafe in a requirements file:
+setuptools==67.3.3
+    # via nodeenv
