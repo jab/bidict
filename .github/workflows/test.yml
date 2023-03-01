@@ -48,7 +48,7 @@ jobs:
           echo PYTEST_ADDOPTS="${PYTEST_ADDOPTS} --hypothesis-profile=more-examples" >> "${GITHUB_ENV}"
       - run: python -m pip install -U pip setuptools wheel tox==4.2.0
       - name: cache .hypothesis dir
-        uses: actions/cache@627f0f41f6904a5b1efbaed9f96d9eb58e92e920
+        uses: actions/cache@69d9d449aced6a2ede0bc19182fadc3a0a42d2b0
         with:
           path: .hypothesis
           key: hypothesis|${{ runner.os }}|${{ matrix.pyversion }}
