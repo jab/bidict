@@ -8,11 +8,11 @@ attrs==22.2.0
     # via
     #   hypothesis
     #   pytest
-coverage[toml]==7.2.1
+coverage[toml]==7.2.2
     # via pytest-cov
 execnet==1.9.0
     # via pytest-xdist
-hypothesis==6.68.2
+hypothesis==6.70.1
     # via bidict (pyproject.toml)
 iniconfig==2.0.0
     # via pytest
@@ -39,7 +39,7 @@ pytest-cov==4.0.0
     # via bidict (pyproject.toml)
 pytest-sphinx==0.5.0
     # via bidict (pyproject.toml)
-pytest-xdist==3.2.0
+pytest-xdist==3.2.1
     # via bidict (pyproject.toml)
 sortedcollections==2.1.0
     # via bidict (pyproject.toml)

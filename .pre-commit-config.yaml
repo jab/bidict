@@ -14,7 +14,7 @@ repos:
       - id: check-json5
 
   - repo: https://github.com/Lucas-C/pre-commit-hooks
-    rev: v1.4.2
+    rev: v1.5.1
     hooks:
       - id: forbid-crlf
       - id: remove-crlf
@@ -22,13 +22,13 @@ repos:
       - id: remove-tabs
 
   - repo: https://github.com/codespell-project/codespell
-    rev: v2.2.2
+    rev: v2.2.4
     hooks:
       - id: codespell
         args: ["--uri-ignore-words-list", "*"]  # https://github.com/codespell-project/codespell/issues/2473
 
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.0.1
+    rev: v1.1.1
     hooks:
       - id: mypy
         additional_dependencies:
@@ -36,6 +36,6 @@ repos:
           - pytest
 
   - repo: https://github.com/charliermarsh/ruff-pre-commit
-    rev: v0.0.254
+    rev: v0.0.260
     hooks:
       - id: ruff
