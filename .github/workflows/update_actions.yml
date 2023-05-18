@@ -12,7 +12,7 @@ jobs:
   main:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@8f4b7f84864484a7bf31766abe9204da3cbe65b3
+      - uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab
         with:
           token: ${{ secrets.ACTIONS_VERSION_UPDATER_TOKEN }}
       - uses: saadmk11/github-actions-version-updater@a7fd643bb3e9c1ef8f5c70bb5b645f5a2a9f395c
