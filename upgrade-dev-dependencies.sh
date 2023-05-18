@@ -9,13 +9,17 @@
 set -euo pipefail
 
 log() {
-  >&2 echo -e "$@"
+  >&2 printf "> %s\n" "$@"
 }
 
 main() {
   if ! type pre-commit || ! type pip-compile; then
     log "Error: pre-commit or pip-compile not found."
     exit 1
+  fi
+  if [ -z "$VIRTUAL_ENV" ]; then
+    log "Error: Activate a development virtualenv and try again."
+    exit 2
   fi
 
   local -r gitbranch=$(git branch --show-current)
@@ -28,22 +32,27 @@ main() {
     exit 1
   fi
 
+  log "Upgrading PyPI dependencies..."
   # Not adding --generate-hashes due to https://github.com/jazzband/pip-tools/issues/1326
   local -r pip_compile="pip-compile --upgrade --resolver=backtracking --allow-unsafe"
-  printf '%s\0' docs test lint | xargs -0 -P0 -I% ${pip_compile} pyproject.toml --extra=% -o dev-deps/%.txt
-  ${pip_compile} dev-deps/dev.in
-  pip uninstall -y -r <(pip freeze)
-  pip install -r dev-deps/dev.txt
+  # Compile dev.in last since it includes the others:
+  for i in dev-deps/{lint,docs,test,dev}.in; do
+    $pip_compile "$i" -o "${i/%in/txt}"
+  done
+  pip-sync dev-deps/dev.txt
+  log "Upgrading PyPI dependencies: Done"
 
+  log "Upgrading pre-commit hooks..."
   pre-commit autoupdate
+  log "Upgrading pre-commit hooks: Testing..."
   git add .
   pre-commit run --all-files
 
-  log "Dev dependencies upgraded."
-  log "Reminders:" \
-    "\n - Check release notes of upgraded packages for anything that affects bidict." \
-    "\n - Run tests via 'tox' or by pushing to the 'deps' branch to ensure everything still works." \
-    "\n - Check output for any new warnings, not just test failures."
+  log "Done."
+  log "Reminders:"
+  log " - Check release notes of upgraded packages for anything that affects bidict."
+  log " - Run tests via 'tox' or by pushing to the 'deps' branch to ensure everything still works."
+  log " - Check output for any new warnings, not just test failures."
 }
 
 main

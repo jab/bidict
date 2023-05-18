@@ -1,0 +1,8 @@
+hypothesis
+pytest
+pytest-benchmark[histogram]
+pytest-cov
+pytest-sphinx
+pytest-xdist
+sortedcollections
+sortedcontainers

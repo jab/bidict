@@ -48,7 +48,7 @@ extensions = [
     'sphinx.ext.viewcode',
 ]
 try:
-    import sphinx_copybutton  # noqa: F401
+    import sphinx_copybutton  # noqa: E402,F401
 except ImportError:
     pass
 else:
