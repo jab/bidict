@@ -22,7 +22,7 @@ beautifulsoup4==4.12.2
     #   furo
 build==0.10.0
     # via pip-tools
-cachetools==5.3.0
+cachetools==5.3.1
     # via tox
 certifi==2023.5.7
     # via
@@ -42,7 +42,7 @@ click==8.1.3
     # via pip-tools
 colorama==0.4.6
     # via tox
-coverage[toml]==7.2.5
+coverage[toml]==7.2.7
     # via
     #   -r dev-deps/test.txt
     #   pytest-cov
@@ -65,7 +65,7 @@ filelock==3.12.0
     #   virtualenv
 furo==2023.5.20
     # via -r dev-deps/docs.txt
-hypothesis==6.75.3
+hypothesis==6.75.9
     # via -r dev-deps/test.txt
 icdiff==2.0.6
     # via pytest-icdiff
@@ -91,7 +91,7 @@ jinja2==3.1.2
     #   sphinx
 markdown-it-py==2.2.0
     # via rich
-markupsafe==2.1.2
+markupsafe==2.1.3
     # via
     #   -r dev-deps/docs.txt
     #   jinja2
@@ -163,7 +163,7 @@ pytest-benchmark[histogram]==4.0.0
     # via -r dev-deps/test.txt
 pytest-clarity==1.0.1
     # via -r dev-deps/dev.in
-pytest-cov==4.0.0
+pytest-cov==4.1.0
     # via -r dev-deps/test.txt
 pytest-icdiff==0.6
     # via -r dev-deps/dev.in
@@ -175,11 +175,11 @@ pyyaml==6.0
     # via
     #   -r dev-deps/lint.txt
     #   pre-commit
-requests==2.30.0
+requests==2.31.0
     # via
     #   -r dev-deps/docs.txt
     #   sphinx
-rich==13.3.5
+rich==13.4.1
     # via pytest-clarity
 snowballstemmer==2.2.0
     # via
@@ -232,7 +232,7 @@ sphinxcontrib-serializinghtml==1.1.5
     # via
     #   -r dev-deps/docs.txt
     #   sphinx
-tox==4.5.1
+tox==4.5.2
     # via -r dev-deps/dev.in
 urllib3==2.0.2
     # via

@@ -6,11 +6,11 @@
 #
 attrs==23.1.0
     # via hypothesis
-coverage[toml]==7.2.5
+coverage[toml]==7.2.7
     # via pytest-cov
 execnet==1.9.0
     # via pytest-xdist
-hypothesis==6.75.3
+hypothesis==6.75.9
     # via -r dev-deps/test.in
 iniconfig==2.0.0
     # via pytest
@@ -33,7 +33,7 @@ pytest==7.3.1
     #   pytest-xdist
 pytest-benchmark[histogram]==4.0.0
     # via -r dev-deps/test.in
-pytest-cov==4.0.0
+pytest-cov==4.1.0
     # via -r dev-deps/test.in
 pytest-sphinx==0.5.0
     # via -r dev-deps/test.in
