@@ -37,7 +37,7 @@ jobs:
           # - pyversion: pypy-3.8
     steps:
       - uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab
-      - uses: actions/setup-python@57ded4d7d5e986d7296eab16560982c6dd7c923b
+      - uses: actions/setup-python@bd6b4b6205c4dbad673328db7b31b7fab9e241c0
         with:
           python-version: ${{ matrix.pyversion }}
           cache: pip
@@ -58,7 +58,7 @@ jobs:
           echo PYTEST_ADDOPTS="${PYTEST_ADDOPTS} --cov=bidict --cov-config=.coveragerc --cov-report=xml" >> "${GITHUB_ENV}"
       - run: tox -e py
       - name: Upload coverage to Codecov  # https://github.com/codecov/codecov-action
-        uses: codecov/codecov-action@894ff025c7b54547a9a2a1e9f228beae737ad3c2
+        uses: codecov/codecov-action@eaaf4bedf32dbdc6b720b63067d99c4d77d6047d
         if: matrix.enable_coverage
         with:
           verbose: true

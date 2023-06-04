@@ -12,7 +12,7 @@ jobs:
     steps:
       - uses: actions/checkout@8e5e7e5ab8b370d6c329ec480221332ada57f0ab
       - name: Install Nix
-        uses: DeterminateSystems/nix-installer-action@9b252454a8d70586c4ee7f163bf4bb1e9de3d763
+        uses: DeterminateSystems/nix-installer-action@129f07902485941992791c670de648dbe572a9ac
       - name: Update flake.lock
         uses: DeterminateSystems/update-flake-lock@dec3bc3c9b11c3b9d547f47dfb579b91a6051603
         with:
