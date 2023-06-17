@@ -30,7 +30,7 @@ from bidict import (
     DuplicationError, KeyDuplicationError, ValueDuplicationError, KeyAndValueDuplicationError,
 )
 from bidict._iter import iteritems
-from bidict._typing import Items, TypeAlias
+from bidict._typing import Items
 
 from . import _strategies as st
 from ._types import (
@@ -46,9 +46,9 @@ skip_if_pypy = pytest.mark.skipif(
 )
 
 
-Bi: TypeAlias = BidictBase[t.Any, t.Any]
-MBi: TypeAlias = MutableBidict[t.Any, t.Any]
-OBi: TypeAlias = OrderedBidictBase[t.Any, t.Any]
+Bi: t.TypeAlias = BidictBase[t.Any, t.Any]
+MBi: t.TypeAlias = MutableBidict[t.Any, t.Any]
+OBi: t.TypeAlias = OrderedBidictBase[t.Any, t.Any]
 
 
 @given(st.BIDICTS, st.NON_MAPPINGS)

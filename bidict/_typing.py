@@ -11,19 +11,13 @@ from __future__ import annotations
 from enum import Enum
 import typing as t
 
-if t.TYPE_CHECKING:
-    from typing_extensions import TypeAlias as TypeAlias
-else:
-    TypeAlias = 'TypeAlias'
-
-
 KT = t.TypeVar('KT')
 VT = t.TypeVar('VT')
 
 
-Items: TypeAlias = 't.Iterable[tuple[KT, VT]]'
-MapOrItems: TypeAlias = 't.Mapping[KT, VT] | Items[KT, VT]'
-ItemsIter: TypeAlias = 't.Iterator[tuple[KT, VT]]'
+Items: t.TypeAlias = 't.Iterable[tuple[KT, VT]]'
+MapOrItems: t.TypeAlias = 't.Mapping[KT, VT] | Items[KT, VT]'
+ItemsIter: t.TypeAlias = 't.Iterator[tuple[KT, VT]]'
 
 
 class MissingT(Enum):
@@ -35,9 +29,9 @@ class MissingT(Enum):
         return '<MISSING>'
 
 
-MISSING: t.Final[MissingT] = MissingT.MISSING
-OKT: TypeAlias = 'KT | MissingT'  #: optional key type
-OVT: TypeAlias = 'VT | MissingT'  #: optional value type
+MISSING: t.Final[t.Literal[MissingT.MISSING]] = MissingT.MISSING
+OKT: t.TypeAlias = 'KT | MissingT'  #: optional key type
+OVT: t.TypeAlias = 'VT | MissingT'  #: optional value type
 
-DT = t.TypeVar('DT')              #: for default arguments
-ODT: TypeAlias = 'DT | MissingT'  #: optional default arg type
+DT = t.TypeVar('DT')                #: for default arguments
+ODT: t.TypeAlias = 'DT | MissingT'  #: optional default arg type

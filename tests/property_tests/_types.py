@@ -11,10 +11,9 @@ from collections import OrderedDict, UserDict
 import typing as t
 
 from bidict import BidictBase, FrozenOrderedBidict, OrderedBidict, bidict, frozenbidict, namedbidict
-from bidict._typing import TypeAlias
 
 
-BiTypesT: TypeAlias = t.Tuple[t.Type[BidictBase[t.Any, t.Any]], ...]
+BiTypesT: t.TypeAlias = t.Tuple[t.Type[BidictBase[t.Any, t.Any]], ...]
 
 
 class UserBidict(bidict[t.Any, t.Any]):

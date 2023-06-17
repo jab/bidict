@@ -20,14 +20,13 @@ from bidict import (
     BidictBase, MutableBidict, OrderedBidictBase,
     NamedBidictBase, GeneratedBidictInverse,
 )
-from bidict._typing import TypeAlias
 
 
 class AbstractBimap(BidirectionalMapping[t.Any, t.Any]):
     """Does not override `inverse` and therefore should not be instantiatable."""
 
 
-BiT: TypeAlias = t.Type[BidictBase[t.Any, t.Any]]
+BiT: t.TypeAlias = t.Type[BidictBase[t.Any, t.Any]]
 
 BIDICT_BASE_TYPES: tuple[BiT, ...] = (BidictBase, MutableBidict, OrderedBidictBase)
 BIDICT_TYPES = BIDICT_BASE_TYPES + (bidict, frozenbidict, FrozenOrderedBidict, OrderedBidict)

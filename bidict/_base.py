@@ -26,14 +26,14 @@ from ._abc import BidirectionalMapping
 from ._dup import ON_DUP_DEFAULT, RAISE, DROP_OLD, DROP_NEW, OnDup
 from ._exc import DuplicationError, KeyDuplicationError, ValueDuplicationError, KeyAndValueDuplicationError
 from ._iter import iteritems, inverted
-from ._typing import KT, VT, MISSING, OKT, OVT, Items, MapOrItems, TypeAlias
+from ._typing import KT, VT, MISSING, OKT, OVT, Items, MapOrItems
 
 
-OldKV: TypeAlias = 'tuple[OKT[KT], OVT[VT]]'
-DedupResult: TypeAlias = 'OldKV[KT, VT] | None'
-Write: TypeAlias = 'list[t.Callable[[], None]]'
-Unwrite: TypeAlias = Write
-PreparedWrite: TypeAlias = 'tuple[Write, Unwrite]'
+OldKV: t.TypeAlias = 'tuple[OKT[KT], OVT[VT]]'
+DedupResult: t.TypeAlias = 'OldKV[KT, VT] | None'
+Write: t.TypeAlias = 'list[t.Callable[[], None]]'
+Unwrite: t.TypeAlias = Write
+PreparedWrite: t.TypeAlias = 'tuple[Write, Unwrite]'
 BT = t.TypeVar('BT', bound='BidictBase[t.Any, t.Any]')
 
 
