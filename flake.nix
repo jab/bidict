@@ -30,6 +30,7 @@
         default = pkgs.mkShell {
           packages = [
             pkgs.pre-commit
+            pkgs.python312
             pkgs.python311Packages.pip
             pkgs.python311Packages.tox
             pkgs.python311

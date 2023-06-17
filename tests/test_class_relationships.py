@@ -123,7 +123,7 @@ def test_issubclass_internal() -> None:
 
 def test_abstract_bimap_init_fails() -> None:
     """Instantiating `AbstractBimap` should fail with expected TypeError."""
-    excmatch = r"Can't instantiate abstract class AbstractBimap with abstract methods .* inverse"
+    excmatch = "Can't instantiate abstract class AbstractBimap"
     with pytest.raises(TypeError, match=excmatch):
         AbstractBimap()  # type: ignore
 

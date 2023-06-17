@@ -25,6 +25,7 @@ jobs:
       matrix:
         include:
           # https://github.com/actions/setup-python/blob/main/docs/advanced-usage.md#available-versions-of-python-and-pypy
+          - pyversion: "3.12.0-beta.2"
           - pyversion: "3.11"
             enable_coverage: true
           - pyversion: "3.10"
