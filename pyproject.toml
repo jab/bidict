@@ -1,6 +1,6 @@
 [project]
 name = "bidict"
-dynamic = ["optional-dependencies", "version"]
+dynamic = ["version"]
 description = "The bidirectional mapping library for Python."
 authors = [{name="Joshua Bronson", email="jabronson@gmail.com"}]
 license = {text="MPL 2.0"}
@@ -14,7 +14,6 @@ classifiers = [
     "License :: OSI Approved :: Mozilla Public License 2.0 (MPL 2.0)",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3 :: Only",
-    "Programming Language :: Python :: 3.7",
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
@@ -42,12 +41,6 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
 packages = ["bidict"]
-
-[tool.setuptools.dynamic]
-optional-dependencies.dev = { file = ["dev-deps/dev.txt"] }
-optional-dependencies.docs = { file = ["dev-deps/docs.txt"] }
-optional-dependencies.lint = { file = ["dev-deps/lint.txt"] }
-optional-dependencies.test = { file = ["dev-deps/test.txt"] }
 
 [tool.ruff]  # https://github.com/charliermarsh/ruff#configuration
 ignore = ["E501"]  # line too long

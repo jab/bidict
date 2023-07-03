@@ -27,6 +27,16 @@ please consider sponsoring bidict on GitHub.`
    Click the "Watch" dropdown, choose "Custom", and then choose "Releases".
 
 
+0.23.0 (not yet released)
+-------------------------
+
+- Drop support for Python 3.7, which reached end of life on 2023-06-27.
+
+  Bidict may still be compatible with 3.7,
+  but as it is no longer tested with 3.7,
+  compatibility is not guaranteed.
+
+
 0.22.1 (2022-12-31)
 -------------------
 

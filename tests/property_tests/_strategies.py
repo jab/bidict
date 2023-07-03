@@ -66,7 +66,7 @@ SAME_ITEMS_DIFF_ORDER = st.tuples(
 
 
 def _bidict_strat(bi_types: t.Any, init_items: t.Any = I_PAIRS_NODUP, _inv: t.Any = attrgetter('inverse')) -> t.Any:
-    fwd_bidicts = st.tuples(bi_types, init_items).map(lambda i: i[0](i[1]))  # type: ignore
+    fwd_bidicts = st.tuples(bi_types, init_items).map(lambda i: i[0](i[1]))
     inv_bidicts = fwd_bidicts.map(_inv)
     return fwd_bidicts | inv_bidicts
 
@@ -80,7 +80,7 @@ callkeys, callitems = methodcaller('keys'), methodcaller('items')
 KEYSVIEW_SET_OP_ARGS = st.sets(ATOMS) | st.dictionaries(ATOMS, ATOMS).map(callkeys) | BIDICTS.map(callkeys)
 ITEMSVIEW_SET_OP_ARGS = st.sets(PAIRS) | st.dictionaries(ATOMS, ATOMS).map(callitems) | BIDICTS.map(callitems)
 
-NON_BI_MAPPINGS = st.tuples(NON_BI_MAPPING_TYPES, L_PAIRS).map(lambda i: i[0](i[1]))  # type: ignore
+NON_BI_MAPPINGS = st.tuples(NON_BI_MAPPING_TYPES, L_PAIRS).map(lambda i: i[0](i[1]))
 
 
 NAMEDBIDICT_NAMES_ALL_VALID = st.lists(VALID_NAMES, min_size=3, max_size=3, unique=True)

@@ -12,7 +12,7 @@ build:
 
 python:
   install:
-    - requirements: dev-deps/docs.txt
+    - requirements: dev-deps/python3.11/docs.txt
     - method: pip
       path: .
 
