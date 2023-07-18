@@ -25,7 +25,7 @@ from hypothesis import assume, example, given
 from bidict import (
     DROP_NEW, DROP_OLD, RAISE, OnDup,
     BidirectionalMapping, MutableBidirectionalMapping, BidictBase, MutableBidict, OrderedBidictBase,
-    OrderedBidict, bidict, namedbidict,
+    OrderedBidict, bidict, namedbidict, frozenbidict,
     inverted,
     DuplicationError, KeyDuplicationError, ValueDuplicationError, KeyAndValueDuplicationError,
 )
@@ -351,7 +351,7 @@ def test_bidict_reversed(rb_and_rd: t.Any) -> None:
 
 
 @given(st.FROZEN_BIDICTS)
-def test_frozenbidicts_hashable(bi: Bi) -> None:
+def test_frozenbidicts_hashable(bi: frozenbidict) -> None:
     """Frozen bidicts can be hashed and inserted into sets and mappings."""
     assert hash(bi)
     assert {bi}
