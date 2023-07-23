@@ -38,7 +38,7 @@ main() {
 
   log "Upgrading PyPI dependencies..."
   local -r dev_py="python3.11"  # Main version used for development
-  local -r pip_compile="pip-compile --generate-hashes --reuse-hashes --upgrade --resolver=backtracking --allow-unsafe"
+  local -r pip_compile="pip-compile --generate-hashes --reuse-hashes --upgrade --allow-unsafe"
   for py in python3.12 python3.11 python3.10 python3.9 python3.8 pypy3.9 pypy3.8; do
     local manage_deps_env=".venv/deps/$py"
     [ -e "$manage_deps_env" ] || $py -m venv "$manage_deps_env"
