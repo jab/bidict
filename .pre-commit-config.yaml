@@ -14,7 +14,7 @@ repos:
       - id: check-json5
 
   - repo: https://github.com/Lucas-C/pre-commit-hooks
-    rev: v1.5.1
+    rev: v1.5.4
     hooks:
       - id: forbid-crlf
       - id: remove-crlf
@@ -28,7 +28,7 @@ repos:
         args: ["--uri-ignore-words-list", "*"]  # https://github.com/codespell-project/codespell/issues/2473
 
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.4.1
+    rev: v1.5.1
     hooks:
       - id: mypy
         additional_dependencies:
@@ -36,7 +36,7 @@ repos:
           - pytest
 
   - repo: https://github.com/charliermarsh/ruff-pre-commit
-    rev: v0.0.280
+    rev: v0.0.287
     hooks:
       - id: ruff
 
