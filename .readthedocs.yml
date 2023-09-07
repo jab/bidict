@@ -2,8 +2,7 @@
 # https://docs.readthedocs.io/en/latest/config-file/
 version: 2
 
-formats:
-  - htmlzip
+formats: []
 
 build:
   os: "ubuntu-22.04"
