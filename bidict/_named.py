@@ -7,12 +7,14 @@
 """Provide :func:`bidict.namedbidict`."""
 
 from __future__ import annotations
-from sys import _getframe
+
 import typing as t
+from sys import _getframe
 
 from ._base import BidictBase
 from ._bidict import bidict
-from ._typing import KT, VT
+from ._typing import KT
+from ._typing import VT
 
 
 class NamedBidictBase:
@@ -58,8 +60,8 @@ def namedbidict(
         raise ValueError(names)
 
     basename = base_type.__name__
-    get_keyname = property(lambda self: keyname, doc='The keyname of this namedbidict.')
-    get_valname = property(lambda self: valname, doc='The valname of this namedbidict.')
+    get_keyname = property(lambda _: keyname, doc='The keyname of this namedbidict.')
+    get_valname = property(lambda _: valname, doc='The valname of this namedbidict.')
     val_by_key_name = f'{valname}_for'
     key_by_val_name = f'{keyname}_for'
     val_by_key_doc = f'{typename} forward {basename}: {keyname} -> {valname}'

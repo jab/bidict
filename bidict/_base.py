@@ -7,26 +7,41 @@
 
 #                             * Code review nav *
 #                        (see comments in __init__.py)
-#==============================================================================
+# ============================================================================
 # ← Prev: _abc.py              Current: _base.py      Next: _frozenbidict.py →
-#==============================================================================
+# ============================================================================
 
 
 """Provide :class:`BidictBase`."""
 
 from __future__ import annotations
+
+import typing as t
+import weakref
 from functools import partial
 from itertools import starmap
 from operator import eq
 from types import MappingProxyType
-import typing as t
-import weakref
 
 from ._abc import BidirectionalMapping
-from ._dup import ON_DUP_DEFAULT, RAISE, DROP_OLD, DROP_NEW, OnDup
-from ._exc import DuplicationError, KeyDuplicationError, ValueDuplicationError, KeyAndValueDuplicationError
-from ._iter import iteritems, inverted
-from ._typing import KT, VT, MISSING, OKT, OVT, Items, MapOrItems
+from ._dup import DROP_NEW
+from ._dup import DROP_OLD
+from ._dup import ON_DUP_DEFAULT
+from ._dup import RAISE
+from ._dup import OnDup
+from ._exc import DuplicationError
+from ._exc import KeyAndValueDuplicationError
+from ._exc import KeyDuplicationError
+from ._exc import ValueDuplicationError
+from ._iter import inverted
+from ._iter import iteritems
+from ._typing import KT
+from ._typing import MISSING
+from ._typing import OKT
+from ._typing import OVT
+from ._typing import VT
+from ._typing import Items
+from ._typing import MapOrItems
 
 
 OldKV: t.TypeAlias = 'tuple[OKT[KT], OVT[VT]]'
@@ -118,9 +133,9 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         cls._inv_cls = cls._make_inv_cls()
 
     @classmethod
-    def _make_inv_cls(cls: t.Type[BT], _miss: t.Any = object()) -> t.Type[BT]:
+    def _make_inv_cls(cls: t.Type[BT]) -> t.Type[BT]:
         diff = cls._inv_cls_dict_diff()
-        cls_is_own_inv = all(getattr(cls, k, _miss) == v for (k, v) in diff.items())
+        cls_is_own_inv = all(getattr(cls, k, MISSING) == v for (k, v) in diff.items())
         if cls_is_own_inv:
             return cls
         # Suppress auto-calculation of _inv_cls's _inv_cls since we know it already.
@@ -139,8 +154,10 @@ class BidictBase(BidirectionalMapping[KT, VT]):
 
     @t.overload
     def __init__(self, **kw: VT) -> None: ...
+
     @t.overload
     def __init__(self, __m: t.Mapping[KT, VT], **kw: VT) -> None: ...
+
     @t.overload
     def __init__(self, __i: Items[KT, VT], **kw: VT) -> None: ...
 
@@ -238,8 +255,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
             that exposes a mappingproxy to *b._fwdm*.
         """
         fwdm = self._fwdm
-        kv = fwdm.keys() if isinstance(fwdm, dict) else BidictKeysView(self)
-        return kv
+        return fwdm.keys() if isinstance(fwdm, dict) else BidictKeysView(self)
 
     def items(self) -> t.ItemsView[KT, VT]:
         """A set-like object providing a view on the contained items.
@@ -361,46 +377,51 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         needed to keep its internal linked list nodes consistent with its items' order as changes are made.
         """
         fwdm, invm = self._fwdm, self._invm
+        fwdm_set, invm_set = fwdm.__setitem__, invm.__setitem__
+        fwdm_del, invm_del = fwdm.__delitem__, invm.__delitem__
         write: list[t.Callable[[], None]] = [
-            partial(fwdm.__setitem__, newkey, newval),
-            partial(invm.__setitem__, newval, newkey),
+            partial(fwdm_set, newkey, newval),
+            partial(invm_set, newval, newkey),
         ]
-        unwrite: list[t.Callable[[], None]]
+        write_append = write.append
+        unwrite: list[t.Callable[[], None]] = []
         if oldval is MISSING and oldkey is MISSING:  # no key or value duplication
             # {0: 1, 2: 3} + (4, 5) => {0: 1, 2: 3, 4: 5}
-            unwrite = [
-                partial(fwdm.__delitem__, newkey),
-                partial(invm.__delitem__, newval),
-            ] if save_unwrite else []
+            if save_unwrite:
+                unwrite = [
+                    partial(fwdm_del, newkey),
+                    partial(invm_del, newval),
+                ]
         elif oldval is not MISSING and oldkey is not MISSING:  # key and value duplication across two different items
             # {0: 1, 2: 3} + (0, 3) => {0: 3}
-            write.extend((
-                partial(fwdm.__delitem__, oldkey),
-                partial(invm.__delitem__, oldval),
-            ))
-            unwrite = [
-                partial(fwdm.__setitem__, newkey, oldval),
-                partial(invm.__setitem__, oldval, newkey),
-                partial(fwdm.__setitem__, oldkey, newval),
-                partial(invm.__setitem__, newval, oldkey),
-            ] if save_unwrite else []
+            write_append(partial(fwdm_del, oldkey))
+            write_append(partial(invm_del, oldval))
+            if save_unwrite:
+                unwrite = [
+                    partial(fwdm_set, newkey, oldval),
+                    partial(invm_set, oldval, newkey),
+                    partial(fwdm_set, oldkey, newval),
+                    partial(invm_set, newval, oldkey),
+                ]
         elif oldval is not MISSING:  # just key duplication
             # {0: 1, 2: 3} + (2, 4) => {0: 1, 2: 4}
-            write.append(partial(invm.__delitem__, oldval))
-            unwrite = [
-                partial(fwdm.__setitem__, newkey, oldval),
-                partial(invm.__setitem__, oldval, newkey),
-                partial(invm.__delitem__, newval),
-            ] if save_unwrite else []
+            write_append(partial(invm_del, oldval))
+            if save_unwrite:
+                unwrite = [
+                    partial(fwdm_set, newkey, oldval),
+                    partial(invm_set, oldval, newkey),
+                    partial(invm_del, newval),
+                ]
         else:
             assert oldkey is not MISSING  # just value duplication
             # {0: 1, 2: 3} + (4, 3) => {0: 1, 4: 3}
-            write.append(partial(fwdm.__delitem__, oldkey))
-            unwrite = [
-                partial(fwdm.__setitem__, oldkey, newval),
-                partial(invm.__setitem__, newval, oldkey),
-                partial(fwdm.__delitem__, newkey),
-            ] if save_unwrite else []
+            write_append(partial(fwdm_del, oldkey))
+            if save_unwrite:
+                unwrite = [
+                    partial(fwdm_set, oldkey, newval),
+                    partial(invm_set, newval, oldkey),
+                    partial(fwdm_del, newkey),
+                ]
         return write, unwrite
 
     def _update(
@@ -443,7 +464,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         unwrites: list[Unwrite] = []
         append_unwrite = unwrites.append
         prep_write = self._prep_write
-        for (key, val) in iteritems(arg, **kw):
+        for key, val in iteritems(arg, **kw):
             try:
                 dedup_result = self._dedup(key, val, on_dup)
             except DuplicationError:
@@ -547,6 +568,6 @@ class GeneratedBidictInverse:
 
 
 #                             * Code review nav *
-#==============================================================================
+# ============================================================================
 # ← Prev: _abc.py              Current: _base.py      Next: _frozenbidict.py →
-#==============================================================================
+# ============================================================================

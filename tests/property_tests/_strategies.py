@@ -7,12 +7,21 @@
 """Strategies for Hypothesis tests."""
 
 from __future__ import annotations
-from collections import OrderedDict
-from operator import attrgetter, itemgetter, methodcaller
+
 import typing as t
+from collections import OrderedDict
+from operator import attrgetter
+from operator import itemgetter
+from operator import methodcaller
 
 import hypothesis.strategies as st
-from bidict import DROP_NEW, DROP_OLD, RAISE, OnDup, OrderedBidictBase, namedbidict
+
+from bidict import DROP_NEW
+from bidict import DROP_OLD
+from bidict import RAISE
+from bidict import OnDup
+from bidict import OrderedBidictBase
+from bidict import namedbidict
 
 from . import _types as _t
 
@@ -43,7 +52,7 @@ BOOLEANS = st.booleans()
 ATOMS = st.none() | BOOLEANS | st.integers()
 PAIRS = st.tuples(ATOMS, ATOMS)
 NON_MAPPINGS = ATOMS | st.iterables(ATOMS)
-ALPHABET = tuple(chr(i) for i in range(0x10ffff) if chr(i).isidentifier())
+ALPHABET = tuple(chr(i) for i in range(0x10FFFF) if chr(i).isidentifier())
 VALID_NAMES = st.text(ALPHABET, min_size=1, max_size=16)
 DICTS_KW_PAIRS = st.dictionaries(VALID_NAMES, ATOMS)
 L_PAIRS = st.lists(PAIRS)
@@ -58,11 +67,11 @@ DIFF_PAIRS = st.tuples(DIFF_ATOMS, DIFF_ATOMS)
 L_DIFF_PAIRS_NODUP = st.lists(DIFF_PAIRS, unique_by=FST_SND, min_size=1)
 DIFF_ITEMS = st.tuples(L_PAIRS_NODUP, L_DIFF_PAIRS_NODUP)
 RANDOMS = st.randoms(use_true_random=False)
-SAME_ITEMS_DIFF_ORDER = st.tuples(
-    st.lists(PAIRS, unique_by=FST_SND, min_size=2), RANDOMS
-).map(
-    lambda i: (i[0], i[1].sample(i[0], len(i[0])))  # (seq, shuffled seq)
-).filter(lambda i: i[0] != i[1])
+SAME_ITEMS_DIFF_ORDER = (
+    st.tuples(st.lists(PAIRS, unique_by=FST_SND, min_size=2), RANDOMS)
+    .map(lambda i: (i[0], i[1].sample(i[0], len(i[0]))))  # (seq, shuffled seq)
+    .filter(lambda i: i[0] != i[1])
+)
 
 
 def _bidict_strat(bi_types: t.Any, init_items: t.Any = I_PAIRS_NODUP, _inv: t.Any = attrgetter('inverse')) -> t.Any:
@@ -85,19 +94,17 @@ NON_BI_MAPPINGS = st.tuples(NON_BI_MAPPING_TYPES, L_PAIRS).map(lambda i: i[0](i[
 
 NAMEDBIDICT_NAMES_ALL_VALID = st.lists(VALID_NAMES, min_size=3, max_size=3, unique=True)
 NAMEDBIDICT_NAMES_SOME_INVALID = st.lists(st.text(min_size=1), min_size=3, max_size=3).filter(
-    lambda i: not all(str.isidentifier(name) for name in i)
+    lambda i: not all(str.isidentifier(name) for name in i),
 )
 NAMEDBIDICT_TYPES = st.tuples(NAMEDBIDICT_NAMES_ALL_VALID, NON_NAMED_BIDICT_TYPES).map(
-    lambda i: namedbidict(*i[0], base_type=i[1])
+    lambda i: namedbidict(*i[0], base_type=i[1]),
 )
 NAMEDBIDICTS = _bidict_strat(NAMEDBIDICT_TYPES)
 
 
 def _bi_and_map(bi_types: t.Any, map_types: t.Any = MAPPING_TYPES, init_items: t.Any = L_PAIRS_NODUP) -> t.Any:
     """Given bidict types and mapping types, return a pair of each type created from init_items."""
-    return st.tuples(bi_types, map_types, init_items).map(
-        lambda i: (i[0](i[2]), i[1](i[2]))
-    )
+    return st.tuples(bi_types, map_types, init_items).map(lambda i: (i[0](i[2]), i[1](i[2])))
 
 
 BI_AND_MAP_FROM_SAME_ND_ITEMS = _bi_and_map(BIDICT_TYPES)
@@ -109,12 +116,14 @@ _unpack = lambda i: (i[0](i[2][0]), i[1](i[2][1]))  # noqa: E731
 BI_AND_MAP_FROM_DIFF_ITEMS = st.tuples(BIDICT_TYPES, MAPPING_TYPES, DIFF_ITEMS).map(_unpack)
 
 OBI_AND_OMAP_FROM_SAME_ITEMS_DIFF_ORDER = st.tuples(
-    ORDERED_BIDICT_TYPES, ORDERED_MAPPING_TYPES, SAME_ITEMS_DIFF_ORDER
+    ORDERED_BIDICT_TYPES,
+    ORDERED_MAPPING_TYPES,
+    SAME_ITEMS_DIFF_ORDER,
 ).map(_unpack)
 
 _cmpdict: t.Any = lambda i: (OrderedDict if isinstance(i, OrderedBidictBase) else dict)  # noqa: E731
 BI_AND_CMPDICT_FROM_SAME_ITEMS = L_PAIRS_NODUP.map(
-    lambda items: (lambda b: (b, _cmpdict(b)(items)))(_bidict_strat(BIDICT_TYPES, items))
+    lambda items: (lambda b: (b, _cmpdict(b)(items)))(_bidict_strat(BIDICT_TYPES, items)),
 )
 
 ARGS_ATOM = st.tuples(ATOMS)

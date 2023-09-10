@@ -7,19 +7,29 @@
 """Test various issubclass checks."""
 
 from __future__ import annotations
-from collections.abc import Hashable, Mapping, MutableMapping, Reversible
-from collections import OrderedDict
+
 import sys
 import typing as t
+from collections import OrderedDict
+from collections.abc import Hashable
+from collections.abc import Mapping
+from collections.abc import MutableMapping
+from collections.abc import Reversible
 
 import pytest
 
-from bidict import (
-    bidict, frozenbidict, namedbidict, FrozenOrderedBidict, OrderedBidict,
-    BidirectionalMapping, MutableBidirectionalMapping,
-    BidictBase, MutableBidict, OrderedBidictBase,
-    NamedBidictBase, GeneratedBidictInverse,
-)
+from bidict import BidictBase
+from bidict import BidirectionalMapping
+from bidict import FrozenOrderedBidict
+from bidict import GeneratedBidictInverse
+from bidict import MutableBidict
+from bidict import MutableBidirectionalMapping
+from bidict import NamedBidictBase
+from bidict import OrderedBidict
+from bidict import OrderedBidictBase
+from bidict import bidict
+from bidict import frozenbidict
+from bidict import namedbidict
 
 
 class AbstractBimap(BidirectionalMapping[t.Any, t.Any]):
@@ -29,9 +39,9 @@ class AbstractBimap(BidirectionalMapping[t.Any, t.Any]):
 BiT: t.TypeAlias = t.Type[BidictBase[t.Any, t.Any]]
 
 BIDICT_BASE_TYPES: tuple[BiT, ...] = (BidictBase, MutableBidict, OrderedBidictBase)
-BIDICT_TYPES = BIDICT_BASE_TYPES + (bidict, frozenbidict, FrozenOrderedBidict, OrderedBidict)
-MyNamedBidict = namedbidict('MyNamedBidict', 'key', 'val')  # type: ignore
-BIMAP_TYPES = BIDICT_TYPES + (AbstractBimap, MyNamedBidict)
+BIDICT_TYPES = (*BIDICT_BASE_TYPES, bidict, frozenbidict, FrozenOrderedBidict, OrderedBidict)
+MyNamedBidict: t.Any = namedbidict('MyNamedBidict', 'key', 'val')
+BIMAP_TYPES = (*BIDICT_TYPES, AbstractBimap, MyNamedBidict)
 NOT_BIMAP_TYPES = (dict, OrderedDict, int, object)
 MUTABLE_BIDICT_TYPES = (bidict, OrderedBidict)
 HASHABLE_BIDICT_TYPES = (frozenbidict, FrozenOrderedBidict)
@@ -124,7 +134,7 @@ def test_abstract_bimap_init_fails() -> None:
     """Instantiating `AbstractBimap` should fail with expected TypeError."""
     excmatch = "Can't instantiate abstract class AbstractBimap"
     with pytest.raises(TypeError, match=excmatch):
-        AbstractBimap()  # type: ignore
+        AbstractBimap()  # type: ignore [abstract]
 
 
 def test_bimap_inverse_notimplemented() -> None:
@@ -132,7 +142,7 @@ def test_bimap_inverse_notimplemented() -> None:
     with pytest.raises(NotImplementedError):
         # Can't instantiate a BidirectionalMapping that hasn't overridden the abstract methods of
         # the interface, so only way to call this implementation is on the class.
-        BidirectionalMapping.inverse.fget(bidict())  # type: ignore
+        BidirectionalMapping.inverse.fget(bidict())  # type: ignore [attr-defined]
 
 
 @pytest.mark.parametrize('bi_cls', BIDICT_BASE_TYPES)
