@@ -7,18 +7,20 @@
 
 #                             * Code review nav *
 #                        (see comments in __init__.py)
-#==============================================================================
-#← Prev: _orderedbase.py  Current: _frozenordered.py  Next: _orderedbidict.py →
-#==============================================================================
+# ==============================================================================
+# ← Prev: _orderedbase.py  Current: _frozenordered.py  Next: _orderedbidict.py →
+# ==============================================================================
 
 """Provide :class:`FrozenOrderedBidict`, an immutable, hashable, ordered bidict."""
 
 from __future__ import annotations
+
 import typing as t
 
 from ._frozenbidict import frozenbidict
 from ._orderedbase import OrderedBidictBase
-from ._typing import KT, VT
+from ._typing import KT
+from ._typing import VT
 
 
 class FrozenOrderedBidict(OrderedBidictBase[KT, VT]):
@@ -40,11 +42,12 @@ class FrozenOrderedBidict(OrderedBidictBase[KT, VT]):
     __hash__: t.Callable[[t.Any], int] = frozenbidict.__hash__
 
     if t.TYPE_CHECKING:
+
         @property
         def inverse(self) -> FrozenOrderedBidict[VT, KT]: ...
 
 
 #                             * Code review nav *
-#==============================================================================
-#← Prev: _orderedbase.py  Current: _frozenordered.py  Next: _orderedbidict.py →
-#==============================================================================
+# ==============================================================================
+# ← Prev: _orderedbase.py  Current: _frozenordered.py  Next: _orderedbidict.py →
+# ==============================================================================

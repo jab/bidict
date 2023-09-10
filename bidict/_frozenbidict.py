@@ -7,17 +7,19 @@
 
 #                             * Code review nav *
 #                        (see comments in __init__.py)
-#==============================================================================
+# ============================================================================
 # ← Prev: _base.py          Current: _frozenbidict.py       Next: _bidict.py →
-#==============================================================================
+# ============================================================================
 
 """Provide :class:`frozenbidict`, an immutable, hashable bidirectional mapping type."""
 
 from __future__ import annotations
+
 import typing as t
 
 from ._base import BidictBase
-from ._typing import KT, VT
+from ._typing import KT
+from ._typing import VT
 
 
 class frozenbidict(BidictBase[KT, VT]):
@@ -28,6 +30,7 @@ class frozenbidict(BidictBase[KT, VT]):
     # Work around lack of support for higher-kinded types in Python.
     # Ref: https://github.com/python/typing/issues/548#issuecomment-621571821
     if t.TYPE_CHECKING:
+
         @property
         def inverse(self) -> frozenbidict[VT, KT]: ...
 
@@ -41,6 +44,6 @@ class frozenbidict(BidictBase[KT, VT]):
 
 
 #                             * Code review nav *
-#==============================================================================
+# ============================================================================
 # ← Prev: _base.py          Current: _frozenbidict.py       Next: _bidict.py →
-#==============================================================================
+# ============================================================================

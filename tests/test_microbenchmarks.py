@@ -7,38 +7,37 @@
 """Microbenchmarks."""
 
 from __future__ import annotations
-from collections import deque
-from functools import partial
+
 import pickle
 import typing as t
+from collections import deque
+from functools import partial
 
 import pytest
 
-import bidict as b
+import bidict
 
 
 consume = partial(deque, maxlen=0)
 LENS = (99, 999, 9_999)
 DICTS_BY_LEN = {n: dict(zip(range(n), range(n))) for n in LENS}
-BIDICTS_BY_LEN = {n: b.bidict(DICTS_BY_LEN[n]) for n in LENS}
-ORDERED_BIDICTS_BY_LEN = {n: b.OrderedBidict(DICTS_BY_LEN[n]) for n in LENS}
-DICTS_BY_LEN_LAST_ITEM_DUPVAL = {n: {**DICTS_BY_LEN[n], **{n - 1: 0}} for n in LENS}
+BIDICTS_BY_LEN = {n: bidict.bidict(DICTS_BY_LEN[n]) for n in LENS}
+ORDERED_BIDICTS_BY_LEN = {n: bidict.OrderedBidict(DICTS_BY_LEN[n]) for n in LENS}
+DICTS_BY_LEN_LAST_ITEM_DUPVAL = {n: {**DICTS_BY_LEN[n], n - 1: 0} for n in LENS}
 if isinstance(dict, t.Reversible):
     _checkd = next(iter(DICTS_BY_LEN_LAST_ITEM_DUPVAL.values()))
     _lastk, _lastv = next(reversed(_checkd.items()))
     _firstk, _firstv = next(iter(_checkd.items()))
-    assert _firstk != _lastk and _firstv == _lastv
+    assert _firstk != _lastk
+    assert _firstv == _lastv
 
-BIDICT_AND_DICT_ONLY_LAST_ITEM_DIFFERENT = {
-    n: (BIDICTS_BY_LEN[n], DICTS_BY_LEN_LAST_ITEM_DUPVAL[n])
-    for n in LENS
-}
+BIDICT_AND_DICT_ONLY_LAST_ITEM_DIFFERENT = {n: (BIDICTS_BY_LEN[n], DICTS_BY_LEN_LAST_ITEM_DUPVAL[n]) for n in LENS}
 _checkbi, _checkd = next(iter(BIDICT_AND_DICT_ONLY_LAST_ITEM_DIFFERENT.values()))
 assert _checkbi != _checkd
 assert tuple(_checkbi.items())[:-1] == tuple(_checkd.items())[:-1]
 
 ORDERED_BIDICT_AND_DICT_ONLY_LAST_ITEM_DIFFERENT = {
-    n: (b.OrderedBidict(bi_and_d[0]), bi_and_d[1])
+    n: (bidict.OrderedBidict(bi_and_d[0]), bi_and_d[1])
     for (n, bi_and_d) in BIDICT_AND_DICT_ONLY_LAST_ITEM_DIFFERENT.items()
 }
 
@@ -51,21 +50,21 @@ for _i in LENS:
     _d[_last[0]] = _last[1]  # new second-last
     _d[_secondlast[0]] = _secondlast[1]  # new last
     BIDICT_AND_DICT_LAST_TWO_ITEMS_DIFFERENT_ORDER[_i] = (_bi, _d)
-    ORDERED_BIDICT_AND_DICT_LAST_TWO_ITEMS_DIFFERENT_ORDER[_i] = (b.OrderedBidict(_bi), _d)
+    ORDERED_BIDICT_AND_DICT_LAST_TWO_ITEMS_DIFFERENT_ORDER[_i] = (bidict.OrderedBidict(_bi), _d)
 
 
 @pytest.mark.parametrize('n', LENS)
 def test_bi_init_from_dict(n: int, benchmark: t.Any) -> None:
     """Benchmark initializing a new bidict from a dict."""
     other = DICTS_BY_LEN[n]
-    benchmark(b.bidict, other)
+    benchmark(bidict.bidict, other)
 
 
 @pytest.mark.parametrize('n', LENS)
 def test_bi_init_from_bi(n: int, benchmark: t.Any) -> None:
     """Benchmark initializing a bidict from another bidict."""
     other = BIDICTS_BY_LEN[n]
-    benchmark(b.bidict, other)
+    benchmark(bidict.bidict, other)
 
 
 @pytest.mark.parametrize('n', LENS)
@@ -75,8 +74,8 @@ def test_bi_init_fail_worst_case(n: int, benchmark: t.Any) -> None:
 
     def expect_failing_init() -> None:
         try:
-            b.bidict(other)
-        except b.DuplicationError:
+            bidict.bidict(other)
+        except bidict.DuplicationError:
             pass
         else:
             raise Exception('Expected DuplicationError')
@@ -87,7 +86,7 @@ def test_bi_init_fail_worst_case(n: int, benchmark: t.Any) -> None:
 @pytest.mark.parametrize('n', LENS)
 def test_empty_bi_update_from_bi(n: int, benchmark: t.Any) -> None:
     """Benchmark updating an empty bidict from another bidict."""
-    bi: b.bidict[int, int] = b.bidict()
+    bi: bidict.bidict[int, int] = bidict.bidict()
     other = BIDICTS_BY_LEN[n]
     benchmark(bi.update, other)
     assert bi == other
@@ -96,13 +95,13 @@ def test_empty_bi_update_from_bi(n: int, benchmark: t.Any) -> None:
 @pytest.mark.parametrize('n', LENS)
 def test_small_bi_large_update_fails_worst_case(n: int, benchmark: t.Any) -> None:
     """Benchmark updating a small bidict with a large update that fails on the final item and then rolls back."""
-    bi = b.bidict(zip(range(-9, 0), range(-9, 0)))
+    bi = bidict.bidict(zip(range(-9, 0), range(-9, 0)))
     other = DICTS_BY_LEN_LAST_ITEM_DUPVAL[n]
 
     def apply_failing_update() -> None:
         try:
             bi.update(other)
-        except b.DuplicationError:
+        except bidict.DuplicationError:
             pass  # Rollback should happen here.
         else:
             raise Exception('Expected DuplicationError')

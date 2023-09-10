@@ -7,10 +7,17 @@
 """Types for Hypothoses tests."""
 
 from __future__ import annotations
-from collections import OrderedDict, UserDict
-import typing as t
 
-from bidict import BidictBase, FrozenOrderedBidict, OrderedBidict, bidict, frozenbidict, namedbidict
+import typing as t
+from collections import OrderedDict
+from collections import UserDict
+
+from bidict import BidictBase
+from bidict import FrozenOrderedBidict
+from bidict import OrderedBidict
+from bidict import bidict
+from bidict import frozenbidict
+from bidict import namedbidict
 
 
 BiTypesT: t.TypeAlias = t.Tuple[t.Type[BidictBase[t.Any, t.Any]], ...]
@@ -51,7 +58,14 @@ NamedOrderedBidict = namedbidict('NamedOrderedBidict', 'key', 'val', base_type=O
 NamedUserBidict = namedbidict('NamedUserBidict', 'key', 'val', base_type=UserBidict)
 NAMED_BIDICT_TYPES: BiTypesT = (NamedBidict, NamedFrozenBidict, NamedOrderedBidict, NamedUserBidict)
 
-MUTABLE_BIDICT_TYPES: BiTypesT = (bidict, OrderedBidict, NamedBidict, UserBidict, UserOrderedBidict, UserBidictNotOwnInverse)
+MUTABLE_BIDICT_TYPES: BiTypesT = (
+    bidict,
+    OrderedBidict,
+    NamedBidict,
+    UserBidict,
+    UserOrderedBidict,
+    UserBidictNotOwnInverse,
+)
 FROZEN_BIDICT_TYPES: BiTypesT = (frozenbidict, FrozenOrderedBidict, NamedFrozenBidict)
 ORDERED_BIDICT_TYPES: BiTypesT = (OrderedBidict, FrozenOrderedBidict, NamedOrderedBidict, UserOrderedBidict)
 ORDER_PRESERVING_BIDICT_TYPES: BiTypesT = tuple(set(FROZEN_BIDICT_TYPES + ORDERED_BIDICT_TYPES))
@@ -66,7 +80,6 @@ BIDICT_TYPE_WHOSE_MODULE_HAS_NO_REF_TO_INV_CLS = UserBidictNotOwnInverse2
 
 
 class _FrozenMap(t.Mapping[t.Any, t.Any]):
-
     def __init__(self, *args: t.Any, **kw: t.Any) -> None:
         self._mapping = dict(*args, **kw)
 
@@ -85,5 +98,5 @@ class _FrozenMap(t.Mapping[t.Any, t.Any]):
 
 NON_BI_MAPPING_TYPES = (dict, OrderedDict, _FrozenMap)
 MAPPING_TYPES = BIDICT_TYPES + NON_BI_MAPPING_TYPES
-ORDERED_MAPPING_TYPES = ORDERED_BIDICT_TYPES + (OrderedDict,)
-HASHABLE_MAPPING_TYPES = FROZEN_BIDICT_TYPES + (_FrozenMap,)
+ORDERED_MAPPING_TYPES = (*ORDERED_BIDICT_TYPES, OrderedDict)
+HASHABLE_MAPPING_TYPES = (*FROZEN_BIDICT_TYPES, _FrozenMap)

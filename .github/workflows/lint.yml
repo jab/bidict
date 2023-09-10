@@ -12,7 +12,7 @@ name: Lint
   workflow_dispatch:
 
 jobs:
-  main:
+  lint:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744

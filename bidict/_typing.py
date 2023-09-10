@@ -8,8 +8,10 @@
 """Provide typing-related objects."""
 
 from __future__ import annotations
-from enum import Enum
+
 import typing as t
+from enum import Enum
+
 
 KT = t.TypeVar('KT')
 VT = t.TypeVar('VT')
@@ -33,5 +35,5 @@ MISSING: t.Final[t.Literal[MissingT.MISSING]] = MissingT.MISSING
 OKT: t.TypeAlias = 'KT | MissingT'  #: optional key type
 OVT: t.TypeAlias = 'VT | MissingT'  #: optional value type
 
-DT = t.TypeVar('DT')                #: for default arguments
+DT = t.TypeVar('DT')  #: for default arguments
 ODT: t.TypeAlias = 'DT | MissingT'  #: optional default arg type

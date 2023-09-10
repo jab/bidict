@@ -8,10 +8,14 @@
 """Functions for iterating over items in a mapping."""
 
 from __future__ import annotations
-from operator import itemgetter
-import typing as t
 
-from ._typing import KT, VT, ItemsIter, MapOrItems
+import typing as t
+from operator import itemgetter
+
+from ._typing import KT
+from ._typing import VT
+from ._typing import ItemsIter
+from ._typing import MapOrItems
 
 
 def iteritems_mapping_or_iterable(arg: MapOrItems[KT, VT]) -> ItemsIter[KT, VT]:

@@ -7,18 +7,20 @@
 
 #                             * Code review nav *
 #                        (see comments in __init__.py)
-#==============================================================================
+# ============================================================================
 # ← Prev: __init__.py          Current: _abc.py               Next: _base.py →
-#==============================================================================
+# ============================================================================
 
 
 """Provide the :class:`BidirectionalMapping` abstract base class."""
 
 from __future__ import annotations
-from abc import abstractmethod
-import typing as t
 
-from ._typing import KT, VT
+import typing as t
+from abc import abstractmethod
+
+from ._typing import KT
+from ._typing import VT
 
 
 class BidirectionalMapping(t.Mapping[KT, VT]):
@@ -72,6 +74,6 @@ class MutableBidirectionalMapping(BidirectionalMapping[KT, VT], t.MutableMapping
 
 
 #                             * Code review nav *
-#==============================================================================
+# ============================================================================
 # ← Prev: __init__.py          Current: _abc.py               Next: _base.py →
-#==============================================================================
+# ============================================================================

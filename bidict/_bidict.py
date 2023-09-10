@@ -7,26 +7,37 @@
 
 #                             * Code review nav *
 #                        (see comments in __init__.py)
-#==============================================================================
+# ============================================================================
 # ← Prev: _frozenbidict.py     Current: _bidict.py     Next: _orderedbase.py →
-#==============================================================================
+# ============================================================================
 
 
 """Provide :class:`MutableBidict`."""
 
 from __future__ import annotations
+
 import typing as t
 
 from ._abc import MutableBidirectionalMapping
-from ._base import BidictBase, get_arg
-from ._dup import OnDup, ON_DUP_RAISE, ON_DUP_DROP_OLD
-from ._typing import KT, VT, DT, ODT, MISSING, Items, MapOrItems
+from ._base import BidictBase
+from ._base import get_arg
+from ._dup import ON_DUP_DROP_OLD
+from ._dup import ON_DUP_RAISE
+from ._dup import OnDup
+from ._typing import DT
+from ._typing import KT
+from ._typing import MISSING
+from ._typing import ODT
+from ._typing import VT
+from ._typing import Items
+from ._typing import MapOrItems
 
 
 class MutableBidict(BidictBase[KT, VT], MutableBidirectionalMapping[KT, VT]):
     """Base class for mutable bidirectional mappings."""
 
     if t.TYPE_CHECKING:
+
         @property
         def inverse(self) -> MutableBidict[VT, KT]: ...
 
@@ -108,6 +119,7 @@ class MutableBidict(BidictBase[KT, VT], MutableBidirectionalMapping[KT, VT]):
 
     @t.overload
     def pop(self, __key: KT) -> VT: ...
+
     @t.overload
     def pop(self, __key: KT, __default: DT = ...) -> VT | DT: ...
 
@@ -138,8 +150,10 @@ class MutableBidict(BidictBase[KT, VT], MutableBidirectionalMapping[KT, VT]):
 
     @t.overload  # type: ignore [override]  # https://github.com/jab/bidict/pull/242#discussion_r825464731
     def update(self, __m: t.Mapping[KT, VT], **kw: VT) -> None: ...
+
     @t.overload
     def update(self, __i: Items[KT, VT], **kw: VT) -> None: ...
+
     @t.overload
     def update(self, **kw: VT) -> None: ...
 
@@ -150,8 +164,10 @@ class MutableBidict(BidictBase[KT, VT], MutableBidirectionalMapping[KT, VT]):
 
     @t.overload
     def forceupdate(self, __m: t.Mapping[KT, VT], **kw: VT) -> None: ...
+
     @t.overload
     def forceupdate(self, __i: Items[KT, VT], **kw: VT) -> None: ...
+
     @t.overload
     def forceupdate(self, **kw: VT) -> None: ...
 
@@ -167,6 +183,7 @@ class MutableBidict(BidictBase[KT, VT], MutableBidirectionalMapping[KT, VT]):
 
     @t.overload
     def putall(self, items: t.Mapping[KT, VT], on_dup: OnDup) -> None: ...
+
     @t.overload
     def putall(self, items: Items[KT, VT], on_dup: OnDup = ...) -> None: ...
 
@@ -188,11 +205,12 @@ class bidict(MutableBidict[KT, VT]):
     """
 
     if t.TYPE_CHECKING:
+
         @property
         def inverse(self) -> bidict[VT, KT]: ...
 
 
 #                             * Code review nav *
-#==============================================================================
+# ============================================================================
 # ← Prev: _frozenbidict.py     Current: _bidict.py     Next: _orderedbase.py →
-#==============================================================================
+# ============================================================================

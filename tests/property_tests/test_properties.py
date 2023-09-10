@@ -7,37 +7,53 @@
 """Property-based tests using https://hypothesis.readthedocs.io."""
 
 from __future__ import annotations
-from copy import deepcopy
-from collections import OrderedDict, UserDict
-from collections.abc import Iterable, KeysView, ValuesView, ItemsView
-from itertools import tee
-from unittest.mock import ANY
+
 import gc
 import operator as op
 import pickle
 import sys
 import typing as t
 import weakref
+from collections import OrderedDict
+from collections import UserDict
+from collections.abc import ItemsView
+from collections.abc import Iterable
+from collections.abc import KeysView
+from collections.abc import ValuesView
+from copy import deepcopy
+from itertools import tee
+from unittest.mock import ANY
 
 import pytest
-from hypothesis import assume, example, given
+from hypothesis import assume
+from hypothesis import example
+from hypothesis import given
 
-from bidict import (
-    DROP_NEW, DROP_OLD, RAISE, OnDup,
-    BidirectionalMapping, MutableBidirectionalMapping, BidictBase, MutableBidict, OrderedBidictBase,
-    OrderedBidict, bidict, namedbidict, frozenbidict,
-    inverted,
-    DuplicationError, KeyDuplicationError, ValueDuplicationError, KeyAndValueDuplicationError,
-)
+from bidict import DROP_NEW
+from bidict import DROP_OLD
+from bidict import RAISE
+from bidict import BidictBase
+from bidict import BidirectionalMapping
+from bidict import DuplicationError
+from bidict import KeyAndValueDuplicationError
+from bidict import KeyDuplicationError
+from bidict import MutableBidict
+from bidict import MutableBidirectionalMapping
+from bidict import OnDup
+from bidict import OrderedBidict
+from bidict import OrderedBidictBase
+from bidict import ValueDuplicationError
+from bidict import bidict
+from bidict import frozenbidict
+from bidict import inverted
+from bidict import namedbidict
 from bidict._iter import iteritems
 from bidict._typing import Items
 
 from . import _strategies as st
-from ._types import (
-    ORDER_PRESERVING_BIDICT_TYPES,
-    BIDICT_TYPE_WHOSE_MODULE_HAS_REF_TO_INV_CLS,
-    BIDICT_TYPE_WHOSE_MODULE_HAS_NO_REF_TO_INV_CLS,
-)
+from ._types import BIDICT_TYPE_WHOSE_MODULE_HAS_NO_REF_TO_INV_CLS
+from ._types import BIDICT_TYPE_WHOSE_MODULE_HAS_REF_TO_INV_CLS
+from ._types import ORDER_PRESERVING_BIDICT_TYPES
 
 
 skip_if_pypy = pytest.mark.skipif(
@@ -180,7 +196,7 @@ def test_merge_operators(bi: Bi, mapping: t.Mapping[t.Any, t.Any]) -> None:
     else:
         assert merged == bidict({**bi, **mapping})
         tmp = bidict(bi)
-        tmp |= mapping  # type: ignore
+        tmp |= mapping  # type: ignore [misc]
         assert merged == tmp
 
     try:
@@ -202,7 +218,7 @@ def test_setitem_with_dup_val_raises(bi: MBi, new_key: t.Any, rand: t.Any) -> No
     for b in (bi, bi.inv):
         existing_val = rand.choice(list(b.inv))
         with pytest.raises(ValueDuplicationError):
-            b[new_key] = existing_val  # type: ignore
+            b[new_key] = existing_val  # type: ignore [index]
         assert len(b) == len(b.inv) == ln
 
 
@@ -216,7 +232,7 @@ def test_setitem_with_dup_key_val_raises(bi: MBi, rand: t.Any) -> None:
         existing_key = existing_items[0][0]
         existing_val = existing_items[1][1]
         with pytest.raises(KeyAndValueDuplicationError):
-            b[existing_key] = existing_val  # type: ignore
+            b[existing_key] = existing_val  # type: ignore [index]
         assert len(b) == len(b.inv) == ln
 
 
@@ -228,7 +244,7 @@ def test_put_with_dup_key_raises(bi: MBi, new_val: t.Any, rand: t.Any) -> None:
     for b in (bi, bi.inv):
         existing_key = rand.choice(list(b))
         with pytest.raises(KeyDuplicationError):
-            b.put(existing_key, new_val)  # type: ignore
+            b.put(existing_key, new_val)  # type: ignore [attr-defined]
         assert len(b) == len(b.inv) == ln
 
 
@@ -264,7 +280,8 @@ def test_consistency_after_method_call(bi_and_cmp_dict: t.Any, data: t.Any) -> N
             result = method(*args)
         except (KeyError, TypeError, DuplicationError) as exc:
             if isinstance(exc, TypeError):
-                assert methodname == 'popitem', 'popitem should be the only method that can raise TypeError here (we sometimes pass in the wrong number of args)'
+                # Only popitem should be able to cause TypeError (when we pass in the wrong number of args).
+                assert methodname == 'popitem', 'popitem should be the only method that can raise TypeError here'
             # Call should fail clean, i.e. bi should be in the same state it was before the call.
             assertmsg = f'{method!r} did not fail clean: {exc!r}'
             assert bi == bi_orig, assertmsg
@@ -320,10 +337,10 @@ def test_putall_same_as_put_for_each_item(bi: MBi, items: Items[t.Any, t.Any], o
     expect = bi.copy()
     checkexc = None
     expectexc = None
-    for (key, val) in items:
+    for key, val in items:
         try:
             expect.put(key, val, on_dup)
-        except DuplicationError as exc:
+        except DuplicationError as exc:  # noqa: PERF203
             expectexc = type(exc)
             expect = bi  # Bulk updates fail clean -> roll back to original state.
             break
@@ -362,7 +379,7 @@ def test_frozenbidicts_hashable(bi: frozenbidict[t.Any, t.Any]) -> None:
 def test_namedbidict_raises_on_invalid_name(names: tuple[str, str, str]) -> None:
     """:func:`bidict.namedbidict` should raise if given invalid names."""
     typename, keyname, valname = names
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError):  # noqa: PT011
         namedbidict(typename, keyname, valname)
 
 
@@ -370,7 +387,7 @@ def test_namedbidict_raises_on_invalid_name(names: tuple[str, str, str]) -> None
 def test_namedbidict_raises_on_same_keyname_as_valname(names: tuple[str, str, str]) -> None:
     """:func:`bidict.namedbidict` should raise if given same keyname as valname."""
     typename, keyname, _ = names
-    with pytest.raises(ValueError):
+    with pytest.raises(ValueError):  # noqa: PT011
         namedbidict(typename, keyname, keyname)
 
 
@@ -464,9 +481,9 @@ def test_inv_aliases_inverse(bi: Bi) -> None:
 def test_inverse_readonly(bi: Bi) -> None:
     """Attempting to set the .inverse attribute should raise AttributeError."""
     with pytest.raises(AttributeError):
-        bi.inverse = bi.__class__(inverted(bi))  # type: ignore
+        bi.inverse = bi.__class__(inverted(bi))  # type: ignore [misc]
     with pytest.raises(AttributeError):
-        bi.inv = bi.__class__(inverted(bi))  # type: ignore
+        bi.inv = bi.__class__(inverted(bi))  # type: ignore [misc]
 
 
 @given(st.BIDICTS)
@@ -503,6 +520,7 @@ def test_pickle_orderedbi_whose_order_disagrees_w_fwdm() -> None:
 
 class _UserBidict(bidict[t.Any, t.Any]):
     """See :func:`test_pickle_dynamically_generated_inverse_bidict` below."""
+
     _invm_cls = UserDict
 
 
@@ -558,7 +576,7 @@ def test_deepcopy(bi: Bi) -> None:
 def test_iteritems_raises_on_too_many_args() -> None:
     """:func:`iteritems` should raise if given too many arguments."""
     with pytest.raises(TypeError):
-        iteritems('too', 'many', 'args')  # type: ignore
+        iteritems('too', 'many', 'args')  # type: ignore [arg-type,call-arg]
 
 
 @given(st.I_PAIRS, st.DICTS_KW_PAIRS)
@@ -595,7 +613,17 @@ def test_inverted_bidict(bi_and_mapping: t.Any) -> None:
 
 
 _SET_OPS: t.Iterable[t.Callable[[t.Any, t.Any], t.Any]] = (
-    op.le, op.lt, op.gt, op.ge, op.eq, op.ne, op.and_, op.or_, op.sub, op.xor, (lambda x, y: x.isdisjoint(y)),
+    op.le,
+    op.lt,
+    op.gt,
+    op.ge,
+    op.eq,
+    op.ne,
+    op.and_,
+    op.or_,
+    op.sub,
+    op.xor,
+    (lambda x, y: x.isdisjoint(y)),
 )
 
 
@@ -603,7 +631,8 @@ _SET_OPS: t.Iterable[t.Callable[[t.Any, t.Any], t.Any]] = (
 def test_views(bi: t.Any, data: t.Any) -> None:
     """Optimized view APIs should be equivalent to using the corresponding MappingViews from :mod:`collections.abc`."""
     for check, oracle in (bi.keys(), KeysView(bi)), (bi.values(), ValuesView(bi)), (bi.items(), ItemsView(bi)):
-        assert isinstance(oracle, t.Iterable) and isinstance(oracle, t.Container)  # appease mypy
+        assert isinstance(oracle, t.Iterable)
+        assert isinstance(oracle, t.Container)
         # 0-arity methods: __len__, __iter__
         assert check.__len__() == oracle.__len__()
         assert list(check.__iter__()) == list(oracle.__iter__())
