@@ -89,7 +89,7 @@ class SentinelNode(Node):
     it represents an empty list.
     """
 
-    nxt: WeakAttr['SentinelNode', Node] = WeakAttr(slot='_nxt_weak')  # type: ignore [assignment]
+    nxt: WeakAttr[SentinelNode, Node] = WeakAttr(slot='_nxt_weak')  # type: ignore [assignment]
     __slots__ = ('_nxt_weak',)
 
     def __init__(self) -> None:

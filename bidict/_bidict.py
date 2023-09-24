@@ -31,6 +31,7 @@ from ._typing import ODT
 from ._typing import VT
 from ._typing import Items
 from ._typing import MapOrItems
+from ._typing import SupportsKeysAndGetItem
 
 
 class MutableBidict(BidictBase[KT, VT], MutableBidirectionalMapping[KT, VT]):
@@ -148,8 +149,8 @@ class MutableBidict(BidictBase[KT, VT], MutableBidirectionalMapping[KT, VT]):
         del self._invm[val]
         return key, val
 
-    @t.overload  # type: ignore [override]  # https://github.com/jab/bidict/pull/242#discussion_r825464731
-    def update(self, __m: t.Mapping[KT, VT], **kw: VT) -> None: ...
+    @t.overload
+    def update(self, __m: SupportsKeysAndGetItem[KT, VT], **kw: VT) -> None: ...
 
     @t.overload
     def update(self, __i: Items[KT, VT], **kw: VT) -> None: ...

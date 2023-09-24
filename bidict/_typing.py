@@ -13,12 +13,18 @@ import typing as t
 from enum import Enum
 
 
+if t.TYPE_CHECKING:
+    from _typeshed import SupportsKeysAndGetItem as SupportsKeysAndGetItem
+else:
+    SupportsKeysAndGetItem: t.TypeAlias = t.Mapping
+
+
 KT = t.TypeVar('KT')
 VT = t.TypeVar('VT')
 
 
 Items: t.TypeAlias = 't.Iterable[tuple[KT, VT]]'
-MapOrItems: t.TypeAlias = 't.Mapping[KT, VT] | Items[KT, VT]'
+MapOrItems: t.TypeAlias = 'SupportsKeysAndGetItem[KT, VT] | Items[KT, VT]'
 ItemsIter: t.TypeAlias = 't.Iterator[tuple[KT, VT]]'
 
 

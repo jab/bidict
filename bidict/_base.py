@@ -82,11 +82,11 @@ class BidictBase(BidirectionalMapping[KT, VT]):
     _invm: t.MutableMapping[VT, KT]  #: the backing inverse mapping (*val* → *key*)
 
     # Use Any rather than KT/VT in the following to avoid "ClassVar cannot contain type variables" errors:
-    _fwdm_cls: t.ClassVar[t.Type[t.MutableMapping[t.Any, t.Any]]] = dict  #: class of the backing forward mapping
-    _invm_cls: t.ClassVar[t.Type[t.MutableMapping[t.Any, t.Any]]] = dict  #: class of the backing inverse mapping
+    _fwdm_cls: t.ClassVar[type[t.MutableMapping[t.Any, t.Any]]] = dict  #: class of the backing forward mapping
+    _invm_cls: t.ClassVar[type[t.MutableMapping[t.Any, t.Any]]] = dict  #: class of the backing inverse mapping
 
     #: The class of the inverse bidict instance.
-    _inv_cls: t.ClassVar[t.Type[BidictBase[t.Any, t.Any]]]
+    _inv_cls: t.ClassVar[type[BidictBase[t.Any, t.Any]]]
 
     #: Used by :meth:`__repr__` for the contained items.
     _repr_delegate: t.ClassVar[t.Any] = dict
@@ -133,7 +133,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         cls._inv_cls = cls._make_inv_cls()
 
     @classmethod
-    def _make_inv_cls(cls: t.Type[BT]) -> t.Type[BT]:
+    def _make_inv_cls(cls: type[BT]) -> type[BT]:
         diff = cls._inv_cls_dict_diff()
         cls_is_own_inv = all(getattr(cls, k, MISSING) == v for (k, v) in diff.items())
         if cls_is_own_inv:
@@ -491,7 +491,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         return self._from_other(self.__class__, self)
 
     @staticmethod
-    def _from_other(bt: t.Type[BT], other: MapOrItems[KT, VT], inv: bool = False) -> BT:
+    def _from_other(bt: type[BT], other: MapOrItems[KT, VT], inv: bool = False) -> BT:
         """Fast, private constructor based on :meth:`_init_from`.
 
         If *inv* is true, return the inverse of the instance instead of the instance itself.
@@ -545,12 +545,15 @@ class BidictBase(BidirectionalMapping[KT, VT]):
 
     def __reduce__(self) -> tuple[t.Any, ...]:
         """Return state information for pickling."""
-        # If this bidict's class is dynamically generated, pickle the inverse instead, whose
-        # (presumably not dynamically generated) class the caller is more likely to have a reference to
-        # somewhere in sys.modules that pickle can discover.
-        should_invert = isinstance(self, GeneratedBidictInverse)
-        cls, init_from = (self._inv_cls, self.inverse) if should_invert else (self.__class__, self)
-        return self._from_other, (cls, dict(init_from), should_invert)  # type: ignore [call-overload]
+        cls = self.__class__
+        inst: t.Mapping[t.Any, t.Any] = self
+        # If this bidict's class is dynamically generated, pickle the inverse instead, whose (presumably not
+        # dynamically generated) class the caller is more likely to have a reference to somewhere in sys.modules
+        # that pickle can discover.
+        if should_invert := isinstance(self, GeneratedBidictInverse):
+            cls = self._inv_cls
+            inst = self.inverse
+        return self._from_other, (cls, dict(inst), should_invert)
 
 
 # See BidictBase._set_reversed() above.

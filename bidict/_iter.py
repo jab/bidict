@@ -9,7 +9,6 @@
 
 from __future__ import annotations
 
-import typing as t
 from operator import itemgetter
 
 from ._typing import KT
@@ -19,12 +18,16 @@ from ._typing import MapOrItems
 
 
 def iteritems_mapping_or_iterable(arg: MapOrItems[KT, VT]) -> ItemsIter[KT, VT]:
-    """Yield the items in *arg* based on whether it's a mapping."""
-    yield from arg.items() if isinstance(arg, t.Mapping) else arg
+    """Yield the items from *arg*."""
+    yield from (
+        arg.items()
+        if hasattr(arg, 'items')
+        else ((k, arg[k]) for k in arg.keys()) if hasattr(arg, 'keys') and hasattr(arg, '__getitem__') else arg
+    )
 
 
 def iteritems(__arg: MapOrItems[KT, VT], **kw: VT) -> ItemsIter[KT, VT]:
-    """Yield the items from *arg* and then any from *kw* in the order given."""
+    """Yield the items from *arg* and *kw* in the order given."""
     yield from iteritems_mapping_or_iterable(__arg)
     yield from kw.items()  # type: ignore [misc]
 

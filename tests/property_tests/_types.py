@@ -96,6 +96,17 @@ class _FrozenMap(t.Mapping[t.Any, t.Any]):
         return t.ItemsView(self._mapping)._hash()
 
 
+class SupportsKeysAndGetItem:
+    def __init__(self, *args: t.Any, **kw: t.Any) -> None:
+        self._data = dict(*args, **kw)
+
+    def keys(self) -> t.Any:
+        return self._data.keys()
+
+    def __getitem__(self, arg: t.Any) -> t.Any:
+        return self._data[arg]
+
+
 NON_BI_MAPPING_TYPES = (dict, OrderedDict, _FrozenMap)
 MAPPING_TYPES = BIDICT_TYPES + NON_BI_MAPPING_TYPES
 ORDERED_MAPPING_TYPES = (*ORDERED_BIDICT_TYPES, OrderedDict)

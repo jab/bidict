@@ -26,8 +26,8 @@ def namedbidict(
     keyname: str,
     valname: str,
     *,
-    base_type: t.Type[BidictBase[KT, VT]] = bidict,
-) -> t.Type[BidictBase[KT, VT]]:
+    base_type: type[BidictBase[KT, VT]] = bidict,
+) -> type[BidictBase[KT, VT]]:
     r"""Create a new subclass of *base_type* with custom accessors.
 
     Like :func:`collections.namedtuple` for bidicts.

@@ -40,7 +40,7 @@ BiT: t.TypeAlias = t.Type[BidictBase[t.Any, t.Any]]
 
 BIDICT_BASE_TYPES: tuple[BiT, ...] = (BidictBase, MutableBidict, OrderedBidictBase)
 BIDICT_TYPES = (*BIDICT_BASE_TYPES, bidict, frozenbidict, FrozenOrderedBidict, OrderedBidict)
-MyNamedBidict: t.Any = namedbidict('MyNamedBidict', 'key', 'val')
+MyNamedBidict: type[BidictBase[t.Any, t.Any]] = namedbidict('MyNamedBidict', 'key', 'val')
 BIMAP_TYPES = (*BIDICT_TYPES, AbstractBimap, MyNamedBidict)
 NOT_BIMAP_TYPES = (dict, OrderedDict, int, object)
 MUTABLE_BIDICT_TYPES = (bidict, OrderedBidict)

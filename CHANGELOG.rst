@@ -30,11 +30,15 @@ please consider sponsoring bidict on GitHub.`
 0.23.0 (not yet released)
 -------------------------
 
-- Drop support for Python 3.7, which reached end of life on 2023-06-27.
+- Minor code improvements.
 
-  Bidict may still be compatible with 3.7,
-  but as it is no longer tested with 3.7,
-  compatibility is not guaranteed.
+  :meth:`~bidict.bidict.update` and all initializers now handle
+  ``SupportsKeysAndGetItem`` objects, and detect
+  :class:`~collections.abc.Mapping`\s faster.
+
+- Support Python 3.12,
+  and drop support for Python 3.7,
+  which reached end of life on 2023-06-27.
 
 
 0.22.1 (2022-12-31)

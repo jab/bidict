@@ -121,7 +121,7 @@ class _OrderedBidictItemsView(t.ItemsView[KT, VT]):
 # For better performance, make _OrderedBidictKeysView and _OrderedBidictItemsView delegate
 # to backing dicts for the methods they inherit from collections.abc.Set. (Cannot delegate
 # for __iter__ and __reversed__ since they are order-sensitive.) See also: https://bugs.python.org/issue46713
-_OView: "t.TypeAlias" = "t.Type[_OrderedBidictKeysView[KT]] | t.Type[_OrderedBidictItemsView[KT, t.Any]]"
+_OView: t.TypeAlias = "t.Type[_OrderedBidictKeysView[KT]] | t.Type[_OrderedBidictItemsView[KT, t.Any]]"
 _setmethodnames: t.Iterable[str] = (
     '__lt__ __le__ __gt__ __ge__ __eq__ __ne__ __sub__ __rsub__ '
     '__or__ __ror__ __xor__ __rxor__ __and__ __rand__ isdisjoint'

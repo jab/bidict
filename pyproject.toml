@@ -85,6 +85,7 @@ extend-select = [
   "T20",
   "TD",
   "TID",
+  "UP",
   "W",
   "YTT",
 ]
@@ -92,9 +93,6 @@ extend-select = [
 [tool.ruff.isort]
 force-single-line = true
 lines-after-imports = 2
-
-[tool.ruff.pyupgrade]
-keep-runtime-typing = true
 
 [tool.black]
 line-length = 121
