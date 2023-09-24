@@ -28,7 +28,7 @@ from . import _types as _t
 
 def one_of(items: t.Any) -> t.Any:
     """Create a one_of strategy using the given items."""
-    return st.one_of((st.just(i) for i in items))  # type: ignore [call-overload]
+    return st.one_of(st.just(i) for i in items)  # type: ignore [call-overload]
 
 
 DATA = st.data()
@@ -60,6 +60,8 @@ I_PAIRS = st.iterables(PAIRS)
 FST_SND = (itemgetter(0), itemgetter(1))
 L_PAIRS_NODUP = st.lists(PAIRS, unique_by=FST_SND)
 I_PAIRS_NODUP = st.iterables(PAIRS, unique_by=FST_SND)
+MAPLIKES = st.builds(_t.SupportsKeysAndGetItem, I_PAIRS) | st.dictionaries(ATOMS, ATOMS)
+PAIRS_AND_MAPLIKES = L_PAIRS | MAPLIKES
 # Reserve a disjoint set of atoms as a source of values guaranteed not to have been
 # inserted into a test bidict already.
 DIFF_ATOMS = st.characters()

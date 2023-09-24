@@ -30,6 +30,7 @@ from ._typing import MISSING
 from ._typing import ODT
 from ._typing import VT
 from ._typing import Items
+from ._typing import Maplike
 from ._typing import MapOrItems
 
 
@@ -119,10 +120,8 @@ class MutableBidict(BidictBase[KT, VT], MutableBidirectionalMapping[KT, VT]):
 
     @t.overload
     def pop(self, __key: KT) -> VT: ...
-
     @t.overload
     def pop(self, __key: KT, __default: DT = ...) -> VT | DT: ...
-
     def pop(self, key: KT, default: ODT[DT] = MISSING) -> VT | DT:
         """*x.pop(k[, d]) → v*
 
@@ -148,45 +147,37 @@ class MutableBidict(BidictBase[KT, VT], MutableBidirectionalMapping[KT, VT]):
         del self._invm[val]
         return key, val
 
-    @t.overload  # type: ignore [override]  # https://github.com/jab/bidict/pull/242#discussion_r825464731
-    def update(self, __m: t.Mapping[KT, VT], **kw: VT) -> None: ...
-
+    @t.overload
+    def update(self, __m: Maplike[KT, VT], **kw: VT) -> None: ...
     @t.overload
     def update(self, __i: Items[KT, VT], **kw: VT) -> None: ...
-
     @t.overload
     def update(self, **kw: VT) -> None: ...
-
     def update(self, *args: MapOrItems[KT, VT], **kw: VT) -> None:
         """Like calling :meth:`putall` with *self.on_dup* passed for *on_dup*."""
         if args or kw:
             self._update(get_arg(*args), kw)
 
     @t.overload
-    def forceupdate(self, __m: t.Mapping[KT, VT], **kw: VT) -> None: ...
-
+    def forceupdate(self, __m: Maplike[KT, VT], **kw: VT) -> None: ...
     @t.overload
     def forceupdate(self, __i: Items[KT, VT], **kw: VT) -> None: ...
-
     @t.overload
     def forceupdate(self, **kw: VT) -> None: ...
-
     def forceupdate(self, *args: MapOrItems[KT, VT], **kw: VT) -> None:
         """Like a bulk :meth:`forceput`."""
         if args or kw:
             self._update(get_arg(*args), kw, on_dup=ON_DUP_DROP_OLD)
 
-    def __ior__(self, other: t.Mapping[KT, VT]) -> MutableBidict[KT, VT]:
+    def __ior__(self, other: Maplike[KT, VT]) -> MutableBidict[KT, VT]:
         """Return self|=other."""
         self.update(other)
         return self
 
     @t.overload
-    def putall(self, items: t.Mapping[KT, VT], on_dup: OnDup) -> None: ...
-
+    def putall(self, items: Maplike[KT, VT], on_dup: OnDup) -> None: ...
     @t.overload
     def putall(self, items: Items[KT, VT], on_dup: OnDup = ...) -> None: ...
-
     def putall(self, items: MapOrItems[KT, VT], on_dup: OnDup = ON_DUP_RAISE) -> None:
         """Like a bulk :meth:`put`.
 

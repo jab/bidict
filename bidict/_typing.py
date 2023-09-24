@@ -15,10 +15,20 @@ from enum import Enum
 
 KT = t.TypeVar('KT')
 VT = t.TypeVar('VT')
+VT_co = t.TypeVar('VT_co', covariant=True)
 
 
 Items: t.TypeAlias = 't.Iterable[tuple[KT, VT]]'
-MapOrItems: t.TypeAlias = 't.Mapping[KT, VT] | Items[KT, VT]'
+
+
+@t.runtime_checkable
+class Maplike(t.Protocol[KT, VT_co]):
+    """Like typeshed's SupportsKeysAndGetItem, but usable at runtime."""
+    def keys(self) -> t.Iterable[KT]: ...
+    def __getitem__(self, __key: KT) -> VT_co: ...
+
+
+MapOrItems: t.TypeAlias = 'Maplike[KT, VT] | Items[KT, VT]'
 ItemsIter: t.TypeAlias = 't.Iterator[tuple[KT, VT]]'
 
 

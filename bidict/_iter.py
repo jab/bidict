@@ -15,18 +15,23 @@ from operator import itemgetter
 from ._typing import KT
 from ._typing import VT
 from ._typing import ItemsIter
+from ._typing import Maplike
 from ._typing import MapOrItems
 
 
-def iteritems_mapping_or_iterable(arg: MapOrItems[KT, VT]) -> ItemsIter[KT, VT]:
-    """Yield the items in *arg* based on whether it's a mapping."""
-    yield from arg.items() if isinstance(arg, t.Mapping) else arg
-
-
-def iteritems(__arg: MapOrItems[KT, VT], **kw: VT) -> ItemsIter[KT, VT]:
-    """Yield the items from *arg* and then any from *kw* in the order given."""
-    yield from iteritems_mapping_or_iterable(__arg)
-    yield from kw.items()  # type: ignore [misc]
+@t.overload
+def iteritems(__arg: MapOrItems[KT, VT]) -> ItemsIter[KT, VT]: ...
+@t.overload
+def iteritems(__arg: MapOrItems[str, VT], **kw: VT) -> ItemsIter[str, VT]: ...
+def iteritems(__arg: MapOrItems[KT, VT], **kw: VT) -> ItemsIter[KT, VT] | ItemsIter[str, VT]:
+    """Yield the items from *arg* and *kw* in the order given."""
+    if isinstance(__arg, t.Mapping):
+        yield from __arg.items()
+    elif isinstance(__arg, Maplike):
+        yield from ((k, __arg[k]) for k in __arg.keys())
+    else:
+        yield from __arg
+    yield from kw.items()
 
 
 swap = itemgetter(1, 0)
@@ -47,4 +52,4 @@ def inverted(arg: MapOrItems[KT, VT]) -> ItemsIter[VT, KT]:
     if callable(invattr):
         inv: ItemsIter[VT, KT] = invattr()
         return inv
-    return map(swap, iteritems_mapping_or_iterable(arg))
+    return map(swap, iteritems(arg))

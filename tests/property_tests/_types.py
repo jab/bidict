@@ -20,24 +20,26 @@ from bidict import frozenbidict
 from bidict import namedbidict
 
 
+KT = t.TypeVar('KT')
+VT = t.TypeVar('VT')
 BiTypesT: t.TypeAlias = t.Tuple[t.Type[BidictBase[t.Any, t.Any]], ...]
 
 
-class UserBidict(bidict[t.Any, t.Any]):
+class UserBidict(bidict[KT, VT]):
     """Custom bidict subclass."""
 
     _fwdm_cls = UserDict
     _invm_cls = UserDict
 
 
-class UserOrderedBidict(OrderedBidict[t.Any, t.Any]):
+class UserOrderedBidict(OrderedBidict[KT, VT]):
     """Custom OrderedBidict subclass."""
 
     _fwdm_cls = UserDict
     _invm_cls = UserDict
 
 
-class UserBidictNotOwnInverse(bidict[t.Any, t.Any]):
+class UserBidictNotOwnInverse(bidict[KT, VT]):
     """Custom bidict subclass that is not its own inverse."""
 
     _fwdm_cls = dict
@@ -48,7 +50,7 @@ UserBidictNotOwnInverseInv = UserBidictNotOwnInverse._inv_cls
 assert UserBidictNotOwnInverseInv is not UserBidictNotOwnInverse
 
 
-class UserBidictNotOwnInverse2(UserBidictNotOwnInverse):
+class UserBidictNotOwnInverse2(UserBidictNotOwnInverse[KT, VT]):
     """Another custom bidict subclass that is not its own inverse."""
 
 
@@ -79,17 +81,28 @@ BIDICT_TYPE_WHOSE_MODULE_HAS_REF_TO_INV_CLS = UserBidictNotOwnInverse
 BIDICT_TYPE_WHOSE_MODULE_HAS_NO_REF_TO_INV_CLS = UserBidictNotOwnInverse2
 
 
-class _FrozenMap(t.Mapping[t.Any, t.Any]):
+class SupportsKeysAndGetItem(t.Generic[KT, VT]):
     def __init__(self, *args: t.Any, **kw: t.Any) -> None:
-        self._mapping = dict(*args, **kw)
+        self._mapping: t.Mapping[KT, VT] = dict(*args, **kw)
 
-    def __iter__(self) -> t.Iterator[t.Any]:
+    def keys(self) -> t.KeysView[KT]:
+        return self._mapping.keys()
+
+    def __getitem__(self, key: KT) -> VT:
+        return self._mapping[key]
+
+
+class _FrozenMap(t.Mapping[KT, VT]):
+    def __init__(self, *args: t.Any, **kw: t.Any) -> None:
+        self._mapping: t.Mapping[KT, VT] = dict(*args, **kw)
+
+    def __iter__(self) -> t.Iterator[KT]:
         return iter(self._mapping)
 
     def __len__(self) -> int:
         return len(self._mapping)
 
-    def __getitem__(self, key: t.Any) -> t.Any:
+    def __getitem__(self, key: KT) -> VT:
         return self._mapping[key]
 
     def __hash__(self) -> int:

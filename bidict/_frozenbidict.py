@@ -27,8 +27,6 @@ class frozenbidict(BidictBase[KT, VT]):
 
     _hash: int
 
-    # Work around lack of support for higher-kinded types in Python.
-    # Ref: https://github.com/python/typing/issues/548#issuecomment-621571821
     if t.TYPE_CHECKING:
 
         @property

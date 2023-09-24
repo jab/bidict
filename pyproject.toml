@@ -54,6 +54,7 @@ pretty = true
 
 [tool.ruff]
 # https://github.com/charliermarsh/ruff#configuration
+preview = true
 ignore = ["E501"] # line too long
 # https://beta.ruff.rs/docs/rules/
 extend-select = [
@@ -85,6 +86,7 @@ extend-select = [
   "T20",
   "TD",
   "TID",
+  "UP",
   "W",
   "YTT",
 ]
@@ -92,9 +94,6 @@ extend-select = [
 [tool.ruff.isort]
 force-single-line = true
 lines-after-imports = 2
-
-[tool.ruff.pyupgrade]
-keep-runtime-typing = true
 
 [tool.black]
 line-length = 121

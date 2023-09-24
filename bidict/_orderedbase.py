@@ -30,14 +30,14 @@ from ._typing import OKT
 from ._typing import OVT
 from ._typing import VT
 from ._typing import Items
+from ._typing import Maplike
 from ._typing import MapOrItems
 
 
-IT = t.TypeVar('IT')  # instance type
 AT = t.TypeVar('AT')  # attr type
 
 
-class WeakAttr(t.Generic[IT, AT]):
+class WeakAttr(t.Generic[AT]):
     """Descriptor to automatically manage (de)referencing the given slot as a weakref.
 
     See https://docs.python.org/3/howto/descriptor.html#managed-attributes
@@ -47,11 +47,11 @@ class WeakAttr(t.Generic[IT, AT]):
     def __init__(self, *, slot: str) -> None:
         self.slot = slot
 
-    def __set__(self, instance: IT, value: AT) -> None:
+    def __set__(self, instance: t.Any, value: AT) -> None:
         setattr(instance, self.slot, weakref(value))
 
-    def __get__(self, instance: IT, owner: t.Any) -> AT:
-        return getattr(instance, self.slot)()  # type: ignore [no-any-return]
+    def __get__(self, instance: t.Any, __owner: t.Any = None) -> AT:
+        return t.cast(AT, getattr(instance, self.slot)())
 
 
 class Node:
@@ -63,8 +63,10 @@ class Node:
     Referencing/dereferencing the weakref is handled automatically by :class:`WeakAttr`.
     """
 
-    prv: WeakAttr[Node, Node] = WeakAttr(slot='_prv_weak')
+    prv: WeakAttr[Node] = WeakAttr(slot='_prv_weak')
     __slots__ = ('_prv_weak', 'nxt', '__weakref__')
+
+    nxt: Node | WeakAttr[Node]  # Allow subclasses to use a WeakAttr for nxt too (see SentinelNode)
 
     def __init__(self, prv: Node, nxt: Node) -> None:
         self.prv = prv
@@ -89,7 +91,7 @@ class SentinelNode(Node):
     it represents an empty list.
     """
 
-    nxt: WeakAttr['SentinelNode', Node] = WeakAttr(slot='_nxt_weak')  # type: ignore [assignment]
+    nxt: WeakAttr[Node] = WeakAttr(slot='_nxt_weak')
     __slots__ = ('_nxt_weak',)
 
     def __init__(self) -> None:
@@ -120,14 +122,11 @@ class OrderedBidictBase(BidictBase[KT, VT]):
     _bykey: bool
 
     @t.overload
-    def __init__(self, __m: t.Mapping[KT, VT], **kw: VT) -> None: ...
-
+    def __init__(self, __m: Maplike[KT, VT], **kw: VT) -> None: ...
     @t.overload
     def __init__(self, __i: Items[KT, VT], **kw: VT) -> None: ...
-
     @t.overload
     def __init__(self, **kw: VT) -> None: ...
-
     def __init__(self, *args: MapOrItems[KT, VT], **kw: VT) -> None:
         """Make a new ordered bidirectional mapping.
         The signature behaves like that of :class:`dict`.

@@ -24,7 +24,8 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # https://github.com/actions/setup-python/blob/main/docs/advanced-usage.md#available-versions-of-python-and-pypy
+          # https://github.com/actions/python-versions/blob/main/versions-manifest.json
+          - pyversion: "3.12"
           - pyversion: "3.11"
             enable_coverage: true
           - pyversion: "3.10"

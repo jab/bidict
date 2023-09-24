@@ -30,11 +30,28 @@ please consider sponsoring bidict on GitHub.`
 0.23.0 (not yet released)
 -------------------------
 
-- Drop support for Python 3.7, which reached end of life on 2023-06-27.
+- Drop support for Python 3.7,
+  which reached end of life on 2023-06-27,
+  and take advantage of features available in Python 3.8+.
 
-  Bidict may still be compatible with 3.7,
-  but as it is no longer tested with 3.7,
-  compatibility is not guaranteed.
+- Test with Python 3.12 in CI.
+
+  Note: Older versions of bidict also support Python 3.12,
+  even though they don't explicitly declare support for it.
+
+- Drop use of `Trove classifiers <https://github.com/pypa/trove-classifiers>`__
+  to explicitly declare support for specific Python versions in package metadata.
+
+- All :meth:`~bidict.bidict.__init__`,
+  :meth:`~bidict.bidict.update`,
+  :meth:`~bidict.bidict.__or__`,
+  and related methods
+  now handle `SupportsKeysAndGetItem
+  <https://github.com/python/typeshed/blob/3eb9ff/stdlib/_typeshed/__init__.pyi#L128-L131>`__
+  objects that are not :class:`~collections.abc.Mapping`\s
+  the same way that `MutableMapping.update()
+  <https://github.com/python/cpython/blob/v3.11.5/Lib/_collections_abc.py#L943>`__ does,
+  before falling back to handling the provided object as an iterable of pairs.
 
 
 0.22.1 (2022-12-31)

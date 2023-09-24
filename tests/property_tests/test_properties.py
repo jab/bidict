@@ -21,7 +21,7 @@ from collections.abc import Iterable
 from collections.abc import KeysView
 from collections.abc import ValuesView
 from copy import deepcopy
-from itertools import tee
+from itertools import chain
 from unittest.mock import ANY
 
 import pytest
@@ -49,6 +49,7 @@ from bidict import inverted
 from bidict import namedbidict
 from bidict._iter import iteritems
 from bidict._typing import Items
+from bidict._typing import Maplike
 
 from . import _strategies as st
 from ._types import BIDICT_TYPE_WHOSE_MODULE_HAS_NO_REF_TO_INV_CLS
@@ -415,7 +416,7 @@ def test_namedbidict(nb: t.Any) -> None:
 
 @skip_if_pypy
 @given(st.BIDICT_TYPES)
-def test_bidicts_freed_on_zero_refcount(bi_cls: t.Type[Bi]) -> None:
+def test_bidicts_freed_on_zero_refcount(bi_cls: type[Bi]) -> None:
     """On CPython, the moment you have no more (strong) references to a bidict,
     there are no remaining (internal) strong references to it
     (i.e. no reference cycle was created between it and its inverse),
@@ -573,26 +574,24 @@ def test_deepcopy(bi: Bi) -> None:
     assert collect(bi.inv.items()) == collect(cp.inv.items())
 
 
+@given(st.MAPLIKES)
+def test_maplike(arg: Maplike[t.Any, t.Any]) -> None:
+    """:class:`bidict._typing.Maplike` should work correctly."""
+    assert isinstance(arg, Maplike)
+
+
 def test_iteritems_raises_on_too_many_args() -> None:
     """:func:`iteritems` should raise if given too many arguments."""
     with pytest.raises(TypeError):
-        iteritems('too', 'many', 'args')  # type: ignore [arg-type,call-arg]
+        iteritems('too', 'many', 'args')  # type: ignore [call-overload]
 
 
-@given(st.I_PAIRS, st.DICTS_KW_PAIRS)
-def test_iteritems(arg0: t.Any, kw: t.Any) -> None:
+@given(st.PAIRS_AND_MAPLIKES, st.DICTS_KW_PAIRS)
+def test_iteritems(arg: t.Any, kw: t.Any) -> None:
     """:func:`iteritems` should work correctly."""
-    arg0_1, arg0_2 = tee(arg0)
-    it = iteritems(arg0_1, **kw)
-    # Consume the first `len(arg0)` pairs, checking that they match `arg0`.
-    assert all(check == expect for (check, expect) in zip(it, arg0_2))
-    with pytest.raises(StopIteration):
-        next(arg0_1)  # Iterating `it` should have consumed all of `arg0_1`.
-    # Consume the remaining pairs, checking that they match `kw`.
-    # Once min PY version required is higher, can check that the order matches `kw` too.
-    assert all(kw[k] == v for (k, v) in it)
-    with pytest.raises(StopIteration):
-        next(it)
+    check = iteritems(arg, **kw)
+    expect = chain(((k, arg[k]) for k in arg.keys()) if hasattr(arg, 'keys') else iter(arg), kw.items())
+    assert all(i == j for (i, j) in zip(check, expect))
 
 
 @given(st.L_PAIRS)

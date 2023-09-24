@@ -5,8 +5,8 @@ dynamic_context = test_function
 
 [report]
 precision = 1
-exclude_lines =
-  pragma: no cover
+exclude_also =
   def __repr__
   @.*overload
   if .*TYPE_CHECKING
+  class .*(.*Protocol.*):
