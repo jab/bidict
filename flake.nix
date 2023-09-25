@@ -46,12 +46,18 @@
           # See comment above. Not possible to add a shell alias, but at least export an env var:
           PYPY38 = "${pkgs.pypy38}/bin/pypy3";
           shellHook = ''
-            if ! test -e .venv; then
+            set -euo pipefail
+            pre-commit install -f
+            if ! test -d .venv; then
+              mkdir .venv
+            fi
+            if ! test -d .venv/dev; then
               python3.11 -m venv --upgrade-deps .venv/dev
-              .venv/dev/bin/pip install -r dev-deps/python3.11/test.txt -r dev-deps/python3.11/dev.txt
-              .venv/dev/bin/pip install -e .
             fi
             source .venv/dev/bin/activate
+            pip install pip-tools
+            pip-sync dev-deps/python3.11/dev.txt dev-deps/python3.11/test.txt
+            pip show -qq bidict || pip install -e .
           '';
         };
       });

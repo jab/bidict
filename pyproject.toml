@@ -5,7 +5,7 @@ description = "The bidirectional mapping library for Python."
 authors = [{ name = "Joshua Bronson", email = "jabronson@gmail.com" }]
 license = { text = "MPL 2.0" }
 dependencies = []
-requires-python = ">=3.7"
+requires-python = ">=3.8"
 readme = "README.rst"
 keywords = [
   "bidict",
@@ -19,14 +19,8 @@ keywords = [
 classifiers = [
   "License :: OSI Approved :: Mozilla Public License 2.0 (MPL 2.0)",
   "Operating System :: OS Independent",
-  "Programming Language :: Python :: 3 :: Only",
-  "Programming Language :: Python :: 3.8",
-  "Programming Language :: Python :: 3.9",
-  "Programming Language :: Python :: 3.10",
-  "Programming Language :: Python :: 3.11",
   "Programming Language :: Python :: Implementation :: CPython",
   "Programming Language :: Python :: Implementation :: PyPy",
-  "Topic :: Software Development :: Libraries :: Python Modules",
   "Typing :: Typed",
 ]
 
@@ -47,6 +41,9 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
 packages = ["bidict"]
+
+[tool.setuptools.dynamic]
+version = {attr = "bidict.metadata.__version__"}
 
 [tool.mypy]
 strict = true
