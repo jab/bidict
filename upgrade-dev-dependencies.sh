@@ -28,18 +28,10 @@ main() {
   fi
 
 
-  # In case pypy38 only provides a "pypy3" executable, not a "pypy3.8",
-  # expect a PYPY38 env var pointing to a pypy3.8, as exported by flake.nix:
-  if ! type pypy3.8 &>/dev/null; then
-    function pypy3.8 {
-      $PYPY38 "$@"
-    }
-  fi
-
   log "Upgrading PyPI dependencies..."
   local -r dev_py="python3.11"  # Main version used for development
   local -r pip_compile="pip-compile --generate-hashes --reuse-hashes --upgrade --allow-unsafe"
-  for py in python3.12 python3.11 python3.10 python3.9 python3.8 pypy3.9 pypy3.8; do
+  for py in python3.12 python3.11 python3.10 python3.9 python3.8 pypy3.10 pypy3.9; do
     local manage_deps_env=".venv/deps/$py"
     [ -e "$manage_deps_env" ] || $py -m venv "$manage_deps_env"
     "$manage_deps_env/bin/pip" install --upgrade pip
