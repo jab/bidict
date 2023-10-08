@@ -46,7 +46,6 @@ from bidict import ValueDuplicationError
 from bidict import bidict
 from bidict import frozenbidict
 from bidict import inverted
-from bidict import namedbidict
 from bidict._iter import iteritems
 from bidict._typing import Items
 from bidict._typing import Maplike
@@ -374,44 +373,6 @@ def test_frozenbidicts_hashable(bi: frozenbidict[t.Any, t.Any]) -> None:
     assert hash(bi)
     assert {bi}
     assert {bi: bi}
-
-
-@given(st.NAMEDBIDICT_NAMES_SOME_INVALID)
-def test_namedbidict_raises_on_invalid_name(names: tuple[str, str, str]) -> None:
-    """:func:`bidict.namedbidict` should raise if given invalid names."""
-    typename, keyname, valname = names
-    with pytest.raises(ValueError):  # noqa: PT011
-        namedbidict(typename, keyname, valname)
-
-
-@given(st.NAMEDBIDICT_NAMES_ALL_VALID)
-def test_namedbidict_raises_on_same_keyname_as_valname(names: tuple[str, str, str]) -> None:
-    """:func:`bidict.namedbidict` should raise if given same keyname as valname."""
-    typename, keyname, _ = names
-    with pytest.raises(ValueError):  # noqa: PT011
-        namedbidict(typename, keyname, keyname)
-
-
-@given(st.NAMEDBIDICT_NAMES_ALL_VALID, st.NON_BI_MAPPING_TYPES)
-def test_namedbidict_raises_on_invalid_base_type(names: tuple[str, str, str], invalid_base_type: t.Any) -> None:
-    """:func:`bidict.namedbidict` should raise if given a non-bidict base_type."""
-    with pytest.raises(TypeError):
-        namedbidict(*names, base_type=invalid_base_type)
-
-
-@given(st.NAMEDBIDICTS)
-def test_namedbidict(nb: t.Any) -> None:
-    """Test :func:`bidict.namedbidict` custom accessors."""
-    valfor = getattr(nb, nb.valname + '_for')
-    keyfor = getattr(nb, nb.keyname + '_for')
-    assert all(valfor[key] == val for (key, val) in nb.items())
-    assert all(keyfor[val] == key for (key, val) in nb.items())
-    # The same custom accessors should work on the inverse.
-    inv = nb.inv
-    valfor = getattr(inv, nb.valname + '_for')
-    keyfor = getattr(inv, nb.keyname + '_for')
-    assert all(valfor[key] == val for (key, val) in nb.items())
-    assert all(keyfor[val] == key for (key, val) in nb.items())
 
 
 @skip_if_pypy

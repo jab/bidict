@@ -30,6 +30,8 @@ please consider sponsoring bidict on GitHub.`
 0.23.0 (not yet released)
 -------------------------
 
+The changes in this release are expected to affect few users.
+
 - Drop support for Python 3.7,
   which reached end of life on 2023-06-27,
   and take advantage of features available in Python 3.8+.
@@ -52,6 +54,8 @@ please consider sponsoring bidict on GitHub.`
   the same way that `MutableMapping.update()
   <https://github.com/python/cpython/blob/v3.11.5/Lib/_collections_abc.py#L943>`__ does,
   before falling back to handling the provided object as an iterable of pairs.
+
+- Remove ``namedbidict`` due to low usage.
 
 
 0.22.1 (2022-12-31)
@@ -185,11 +189,11 @@ please consider sponsoring bidict on GitHub.`
   :meth:`bidict.BidictBase.items`
   to include more details.
 
-- :func:`~bidict.namedbidict` now
+- ``namedbidict`` now
   exposes the passed-in *keyname* and *valname*
   in the corresponding properties on the generated class.
 
-- :func:`~bidict.namedbidict` now requires *base_type*
+- ``namedbidict`` now requires *base_type*
   to be a subclass of :class:`~bidict.BidictBase`,
   but no longer requires *base_type* to provide
   an ``_isinv`` attribute,
@@ -283,7 +287,7 @@ which actually provides the intended changes.
   due to the combination of generic types,
   dynamically-generated types
   (such as :ref:`inverse bidict classes <extending:Dynamic Inverse Class Generation>`
-  and :func:`namedbidicts <bidict.namedbidict>`),
+  and ``namedbidict``\s),
   and complicating optimizations
   such as the use of slots and weakrefs.
 
@@ -332,7 +336,7 @@ which actually provides the intended changes.
   so that private, internal modules are not exposed
   e.g. in classes' repr strings.
 
-- :func:`~bidict.namedbidict` now immediately raises :class:`TypeError`
+- ``namedbidict`` now immediately raises :class:`TypeError`
   if the provided ``base_type`` does not provide
   ``_isinv`` or :meth:`~object.__getstate__`,
   rather than succeeding with a class whose instances may raise
@@ -455,12 +459,12 @@ Remove APIs deprecated in the previous release:
 0.18.3 (2019-09-22)
 -------------------
 
-- Improve validation of names passed to :func:`~bidict.namedbidict`:
+- Improve validation of names passed to ``namedbidict``:
   Use :meth:`str.isidentifier` on Python 3,
   and a better regex on Python 2.
 
 - On Python 3,
-  set :attr:`~definition.__qualname__` on :func:`~bidict.namedbidict` classes
+  set :attr:`~definition.__qualname__` on ``namedbidict`` classes
   based on the provided ``typename`` argument.
 
 
@@ -684,11 +688,11 @@ The following breaking changes are expected to affect few if any users.
 
 **Minor Bugfixes**
 
-- :func:`~bidict.namedbidict` now verifies that the provided
+- ``namedbidict`` now verifies that the provided
   ``keyname`` and ``valname`` are distinct,
   raising :class:`ValueError` if they are equal.
 
-- :func:`~bidict.namedbidict` now raises :class:`TypeError`
+- ``namedbidict`` now raises :class:`TypeError`
   if the provided ``base_type``
   is not a :class:`~bidict.BidirectionalMapping`.
 
@@ -781,7 +785,7 @@ The following breaking changes are expected to affect few if any users.
   more efficient by skipping unnecessary duplication checking.
 
 - Fix accidental ignoring of specified ``base_type`` argument
-  when (un)pickling a :func:`~bidict.namedbidict`.
+  when (un)pickling a ``namedbidict``.
 
 - Fix incorrect inversion of
   ``some_named_bidict.inv.<fwdname>_for`` and
@@ -856,7 +860,7 @@ This release includes multiple API simplifications and improvements.
 
   The names of the
   :class:`~bidict.bidict`,
-  :func:`~bidict.namedbidict`, and
+  ``namedbidict``, and
   :class:`~bidict.frozenbidict` classes
   have been retained as all-lowercase
   so that they continue to match the case of
@@ -1252,4 +1256,4 @@ This release includes multiple API simplifications and improvements.
 - Move ``bidict.fancy_iteritems()`` → ``bidict.util.pairs()``
   (also available from top level as ``bidict.pairs()``).
 
-- Rename :func:`bidict.namedbidict`\'s ``bidict_type`` argument → ``base_type``.
+- Rename ``namedbidict``\'s ``bidict_type`` argument → ``base_type``.

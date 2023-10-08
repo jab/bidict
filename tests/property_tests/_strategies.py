@@ -21,7 +21,6 @@ from bidict import DROP_OLD
 from bidict import RAISE
 from bidict import OnDup
 from bidict import OrderedBidictBase
-from bidict import namedbidict
 
 from . import _types as _t
 
@@ -39,7 +38,6 @@ ORDERED_BIDICT_TYPES = one_of(_t.ORDERED_BIDICT_TYPES)
 REVERSIBLE_BIDICT_TYPES = one_of(_t.REVERSIBLE_BIDICT_TYPES)
 MAPPING_TYPES = one_of(_t.MAPPING_TYPES)
 NON_BI_MAPPING_TYPES = one_of(_t.NON_BI_MAPPING_TYPES)
-NON_NAMED_BIDICT_TYPES = one_of(_t.NON_NAMED_BIDICT_TYPES)
 ORDERED_MAPPING_TYPES = one_of(_t.ORDERED_MAPPING_TYPES)
 HASHABLE_MAPPING_TYPES = one_of(_t.HASHABLE_MAPPING_TYPES)
 ON_DUP_ACTIONS = one_of((DROP_NEW, DROP_OLD, RAISE))
@@ -92,16 +90,6 @@ KEYSVIEW_SET_OP_ARGS = st.sets(ATOMS) | st.dictionaries(ATOMS, ATOMS).map(callke
 ITEMSVIEW_SET_OP_ARGS = st.sets(PAIRS) | st.dictionaries(ATOMS, ATOMS).map(callitems) | BIDICTS.map(callitems)
 
 NON_BI_MAPPINGS = st.tuples(NON_BI_MAPPING_TYPES, L_PAIRS).map(lambda i: i[0](i[1]))
-
-
-NAMEDBIDICT_NAMES_ALL_VALID = st.lists(VALID_NAMES, min_size=3, max_size=3, unique=True)
-NAMEDBIDICT_NAMES_SOME_INVALID = st.lists(st.text(min_size=1), min_size=3, max_size=3).filter(
-    lambda i: not all(str.isidentifier(name) for name in i),
-)
-NAMEDBIDICT_TYPES = st.tuples(NAMEDBIDICT_NAMES_ALL_VALID, NON_NAMED_BIDICT_TYPES).map(
-    lambda i: namedbidict(*i[0], base_type=i[1]),
-)
-NAMEDBIDICTS = _bidict_strat(NAMEDBIDICT_TYPES)
 
 
 def _bi_and_map(bi_types: t.Any, map_types: t.Any = MAPPING_TYPES, init_items: t.Any = L_PAIRS_NODUP) -> t.Any:

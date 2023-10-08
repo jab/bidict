@@ -24,12 +24,10 @@ from bidict import FrozenOrderedBidict
 from bidict import GeneratedBidictInverse
 from bidict import MutableBidict
 from bidict import MutableBidirectionalMapping
-from bidict import NamedBidictBase
 from bidict import OrderedBidict
 from bidict import OrderedBidictBase
 from bidict import bidict
 from bidict import frozenbidict
-from bidict import namedbidict
 
 
 class AbstractBimap(BidirectionalMapping[t.Any, t.Any]):
@@ -40,8 +38,7 @@ BiT: t.TypeAlias = t.Type[BidictBase[t.Any, t.Any]]
 
 BIDICT_BASE_TYPES: tuple[BiT, ...] = (BidictBase, MutableBidict, OrderedBidictBase)
 BIDICT_TYPES = (*BIDICT_BASE_TYPES, bidict, frozenbidict, FrozenOrderedBidict, OrderedBidict)
-MyNamedBidict: type[BidictBase[t.Any, t.Any]] = namedbidict('MyNamedBidict', 'key', 'val')
-BIMAP_TYPES = (*BIDICT_TYPES, AbstractBimap, MyNamedBidict)
+BIMAP_TYPES = (*BIDICT_TYPES, AbstractBimap)
 NOT_BIMAP_TYPES = (dict, OrderedDict, int, object)
 MUTABLE_BIDICT_TYPES = (bidict, OrderedBidict)
 HASHABLE_BIDICT_TYPES = (frozenbidict, FrozenOrderedBidict)
@@ -73,12 +70,6 @@ def test_issubclass_mutable_and_mutable_bidirectional_mapping(bi_cls: BiT) -> No
     """All mutable bidict types should be mutable (bidirectional) mappings."""
     assert issubclass(bi_cls, MutableMapping)
     assert issubclass(bi_cls, MutableBidirectionalMapping)
-
-
-def test_issubclass_namedbidict() -> None:
-    """Named bidicts should derive from NamedBidictBase and their inverse classes from GeneratedBidictInverse."""
-    assert issubclass(MyNamedBidict, NamedBidictBase)
-    assert issubclass(MyNamedBidict._inv_cls, GeneratedBidictInverse)
 
 
 @pytest.mark.parametrize('bi_cls', HASHABLE_BIDICT_TYPES)

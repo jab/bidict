@@ -193,9 +193,8 @@ Additional Functionality
 Besides the standard :class:`bidict.bidict` type,
 the :mod:`bidict` module provides other bidirectional mapping variants:
 :class:`~bidict.frozenbidict`,
-:class:`~bidict.OrderedBidict`,
-:class:`~bidict.FrozenOrderedBidict`, and
-:func:`~bidict.namedbidict`.
+:class:`~bidict.OrderedBidict`, and
+:class:`~bidict.FrozenOrderedBidict`.
 
 These, and :mod:`bidict`'s other functionality,
 will be covered in later sections.

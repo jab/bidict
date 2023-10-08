@@ -17,7 +17,6 @@ from bidict import FrozenOrderedBidict
 from bidict import OrderedBidict
 from bidict import bidict
 from bidict import frozenbidict
-from bidict import namedbidict
 
 
 KT = t.TypeVar('KT')
@@ -54,25 +53,17 @@ class UserBidictNotOwnInverse2(UserBidictNotOwnInverse[KT, VT]):
     """Another custom bidict subclass that is not its own inverse."""
 
 
-NamedBidict = namedbidict('NamedBidict', 'key', 'val', base_type=bidict)
-NamedFrozenBidict = namedbidict('NamedFrozenBidict', 'key', 'val', base_type=frozenbidict)
-NamedOrderedBidict = namedbidict('NamedOrderedBidict', 'key', 'val', base_type=OrderedBidict)
-NamedUserBidict = namedbidict('NamedUserBidict', 'key', 'val', base_type=UserBidict)
-NAMED_BIDICT_TYPES: BiTypesT = (NamedBidict, NamedFrozenBidict, NamedOrderedBidict, NamedUserBidict)
-
 MUTABLE_BIDICT_TYPES: BiTypesT = (
     bidict,
     OrderedBidict,
-    NamedBidict,
     UserBidict,
     UserOrderedBidict,
     UserBidictNotOwnInverse,
 )
-FROZEN_BIDICT_TYPES: BiTypesT = (frozenbidict, FrozenOrderedBidict, NamedFrozenBidict)
-ORDERED_BIDICT_TYPES: BiTypesT = (OrderedBidict, FrozenOrderedBidict, NamedOrderedBidict, UserOrderedBidict)
+FROZEN_BIDICT_TYPES: BiTypesT = (frozenbidict, FrozenOrderedBidict)
+ORDERED_BIDICT_TYPES: BiTypesT = (OrderedBidict, FrozenOrderedBidict, UserOrderedBidict)
 ORDER_PRESERVING_BIDICT_TYPES: BiTypesT = tuple(set(FROZEN_BIDICT_TYPES + ORDERED_BIDICT_TYPES))
 BIDICT_TYPES: BiTypesT = tuple(set(MUTABLE_BIDICT_TYPES + FROZEN_BIDICT_TYPES + ORDERED_BIDICT_TYPES))
-NON_NAMED_BIDICT_TYPES: BiTypesT = tuple(set(BIDICT_TYPES) - set(NAMED_BIDICT_TYPES))
 # When support is dropped for Python < 3.8, all bidict types will be reversible,
 # and we can remove the following and just use BIDICT_TYPES instead:
 REVERSIBLE_BIDICT_TYPES: BiTypesT = tuple(b for b in BIDICT_TYPES if issubclass(b, t.Reversible))

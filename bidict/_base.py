@@ -126,8 +126,8 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         See: :ref:`extending:Dynamic Inverse Class Generation`
         (https://bidict.rtfd.io/extending.html#dynamic-inverse-class-generation)
 
-        Most subclasses will be their own inverse classes, but some
-        (e.g. those created via namedbidict) will have distinct inverse classes.
+        All subclasses provided in :mod:`bidict` are their own inverse classes,
+        but custom, user-defined subclasses may have distinct inverse classes.
         """
         if cls.__dict__.get('_inv_cls'):
             return  # Already set, nothing to do.

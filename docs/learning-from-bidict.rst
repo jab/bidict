@@ -342,8 +342,8 @@ Here's another example:
 ==============================================================
 
 See the `implementation
-<https://github.com/jab/bidict/blob/main/bidict/_named.py>`__
-of :func:`~bidict.namedbidict`.
+<https://github.com/jab/bidict/blob/f4823c7/bidict/_named.py>`__
+of ``namedbidict`` (before it was removed due to low usage).
 
 
 API Design
