@@ -13,32 +13,29 @@ digraph G {
   node [fontsize="12", shape="box"]
 
   subgraph ABCs {
-    node [fillcolor="#EFEFEF", color="#666666", fontcolor="#333333", style="filled", fontname="OperatorMono Nerd Font Book Italic"]
+    node [fillcolor="#EFEFEF", color="#666666", fontcolor="#333333", style="filled", fontname="Operator Mono SSm Lig Book"]
     Mapping [label="collections.abc.Mapping"]
     MutableMapping [label="collections.abc.MutableMapping"]
     Hashable [label="collections.abc.Hashable"]
     MutableMapping -> Mapping
     { rank=same Mapping MutableMapping Hashable }
 
-    BidirectionalMapping [label="bidict._abc.BidirectionalMapping", style="filled, bold", fontcolor="black", fontname="OperatorMono Nerd Font Book Italic"]
-    MutableBidirectionalMapping [label="bidict._abc.MutableBidirectionalMapping", style="filled, bold", fontcolor="black", fontname="OperatorMono Nerd Font Book Italic"]
-    BidirectionalMapping -> Mapping
+    BidirectionalMapping [label="bidict._abc.BidirectionalMapping", style="filled, bold", fontcolor="black", fontname="Operator Mono SSm Lig Book Italic"]
+    MutableBidirectionalMapping [label="bidict._abc.MutableBidirectionalMapping", style="filled, bold", fontcolor="black", fontname="Operator Mono SSm Lig Book Italic"] BidirectionalMapping -> Mapping
     MutableBidirectionalMapping -> BidirectionalMapping
     MutableBidirectionalMapping -> MutableMapping
   }
 
   subgraph {
-    node [style="bold", fontname="OperatorMono Nerd Font Book"]
+    node [style="bold", fontname="Operator Mono SSm Lig Book"]
 
     bidict [label="bidict.bidict"]
     frozenbidict [label="bidict.frozenbidict"]
     OrderedBidict [label="bidict.OrderedBidict"]
-    FrozenOrderedBidict [label="bidict.FrozenOrderedBidict"]
 
     bidict -> { MutableBidirectionalMapping }
     OrderedBidict -> { MutableBidirectionalMapping }
-    FrozenOrderedBidict -> { BidirectionalMapping, Hashable }
     frozenbidict -> { BidirectionalMapping, Hashable }
-    { rank=same bidict frozenbidict OrderedBidict FrozenOrderedBidict }
+    { rank=same bidict frozenbidict OrderedBidict }
   }
 }

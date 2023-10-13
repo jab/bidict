@@ -111,7 +111,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         if cls is not BidictBase:
             resolved = cls.__reversed__
             overridden = resolved is not BidictBase.__reversed__
-            if overridden:  # E.g. OrderedBidictBase, OrderedBidict, FrozenOrderedBidict
+            if overridden:  # E.g. OrderedBidictBase, OrderedBidict
                 return
         # The following will be False for MutableBidict, bidict, and frozenbidict on Python < 3.8,
         # and True for them on 3.8+ (where dicts are reversible). Will also be True for custom

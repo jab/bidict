@@ -27,8 +27,8 @@ as well:
 
    >>> 'C' in element_by_symbol
    False
-   >>> element_by_symbol.get('C', 'carbon')
-   'carbon'
+   >>> element_by_symbol.get('C', 'missing')
+   'missing'
    >>> element_by_symbol.pop('He')
    'helium'
    >>> element_by_symbol
@@ -239,7 +239,7 @@ the key of one existing item,
 and the value of another existing item.
 In the following example,
 the key of the third item duplicates the first item's key,
-and the value of the third item dulicates the second item's value:
+and the value of the third item duplicates the second item's value:
 
 .. code-block:: python
 

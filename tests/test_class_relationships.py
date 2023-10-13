@@ -20,8 +20,6 @@ import pytest
 
 from bidict import BidictBase
 from bidict import BidirectionalMapping
-from bidict import FrozenOrderedBidict
-from bidict import GeneratedBidictInverse
 from bidict import MutableBidict
 from bidict import MutableBidirectionalMapping
 from bidict import OrderedBidict
@@ -37,12 +35,13 @@ class AbstractBimap(BidirectionalMapping[t.Any, t.Any]):
 BiT: t.TypeAlias = t.Type[BidictBase[t.Any, t.Any]]
 
 BIDICT_BASE_TYPES: tuple[BiT, ...] = (BidictBase, MutableBidict, OrderedBidictBase)
-BIDICT_TYPES = (*BIDICT_BASE_TYPES, bidict, frozenbidict, FrozenOrderedBidict, OrderedBidict)
+BIDICT_TYPES = (*BIDICT_BASE_TYPES, bidict, frozenbidict, OrderedBidict)
 BIMAP_TYPES = (*BIDICT_TYPES, AbstractBimap)
 NOT_BIMAP_TYPES = (dict, OrderedDict, int, object)
 MUTABLE_BIDICT_TYPES = (bidict, OrderedBidict)
-HASHABLE_BIDICT_TYPES = (frozenbidict, FrozenOrderedBidict)
-ORDERED_BIDICT_TYPES = (OrderedBidict, FrozenOrderedBidict)
+HASHABLE_BIDICT_TYPES = (frozenbidict,)
+ORDERED_BIDICT_TYPES = (OrderedBidict,)
+REVERSIBLE_BIDICT_TYPES = BIDICT_TYPES
 
 
 @pytest.mark.parametrize('bi_cls', BIMAP_TYPES)
@@ -85,9 +84,9 @@ def test_issubclass_hashable(bi_cls: BiT) -> None:
     assert issubclass(bi_cls, Hashable)
 
 
-@pytest.mark.parametrize('bi_cls', ORDERED_BIDICT_TYPES)
-def test_ordered_reversible(bi_cls: BiT) -> None:
-    """All ordered bidict types should be reversible."""
+@pytest.mark.parametrize('bi_cls', REVERSIBLE_BIDICT_TYPES)
+def test_reversible(bi_cls: BiT) -> None:
+    """All bidict types should be reversible."""
     assert issubclass(bi_cls, Reversible)
 
 
@@ -99,19 +98,12 @@ def test_issubclass_internal() -> None:
     The relationships tested here are not guaranteed to hold in the future,
     but are still tested so that any unintentional changes won't go unnoticed.
     """
-    assert not issubclass(bidict, FrozenOrderedBidict)
     assert not issubclass(bidict, OrderedBidict)
     assert not issubclass(bidict, frozenbidict)
 
-    assert not issubclass(FrozenOrderedBidict, OrderedBidict)
-    assert not issubclass(FrozenOrderedBidict, bidict)
-    assert not issubclass(FrozenOrderedBidict, frozenbidict)
-
-    assert not issubclass(OrderedBidict, FrozenOrderedBidict)
     assert not issubclass(OrderedBidict, bidict)
     assert not issubclass(OrderedBidict, frozenbidict)
 
-    assert not issubclass(frozenbidict, FrozenOrderedBidict)
     assert not issubclass(frozenbidict, OrderedBidict)
     assert not issubclass(frozenbidict, bidict)
 

@@ -8,7 +8,7 @@
 #                             * Code review nav *
 #                        (see comments in __init__.py)
 # ============================================================================
-# ← Prev: _bidict.py      Current: _orderedbase.py   Next: _frozenordered.py →
+# ← Prev: _bidict.py      Current: _orderedbase.py   Next: _orderedbidict.py →
 # ============================================================================
 
 
@@ -241,5 +241,5 @@ class OrderedBidictBase(BidictBase[KT, VT]):
 
 #                             * Code review nav *
 # ============================================================================
-# ← Prev: _bidict.py      Current: _orderedbase.py   Next: _frozenordered.py →
+# ← Prev: _bidict.py      Current: _orderedbase.py   Next: _orderedbidict.py →
 # ============================================================================

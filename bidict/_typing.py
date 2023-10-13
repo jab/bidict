@@ -24,6 +24,7 @@ Items: t.TypeAlias = 't.Iterable[tuple[KT, VT]]'
 @t.runtime_checkable
 class Maplike(t.Protocol[KT, VT_co]):
     """Like typeshed's SupportsKeysAndGetItem, but usable at runtime."""
+
     def keys(self) -> t.Iterable[KT]: ...
     def __getitem__(self, __key: KT) -> VT_co: ...
 

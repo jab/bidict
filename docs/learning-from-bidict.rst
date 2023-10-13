@@ -56,7 +56,6 @@ top of the file:
 - `_frozenbidict.py <https://github.com/jab/bidict/blob/main/bidict/_frozenbidict.py#L8>`__
 - `_bidict.py <https://github.com/jab/bidict/blob/main/bidict/_bidict.py#L8>`__
 - `_orderedbase.py <https://github.com/jab/bidict/blob/main/bidict/_orderedbase.py#L8>`__
-- `_frozenordered.py <https://github.com/jab/bidict/blob/main/bidict/_frozenordered.py#L8>`__
 - `_orderedbidict.py <https://github.com/jab/bidict/blob/main/bidict/_orderedbidict.py#L8>`__
 
 
@@ -180,47 +179,53 @@ Python surprises
   <https://en.wikipedia.org/wiki/Equality_(mathematics)#Basic_properties>`__.
   This can lead to some even more unusual behavior than the above.
   As an example, let's see what would happen if
-  :class:`bidict.FrozenOrderedBidict.__eq__`
+  :meth:`bidict.frozenbidict.__eq__`
   behaved this way:
 
   .. doctest::
 
-     >>> class BadFrozenOrderedBidict(FrozenOrderedBidict):
-     ...     __hash__ = FrozenOrderedBidict.__hash__
+     >>> class BadFrozenBidict(BidictBase):
+     ...     __hash__ = frozenbidict.__hash__
      ...
      ...     def __eq__(self, other):  # (deliberately simplified)
      ...         # Override to be order-sensitive, like collections.OrderedDict:
      ...         return all(i == j for (i, j) in zip(self.items(), other.items()))
 
 
-     >>> x = BadFrozenOrderedBidict({1: 1, 2: 2})
+     >>> x = BadFrozenBidict({1: 1, 2: 2})
      >>> y = frozenbidict({1: 1, 2: 2})
-     >>> z = BadFrozenOrderedBidict({2: 2, 1: 1})
-     >>> assert x == y and y == z and x != z
+     >>> z = BadFrozenBidict({2: 2, 1: 1})
+     >>> list(x.items())
+     [(1, 1), (2, 2)]
+     >>> list(z.items())
+     [(2, 2), (1, 1)]
+     >>> x == y
+     True
+     >>> y == z
+     True
+     >>> x == z  # !!!
+     False
      >>> set1 = {x, y, z}
      >>> len(set1)
      2
      >>> set2 = {y, x, z}
-     >>> len(set2)
+     >>> len(set2)  # !!!
      1
-
-  Gotcha alert!
 
   According to Raymond Hettinger,
   the Python core developer who built Python's collections foundation,
-  if we had it to do over again,
-  we would make :meth:`collections.OrderedDict.__eq__`
-  order-insensitive.
-  Making ``__eq__`` order-sensitive not only violates the transitive property of equality,
-  but also the `Liskov substitution principle
+  :meth:`collections.OrderedDict.__eq__`
+  should have been order-insensitive.
+  Making it order-sensitive violates the transitive property of equality
+  as well as the `Liskov substitution principle
   <https://en.wikipedia.org/wiki/Liskov_substitution_principle>`__.
   Unfortunately, it's too late now to fix this for :class:`collections.OrderedDict`.
 
-  Fortunately though, it's not too late for bidict to learn from this.
+  But fortunately it's not too late for bidict to learn from this.
   Hence :ref:`eq-order-insensitive`, even for ordered bidicts.
   For an order-sensitive equality check, bidict provides the separate
   :meth:`~bidict.BidictBase.equals_order_sensitive` method,
-  thanks in no small part to `Raymond's good advice
+  thanks to `Raymond's good advice
   <https://groups.google.com/g/comp.lang.python/c/eGSPciKcbPk/m/z_L7Ko09DQAJ>`__.
 
 - See :ref:`addendum:\*nan\* as a Key`.
@@ -426,8 +431,8 @@ Python's data model
   the `implementation <https://github.com/jab/bidict/blob/main/bidict/_frozenbidict.py#L8>`__
   of :class:`~bidict.frozenbidict`.
 
-  - Consider :class:`~bidict.FrozenOrderedBidict`:
-    its :meth:`~bidict.FrozenOrderedBidict.__eq__`
+  - Consider :class:`~bidict.frozenbidict`:
+    its :meth:`~bidict.frozenbidict.__eq__`
     is :ref:`order-insensitive <eq-order-insensitive>`.
     So all contained items must participate in the hash order-insensitively.
 

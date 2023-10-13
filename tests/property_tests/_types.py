@@ -13,7 +13,6 @@ from collections import OrderedDict
 from collections import UserDict
 
 from bidict import BidictBase
-from bidict import FrozenOrderedBidict
 from bidict import OrderedBidict
 from bidict import bidict
 from bidict import frozenbidict
@@ -60,8 +59,8 @@ MUTABLE_BIDICT_TYPES: BiTypesT = (
     UserOrderedBidict,
     UserBidictNotOwnInverse,
 )
-FROZEN_BIDICT_TYPES: BiTypesT = (frozenbidict, FrozenOrderedBidict)
-ORDERED_BIDICT_TYPES: BiTypesT = (OrderedBidict, FrozenOrderedBidict, UserOrderedBidict)
+FROZEN_BIDICT_TYPES: BiTypesT = (frozenbidict,)
+ORDERED_BIDICT_TYPES: BiTypesT = (OrderedBidict, UserOrderedBidict)
 ORDER_PRESERVING_BIDICT_TYPES: BiTypesT = tuple(set(FROZEN_BIDICT_TYPES + ORDERED_BIDICT_TYPES))
 BIDICT_TYPES: BiTypesT = tuple(set(MUTABLE_BIDICT_TYPES + FROZEN_BIDICT_TYPES + ORDERED_BIDICT_TYPES))
 # When support is dropped for Python < 3.8, all bidict types will be reversible,

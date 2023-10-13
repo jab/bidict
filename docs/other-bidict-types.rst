@@ -58,9 +58,6 @@ so it's suitable for insertion into sets or other mappings:
    >>> my_set = {f}      # not an error
    >>> my_dict = {f: 1}  # also not an error
 
-See the :class:`~bidict.frozenbidict`
-API documentation for more information.
-
 
 :class:`~bidict.OrderedBidict`
 ------------------------------
@@ -75,8 +72,8 @@ It's like a bidirectional version of :class:`collections.OrderedDict`.
 .. doctest::
 
    >>> from bidict import OrderedBidict
-   >>> element_by_symbol = OrderedBidict([
-   ...     ('H', 'hydrogen'), ('He', 'helium'), ('Li', 'lithium')])
+   >>> element_by_symbol = OrderedBidict({
+   ...     'H': 'hydrogen', 'He': 'helium', 'Li': 'lithium'})
 
    >>> element_by_symbol.inverse
    OrderedBidict([('hydrogen', 'H'), ('helium', 'He'), ('lithium', 'Li')])
@@ -266,34 +263,21 @@ where an :class:`~bidict.OrderedBidict` can be used.
 For example, ``popitem(last=False)`` allows using an
 :class:`~bidict.OrderedBidict` as a FIFO queue.
 
-If you're on Python <= 3.7,
-:class:`~bidict.OrderedBidict` also gives you
-:meth:`~bidict.OrderedBidict.__reversed__`,
-which you don't get with unordered bidicts
-unless you upgrade to Python 3.8+.
 
+Reversing a bidict
+------------------
 
-:class:`~bidict.FrozenOrderedBidict`
-------------------------------------
+All bidict (and their associated views) are reversible
+(since dicts are reversible on all supported Python versions,
+e.g. CPython 3.8+).
 
-:class:`~bidict.FrozenOrderedBidict`
-is an immutable ordered bidict type.
-It's like a :class:`hashable <collections.abc.Hashable>` :class:`~bidict.OrderedBidict`
-without the mutating APIs,
-or like a :class:`reversible <collections.abc.Reversible>`
-:class:`~bidict.frozenbidict` even on Python < 3.8.
-(All :class:`~bidict.bidict`\s are
-`order-preserving when never mutated <#what-about-order-preserving-dicts>`__,
-so :class:`~bidict.frozenbidict` is already order-preserving,
-but only on Python 3.8+, where :class:`dict`\s
-are :class:`reversible <collections.abc.Reversible>`,
-are all :class:`~bidict.bidict`\s (including :class:`~bidict.frozenbidict`)
-also :class:`reversible <collections.abc.Reversible>`.)
+.. doctest::
 
-If you are using Python 3.8+,
-:class:`~bidict.frozenbidict` gives you everything that
-:class:`~bidict.FrozenOrderedBidict` gives you,
-but with less space overhead.
+    >>> b = bidict({1: 'one', 2: 'two', 3: 'three'})
+    >>> list(reversed(b))
+    [3, 2, 1]
+    >>> list(reversed(b.items()))
+    [(3, 'three'), (2, 'two'), (1, 'one')]
 
 
 Polymorphism
@@ -303,7 +287,7 @@ Code that needs to check only whether an object is *dict-like*
 should not use ``isinstance(obj, dict)``.
 This check is too specific, because dict-like objects need not
 actually be instances of dict or a dict subclass.
-You can see this fails for many dict-like in the standard library:
+You can see this fails for many dict-like objects in the standard library:
 
 .. doctest::
 
@@ -345,10 +329,13 @@ is an (im)mutable mapping is to use the
    >>> isinstance(bi, MutableMapping)
    True
 
-You can combine this with bidict's own
-:class:`~bidict.BidirectionalMapping` ABC
+To illustrate this,
+here's an example of how you can combine the above
+with bidict's own :class:`~bidict.BidirectionalMapping` ABC
 to implement your own check for whether
 an object is an immutable, bidirectional mapping:
+
+.. doctest::
 
    >>> def is_immutable_bimap(obj):
    ...     return (isinstance(obj, BidirectionalMapping)
@@ -359,21 +346,6 @@ an object is an immutable, bidirectional mapping:
 
    >>> is_immutable_bimap(frozenbidict())
    True
-
-Using this in the next example,
-we can see the concept above in action again:
-
-.. doctest::
-
-   >>> fb = FrozenOrderedBidict()
-   >>> isinstance(fb, frozenbidict)
-   False
-   >>> is_immutable_bimap(fb)
-   True
-
-Checking for ``isinstance(obj, frozenbidict)`` is too specific
-for this purpose and can fail in some cases.
-But using the collections ABCs as intended does the trick.
 
 For more you can do with :mod:`bidict`,
 check out :doc:`extending` next.

@@ -28,7 +28,7 @@ class BidirectionalMapping(t.Mapping[KT, VT]):
 
     Extends :class:`collections.abc.Mapping` primarily by adding the
     (abstract) :attr:`inverse` property,
-    which implementors of :class:`BidirectionalMapping`
+    which implementers of :class:`BidirectionalMapping`
     should override to return a reference to the inverse
     :class:`BidirectionalMapping` instance.
     """
