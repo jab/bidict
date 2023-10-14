@@ -10,11 +10,7 @@ Changelog
 
 .. image:: https://img.shields.io/badge/GitHub-sponsor-ff69b4
   :target: https://github.com/sponsors/jab
-  :alt: Sponsor through GitHub
-
-.. image:: https://img.shields.io/github/sponsors/jab
-   :target: https://github.com/sponsors/jab
-   :alt: Sponsors on GitHub
+  :alt: Sponsor
 
 
 :sup:`If you or your organization depends on bidict,

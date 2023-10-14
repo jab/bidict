@@ -14,14 +14,18 @@ giving access to inverse items:
 
 .. doctest::
 
+   >>> element_by_symbol.inverse
+   bidict({'hydrogen': 'H'})
    >>> element_by_symbol.inverse['helium'] = 'He'
+   >>> element_by_symbol
+   bidict({'H': 'hydrogen', 'He': 'helium'})
    >>> del element_by_symbol.inverse['hydrogen']
    >>> element_by_symbol
    bidict({'He': 'helium'})
 
-:class:`bidict.bidict` supports the rest of the
-:class:`collections.abc.MutableMapping` interface
-as well:
+Both a :class:`bidict.bidict` and its inverse
+support the entire
+:class:`collections.abc.MutableMapping` interface:
 
 .. doctest::
 
@@ -41,9 +45,10 @@ as well:
    >>> element_by_symbol.inverse.pop('mercury')
    'Hg'
 
-Because inverse items are maintained alongside forward items,
-referencing a :class:`~bidict.bidict`'s inverse
-is always a constant-time operation.
+The inverse is automatically kept up-to-date.
+Referencing a :class:`~bidict.bidict`'s inverse
+is always a constant-time operation;
+the inverse is not computed on demand.
 
 
 Values Must Be Hashable
@@ -359,15 +364,14 @@ Interop
 +++++++
 
 :class:`~bidict.bidict`\s interoperate well with other types of mappings.
-For example, they support (efficient) polymorphic equality testing:
+For example, they support efficient polymorphic equality testing:
 
 .. doctest::
 
    >>> bidict(a=1) == dict(a=1)
    True
 
-And converting back and forth works as expected
-(assuming no :ref:`value duplication <basic-usage:Values Must Be Unique>`):
+And converting back and forth works as expected:
 
 .. doctest::
 
@@ -376,12 +380,15 @@ And converting back and forth works as expected
    >>> bidict(dict(a=1))
    bidict({'a': 1})
 
+(Just remember that if there were any
+:ref:`duplicate values <basic-usage:Values Must Be Unique>`
+in the dict passed to :class:`~bidict.bidict`,
+it would trigger a :class:`~bidict.ValueDuplicationError`.)
+
 See the :ref:`other-bidict-types:Polymorphism` section
 for more interoperability documentation.
 
 ----
 
-Hopefully :mod:`bidict` feels right at home
-among the Python built-ins you already know.
 Proceed to :doc:`other-bidict-types`
 for documentation on the remaining bidict variants.

@@ -22,4 +22,5 @@ def _add_doctest_globals(doctest_namespace: t.MutableMapping[str, t.Any]) -> Non
     doctest_namespace['Mapping'] = Mapping
     doctest_namespace['MutableMapping'] = MutableMapping
     doctest_namespace['pypy'] = sys.implementation.name == 'pypy'
+    doctest_namespace['sys'] = sys
     doctest_namespace.update(i for i in vars(bidict).items() if not i[0].startswith('_'))

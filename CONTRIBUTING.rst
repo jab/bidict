@@ -40,47 +40,23 @@ Getting Started
 Making Changes
 --------------
 
-.. note:: You can now use
-   `GitPod.io <https://gitpod.io/#https://github.com/jab/bidict>`__
-   to get an already-configured development environment inside your browser
-   in which you can make, test, and submit your changes to bidict.
+- Recommended: You can work on bidict in a Visual Studio Code
+  `devcontainer environment <https://code.visualstudio.com/docs/remote/containers>`__,
+  where development dependencies and some helpful VS Code extensions
+  are installed inside the dev container environment for you.
 
-.. note:: You can also work on bidict in a Visual Studio Code
-   `devcontainer environment <https://code.visualstudio.com/docs/remote/containers>`__
-   which will install development dependencies and some helpful VS Code
-   extensions for you.
+  Try ``Remote-Containers: Clone Repository in Container Volume...`` on this
+  repository. You may need to reload your VS Code window after it finishes
+  cloning and installing extensions, which it should prompt you to do.
 
-   Try ``Remote-Containers: Clone Repository in Container Volume...`` on this
-   repository. You may need to reload your VS Code window after it finishes
-   cloning and installing extensions, which it should prompt you to do.
+- If not using a VSCode devcontainer, you can try the following
+  to set up a development environment manually:
+  ``./init_dev_env``
 
-   In a devcontainer, you don't need to worry about the below steps of making a
-   virtualenv or configuring EditorConfig or pre-commit, those will be part of
-   your development environment by default.
+- Note that `pre-commit <https://pre-commit.com/>`__
+  is used to help achieve uniform style and quality standards.
 
-- Before making changes, please
-  (create a `virtualenv <http://virtualenv.pypa.io>`__ and)
-  install the extra packages required for development
-  if you haven't already:
-  ``pip install -r requirements/test.txt -r requirements/lint.txt -r requirements/docs.txt``
-
-  We use `EditorConfig <https://editorconfig.org/>`__
-  and `pre-commit <https://pre-commit.com/>`__
-  to help achieve uniform style and quality standards
-  across a diversity of development environments.
-
-  pre-commit gets installed when you run the command above
-  and ensures that various code checks are run before every commit
-  (look in ``.pre-commit-config.yaml`` to see which hooks are run).
-  Ensure the configured hooks are installed by running
-  ``pre-commit install --install-hooks``.
-
-  EditorConfig allows us to provide a single ``.editorconfig`` file
-  to configure settings like indentation consistently
-  across a variety of supported editors.
-  See https://editorconfig.org/#download to install the plugin for your editor.
-
-- Create a topic branch off of main for your changes:
+- Create a topic branch off of ``main`` for your changes:
   ``git checkout -b <topic> main``
 
 - Make commits of logical units.
@@ -134,6 +110,9 @@ Submitting Changes
 Sponsoring
 ----------
 
+.. Some of the following badges are duplicated on other pages.
+   Would use `.. include::` but GitHub's renderer doesn't support it.
+
 .. image:: https://img.shields.io/badge/GitHub-sponsor-ff69b4
   :target: https://github.com/sponsors/jab
   :alt: Sponsor through GitHub
@@ -145,13 +124,6 @@ Sponsoring
 .. image:: https://img.shields.io/badge/PayPal-sponsor-blue.svg
   :target: https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=jabronson%40gmail%2ecom&lc=US&item_name=Sponsor%20bidict
   :alt: Sponsor through PayPal
-
-.. image:: https://img.shields.io/github/sponsors/jab
-   :target: https://github.com/sponsors/jab
-   :alt: Sponsors on GitHub
-
-.. duplicated in README.rst
-   (would use `.. include::` but GitHub doesn't understand it)
 
 Bidict is the product of thousands of hours of my unpaid work
 over the ~15 years that I've been the sole maintainer.

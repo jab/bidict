@@ -4,7 +4,7 @@ Other Functionality
 :func:`bidict.inverted`
 -----------------------
 
-bidict provides the :class:`~bidict.inverted` iterator
+Bidict provides the :class:`~bidict.inverted` iterator
 to help you get inverse items from various types of objects.
 
 Pass in a mapping to get the inverse mapping:

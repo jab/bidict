@@ -1,22 +1,22 @@
 Learning from ``bidict``
 ------------------------
 
-Working on :mod:`bidict` has taken me to
+Working on bidict has taken me to
 some of the most interesting and unexpected places
-I've ever gotten to visit in many years of programming.
+I've gotten to visit in many years of programming.
 (When I started this project ~15 years ago,
 I'd never heard of things like higher-kinded types.
-Thanks to :mod:`bidict`, I not only came across them,
-I even got to `share a practical, real-world example with Guido
+Thanks to bidict, I not only learned about them,
+I got to `share a practical example with Guido
 <https://github.com/python/typing/issues/548#issuecomment-621195693>`__
 where they would be beneficial for Python.)
 
-The problem space that :mod:`bidict` inhabits
+The problem space that bidict inhabits
 is abundant with beautiful symmetries,
 delightful surprises, and rich opportunities
 to come up with elegant solutions.
 
-You can check out :mod:`bidict`'s source
+You can check out bidict's source
 to see for yourself.
 I've sought to optimize the code
 not just for correctness and performance,
@@ -25,17 +25,17 @@ and to make for an enjoyable read.
 
 See below for more, and feel free to
 let me know what you think.
-I hope reading :mod:`bidict`'s code
+I hope reading bidict's code
 brings you some of the
 `joy <https://joy.recurse.com/posts/148-bidict>`__
-that :mod:`bidict` has brought me.
+that bidict has brought me.
 
 
 Code structure
 ==============
 
-:class:`~bidict.bidict`\s come in every combination of
-mutable, immutable, ordered, and unordered types,
+:class:`~bidict.bidict`\s come in
+mutable, immutable, and ordered variants,
 implementing Python's various
 :class:`relevant <collections.abc.Mapping>`
 :class:`collections <collections.abc.MutableMapping>`
@@ -71,41 +71,44 @@ Part of this is because many of the most interesting real-world details get left
 and you miss all the value that comes from ongoing, direct practical application.
 
 Bidict shows how fundamental data structures
-can be implemented in Python for important real-world usage,
+can be implemented in Python for real-world usage,
 with practical concerns at top of mind.
 
-.. admonition:: To give you a taste...
 
-   A regular :class:`~bidict.bidict`
-   encapsulates two regular dicts,
-   keeping them in sync to preserve the bidirectional mapping invariants.
-   Since dicts are unordered, regular bidicts are unordered too.
-   How should we extend this to implement an ordered bidict?
+``OrderedBidict``\'s design
+===========================
 
-   :class:`~bidict.OrderedBidictBase` inherits from
-   :class:`~bidict.BidictBase` the use of two regular dicts
-   to store the forward and inverse associations.
-   And to store the ordering of the associations,
-   we use a doubly-linked list.
-   This allows us to e.g. move any item to the front
-   of the ordering in O(1) time.
+A regular :class:`~bidict.bidict`
+encapsulates two regular dicts,
+keeping them in sync to preserve the bidirectional mapping invariants.
+How should we extend this to implement :class:`~bidict.OrderedBidict`?
 
-   Interestingly, the nodes of the linked list encode only the ordering of the items;
-   the nodes themselves contain no key or value data.
-   An additional backing mapping associates the key/value data
-   with the nodes, providing the final piece of the puzzle.
+From :class:`~bidict.BidictBase`,
+:class:`~bidict.OrderedBidictBase` inherits the use of two regular dicts
+to store the contents of the forward and inverse items.
 
-   And since :class:`~bidict.OrderedBidictBase` needs to not only
-   look up nodes by key/value, but also key/value by node,
-   it uses an (unordered) :class:`~bidict.bidict` for this internally.
-   Bidicts all the way down!
+To store the _ordering_ of the items,
+we use a doubly-linked list
+(much like :class:`~collections.OrderedDict`),
+allowing us to e.g. move any item to the front
+of the bidict in constant time.
+
+Interestingly, the nodes of the linked list encode only the ordering of the items;
+the nodes themselves contain no key or value data.
+An additional backing mapping associates the key/value data
+with the nodes, providing the final piece of the puzzle.
+
+And since the implementation needs to not only
+look up nodes by key/value, but also key/value by node,
+we use a :class:`~bidict.bidict` for this internally.
+Bidicts all the way down!
 
 
 Python syntax hacks
 ===================
 
-:mod:`bidict` used to support
-(ab)using a specialized form of Python's :ref:`slice <slicings>` syntax
+bidict :issue:`used to <19>` support
+a specialized form of Python's :ref:`slice <slicings>` syntax
 for getting and setting keys by value:
 
 .. code-block:: python
@@ -116,30 +119,37 @@ for getting and setting keys by value:
    # [:slice] syntax for the inverse lookup (no longer supported):
    element_by_symbol[:'hydrogen']  # ==> 'H'
 
+
 See `this code <https://github.com/jab/bidict/blob/356dbe3/bidict/_bidict.py#L25>`__
-for how this was implemented,
-and :issue:`19` for why this was dropped.
+for how this was implemented.
+
+It's super cool when you find a way to bend Python's syntax
+to support new use cases like this
+that stll feel like they fit well into the language,
+especially given that Python (wisely) limits
+how much you can customize its syntax.
 
 
-Property-based testing is indispensable
-=======================================
+Property-based testing is incredible
+====================================
 
 When your automated tests run,
 are they only checking the test cases
-you happened to hard-code into your test suite?
-How do you know these test cases aren't missing
+that you happened to think of when writing your tests?
+How do you know you aren't missing
 some important edge cases?
 
 With property-based testing,
-you describe the types of test case inputs your functions accept,
-along with the properties that should hold for all inputs.
-Rather than having to think up your test case inputs manually
+you describe the _types_ of the test case inputs that your APIs accept,
+along with the properties that should hold for all valid inputs.
+Rather than having to think of your test case inputs manually
 and hard-code them into your test suite,
 they get generated for you dynamically,
-in much greater quantity and edge case-exercising diversity
-than you could come up with by hand.
+in much greater quantity and diversity
+than you would typically come up with by hand.
 This dramatically increases test coverage
-and confidence that your code is correct.
+and confidence that your code is correct
+with much less actual test code.
 
 Bidict never would have survived so many refactorings with so few bugs
 if it weren't for property-based testing, enabled by the amazing
@@ -171,7 +181,7 @@ Python surprises
      True
      >>> y == z
      True
-     >>> x == z
+     >>> x == z  # !!!
      False
 
   So :class:`collections.OrderedDict` violates the
@@ -195,10 +205,6 @@ Python surprises
      >>> x = BadFrozenBidict({1: 1, 2: 2})
      >>> y = frozenbidict({1: 1, 2: 2})
      >>> z = BadFrozenBidict({2: 2, 1: 1})
-     >>> list(x.items())
-     [(1, 1), (2, 2)]
-     >>> list(z.items())
-     [(2, 2), (1, 1)]
      >>> x == y
      True
      >>> y == z
@@ -219,14 +225,13 @@ Python surprises
   Making it order-sensitive violates the transitive property of equality
   as well as the `Liskov substitution principle
   <https://en.wikipedia.org/wiki/Liskov_substitution_principle>`__.
-  Unfortunately, it's too late now to fix this for :class:`collections.OrderedDict`.
+  It's too late now to change this for :class:`collections.OrderedDict`.
 
   But fortunately it's not too late for bidict to learn from this.
   Hence :ref:`eq-order-insensitive`, even for ordered bidicts.
   For an order-sensitive equality check, bidict provides the separate
   :meth:`~bidict.BidictBase.equals_order_sensitive` method,
-  thanks to `Raymond's good advice
-  <https://groups.google.com/g/comp.lang.python/c/eGSPciKcbPk/m/z_L7Ko09DQAJ>`__.
+  thanks to Raymond's advice.
 
 - See :ref:`addendum:\*nan\* as a Key`.
 
@@ -241,20 +246,21 @@ and can dramatically reduce memory usage in CPython
 when creating many instances of the same class.
 
 As an example,
-the ``Node`` class used internally by
-:class:`~bidict.OrderedBidictBase`
-to store the ordering of inserted items
+the ``Node`` class used internally
+(in the linked list that backs
+:class:`~bidict.OrderedBidictBase`)
 uses slots for better performance at scale,
-since as many node instances are kept in memory
+since there are as many node instances kept in memory
 as there are items in every ordered bidict in memory.
 *See:* `_orderedbase.py <https://github.com/jab/bidict/blob/main/bidict/_orderedbase.py#L8>`__
 
-(Note that extra care must be taken
-when using slots with pickling and weakrefs.)
+Note that extra care must be taken
+when using slots with pickling and weakrefs;
+see the code for more.
 
 
-Better memory usage through :mod:`weakref`
-==========================================
+Better memory usage through ``weakref``
+=======================================
 
 A :class:`~bidict.bidict` and its inverse use :mod:`weakref` to
 :ref:`avoid creating a reference cycle
@@ -296,16 +302,13 @@ rather than hard-coding the current class's name.
 *See:* https://docs.python.org/3/reference/datamodel.html#executing-the-class-body
 
 
-Subclassing :func:`~collections.namedtuple` classes
-===================================================
+Subclassing ``namedtuple`` classes
+==================================
 
 To get the performance benefits, intrinsic sortability, etc.
-of :func:`~collections.namedtuple`
-while customizing behavior, state, API, etc.,
-you can subclass a :func:`~collections.namedtuple` class.
-(Make sure to include ``__slots__ = ()``,
-if you want to keep the associated performance benefits –
-see the section about slots above.)
+of :class:`~typing.NamedTuple` (or :func:`~collections.namedtuple`)
+while customizing behavior, API, etc.,
+you can subclass.
 
 See the *OnDup* class in
 `_dup.py <https://github.com/jab/bidict/blob/main/bidict/_dup.py>`__
@@ -343,12 +346,12 @@ Here's another example:
    1
 
 
-:func:`~collections.namedtuple`-style dynamic class generation
-==============================================================
+``namedtuple``-style dynamic class generation
+=============================================
 
 See the `implementation
 <https://github.com/jab/bidict/blob/f4823c7/bidict/_named.py>`__
-of ``namedbidict`` (before it was removed due to low usage).
+of ``namedbidict`` (it was since removed due to low usage).
 
 
 API Design

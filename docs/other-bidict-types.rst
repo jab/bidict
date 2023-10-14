@@ -21,7 +21,7 @@ by adding the
 ":attr:`~bidict.BidirectionalMapping.inverse`"
 :obj:`~abc.abstractproperty`.
 
-As you may have noticed,
+As you can see above,
 :class:`bidict.bidict` is also
 a :class:`collections.abc.MutableMapping`.
 But :mod:`bidict` provides
@@ -66,7 +66,7 @@ so it's suitable for insertion into sets or other mappings:
 is a :class:`~bidict.MutableBidirectionalMapping`
 that preserves the ordering of its items,
 and offers some additional ordering-related APIs
-that unordered bidicts can't offer.
+not offered by the unordered bidict types.
 It's like a bidirectional version of :class:`collections.OrderedDict`.
 
 .. doctest::
@@ -84,16 +84,19 @@ It's like a bidirectional version of :class:`collections.OrderedDict`.
 
    >>> # Insert an additional item and verify it now comes last:
    >>> element_by_symbol['Be'] = 'beryllium'
-   >>> last_item = list(element_by_symbol.items())[-1]
+   >>> *_, last_item = element_by_symbol.items()
    >>> last_item
    ('Be', 'beryllium')
 
-Additional, efficiently-implemented, order-mutating APIs
-modeled after :class:`~collections.OrderedDict`, e.g.
+Additional, efficiently-implemented, order-mutating APIs are provided as well,
+following the example of :class:`~collections.OrderedDict`.
+
+For example,
 :meth:`popitem(last: bool) <bidict.OrderedBidict.popitem>`,
 which makes ordered bidicts suitable for use as FIFO queues, and
 :meth:`move_to_end(last: bool) <bidict.OrderedBidict.move_to_end>`,
-are provided as well:
+which lets you move any item to either the front or the back
+of the ordering in constant time.
 
 .. doctest::
 
@@ -156,7 +159,7 @@ will have its value overwritten in place:
 :meth:`~bidict.OrderedBidict.__eq__` is order-insensitive
 #########################################################
 
-To ensure that equals comparison for any bidict always upholds the
+To ensure that ``==`` comparison for any bidict always upholds the
 `transitive property of equality
 <https://en.wikipedia.org/wiki/Equality_(mathematics)#Basic_properties>`__ and the
 `Liskov substitution principle <https://en.wikipedia.org/wiki/Liskov_substitution_principle>`__,
@@ -179,11 +182,8 @@ For order-sensitive equality tests, use
    >>> o1.equals_order_sensitive(o2)
    False
 
-(Note that this differs from the behavior of
-:meth:`collections.OrderedDict.__eq__`,
-and for good reason,
-by recommendation of the Python core developer
-who designed and implemented :class:`~collections.OrderedDict`.
+(Note that this improves on the behavior of
+:meth:`collections.OrderedDict.__eq__`.
 For more about this, see
 :ref:`learning-from-bidict:Python surprises`.)
 
@@ -192,16 +192,16 @@ What about order-preserving dicts?
 ##################################
 
 In CPython 3.6+ and all versions of PyPy,
-:class:`dict` (which bidicts are built on by default)
-preserves insertion order.
-Given that, can you get away with
+:class:`dict` preserves insertion order.
+Since bidicts are built on top of dicts,
+can we get away with
 using an unordered bidict
 in places where you need
 an order-preserving bidirectional mapping?
-Of course, this assumes you don't need the additional APIs
+
+(Assume we don't need the additional APIs
 offered only by :class:`~bidict.OrderedBidict`, such as
-:meth:`popitem(last=False) <bidict.OrderedBidict.popitem>`,
-which makes it suitable for use as a FIFO queue.
+:meth:`popitem(last=False) <bidict.OrderedBidict.popitem>`.)
 
 Consider this example:
 
@@ -231,12 +231,14 @@ you have to use an ordered bidict:
     >>> ob[2] = 'UPDATED'
     >>> ob
     OrderedBidict([(1, -1), (2, 'UPDATED'), (3, -3)])
-    >>> ob.inverse
+    >>> ob.inverse  # better:
     OrderedBidict([(-1, 1), ('UPDATED', 2), (-3, 3)])
 
-The ordered bidict and its inverse always give you a consistent ordering.
+An ordered bidict and its inverse always give
+a consistent ordering of the contained items,
+even after arbitrary mutations.
 
-That said, if you depend on preserving insertion order,
+If you depend on preserving insertion order,
 an unordered bidict may be sufficient if:
 
 * you'll never mutate it
@@ -251,32 +253,33 @@ an unordered bidict may be sufficient if:
   and are only changing existing items in the forward direction
   (i.e. changing values by key, rather than changing keys by value).
 
-On the other hand, if your code is actually depending on the order,
-using an explicitly-ordered bidict type makes for clearer code.
+That said, if your code depends on the ordering,
+using an :class:`~bidict.OrderedBidict` makes for safer, clearer code.
 
-:class:`~bidict.OrderedBidict` also gives you
-additional, constant-time, order-mutating APIs, such as
-:meth:`move_to_end(last: bool) <bidict.OrderedBidict.move_to_end>` and
-:meth:`popitem(last: bool) <bidict.OrderedBidict.popitem>`.
-These additional APIs expand the range of use cases
+Of course, the additional order-mutating APIs that
+:class:`~bidict.OrderedBidict` gives you
+also expand the range of use cases
 where an :class:`~bidict.OrderedBidict` can be used.
-For example, ``popitem(last=False)`` allows using an
-:class:`~bidict.OrderedBidict` as a FIFO queue.
+For example,
+:meth:`popitem(last=False) <bidict.OrderedBidict.popitem>`
+allows using an :class:`~bidict.OrderedBidict` as a FIFO queue,
+as mentioned above.
 
 
 Reversing a bidict
 ------------------
 
-All bidict (and their associated views) are reversible
-(since dicts are reversible on all supported Python versions,
-e.g. CPython 3.8+).
+All provided bidict types are reversible
+(since they are backed by dicts,
+which are themselves reversible on all supported Python versions
+as of CPython 3.8+).
 
 .. doctest::
 
     >>> b = bidict({1: 'one', 2: 'two', 3: 'three'})
     >>> list(reversed(b))
     [3, 2, 1]
-    >>> list(reversed(b.items()))
+    >>> list(reversed(b.items()))  # keys/values/items views are reversible too
     [(3, 'three'), (2, 'two'), (1, 'one')]
 
 
@@ -287,7 +290,7 @@ Code that needs to check only whether an object is *dict-like*
 should not use ``isinstance(obj, dict)``.
 This check is too specific, because dict-like objects need not
 actually be instances of dict or a dict subclass.
-You can see this fails for many dict-like objects in the standard library:
+You can see this for many dict-like objects in the standard library:
 
 .. doctest::
 
@@ -333,7 +336,7 @@ To illustrate this,
 here's an example of how you can combine the above
 with bidict's own :class:`~bidict.BidirectionalMapping` ABC
 to implement your own check for whether
-an object is an immutable, bidirectional mapping:
+an object is an immutable bidirectional mapping:
 
 .. doctest::
 

@@ -1,10 +1,7 @@
 Extending ``bidict``
 --------------------
 
-Although :mod:`bidict` provides the various bidirectional mapping types covered already,
-it's possible that some use case might require something more than what's provided.
-For this reason,
-:mod:`bidict` was written with extensibility in mind.
+Bidict was written with extensibility in mind.
 
 Let's look at some examples.
 
@@ -45,7 +42,7 @@ and will both still default to raising for all duplication types.
 
 Further demonstrating :mod:`bidict`'s extensibility,
 to make an ``OrderedYoloBidict``,
-simply have the subclass above inherit from
+the class above can simply inherit from
 :class:`bidict.OrderedBidict`
 rather than :class:`bidict.bidict`.
 
@@ -60,32 +57,32 @@ beware of the following potentially unexpected, dangerous behavior:
 
 .. doctest::
 
-   >>> b = YoloBidict({'one': 1, 'two': 2})  # contains two items
+   >>> b = YoloBidict({'one': 1, 'two': 2})  # b contains two items
    >>> b['one'] = 2                          # update one of the items
-   >>> b                                     # now only has one item!
+   >>> b                                     # now b only has one item!
    YoloBidict({'one': 2})
 
 As covered in :ref:`basic-usage:Key and Value Duplication`,
 setting an existing key to the value of a different existing item
 causes both existing items to quietly collapse into a single new item.
 
-A safer example of this type of customization would be something like:
+The opposite customization would look something like:
 
 .. doctest::
 
    >>> from bidict import ON_DUP_RAISE
 
-   >>> class YodoBidict(bidict):  # Note, "Yodo" with a "d"
+   >>> class YodoBidict(bidict):  # yodo: you only die once!
    ...     on_dup = ON_DUP_RAISE
 
    >>> b = YodoBidict({'one': 1})
-   >>> b['one'] = 2  # Works with a regular bidict, but Yodo plays it safe.
+   >>> b['one'] = 2  # Unlike a regular bidict, YodoBidict won't allow this.
    Traceback (most recent call last):
        ...
    bidict.KeyDuplicationError: one
    >>> b
    YodoBidict({'one': 1})
-   >>> b.forceput('one', 2)  # Any destructive change requires more force.
+   >>> b.forceput('one', 2)  # Any type of overwrite requires more force.
    >>> b
    YodoBidict({'one': 2})
 
@@ -93,8 +90,8 @@ A safer example of this type of customization would be something like:
 ``WeakrefBidict`` Recipe
 ########################
 
-Suppose you need a custom bidict type that only retains weakrefs
-to some objects whose refcounts you're trying not increment.
+Suppose you need to store some objects in a bidict
+without incrementing their refcounts.
 
 With :class:`~bidict.BidictBase`\'s
 :attr:`~bidict.BidictBase._fwdm_cls` (forward mapping class) and
@@ -110,44 +107,26 @@ accomplishing this is as simple as:
    ...     _fwdm_cls = WeakKeyDictionary
    ...     _invm_cls = WeakValueDictionary
 
-Now you can insert items into *WeakrefBidict* without incrementing any refcounts:
+Now you can insert items into *WeakrefBidict* without incrementing their refcounts:
 
 .. doctest::
 
-   >>> id_by_obj = WeakrefBidict()
+   >>> b = WeakrefBidict()
+   >>> o1, o2 = frozenset({1}), frozenset({2})
+   >>> b[o1] = o2
 
-   >>> class MyObj:
-   ...     def __init__(self, id):
-   ...         self.id = id
-   ...     def __repr__(self):
-   ...         return f'<MyObj id={self.id}>'
+Since o1 and o2 are the only strong references to these objects,
+if you delete these references, the refcounts will go to zero
+and the objects will immediately be deallocated on CPython,
+since the *WeakrefBidict* isn't holding on to them:
 
-   >>> o1, o2 = MyObj(1), MyObj(2)
-   >>> id_by_obj[o1] = o1.id
-   >>> id_by_obj[o2] = o2.id
-   >>> id_by_obj
-   WeakrefBidict({<MyObj id=1>: 1, <MyObj id=2>: 2})
-   >>> id_by_obj.inverse
-   WeakrefBidictInv({1: <MyObj id=1>, 2: <MyObj id=2>})
+.. use `:skipif: pypy` for the test below once https://github.com/thisch/pytest-sphinx/issues/9 is fixed
 
-If you drop your references to your objects,
-you can see that they get deallocated on CPython right away,
-since your *WeakrefBidict* isn't holding on to them:
+.. doctest::
 
-.. Restore this test once https://github.com/thisch/pytest-sphinx/issues/9 is fixed:
-   # .. doctest::
-   #    :skipif: pypy
-   #
-   #    >>> del o1, o2
-   #    >>> id_by_obj
-   #    WeakrefBidict()
-
-   In the meantime, show (but don't actually run) this, since it fails under PyPY:
-
-.. code-block:: python
-
-   del o1, o2
-   id_by_obj  # ==> WeakrefBidict()
+   >>> del o1, o2  # after this, b immediately becomes empty on CPython:
+   >>> if sys.implementation.name == 'cpython':
+   ...     assert not b
 
 
 ``SortedBidict`` Recipes
@@ -160,7 +139,7 @@ but the excellent
 `sortedcollections <http://www.grantjenks.com/docs/sortedcollections/>`__
 libraries do.
 
-Armed with these, along with :class:`~bidict.BidictBase`'s
+Using these, along with :class:`~bidict.BidictBase`'s
 :attr:`~bidict.BidictBase._fwdm_cls` (forward mapping class) and
 :attr:`~bidict.BidictBase._invm_cls` (inverse mapping class) attributes,
 creating a sorted bidict is simple:
@@ -177,11 +156,10 @@ creating a sorted bidict is simple:
    ...     """
    ...     _fwdm_cls = SortedDict
    ...     _invm_cls = SortedDict
-   ...     _repr_delegate = list  # only used for list-style repr
 
    >>> b = SortedBidict({'Tokyo': 'Japan', 'Cairo': 'Egypt'})
    >>> b
-   SortedBidict([('Cairo', 'Egypt'), ('Tokyo', 'Japan')])
+   SortedBidict({'Cairo': 'Egypt', 'Tokyo': 'Japan'})
 
    >>> b['Lima'] = 'Peru'
 
@@ -203,7 +181,6 @@ will yield their items in *the same* order:
    >>> class KeySortedBidict(MutableBidict):
    ...     _fwdm_cls = SortedDict
    ...     _invm_cls = ValueSortedDict
-   ...     _repr_delegate = list
 
    >>> elem_by_atomicnum = KeySortedBidict({
    ...     6: 'carbon', 1: 'hydrogen', 2: 'helium'})
@@ -225,7 +202,7 @@ Automatic "Get Attribute" Pass-Through
 
 Python makes it easy to customize a class's "get attribute" behavior.
 You can take advantage of this to pass attribute access
-through to the backing ``_fwdm`` mapping, for example,
+through to the backing ``_fwdm`` mapping
 when an attribute is not provided by the bidict class itself:
 
    >>> def __getattribute__(self, name):
@@ -237,8 +214,9 @@ when an attribute is not provided by the bidict class itself:
    >>> KeySortedBidict.__getattribute__ = __getattribute__
 
 Now, even though this ``KeySortedBidict`` itself provides no ``peekitem`` attribute,
-the following call still succeeds
-because it's passed through to the backing ``SortedDict``:
+you can still call ``peekitem`` on it
+and it will return the result of calling ``peekitem``
+on the backing ``SortedDict``:
 
    >>> elem_by_atomicnum.peekitem()
    (6, 'carbon')
@@ -291,7 +269,7 @@ are the opposite of ``KeySortedBidict``'s:
    >>> KeySortedBidictInv = elem_by_atomicnum.inverse.__class__  # i.e. a value-sorted bidict
    >>> atomicnum_by_elem = KeySortedBidictInv(elem_by_atomicnum.inverse)
    >>> atomicnum_by_elem
-   KeySortedBidictInv([('hydrogen', 1), ('helium', 2), ('beryllium', 4), ('carbon', 6)])
+   KeySortedBidictInv({'hydrogen': 1, 'helium': 2, 'beryllium': 4, 'carbon': 6})
    >>> KeySortedBidict(atomicnum_by_elem.inverse) == elem_by_atomicnum
    True
 

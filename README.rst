@@ -21,8 +21,8 @@ Status
    :target: https://bidict.readthedocs.io/en/main/
    :alt: Documentation
 
-.. image:: https://github.com/jab/bidict/actions/workflows/test.yml/badge.svg
-   :target: https://github.com/jab/bidict/actions
+.. image:: https://github.com/jab/bidict/actions/workflows/test.yml/badge.svg?branch=main
+   :target: https://github.com/jab/bidict/actions/workflows/test.yml?query=branch%3Amain
    :alt: GitHub Actions CI status
 
 .. image:: https://img.shields.io/pypi/l/bidict.svg
@@ -33,13 +33,9 @@ Status
    :target: https://pepy.tech/project/bidict
    :alt: PyPI Downloads
 
-.. image:: https://img.shields.io/github/sponsors/jab
-   :target: https://github.com/sponsors/jab
-   :alt: Sponsors on GitHub
-
 .. image:: https://img.shields.io/badge/GitHub-sponsor-ff69b4
    :target: https://github.com/sponsors/jab
-   :alt: Sponsor on GitHub
+   :alt: Sponsor
 
 
 Features
@@ -60,7 +56,7 @@ Features
   concise, well-factored, fully type-hinted Python code
   that is optimized for running efficiently
   as well as for long-term maintenance and stability
-  (not to mention `joy <#learning-from-bidict>`__ :)
+  (as well as `joy <#learning-from-bidict>`__)
 
 - Extensively `documented <https://bidict.readthedocs.io>`__
 
@@ -147,7 +143,7 @@ Release Notifications
 ---------------------
 
 .. duplicated in CHANGELOG.rst:
-   (would use `.. include::` but GitHub doesn't understand it)
+   (Would use `.. include::` but GitHub's renderer doesn't support it.)
 
 Watch `bidict releases on GitHub <https://github.com/jab/bidict/releases>`__
 to be notified when new versions of bidict are published.
@@ -182,15 +178,11 @@ Sponsoring
 ----------
 
 .. duplicated in CONTRIBUTING.rst
-   (would use `.. include::` but GitHub doesn't understand it)
+   (Would use `.. include::` but GitHub's renderer doesn't support it.)
 
 .. image:: https://img.shields.io/badge/GitHub-sponsor-ff69b4
   :target: https://github.com/sponsors/jab
   :alt: Sponsor through GitHub
-
-.. image:: https://img.shields.io/github/sponsors/jab
-   :target: https://github.com/sponsors/jab
-   :alt: Sponsors on GitHub
 
 Bidict is the product of thousands of hours of my unpaid work
 over the ~15 years that I've been the sole maintainer.
@@ -246,6 +238,3 @@ try these alternate links instead:
 .. [#fn-learning] `<https://bidict.readthedocs.io/learning-from-bidict.html>`__ | `<docs/learning-from-bidict.rst>`__
 
 .. [#fn-contributing] `<https://bidict.readthedocs.io/contributors-guide.html>`__ | `<CONTRIBUTING.rst>`__
-
-
-.. image:: https://static.scarf.sh/a.png?x-pxid=05e3c4e4-eaa7-41a1-84c2-ec14413115f8
