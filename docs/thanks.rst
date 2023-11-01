@@ -54,5 +54,4 @@ Projects
 - `Readthedocs <https://readthedocs.org>`__
 - `mypy <https://mypy.readthedocs.io>`__
 - `ruff <https://github.com/charliermarsh/ruff>`__
-- `Flake8 <https://flake8.pycqa.org>`__
 - `pre-commit <https://pre-commit.com>`__

@@ -53,9 +53,8 @@ show_column_numbers = true
 pretty = true
 
 [tool.ruff]
-# https://github.com/charliermarsh/ruff#configuration
 preview = true
-ignore = ["E501"] # line too long
+line-length = 121
 # https://beta.ruff.rs/docs/rules/
 extend-select = [
   "A",
@@ -94,6 +93,11 @@ extend-select = [
 [tool.ruff.isort]
 force-single-line = true
 lines-after-imports = 2
+
+# TODO: Replace black config below with the following once we can pick up the fix for
+# https://github.com/astral-sh/ruff/issues/8357 and switch from black to ruff:
+# [tool.ruff.format]
+# quote-style = "single"
 
 [tool.black]
 line-length = 121
