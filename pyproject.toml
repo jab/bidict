@@ -54,7 +54,6 @@ pretty = true
 
 [tool.ruff]
 preview = true
-line-length = 121
 # https://beta.ruff.rs/docs/rules/
 extend-select = [
   "A",
@@ -90,14 +89,16 @@ extend-select = [
   "YTT",
 ]
 
+# TODO: Replace black config below with the following once we can pick up the fix for
+# https://github.com/astral-sh/ruff/issues/8357 and switch from black to ruff:
+# line-length = 121
+#
+# [tool.ruff.format]
+# quote-style = "single"
+
 [tool.ruff.isort]
 force-single-line = true
 lines-after-imports = 2
-
-# TODO: Replace black config below with the following once we can pick up the fix for
-# https://github.com/astral-sh/ruff/issues/8357 and switch from black to ruff:
-# [tool.ruff.format]
-# quote-style = "single"
 
 [tool.black]
 line-length = 121
