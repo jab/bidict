@@ -1,6 +1,6 @@
 # https://github.com/marketplace/actions/github-actions-version-updater
 
-name: Update GitHub Actions
+name: GitHub Actions updater
 
 "on":
   workflow_dispatch:
