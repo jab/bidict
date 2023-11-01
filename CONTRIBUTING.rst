@@ -40,21 +40,27 @@ Getting Started
 Making Changes
 --------------
 
-- Recommended: You can work on bidict in a Visual Studio Code
+- You can work on bidict in a Visual Studio Code
   `devcontainer environment <https://code.visualstudio.com/docs/remote/containers>`__,
   where development dependencies and some helpful VS Code extensions
   are installed inside the dev container environment for you.
 
   Try ``Remote-Containers: Clone Repository in Container Volume...`` on this
   repository. You may need to reload your VS Code window after it finishes
-  cloning and installing extensions, which it should prompt you to do.
+  cloning and installing extensions, which it should automatically prompt you to do
+  when you open your clone in VS Code.
+
+  - Note that `pre-commit <https://pre-commit.com/>`__
+    is used to help achieve uniform style and quality standards.
 
 - If not using a VSCode devcontainer, you can try the following
   to set up a development environment manually:
   ``./init_dev_env``
 
-- Note that `pre-commit <https://pre-commit.com/>`__
-  is used to help achieve uniform style and quality standards.
+  This requires you to either already have Python and pre-commit on your PATH,
+  or to just have Nix and direnv, in which case all development dependencies
+  will be auto-installed and added to your PATH in an isolated development environment
+  every time you cd into your clone (and auto-removed when you cd out of it).
 
 - Create a topic branch off of ``main`` for your changes:
   ``git checkout -b <topic> main``
@@ -73,6 +79,8 @@ Making Changes
   to automatically trigger a new
   `GitHub Actions <https://github.com/jab/bidict/actions>`__ build,
   which should run the tests for all supported Python versions.
+  Testing your changes with GitHub Actions will require approval
+  from a project admin the first time you submit a PR.
 
 - Create a concise but comprehensive commit message in the following style::
 
