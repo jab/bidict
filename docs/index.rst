@@ -11,7 +11,7 @@
    api
    learning-from-bidict
    contributors-guide
-   code-of-conduct
    thanks
+   code-of-conduct
 
 .. include:: README.rst
