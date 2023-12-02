@@ -89,10 +89,9 @@ extend-select = [
   "YTT",
 ]
 
+line-length = 121
 # TODO: Replace black config below with the following once we can pick up the fix for
 # https://github.com/astral-sh/ruff/issues/8357 and switch from black to ruff:
-# line-length = 121
-#
 # [tool.ruff.format]
 # quote-style = "single"
 
