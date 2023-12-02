@@ -136,13 +136,18 @@ def _override_set_methods_to_use_backing_dict(cls: _OView[KT], viewname: str) ->
                 return getattr(Set, methodname)(self, *args)
             fwdm_dict_view = getattr(fwdm, viewname)()
             fwdm_dict_view_method = getattr(fwdm_dict_view, methodname)
-            if len(args) != 1 or not isinstance(args[0], self.__class__) or not isinstance(args[0]._mapping._fwdm, dict):
+            if (
+                len(args) != 1
+                or not isinstance((arg := args[0]), self.__class__)
+                or not isinstance(arg._mapping._fwdm, dict)
+            ):
                 return fwdm_dict_view_method(*args)
-            # self and arg are both _OrderedBidictKeysViews or _OrderedBidictItemsViews whose bidicts are backed by a dict.
-            # Use arg's backing dict's corresponding view instead of arg. Otherwise, e.g. `ob1.keys() < ob2.keys()` would give
-            # "TypeError: '<' not supported between instances of '_OrderedBidictKeysView' and '_OrderedBidictKeysView'", because
-            # both `dict_keys(ob1).__lt__(ob2.keys()) is NotImplemented` and `dict_keys(ob2).__gt__(ob1.keys()) is NotImplemented`.
-            arg_dict = args[0]._mapping._fwdm
+            # self and arg are both _OrderedBidictKeysViews or _OrderedBidictItemsViews whose bidicts are backed by
+            # a dict. Use arg's backing dict's corresponding view instead of arg. Otherwise, e.g. `ob1.keys()
+            # < ob2.keys()` would give "TypeError: '<' not supported between instances of '_OrderedBidictKeysView' and
+            # '_OrderedBidictKeysView'", because both `dict_keys(ob1).__lt__(ob2.keys()) is NotImplemented` and
+            # `dict_keys(ob2).__gt__(ob1.keys()) is NotImplemented`.
+            arg_dict = arg._mapping._fwdm
             arg_dict_view = getattr(arg_dict, viewname)()
             return fwdm_dict_view_method(arg_dict_view)
 
