@@ -25,22 +25,18 @@ from bidict import OrderedBidictBase
 from . import _types as _t
 
 
-def one_of(items: t.Any) -> t.Any:
-    """Create a one_of strategy using the given items."""
-    return st.one_of(st.just(i) for i in items)  # type: ignore [call-overload]
-
-
 DATA = st.data()
-BIDICT_TYPES = one_of(_t.BIDICT_TYPES)
-MUTABLE_BIDICT_TYPES = one_of(_t.MUTABLE_BIDICT_TYPES)
-FROZEN_BIDICT_TYPES = one_of(_t.FROZEN_BIDICT_TYPES)
-ORDERED_BIDICT_TYPES = one_of(_t.ORDERED_BIDICT_TYPES)
-REVERSIBLE_BIDICT_TYPES = one_of(_t.REVERSIBLE_BIDICT_TYPES)
-MAPPING_TYPES = one_of(_t.MAPPING_TYPES)
-NON_BI_MAPPING_TYPES = one_of(_t.NON_BI_MAPPING_TYPES)
-ORDERED_MAPPING_TYPES = one_of(_t.ORDERED_MAPPING_TYPES)
-HASHABLE_MAPPING_TYPES = one_of(_t.HASHABLE_MAPPING_TYPES)
-ON_DUP_ACTIONS = one_of((DROP_NEW, DROP_OLD, RAISE))
+RANDOMS = st.randoms()
+BIDICT_TYPES = st.sampled_from(_t.BIDICT_TYPES)
+MUTABLE_BIDICT_TYPES = st.sampled_from(_t.MUTABLE_BIDICT_TYPES)
+FROZEN_BIDICT_TYPES = st.sampled_from(_t.FROZEN_BIDICT_TYPES)
+ORDERED_BIDICT_TYPES = st.sampled_from(_t.ORDERED_BIDICT_TYPES)
+REVERSIBLE_BIDICT_TYPES = st.sampled_from(_t.REVERSIBLE_BIDICT_TYPES)
+MAPPING_TYPES = st.sampled_from(_t.MAPPING_TYPES)
+NON_BI_MAPPING_TYPES = st.sampled_from(_t.NON_BI_MAPPING_TYPES)
+ORDERED_MAPPING_TYPES = st.sampled_from(_t.ORDERED_MAPPING_TYPES)
+HASHABLE_MAPPING_TYPES = st.sampled_from(_t.HASHABLE_MAPPING_TYPES)
+ON_DUP_ACTIONS = st.sampled_from((DROP_NEW, DROP_OLD, RAISE))
 ON_DUP = st.tuples(ON_DUP_ACTIONS, ON_DUP_ACTIONS, ON_DUP_ACTIONS).map(OnDup._make)
 
 BOOLEANS = st.booleans()
@@ -66,11 +62,11 @@ DIFF_ATOMS = st.characters()
 DIFF_PAIRS = st.tuples(DIFF_ATOMS, DIFF_ATOMS)
 L_DIFF_PAIRS_NODUP = st.lists(DIFF_PAIRS, unique_by=FST_SND, min_size=1)
 DIFF_ITEMS = st.tuples(L_PAIRS_NODUP, L_DIFF_PAIRS_NODUP)
-RANDOMS = st.randoms(use_true_random=False)
-SAME_ITEMS_DIFF_ORDER = (
-    st.tuples(st.lists(PAIRS, unique_by=FST_SND, min_size=2), RANDOMS)
-    .map(lambda i: (i[0], i[1].sample(i[0], len(i[0]))))  # (seq, shuffled seq)
-    .filter(lambda i: i[0] != i[1])
+
+SAME_ITEMS_DIFF_ORDER = L_PAIRS_NODUP.flatmap(
+    lambda xs: st.tuples(st.just(xs), st.permutations(xs)),
+).filter(
+    lambda t: t[0] != t[1],
 )
 
 
@@ -85,9 +81,9 @@ FROZEN_BIDICTS = _bidict_strat(FROZEN_BIDICT_TYPES)
 MUTABLE_BIDICTS = _bidict_strat(MUTABLE_BIDICT_TYPES)
 ORDERED_BIDICTS = _bidict_strat(ORDERED_BIDICT_TYPES)
 
-callkeys, callitems = methodcaller('keys'), methodcaller('items')
-KEYSVIEW_SET_OP_ARGS = st.sets(ATOMS) | st.dictionaries(ATOMS, ATOMS).map(callkeys) | BIDICTS.map(callkeys)
-ITEMSVIEW_SET_OP_ARGS = st.sets(PAIRS) | st.dictionaries(ATOMS, ATOMS).map(callitems) | BIDICTS.map(callitems)
+keys, items = methodcaller('keys'), methodcaller('items')
+KEYSVIEW_SET_OP_ARGS = st.sets(ATOMS) | st.dictionaries(ATOMS, ATOMS).map(keys) | BIDICTS.map(keys)
+ITEMSVIEW_SET_OP_ARGS = st.sets(PAIRS) | st.dictionaries(ATOMS, ATOMS).map(items) | BIDICTS.map(items)
 
 NON_BI_MAPPINGS = st.tuples(NON_BI_MAPPING_TYPES, L_PAIRS).map(lambda i: i[0](i[1]))
 
@@ -97,10 +93,9 @@ def _bi_and_map(bi_types: t.Any, map_types: t.Any = MAPPING_TYPES, init_items: t
     return st.tuples(bi_types, map_types, init_items).map(lambda i: (i[0](i[2]), i[1](i[2])))
 
 
-BI_AND_MAP_FROM_SAME_ND_ITEMS = _bi_and_map(BIDICT_TYPES)
-# Update the following when we drop support for Python < 3.8. On 3.8+, all mappings are reversible.
-RBI_AND_RMAP_FROM_SAME_ND_ITEMS = _bi_and_map(REVERSIBLE_BIDICT_TYPES, st.just(OrderedDict))
-HBI_AND_HMAP_FROM_SAME_ND_ITEMS = _bi_and_map(FROZEN_BIDICT_TYPES, HASHABLE_MAPPING_TYPES)
+BI_AND_MAP_FROM_SAME_ITEMS = _bi_and_map(BIDICT_TYPES)
+RBI_AND_RMAP_FROM_SAME_ITEMS = _bi_and_map(REVERSIBLE_BIDICT_TYPES, st.just(OrderedDict))
+HBI_AND_HMAP_FROM_SAME_ITEMS = _bi_and_map(FROZEN_BIDICT_TYPES, HASHABLE_MAPPING_TYPES)
 
 _unpack = lambda i: (i[0](i[2][0]), i[1](i[2][1]))  # noqa: E731
 BI_AND_MAP_FROM_DIFF_ITEMS = st.tuples(BIDICT_TYPES, MAPPING_TYPES, DIFF_ITEMS).map(_unpack)

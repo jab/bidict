@@ -4,7 +4,7 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-"""Types for Hypothoses tests."""
+"""Types for Hypothesis tests."""
 
 from __future__ import annotations
 
@@ -63,9 +63,7 @@ FROZEN_BIDICT_TYPES: BiTypesT = (frozenbidict,)
 ORDERED_BIDICT_TYPES: BiTypesT = (OrderedBidict, UserOrderedBidict)
 ORDER_PRESERVING_BIDICT_TYPES: BiTypesT = tuple(set(FROZEN_BIDICT_TYPES + ORDERED_BIDICT_TYPES))
 BIDICT_TYPES: BiTypesT = tuple(set(MUTABLE_BIDICT_TYPES + FROZEN_BIDICT_TYPES + ORDERED_BIDICT_TYPES))
-# When support is dropped for Python < 3.8, all bidict types will be reversible,
-# and we can remove the following and just use BIDICT_TYPES instead:
-REVERSIBLE_BIDICT_TYPES: BiTypesT = tuple(b for b in BIDICT_TYPES if issubclass(b, t.Reversible))
+REVERSIBLE_BIDICT_TYPES: BiTypesT = tuple(set(BIDICT_TYPES) - {UserBidict, UserBidictNotOwnInverse})
 
 BIDICT_TYPE_WHOSE_MODULE_HAS_REF_TO_INV_CLS = UserBidictNotOwnInverse
 BIDICT_TYPE_WHOSE_MODULE_HAS_NO_REF_TO_INV_CLS = UserBidictNotOwnInverse2

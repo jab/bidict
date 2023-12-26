@@ -3,8 +3,6 @@
     "files.insertFinalNewline": true,
     "files.trimFinalNewlines": true,
     "files.trimTrailingWhitespace": true,
-    // Prefer mypy over Pyright:
-    "python.analysis.typeCheckingMode": "off",
-    "python.linting.mypyEnabled": true,
+    "python.analysis.typeCheckingMode": "off",  // prefer mypy over Pyright
     "python.testing.pytestEnabled": true,
 }

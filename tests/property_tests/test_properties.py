@@ -91,7 +91,7 @@ def test_unequal_to_mapping_with_different_items(bi_and_map_from_diff_items: t.A
     assert not bi == mapping
 
 
-@given(st.BI_AND_MAP_FROM_SAME_ND_ITEMS)
+@given(st.BI_AND_MAP_FROM_SAME_ITEMS)
 def test_equal_to_mapping_with_same_items(bi_and_map_from_same_items: t.Any) -> None:
     """Bidicts should be equal to mappings created from the same non-duplicating items.
 
@@ -109,7 +109,7 @@ def test_equal_to_mapping_with_same_items(bi_and_map_from_same_items: t.Any) -> 
     assert not mapping_inv != bi.inv
 
 
-@given(st.HBI_AND_HMAP_FROM_SAME_ND_ITEMS)
+@given(st.HBI_AND_HMAP_FROM_SAME_ITEMS)
 def test_equal_hashables_have_same_hash(hashable_bidict_and_mapping: t.Any) -> None:
     """Hashable bidicts and hashable mappings that are equal should hash to the same value."""
     bi, mapping = hashable_bidict_and_mapping
@@ -143,7 +143,7 @@ def test_equals_matches_equals_order_sensitive(bi: Bi, mapping: t.Mapping[t.Any,
             assert mapping_inv.items() != bi.inv.items() or len(mapping_inv) != len(mapping)
 
 
-@given(st.BI_AND_MAP_FROM_SAME_ND_ITEMS)
+@given(st.BI_AND_MAP_FROM_SAME_ITEMS)
 def test_equals_order_sensitive_same_items(bi_and_map_from_same_items: t.Any) -> None:
     """Bidicts should be order-sensitive-equal to mappings with the same items in the same order.
 
@@ -312,7 +312,7 @@ def test_consistency_after_method_call(bi_and_cmp_dict: t.Any, data: t.Any) -> N
         assert collect(bi.inv.keys()) == collect(bi.inv) == vals
         assert collect(bi.inv.values()) == collect(bi.inv[k] for k in bi.inv) == keys
         assert collect(bi.inv.items()) == collect((k, bi.inv[k]) for k in bi.inv)
-        if not getattr(bi.keys(), '__reversed__', None):  # Python < 3.8
+        if not getattr(bi.keys(), '__reversed__', None):
             return
         assert collect(reversed(bi.keys())) == collect(reversed(bi.inv.values()))
         assert collect(reversed(bi.values())) == collect(reversed(bi.inv.keys()))
@@ -353,14 +353,14 @@ def test_putall_same_as_put_for_each_item(bi: MBi, items: Items[t.Any, t.Any], o
     assert check.inv == expect.inv
 
 
-@given(st.BI_AND_MAP_FROM_SAME_ND_ITEMS)
+@given(st.BI_AND_MAP_FROM_SAME_ITEMS)
 def test_bidict_iter(bi_and_mapping: t.Any) -> None:
     """iter(bi) should yield the keys in a bidict in insertion order."""
     bi, mapping = bi_and_mapping
     assert all(i == j for (i, j) in zip(bi, mapping))
 
 
-@given(st.RBI_AND_RMAP_FROM_SAME_ND_ITEMS)
+@given(st.RBI_AND_RMAP_FROM_SAME_ITEMS)
 def test_bidict_reversed(rb_and_rd: t.Any) -> None:
     """reversed(bi) should yield the keys in a bidict in reverse insertion order."""
     rb, rd = rb_and_rd
@@ -563,7 +563,7 @@ def test_inverted_pairs(pairs: t.Any) -> None:
     assert list(inverted(inverted(pairs))) == pairs
 
 
-@given(st.BI_AND_MAP_FROM_SAME_ND_ITEMS)
+@given(st.BI_AND_MAP_FROM_SAME_ITEMS)
 def test_inverted_bidict(bi_and_mapping: t.Any) -> None:
     """:func:`bidict.inverted` should yield the inverse items of an ordered bidict."""
     bi, mapping = bi_and_mapping

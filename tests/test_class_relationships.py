@@ -8,7 +8,6 @@
 
 from __future__ import annotations
 
-import sys
 import typing as t
 from collections import OrderedDict
 from collections.abc import Hashable
@@ -41,7 +40,6 @@ NOT_BIMAP_TYPES = (dict, OrderedDict, int, object)
 MUTABLE_BIDICT_TYPES = (bidict, OrderedBidict)
 HASHABLE_BIDICT_TYPES = (frozenbidict,)
 ORDERED_BIDICT_TYPES = (OrderedBidict,)
-REVERSIBLE_BIDICT_TYPES = BIDICT_TYPES
 
 
 @pytest.mark.parametrize('bi_cls', BIMAP_TYPES)
@@ -84,9 +82,9 @@ def test_issubclass_hashable(bi_cls: BiT) -> None:
     assert issubclass(bi_cls, Hashable)
 
 
-@pytest.mark.parametrize('bi_cls', REVERSIBLE_BIDICT_TYPES)
+@pytest.mark.parametrize('bi_cls', BIDICT_TYPES)
 def test_reversible(bi_cls: BiT) -> None:
-    """All bidict types should be reversible."""
+    """All built-in bidict types should be reversible."""
     assert issubclass(bi_cls, Reversible)
 
 
@@ -133,14 +131,3 @@ def test_bidict_bases_init_succeed(bi_cls: BiT) -> None:
     """Bidict base classes should be initializable and have a working .inverse property."""
     b = bi_cls(one=1, two=2)
     assert dict(b.inverse) == {1: 'one', 2: 'two'}
-
-
-def test_bidict_reversible_matches_dict_reversible() -> None:
-    """Reversibility of bidict matches dict's on all supported Python versions."""
-    assert issubclass(bidict, Reversible) == issubclass(dict, Reversible)
-
-
-@pytest.mark.skipif(sys.version_info < (3, 8), reason='reversible unordered bidicts require Python 3.8+')
-def test_bidict_reversible() -> None:
-    """All bidicts are Reversible on Python 3.8+."""
-    assert issubclass(bidict, Reversible)
