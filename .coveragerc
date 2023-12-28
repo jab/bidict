@@ -7,7 +7,6 @@ dynamic_context = test_function
 [report]
 precision = 1
 exclude_also =
-  def __repr__
   @.*overload
   if .*TYPE_CHECKING
-  class .*(.*Protocol.*):
+  def .*: \.\.\.$

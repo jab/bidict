@@ -34,6 +34,9 @@ class OrderedBidict(OrderedBidictBase[KT, VT], MutableBidict[KT, VT]):
         @property
         def inverse(self) -> OrderedBidict[VT, KT]: ...
 
+        @property
+        def inv(self) -> OrderedBidict[VT, KT]: ...
+
     def clear(self) -> None:
         """Remove all items."""
         super().clear()

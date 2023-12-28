@@ -18,18 +18,12 @@ import pytest
 import bidict
 
 
-consume = partial(deque, maxlen=0)
+consume: t.Any = partial(deque, maxlen=0)
 LENS = (99, 999, 9_999)
 DICTS_BY_LEN = {n: dict(zip(range(n), range(n))) for n in LENS}
 BIDICTS_BY_LEN = {n: bidict.bidict(DICTS_BY_LEN[n]) for n in LENS}
 ORDERED_BIDICTS_BY_LEN = {n: bidict.OrderedBidict(DICTS_BY_LEN[n]) for n in LENS}
 DICTS_BY_LEN_LAST_ITEM_DUPVAL = {n: {**DICTS_BY_LEN[n], n - 1: 0} for n in LENS}
-if isinstance(dict, t.Reversible):
-    _checkd = next(iter(DICTS_BY_LEN_LAST_ITEM_DUPVAL.values()))
-    _lastk, _lastv = next(reversed(_checkd.items()))
-    _firstk, _firstv = next(iter(_checkd.items()))
-    assert _firstk != _lastk
-    assert _firstv == _lastv
 
 BIDICT_AND_DICT_ONLY_LAST_ITEM_DIFFERENT = {n: (BIDICTS_BY_LEN[n], DICTS_BY_LEN_LAST_ITEM_DUPVAL[n]) for n in LENS}
 _checkbi, _checkd = next(iter(BIDICT_AND_DICT_ONLY_LAST_ITEM_DIFFERENT.values()))

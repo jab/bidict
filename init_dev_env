@@ -42,13 +42,9 @@ mkdir -p "$out_dir"
 for i in $req_sets; do
   reqs_in="dev-deps/$i.in"
   reqs_out="$out_dir/$i.txt"
-  if ! test -e "$reqs_out"; then
-    "$DEV_VENV/bin/pip-compile" --strip-extras --generate-hashes --reuse-hashes --allow-unsafe "$reqs_in" -o "$reqs_out"
-    test -e "$reqs_out"
-  fi
+  "$DEV_VENV/bin/pip-compile" --strip-extras --generate-hashes --reuse-hashes --allow-unsafe "$reqs_in" -o "$reqs_out"
 done
-# shellcheck disable=SC2086
-"$DEV_PIP_SYNC" $out_dir/${req_sets// /.txt $out_dir/}.txt
+"$DEV_PIP_SYNC" $out_dir/*.txt
 
 if ! "$DEV_PIP" show -qq bidict; then
   "$DEV_PIP" install -e .

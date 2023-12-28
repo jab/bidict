@@ -152,9 +152,9 @@ And similarly,
 
 .. doctest::
 
-   >>> dict([(1, int), (1.0, float), (1+0j, complex), (True, bool)])
-   {1: <... 'bool'>}
-   >>> 1.0 in {True}
+   >>> {1: int, 1.0: float, 1+0j: complex, True: bool}
+   {1: <class 'bool'>}
+   >>> 1+0j in {True}
    True
 
 (Note that ``1 == 1.0 == 1+0j == True``.)

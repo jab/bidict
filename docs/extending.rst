@@ -62,7 +62,7 @@ beware of the following potentially unexpected, dangerous behavior:
    >>> b                                     # now b only has one item!
    YoloBidict({'one': 2})
 
-As covered in :ref:`basic-usage:Key and Value Duplication`,
+As covered in :ref:`basic-usage:collapsing overwrites`,
 setting an existing key to the value of a different existing item
 causes both existing items to quietly collapse into a single new item.
 

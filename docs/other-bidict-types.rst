@@ -64,19 +64,17 @@ so it's suitable for insertion into sets or other mappings:
 
 :class:`bidict.OrderedBidict`
 is a :class:`~bidict.MutableBidirectionalMapping`
-that preserves the ordering of its items,
+that preserves the insertion order of its items,
 and offers some additional ordering-related APIs
-not offered by the unordered bidict types.
+not offered by the plain bidict type.
 It's like a bidirectional version of :class:`collections.OrderedDict`.
 
 .. doctest::
 
    >>> from bidict import OrderedBidict
-   >>> element_by_symbol = OrderedBidict({
-   ...     'H': 'hydrogen', 'He': 'helium', 'Li': 'lithium'})
-
+   >>> element_by_symbol = OrderedBidict({'H': 'hydrogen', 'He': 'helium', 'Li': 'lithium'})
    >>> element_by_symbol.inverse
-   OrderedBidict([('hydrogen', 'H'), ('helium', 'He'), ('lithium', 'Li')])
+   OrderedBidict({'hydrogen': 'H', 'helium': 'He', 'lithium': 'Li'})
 
    >>> first, second, third = element_by_symbol.values()
    >>> first, second, third
@@ -88,15 +86,21 @@ It's like a bidirectional version of :class:`collections.OrderedDict`.
    >>> last_item
    ('Be', 'beryllium')
 
-Additional, efficiently-implemented, order-mutating APIs are provided as well,
+
+.. _extra-order-sensitive-apis:
+
+Extra order-sensitive APIs
+++++++++++++++++++++++++++
+
+Additional, efficiently-implemented, order-sensitive APIs are provided as well,
 following the example of :class:`~collections.OrderedDict`.
 
-For example,
-:meth:`popitem(last: bool) <bidict.OrderedBidict.popitem>`,
-which makes ordered bidicts suitable for use as FIFO queues, and
+Namely,
+:class:`~bidict.OrderedBidict` provides constant-time implementations of
+:meth:`popitem(last: bool) <bidict.OrderedBidict.popitem>` and
 :meth:`move_to_end(last: bool) <bidict.OrderedBidict.move_to_end>`,
-which lets you move any item to either the front or the back
-of the ordering in constant time.
+which make ordered bidicts suitable to use for things like FIFO queues
+and LRU caches.
 
 .. doctest::
 
@@ -108,56 +112,22 @@ of the ordering in constant time.
    >>> # Re-adding hydrogen after it's been removed moves it to the end:
    >>> element_by_symbol['H'] = 'hydrogen'
    >>> element_by_symbol
-   OrderedBidict([('He', 'helium'), ('Li', 'lithium'), ('H', 'hydrogen')])
+   OrderedBidict({'He': 'helium', 'Li': 'lithium', 'H': 'hydrogen'})
 
    >>> # But there's also a `move_to_end` method just for this purpose:
    >>> element_by_symbol.move_to_end('Li')
    >>> element_by_symbol
-   OrderedBidict([('He', 'helium'), ('H', 'hydrogen'), ('Li', 'lithium')])
+   OrderedBidict({'He': 'helium', 'H': 'hydrogen', 'Li': 'lithium'})
 
    >>> element_by_symbol.move_to_end('H', last=False)  # move to front
    >>> element_by_symbol
-   OrderedBidict([('H', 'hydrogen'), ('He', 'helium'), ('Li', 'lithium')])
-
-As with :class:`~collections.OrderedDict`,
-updating an existing item preserves its position in the order:
-
-.. doctest::
-
-   >>> element_by_symbol['He'] = 'updated in place!'
-   >>> element_by_symbol
-   OrderedBidict([('H', 'hydrogen'), ('He', 'updated in place!'), ('Li', 'lithium')])
-
-
-Collapsing overwrites
-#####################
-
-When setting an item in an ordered bidict
-whose key duplicates that of an existing item,
-and whose value duplicates that of a *different* existing item,
-the existing item whose *value* is duplicated will be dropped,
-and the existing item whose *key* is duplicated
-will have its value overwritten in place:
-
-.. doctest::
-
-   >>> o = OrderedBidict([(1, 2), (3, 4), (5, 6), (7, 8)])
-   >>> o.forceput(3, 8)  # item with duplicated value (7, 8) is dropped...
-   >>> o  # and the item with duplicated key (3, 4) is updated in place:
-   OrderedBidict([(1, 2), (3, 8), (5, 6)])
-   >>> # (3, 8) took the place of (3, 4), not (7, 8)
-
-   >>> o = OrderedBidict([(1, 2), (3, 4), (5, 6), (7, 8)])  # as before
-   >>> o.forceput(5, 2)  # another example
-   >>> o
-   OrderedBidict([(3, 4), (5, 2), (7, 8)])
-   >>> # (5, 2) took the place of (5, 6), not (1, 2)
+   OrderedBidict({'H': 'hydrogen', 'He': 'helium', 'Li': 'lithium'})
 
 
 .. _eq-order-insensitive:
 
 :meth:`~bidict.OrderedBidict.__eq__` is order-insensitive
-#########################################################
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 To ensure that ``==`` comparison for any bidict always upholds the
 `transitive property of equality
@@ -189,21 +159,23 @@ For more about this, see
 
 
 What about order-preserving dicts?
-##################################
+++++++++++++++++++++++++++++++++++
 
 In CPython 3.6+ and all versions of PyPy,
 :class:`dict` preserves insertion order.
 Since bidicts are built on top of dicts,
 can we get away with
-using an unordered bidict
+using a plain bidict
 in places where you need
 an order-preserving bidirectional mapping?
+(Assuming we don't need the :ref:`extra-order-sensitive-apis`.)
 
-(Assume we don't need the additional APIs
-offered only by :class:`~bidict.OrderedBidict`, such as
-:meth:`popitem(last=False) <bidict.OrderedBidict.popitem>`.)
+Let's look at some examples.
 
-Consider this example:
+Order consistency between bidicts and their inverses
+++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Consider the following:
 
 .. doctest::
 
@@ -212,31 +184,79 @@ Consider this example:
     >>> b
     bidict({1: -1, 2: 'UPDATED', 3: -3})
 
-So far so good, but look what happens here:
+So far so good, but look what happens to the inverse:
 
 .. doctest::
 
     >>> b.inverse
     bidict({-1: 1, -3: 3, 'UPDATED': 2})
 
-The ordering of items between the bidict
-and its inverse instance is no longer consistent.
+After the mutation, the ordering of the items
+in the plain bidict is no longer consistent with its inverse.
 
 To ensure that ordering is kept consistent
 between a bidict and its inverse,
 no matter how it's mutated,
 you have to use an ordered bidict:
 
+.. doctest::
+
     >>> ob = OrderedBidict({1: -1, 2: -2, 3: -3})
     >>> ob[2] = 'UPDATED'
     >>> ob
-    OrderedBidict([(1, -1), (2, 'UPDATED'), (3, -3)])
+    OrderedBidict({1: -1, 2: 'UPDATED', 3: -3})
     >>> ob.inverse  # better:
-    OrderedBidict([(-1, 1), ('UPDATED', 2), (-3, 3)])
+    OrderedBidict({-1: 1, 'UPDATED': 2, -3: 3})
 
-An ordered bidict and its inverse always give
-a consistent ordering of the contained items,
-even after arbitrary mutations.
+
+Preserving insertion order of items even after key changes
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Another way that ordered bidicts differ from plain bidicts
+is that you can change the *key* of an existing item,
+and its order will still be preserved.
+
+Let's look at an example:
+
+.. doctest::
+
+    >>> bi = bidict({1: -1})
+    >>> ob = OrderedBidict({1: -1})
+    >>> bi.forceupdate({2: -2, 3: -1})
+    >>> ob.forceupdate({2: -2, 3: -1})
+
+This update changes the key of the existing item with value -1.
+In the ordered bidict, this change is performed in-place,
+preserving the insertion order.
+The item with value -1 was the first item inserted,
+and it remains the first item even after the update:
+
+    >>> ob
+    OrderedBidict({3: -1, 2: -2})
+
+In the plain bidict, however,
+the changed item has now been moved to the end:
+
+    >>> bi
+    bidict({2: -2, 3: -1})
+
+Note that if you insert an item that changes
+the key of one existing item and the value of another existing item,
+the behavior described in
+:ref:`basic-usage:collapsing overwrites`
+still applies.
+
+
+Trade-offs
+++++++++++
+
+Like plain bidicts (and plain dicts too, for that matter),
+ordered bidicts take *O(n)* space.
+But to preserve insertion order,
+as well as implement the :ref:`extra-order-sensitive-apis`
+in constant time,
+it costs :class:`~bidict.OrderedBidict`
+a higher constant factor in its *O(n)* space complexity.
 
 If you depend on preserving insertion order,
 an unordered bidict may be sufficient if:
@@ -249,20 +269,21 @@ an unordered bidict may be sufficient if:
   never changing just the key or value of an existing item,
   or:
 
-* you only depend on the order in the forward bidict,
-  and are only changing existing items in the forward direction
-  (i.e. changing values by key, rather than changing keys by value).
+* you are okay with
+  inconsistent ordering between a bidict and its inverse
+  after changing the key or value of an existing item,
+  as well as with items moving to the end when you change their key
+  rather than being changed in place.
 
 That said, if your code depends on the ordering,
-using an :class:`~bidict.OrderedBidict` makes for safer, clearer code.
+using an :class:`~bidict.OrderedBidict` makes for clearer code,
+and ensures that insertion order will be preserved
+no matter what mutations you perform.
 
-Of course, the additional order-mutating APIs that
-:class:`~bidict.OrderedBidict` gives you
+The :ref:`extra-order-sensitive-apis`
+that :class:`~bidict.OrderedBidict` gives you
 also expand the range of use cases
-where an :class:`~bidict.OrderedBidict` can be used.
-For example,
-:meth:`popitem(last=False) <bidict.OrderedBidict.popitem>`
-allows using an :class:`~bidict.OrderedBidict` as a FIFO queue,
+where your bidict would be suitable,
 as mentioned above.
 
 
@@ -322,7 +343,7 @@ intended for this purpose:
    True
 
 Also note that the proper way to check whether an object
-is an (im)mutable mapping is to use the
+is a mutable mapping is to use the
 :class:`~collections.abc.MutableMapping` ABC:
 
 .. doctest::
@@ -341,8 +362,9 @@ an object is an immutable bidirectional mapping:
 .. doctest::
 
    >>> def is_immutable_bimap(obj):
-   ...     return (isinstance(obj, BidirectionalMapping)
-   ...             and not isinstance(obj, MutableMapping))
+   ...     return (
+   ...         isinstance(obj, BidirectionalMapping)
+   ...         and not isinstance(obj, MutableMapping))
 
    >>> is_immutable_bimap(bidict())
    False

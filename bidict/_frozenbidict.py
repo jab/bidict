@@ -32,6 +32,9 @@ class frozenbidict(BidictBase[KT, VT]):
         @property
         def inverse(self) -> frozenbidict[VT, KT]: ...
 
+        @property
+        def inv(self) -> frozenbidict[VT, KT]: ...
+
     def __hash__(self) -> int:
         """The hash of this bidict as determined by its items."""
         if getattr(self, '_hash', None) is None:

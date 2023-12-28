@@ -116,8 +116,6 @@ class SentinelNode(Node):
 class OrderedBidictBase(BidictBase[KT, VT]):
     """Base class implementing an ordered :class:`BidirectionalMapping`."""
 
-    _repr_delegate: t.ClassVar[t.Any] = list
-
     _node_by_korv: bidict[t.Any, Node]
     _bykey: bool
 
@@ -145,6 +143,9 @@ class OrderedBidictBase(BidictBase[KT, VT]):
 
         @property
         def inverse(self) -> OrderedBidictBase[VT, KT]: ...
+
+        @property
+        def inv(self) -> OrderedBidictBase[VT, KT]: ...
 
     def _make_inverse(self) -> OrderedBidictBase[VT, KT]:
         inv = t.cast(OrderedBidictBase[VT, KT], super()._make_inverse())
@@ -180,13 +181,13 @@ class OrderedBidictBase(BidictBase[KT, VT]):
         assoc, dissoc = self._assoc_node, self._dissoc_node
         node_by_korv, bykey = self._node_by_korv, self._bykey
         if oldval is MISSING and oldkey is MISSING:  # no key or value duplication
-            # {0: 1, 2: 3} + (4, 5) => {0: 1, 2: 3, 4: 5}
+            # {0: 1, 2: 3} | {4: 5} => {0: 1, 2: 3, 4: 5}
             newnode = self._sntl.new_last_node()
             write_append(partial(assoc, newnode, newkey, newval))
             if save_unwrite:
                 unwrite_append(partial(dissoc, newnode))
         elif oldval is not MISSING and oldkey is not MISSING:  # key and value duplication across two different items
-            # {0: 1, 2: 3} + (0, 3) => {0: 3}
+            # {0: 1, 2: 3} | {0: 3} => {0: 3}
             #    n1, n2             =>   n1   (collapse n1 and n2 into n1)
             # oldkey: 2, oldval: 1, oldnode: n2, newkey: 0, newval: 3, newnode: n1
             if bykey:
@@ -202,7 +203,7 @@ class OrderedBidictBase(BidictBase[KT, VT]):
                 unwrite_append(partial(assoc, oldnode, oldkey, newval))
                 unwrite_append(oldnode.relink)
         elif oldval is not MISSING:  # just key duplication
-            # {0: 1, 2: 3} + (2, 4) => {0: 1, 2: 4}
+            # {0: 1, 2: 3} | {2: 4} => {0: 1, 2: 4}
             # oldkey: MISSING, oldval: 3, newkey: 2, newval: 4
             node = node_by_korv[newkey if bykey else oldval]
             write_append(partial(assoc, node, newkey, newval))
@@ -210,7 +211,7 @@ class OrderedBidictBase(BidictBase[KT, VT]):
                 unwrite_append(partial(assoc, node, newkey, oldval))
         else:
             assert oldkey is not MISSING  # just value duplication
-            # {0: 1, 2: 3} + (4, 3) => {0: 1, 4: 3}
+            # {0: 1, 2: 3} | {4: 3} => {0: 1, 4: 3}
             # oldkey: 2, oldval: MISSING, newkey: 4, newval: 3
             node = node_by_korv[oldkey if bykey else newval]
             write_append(partial(assoc, node, newkey, newval))

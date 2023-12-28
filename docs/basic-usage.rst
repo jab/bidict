@@ -146,7 +146,7 @@ raise an exception too:
    bidict.ValueDuplicationError: 1
 
    >>> b = bidict({'one': 1})
-   >>> b.update([('uno', 1)])
+   >>> b.update({'uno': 1})
    Traceback (most recent call last):
        ...
    bidict.ValueDuplicationError: 1
@@ -166,10 +166,10 @@ in keeping with dict's behavior:
    >>> b['one'] = 2  # succeeds
    >>> b
    bidict({'one': 2})
-   >>> b.update([('one', 3), ('one', 4), ('one', 5)])
+   >>> b.update({'one': 3, 'one': 4, 'one': 5})
    >>> b
    bidict({'one': 5})
-   >>> bidict([('one', 1), ('one', 2)])
+   >>> bidict({'one': 1, 'one': 2})
    bidict({'one': 2})
 
 In summary,
@@ -237,18 +237,19 @@ and :meth:`~bidict.bidict.forceupdate`.)
 
 
 Key and Value Duplication
-~~~~~~~~~~~~~~~~~~~~~~~~~
++++++++++++++++++++++++++
 
 Note that it's possible for a given item to duplicate
 the key of one existing item,
 and the value of another existing item.
 In the following example,
-the key of the third item duplicates the first item's key,
-and the value of the third item duplicates the second item's value:
+the third item we're trying to insert
+duplicates the first item's key
+and the second item's value:
 
 .. code-block:: python
 
-   b.putall([(1, 2), (3, 4), (1, 4)], OnDup(key=...))
+   b.putall({1: 2, 3: 4, 1: 4}, on_dup=OnDup(...))
 
 What should happen next?
 
@@ -285,11 +286,36 @@ no matter what the active :class:`~bidict.OnDup` is:
    >>> b = bidict({1: 'one'})
    >>> b.put(1, 'one')  # no-op, not a DuplicationError
    >>> b.putall([(2, 'two'), (2, 'two')])  # The repeat (2, 'two') is also a no-op.
-   >>> sorted(b.items())
-   [(1, 'one'), (2, 'two')]
+   >>> b
+   bidict({1: 'one', 2: 'two'})
 
 See the :ref:`extending:\`\`YoloBidict\`\` Recipe`
 for another way to customize this behavior.
+
+
+Collapsing Overwrites
++++++++++++++++++++++
+
+When setting an item whose key duplicates that of an existing item,
+and whose value duplicates that of a *different* existing item,
+the existing item whose *value* is duplicated will be dropped,
+and the existing item whose *key* is duplicated
+will have its value overwritten in place:
+
+.. doctest::
+
+   >>> b = bidict({1: -1, 2: -2, 3: -3, 4: -4})
+   >>> b.forceput(2, -4)  # item with duplicated value, namely (4, -4), is dropped
+   >>> b  # and the item with duplicated key, (2, -2), is updated in place:
+   bidict({1: -1, 2: -4, 3: -3})
+   >>> # (2, -4) took the place of (2, -2), not (4, -4)
+
+   >>> # Another example:
+   >>> b = bidict({1: -1, 2: -2, 3: -3, 4: -4})  # as before
+   >>> b.forceput(3, -1)
+   >>> b
+   bidict({2: -2, 3: -1, 4: -4})
+   >>> # (3, -1) took the place of (3, -3), not (1, -1)
 
 
 Updates Fail Clean
@@ -305,7 +331,7 @@ before processing the update:
 .. doctest::
 
    >>> b = bidict({1: 'one', 2: 'two'})
-   >>> b.putall([(3, 'three'), (1, 'uno')])
+   >>> b.putall({3: 'three', 1: 'uno'})
    Traceback (most recent call last):
        ...
    bidict.KeyDuplicationError: 1
@@ -328,30 +354,37 @@ is like inserting each of those items individually in sequence.
 [#fn-fail-clean]_
 
 Therefore, the order of the items provided to the bulk insert operation
-is significant to the result:
+is significant to the result.
+
+For example, let's try calling `~bidict.bidict.forceupdate`
+with a list of three items that duplicate some keys and values
+already in an initial bidict:
 
 .. doctest::
 
    >>> b = bidict({0: 0, 1: 2})
-   >>> b.forceupdate([(2, 0), (0, 1), (0, 0)])
+   >>> b.forceupdate({
+   ...     2: 0,     # (2, 0) overwrites (0, 0)            -> bidict({2: 0, 1: 2})
+   ...     0: 1,     # (0, 1) is added                     -> bidict({2: 0, 1: 2, 0: 1})
+   ...     0: 0,     # (0, 0) overwrites (0, 1) and (2, 0) -> bidict({1: 2, 0: 0})
+   ... })
+   >>> b
+   bidict({1: 2, 0: 0})
 
-   >>> # 1. (2, 0) overwrites (0, 0)             -> bidict({2: 0, 1: 2})
-   >>> # 2. (0, 1) is added                      -> bidict({2: 0, 1: 2, 0: 1})
-   >>> # 3. (0, 0) overwrites (0, 1) and (2, 0)  -> bidict({0: 0, 1: 2})
+Now let's do the exact same thing, but with a different order
+of the items that we pass to `~bidict.bidict.forceupdate`:
 
-   >>> sorted(b.items())
-   [(0, 0), (1, 2)]
+.. doctest::
 
-   >>> b = bidict({0: 0, 1: 2})  # as before
-   >>> # Give the same items to forceupdate() but in a different order:
-   >>> b.forceupdate([(0, 1), (0, 0), (2, 0)])
-
-   >>> # 1. (0, 1) overwrites (0, 0)             -> bidict({0: 1, 1: 2})
-   >>> # 2. (0, 0) overwrites (0, 1)             -> bidict({0: 0, 1: 2})
-   >>> # 3. (2, 0) overwrites (0, 0)             -> bidict({1: 2, 2: 0})
-
-   >>> sorted(b.items())  # different items!
-   [(1, 2), (2, 0)]
+   >>> b = bidict({0: 0, 1: 2})  # as above
+   >>> b.forceupdate({
+   ...     # same items as above, different order:
+   ...     0: 1,     # (0, 1) overwrites (0, 0)            -> bidict({0: 1, 1: 2})
+   ...     0: 0,     # (0, 0) overwrites (0, 1)            -> bidict({0: 0, 1: 2})
+   ...     2: 0,     # (2, 0) overwrites (0, 0)            -> bidict({1: 2, 2: 0})
+   ... })
+   >>> b  # different items!
+   bidict({1: 2, 2: 0})
 
 
 .. [#fn-fail-clean]

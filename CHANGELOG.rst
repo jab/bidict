@@ -42,7 +42,6 @@ The changes in this release are expected to affect few users.
 
 - All :meth:`~bidict.bidict.__init__`,
   :meth:`~bidict.bidict.update`,
-  :meth:`~bidict.bidict.__or__`,
   and related methods
   now handle `SupportsKeysAndGetItem
   <https://github.com/python/typeshed/blob/3eb9ff/stdlib/_typeshed/__init__.pyi#L128-L131>`__
@@ -59,6 +58,17 @@ The changes in this release are expected to affect few users.
   but with less space overhead.
 
 - Remove ``namedbidict`` due to low usage.
+
+- Fix a bug where e.g. ``bidict(None)`` would incorrectly return an empty bidict
+  rather than raising :class:`TypeError`.
+
+- The :func:`repr` of ordered bidicts now matches that of regular bidicts,
+  e.g. ``OrderedBidict({1: 1})`` rather than ``OrderedBidict([(1, 1)])``
+  (and accordingly, ``__repr_delegate__`` has been removed
+  as it's no longer needed).
+
+  This tracks with the change to :class:`collections.OrderedDict`\'s :func:`repr`
+  `in Python 3.12 <https://github.com/python/cpython/pull/101661>`__.
 
 
 0.22.1 (2022-12-31)
