@@ -1,5 +1,6 @@
 [run]
 branch = True
+parallel = True
 source = bidict
 dynamic_context = test_function
 

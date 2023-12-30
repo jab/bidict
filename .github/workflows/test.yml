@@ -26,8 +26,8 @@ jobs:
         include:
           # https://github.com/actions/python-versions/blob/main/versions-manifest.json
           - pyversion: "3.12"
-          - pyversion: "3.11"
             enable_coverage: true
+          - pyversion: "3.11"
           - pyversion: "3.10"
             more_hypothesis_examples_if_cron: true
           - pyversion: "3.9"
@@ -43,7 +43,7 @@ jobs:
           python-version: ${{ matrix.pyversion }}
           cache: pip
           cache-dependency-path: dev-deps/${{ matrix.deps_subdir || format('python{0}', matrix.pyversion) }}/test.txt
-      - run: python -m pip install -U pip setuptools wheel tox==4.11.3
+      - run: python -m pip install -U pip setuptools wheel tox==4.11.4
       - run: python -m pip install -r dev-deps/${{ matrix.deps_subdir || format('python{0}', matrix.pyversion) }}/test.txt
       - name: Set --hypothesis-profile=more-examples  # See tests/conftest.py
         if: ${{ github.event_name == 'schedule' && matrix.more_hypothesis_examples_if_cron }}
@@ -54,17 +54,22 @@ jobs:
         with:
           path: .hypothesis
           key: hypothesis|${{ runner.os }}|${{ matrix.pyversion }}
-      - name: Configure pytest to enable coverage
-        if: matrix.enable_coverage
+      - if: matrix.enable_coverage
         run: |
-          echo PYTEST_ADDOPTS="${PYTEST_ADDOPTS} --cov=bidict --cov-config=.coveragerc --cov-report=xml" >> "${GITHUB_ENV}"
-      - run: python -m pytest
+          echo COVERAGE_CORE=sysmon >> "${GITHUB_ENV}"
+          echo COVERAGE_PROCESS_START="$(pwd)/.coveragerc" >> "${GITHUB_ENV}"
+          echo RUN_PYTEST_CMD="coverage run" >> "${GITHUB_ENV}"
+      - run: ${RUN_PYTEST_CMD:-python} -m pytest
+      - if: matrix.enable_coverage
+        run: |
+          coverage combine
+          coverage debug data
+          coverage report
       - name: Upload coverage to Codecov  # https://github.com/codecov/codecov-action
         uses: codecov/codecov-action@eaaf4bedf32dbdc6b720b63067d99c4d77d6047d
         if: matrix.enable_coverage
         with:
           verbose: true
-          files: ./coverage.xml
           fail_ci_if_error: false  # https://github.com/codecov/codecov-action/issues/557
 
 permissions:
