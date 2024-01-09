@@ -4,9 +4,9 @@
 #
 #    pip-compile --allow-unsafe --generate-hashes --output-file=dev-deps/pypy3.9/test.txt --strip-extras dev-deps/test.in
 #
-attrs==23.1.0 \
-    --hash=sha256:1f28b4522cdc2fb4256ac1a020c78acf9cba2c6b461ccd2c126f3aa8e8335d04 \
-    --hash=sha256:6279836d581513a26f1bf235f9acd333bc9115683f14f7e8fae46c98fc50e015
+attrs==23.2.0 \
+    --hash=sha256:935dc3b529c262f6cf76e50877d35a4bd3c1de194fd41f47a2b7ae8f19971f30 \
+    --hash=sha256:99b87a485a5820b23b879f04c2305b44b951b502fd64be915879d77a7e8fc6f1
     # via hypothesis
 coverage==7.4.0 \
     --hash=sha256:04387a4a6ecb330c1878907ce0dc04078ea72a869263e53c72a1ba5bbdf380ca \
@@ -78,9 +78,9 @@ execnet==2.0.2 \
     --hash=sha256:88256416ae766bc9e8895c76a87928c0012183da3cc4fc18016e6f050e025f41 \
     --hash=sha256:cc59bc4423742fd71ad227122eb0dd44db51efb3dc4095b45ac9a08c770096af
     # via pytest-xdist
-hypothesis==6.92.2 \
-    --hash=sha256:841f89a486c43bdab55698de8929bd2635639ec20bf6ce98ccd75622d7ee6d41 \
-    --hash=sha256:d335044492acb03fa1fdb4edacb81cca2e578049fc7306345bc0e8947fef15a9
+hypothesis==6.92.6 \
+    --hash=sha256:f8af0545a5a504abce9cb1ec1dbf6d737c356f22f002036ffee0421a2119b7e5 \
+    --hash=sha256:fbb69c8e704427eadfd91fa81da8a82f6938dfcc9b4364027e476590bb7d7d8c
     # via -r dev-deps/test.in
 importlib-metadata==7.0.1 \
     --hash=sha256:4805911c3a4ec7c3966410053e9ec6a1fecd629117df5adee56dfc9432a1081e \
@@ -110,9 +110,9 @@ pygaljs==1.0.2 \
     --hash=sha256:0b71ee32495dcba5fbb4a0476ddbba07658ad65f5675e4ad409baf154dec5111 \
     --hash=sha256:d75e18cb21cc2cda40c45c3ee690771e5e3d4652bf57206f20137cf475c0dbe8
     # via pytest-benchmark
-pytest==7.4.3 \
-    --hash=sha256:0d009c083ea859a71b76adf7c1d502e4bc170b80a8ef002da5806527b9591fac \
-    --hash=sha256:d989d136982de4e3b29dabcc838ad581c64e8ed52c11fbe86ddebd9da0818cd5
+pytest==7.4.4 \
+    --hash=sha256:2cf0005922c6ace4a3e2ec8b4080eb0d9753fdc93107415332f50ce9e7994280 \
+    --hash=sha256:b090cdf5ed60bf4c45261be03239c2c1c22df034fbffe691abe93cd80cea01d8
     # via
     #   -r dev-deps/test.in
     #   pytest-benchmark
@@ -126,7 +126,7 @@ pytest-sphinx==0.5.0 \
     --hash=sha256:42485af28b97649b0c16fc11fa450ae3d5a51d5ec67e3a8bc29d31c3093eb40a \
     --hash=sha256:faaa236a47fe87669a7422e44168dc1803049b9a47710c2de4c23f469f40c47e
     # via -r dev-deps/test.in
-pytest-xdist==3.5.0 ; platform_python_implementation == "PyPy" \
+pytest-xdist==3.5.0 \
     --hash=sha256:cbb36f3d67e0c478baa57fa4edc8843887e0f6cfc42d677530a36d7472b32d8a \
     --hash=sha256:d075629c7e00b611df89f490a5063944bee7a4362a5ff11c7cc7824a03dfce24
     # via -r dev-deps/test.in
