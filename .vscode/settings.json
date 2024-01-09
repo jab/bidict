@@ -3,6 +3,6 @@
     "files.insertFinalNewline": true,
     "files.trimFinalNewlines": true,
     "files.trimTrailingWhitespace": true,
-    "python.analysis.typeCheckingMode": "off",  // prefer mypy over Pyright
+    "python.defaultInterpreterPath": ".venv/dev/bin/python",
     "python.testing.pytestEnabled": true,
 }

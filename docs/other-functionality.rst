@@ -33,5 +33,5 @@ can implement themselves:
 
    >>> dict(inverted(bidict({1: 'one'})))
    {'one': 1}
-   >>> list(inverted(OrderedBidict([(2, 4), (3, 9)])))
+   >>> list(inverted(OrderedBidict({2: 4, 3: 9})))
    [(4, 2), (9, 3)]

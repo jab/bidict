@@ -12,7 +12,7 @@
 # ============================================================================
 
 
-"""Provide :class:`MutableBidict`."""
+"""Provide :class:`MutableBidict` and :class:`bidict`."""
 
 from __future__ import annotations
 
@@ -41,6 +41,9 @@ class MutableBidict(BidictBase[KT, VT], MutableBidirectionalMapping[KT, VT]):
 
         @property
         def inverse(self) -> MutableBidict[VT, KT]: ...
+
+        @property
+        def inv(self) -> MutableBidict[VT, KT]: ...
 
     def _pop(self, key: KT) -> VT:
         val = self._fwdm.pop(key)
@@ -169,7 +172,9 @@ class MutableBidict(BidictBase[KT, VT], MutableBidirectionalMapping[KT, VT]):
         if args or kw:
             self._update(get_arg(*args), kw, on_dup=ON_DUP_DROP_OLD)
 
-    def __ior__(self, other: Maplike[KT, VT]) -> MutableBidict[KT, VT]:
+    # other's type is Mapping rather than Maplike since bidict() |= SupportsKeysAndGetItem({})
+    # raises a TypeError, just like dict() |= SupportsKeysAndGetItem({}) does.
+    def __ior__(self, other: t.Mapping[KT, VT]) -> MutableBidict[KT, VT]:
         """Return self|=other."""
         self.update(other)
         return self
@@ -199,6 +204,9 @@ class bidict(MutableBidict[KT, VT]):
 
         @property
         def inverse(self) -> bidict[VT, KT]: ...
+
+        @property
+        def inv(self) -> bidict[VT, KT]: ...
 
 
 #                             * Code review nav *

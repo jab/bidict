@@ -4,8 +4,6 @@ hypothesis
 pytest
 pytest-benchmark[histogram]
 pytest-sphinx
-# can't build the psutil wheel under PyPy (at least on my macOS machine):
-pytest-xdist[psutil]; platform_python_implementation != 'PyPy'
-pytest-xdist; platform_python_implementation == 'PyPy'
+pytest-xdist
 sortedcollections
 sortedcontainers

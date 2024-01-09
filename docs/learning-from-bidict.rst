@@ -156,7 +156,7 @@ if it weren't for property-based testing, enabled by the amazing
 `Hypothesis <https://hypothesis.readthedocs.io>`__ library.
 
 Check out `bidict's property-based tests
-<https://github.com/jab/bidict/blob/main/tests/property_tests/test_properties.py>`__
+<https://github.com/jab/bidict/blob/main/tests/test_bidict.py>`__
 to see this in action.
 
 
@@ -165,8 +165,6 @@ Python surprises
 
 - What should happen when checking equality of several ordered mappings
   that contain the same items but in a different order?
-
-  What about when comparing an ordered mapping with an unordered mapping?
 
   First let's see how :class:`collections.OrderedDict` works.
   The results may surprise you:
@@ -227,7 +225,7 @@ Python surprises
   <https://en.wikipedia.org/wiki/Liskov_substitution_principle>`__.
   It's too late now to change this for :class:`collections.OrderedDict`.
 
-  But fortunately it's not too late for bidict to learn from this.
+  But at least it's not too late to learn from this.
   Hence :ref:`eq-order-insensitive`, even for ordered bidicts.
   For an order-sensitive equality check, bidict provides the separate
   :meth:`~bidict.BidictBase.equals_order_sensitive` method,

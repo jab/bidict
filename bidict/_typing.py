@@ -38,9 +38,6 @@ class MissingT(Enum):
 
     MISSING = 'MISSING'
 
-    def __repr__(self) -> str:
-        return '<MISSING>'
-
 
 MISSING: t.Final[t.Literal[MissingT.MISSING]] = MissingT.MISSING
 OKT: t.TypeAlias = 'KT | MissingT'  #: optional key type

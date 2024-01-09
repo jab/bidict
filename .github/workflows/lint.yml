@@ -24,7 +24,7 @@ jobs:
         run: pip install pre-commit
       - uses: pre-commit/action@646c83fcd040023954eafda54b4db0192ce70507
         with:
-          extra_args: --verbose
+          extra_args: --all-files --verbose
 
 permissions:
   contents: read

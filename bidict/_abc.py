@@ -44,10 +44,10 @@ class BidirectionalMapping(t.Mapping[KT, VT]):
 
         :raises NotImplementedError: Meant to be overridden in subclasses.
         """
-        # The @abstractmethod decorator prevents BidirectionalMapping subclasses from being
-        # instantiated unless they override ``.inverse``. So this implementation of ``.inverse``
-        # should never be unintentionally resolved from subclass instances. But raise here
-        # anyway, so it's extra clear that this implementation should never be called.
+        # The @abstractmethod decorator prevents subclasses from being instantiated unless they
+        # override this method. But an overriding implementation may merely return super().inverse,
+        # in which case this implementation is used. Raise NotImplementedError to indicate that
+        # subclasses must actually provide their own implementation.
         raise NotImplementedError
 
     def __inverted__(self) -> t.Iterator[tuple[VT, KT]]:

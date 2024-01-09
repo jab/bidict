@@ -61,10 +61,13 @@ class BidictKeysView(t.KeysView[KT], t.ValuesView[KT]):
 
 
 def get_arg(*args: MapOrItems[KT, VT]) -> MapOrItems[KT, VT]:
-    """Ensure there's only a single arg in *args*, then return it."""
+    """Ensure there's at most one arg in *args* and that it is iterable, then return it."""
     if len(args) > 1:
         raise TypeError(f'Expected at most 1 positional argument, got {len(args)}')
-    return args[0] if args else ()
+    arg = args[0] if args else ()
+    if not isinstance(arg, (t.Iterable, Maplike)):
+        raise TypeError(f"'{arg.__class__.__name__}' object is not iterable")
+    return arg
 
 
 class BidictBase(BidirectionalMapping[KT, VT]):
@@ -88,9 +91,6 @@ class BidictBase(BidirectionalMapping[KT, VT]):
 
     #: The class of the inverse bidict instance.
     _inv_cls: t.ClassVar[type[BidictBase[t.Any, t.Any]]]
-
-    #: Used by :meth:`__repr__` for the contained items.
-    _repr_delegate: t.ClassVar[t.Any] = dict
 
     def __init_subclass__(cls) -> None:
         super().__init_subclass__()
@@ -220,7 +220,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
     def __repr__(self) -> str:
         """See :func:`repr`."""
         clsname = self.__class__.__name__
-        items = self._repr_delegate(self.items()) if self else ''
+        items = dict(self.items()) if self else ''
         return f'{clsname}({items})'
 
     def values(self) -> BidictKeysView[VT]:
@@ -384,14 +384,14 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         write_append = write.append
         unwrite: list[t.Callable[[], None]] = []
         if oldval is MISSING and oldkey is MISSING:  # no key or value duplication
-            # {0: 1, 2: 3} + (4, 5) => {0: 1, 2: 3, 4: 5}
+            # {0: 1, 2: 3} | {4: 5} => {0: 1, 2: 3, 4: 5}
             if save_unwrite:
                 unwrite = [
                     partial(fwdm_del, newkey),
                     partial(invm_del, newval),
                 ]
         elif oldval is not MISSING and oldkey is not MISSING:  # key and value duplication across two different items
-            # {0: 1, 2: 3} + (0, 3) => {0: 3}
+            # {0: 1, 2: 3} | {0: 3} => {0: 3}
             write_append(partial(fwdm_del, oldkey))
             write_append(partial(invm_del, oldval))
             if save_unwrite:
@@ -402,7 +402,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
                     partial(invm_set, newval, oldkey),
                 ]
         elif oldval is not MISSING:  # just key duplication
-            # {0: 1, 2: 3} + (2, 4) => {0: 1, 2: 4}
+            # {0: 1, 2: 3} | {2: 4} => {0: 1, 2: 4}
             write_append(partial(invm_del, oldval))
             if save_unwrite:
                 unwrite = [
@@ -412,7 +412,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
                 ]
         else:
             assert oldkey is not MISSING  # just value duplication
-            # {0: 1, 2: 3} + (4, 3) => {0: 1, 4: 3}
+            # {0: 1, 2: 3} | {4: 3} => {0: 1, 4: 3}
             write_append(partial(fwdm_del, oldkey))
             if save_unwrite:
                 unwrite = [
@@ -513,17 +513,19 @@ class BidictBase(BidirectionalMapping[KT, VT]):
     #: *See also* the :mod:`copy` module
     __copy__ = copy
 
-    def __or__(self: BT, other: Maplike[KT, VT]) -> BT:
+    # other's type is Mapping rather than Maplike since bidict() | SupportsKeysAndGetItem({})
+    # raises a TypeError, just like dict() | SupportsKeysAndGetItem({}) does.
+    def __or__(self: BT, other: t.Mapping[KT, VT]) -> BT:
         """Return self|other."""
-        if not isinstance(other, Maplike):
+        if not isinstance(other, t.Mapping):
             return NotImplemented
         new = self.copy()
         new._update(other, rbof=False)
         return new
 
-    def __ror__(self: BT, other: Maplike[KT, VT]) -> BT:
+    def __ror__(self: BT, other: t.Mapping[KT, VT]) -> BT:
         """Return other|self."""
-        if not isinstance(other, Maplike):
+        if not isinstance(other, t.Mapping):
             return NotImplemented
         new = self.__class__(other)
         new._update(self, rbof=False)
