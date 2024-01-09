@@ -33,28 +33,30 @@ DROP_OLD: t.Final[OD] = OD.DROP_OLD
 DROP_NEW: t.Final[OD] = OD.DROP_NEW
 
 
-class OnDup(t.NamedTuple('_OnDup', [('key', OD), ('val', OD), ('kv', OD)])):
-    r"""A 3-tuple of :class:`OD`\s specifying how to handle the 3 kinds of duplication.
+class OnDup(t.NamedTuple):
+    r"""A combination of :class:`~bidict.OnDupAction`\s specifying how to handle various types of duplication.
+
+    The :attr:`key` field specifies what action to take when a duplicate key is encountered.
+
+    The :attr:`val` field specifies what action to take when a duplicate value is encountered.
+
+    In the case of both key and value duplication across two different items,
+    only :attr:`val` is used.
 
     *See also* :ref:`basic-usage:Values Must Be Unique`
     (https://bidict.rtfd.io/basic-usage.html#values-must-be-unique)
-
-    If *kv* is not specified, *val* will be used for *kv*.
     """
 
-    __slots__ = ()
-
-    def __new__(cls, key: OD = DROP_OLD, val: OD = RAISE, kv: OD | None = None) -> OnDup:
-        """Override to provide user-friendly default values."""
-        return super().__new__(cls, key, val, kv or val)
+    key: OD = DROP_OLD
+    val: OD = RAISE
 
 
 #: Default :class:`OnDup` used for the
 #: :meth:`~bidict.bidict.__init__`,
 #: :meth:`~bidict.bidict.__setitem__`, and
 #: :meth:`~bidict.bidict.update` methods.
-ON_DUP_DEFAULT: t.Final[OnDup] = OnDup(key=DROP_OLD, val=RAISE, kv=RAISE)
+ON_DUP_DEFAULT: t.Final[OnDup] = OnDup(key=DROP_OLD, val=RAISE)
 #: An :class:`OnDup` whose members are all :obj:`RAISE`.
-ON_DUP_RAISE: t.Final[OnDup] = OnDup(key=RAISE, val=RAISE, kv=RAISE)
+ON_DUP_RAISE: t.Final[OnDup] = OnDup(key=RAISE, val=RAISE)
 #: An :class:`OnDup` whose members are all :obj:`DROP_OLD`.
-ON_DUP_DROP_OLD: t.Final[OnDup] = OnDup(key=DROP_OLD, val=DROP_OLD, kv=DROP_OLD)
+ON_DUP_DROP_OLD: t.Final[OnDup] = OnDup(key=DROP_OLD, val=DROP_OLD)

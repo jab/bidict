@@ -339,11 +339,11 @@ class BidictBase(BidirectionalMapping[KT, VT]):
                 # (key, val) duplicates an existing item -> no-op.
                 return None
             # key and val each duplicate a different existing item.
-            if on_dup.kv is RAISE:
+            if on_dup.val is RAISE:
                 raise KeyAndValueDuplicationError(key, val)
-            if on_dup.kv is DROP_NEW:
+            if on_dup.val is DROP_NEW:
                 return None
-            assert on_dup.kv is DROP_OLD
+            assert on_dup.val is DROP_OLD
             # Fall through to the return statement on the last line.
         elif isdupkey:
             if on_dup.key is RAISE:

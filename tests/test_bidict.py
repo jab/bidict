@@ -82,11 +82,12 @@ InitItems: t.TypeAlias = t.Dict[t.Any, t.Any]
 init_items = dictionaries(vals, keys, max_size=MAX_SIZE).map(lambda d: {v: k for (k, v) in d.items()})  # no dup vals
 bidict_t = sampled_from(bidict_types)
 mut_bidict_t = sampled_from(mutable_bidict_types)
-pairs = tuples(keys, vals)
-updates = lists(pairs, max_size=MAX_SIZE)  # "lists" to allow testing updates with dup k and/or v
+items = tuples(keys, vals)
+ItemLists: t.TypeAlias = t.List[t.Tuple[int, int]]
+itemlists = lists(items, max_size=MAX_SIZE)  # "lists" to allow testing updates with dup k and/or v
 updates_t = sampled_from(update_arg_types)
-itemsets = frozensets(pairs, max_size=MAX_SIZE)
-on_dups = tuple(starmap(OnDup, product(OD, repeat=3)))
+itemsets = frozensets(items, max_size=MAX_SIZE)
+on_dups = tuple(starmap(OnDup, product(OD, repeat=2)))
 on_dup = sampled_from(on_dups)
 
 
@@ -177,7 +178,7 @@ class BidictStateMachine(RuleBasedStateMachine):
             partial(self.oracle.put, key, val, on_dup),
         )
 
-    @rule(updates=updates, updates_t=updates_t, on_dup=on_dup)
+    @rule(updates=itemlists, updates_t=updates_t, on_dup=on_dup)
     def putall(self, updates: MapOrItems[int, int], updates_t: t.Any, on_dup: OnDup) -> None:
         # Don't let the updates_t(updates) calls below raise a DuplicationError.
         if isinstance(updates_t, type) and issubclass(updates_t, BidirectionalMapping):
@@ -356,18 +357,14 @@ def test_ne_ordsens_to_equal_map_with_diff_order(init_items: InitItems, bidict_t
     assert not bi.equals_order_sensitive(map_shuf)
 
 
-lists_pairs = lists(tuples(integers(), integers()))
-LP: t.TypeAlias = t.List[t.Tuple[int, int]]
-
-
-@given(lp=lists_pairs, bidict_t=bidict_t)
-def test_inverted(lp: LP, bidict_t: BT[int, int]) -> None:
-    check_list = list(inverted(inverted(lp)))
-    expect_list = lp
+@given(items=itemlists, bidict_t=bidict_t)
+def test_inverted(items: ItemLists, bidict_t: BT[int, int]) -> None:
+    check_list = list(inverted(inverted(items)))
+    expect_list = items
     assert check_list == expect_list
-    lp_nodup = dedup(lp)
-    check_bi = bidict_t(inverted(bidict_t(lp_nodup)))
-    expect_bi = bidict_t({v: k for (k, v) in lp_nodup.items()})
+    items_nodup = dedup(items)
+    check_bi = bidict_t(inverted(bidict_t(items_nodup)))
+    expect_bi = bidict_t({v: k for (k, v) in items_nodup.items()})
     assert_bidicts_equal(check_bi, expect_bi)
 
 
@@ -396,21 +393,21 @@ def test_putall_matches_bulk_put(bi_t: type[MutableBidict[int, int]], on_dup: On
     bi = bi_t(init_items)
     for k1, v1, k2, v2 in product(range(4), repeat=4):
         for b in bi, bi.inv:
-            assert_putall_matches_bulk_put(b, {k1: v1, k2: v2}, on_dup)
+            assert_putall_matches_bulk_put(b, [(k1, v1), (k2, v2)], on_dup)
 
 
-def assert_putall_matches_bulk_put(bi: MutableBidict[KT, VT], init_items: InitItems, on_dup: OnDup) -> None:
+def assert_putall_matches_bulk_put(bi: MutableBidict[int, int], new_items: ItemLists, on_dup: OnDup) -> None:
     tmp = bi.copy()
     checkexc = None
     expectexc = None
     try:
-        for key, val in init_items.items():
+        for key, val in new_items:
             tmp.put(key, val, on_dup)
     except DuplicationError as exc:
         expectexc = type(exc)
         tmp = bi  # Since bulk updates fail clean, expect no changes (i.e. revert to bi).
     try:
-        bi.putall(init_items, on_dup)
+        bi.putall(new_items, on_dup)
     except DuplicationError as exc:
         checkexc = type(exc)
     assert checkexc == expectexc

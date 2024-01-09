@@ -26,19 +26,35 @@ please consider sponsoring bidict on GitHub.`
 0.23.0 (not yet released)
 -------------------------
 
-The changes in this release are expected to affect few users.
+Primarily, this release simplifies bidict by removing features
+that few if any users depend on.
+
+It also contains a few other minor improvements.
 
 - Drop support for Python 3.7,
   which reached end of life on 2023-06-27,
   and take advantage of features available in Python 3.8+.
 
-- Test with Python 3.12 in CI.
+- Remove ``FrozenOrderedBidict`` now that Python 3.7 is no longer supported.
+  :class:`~bidict.frozenbidict` now provides everything
+  that ``FrozenOrderedBidict`` provided
+  (including :class:`reversibility <collections.abc.Reversible>`)
+  on all supported Python versions,
+  but with less space overhead.
 
-  Note: Older versions of bidict also support Python 3.12,
-  even though they don't explicitly declare support for it.
+- Remove ``namedbidict`` due to low usage.
 
-- Drop use of `Trove classifiers <https://github.com/pypa/trove-classifiers>`__
-  to explicitly declare support for specific Python versions in package metadata.
+- Remove the ``kv`` field of :class:`~bidict.OnDup`
+  which specified the :class:`~bidict.OnDupAction` to take
+  in the case of :ref:`basic-usage:key and value duplication`.
+  The :attr:`~bidict.OnDup.val` field now specifies the action to take
+  in the case of
+  :ref:`basic-usage:key and value duplication`
+  as well as
+  :ref:`just value duplication <basic-usage:values must be unique>`.
+
+- Fix a bug where e.g. ``bidict(None)`` would incorrectly return an empty bidict
+  rather than raising :class:`TypeError`.
 
 - All :meth:`~bidict.bidict.__init__`,
   :meth:`~bidict.bidict.update`,
@@ -50,25 +66,22 @@ The changes in this release are expected to affect few users.
   <https://github.com/python/cpython/blob/v3.11.5/Lib/_collections_abc.py#L943>`__ does,
   before falling back to handling the provided object as an iterable of pairs.
 
-- Remove ``FrozenOrderedBidict`` now that Python 3.7 is no longer supported.
-  :class:`~bidict.frozenbidict` now provides everything
-  that ``FrozenOrderedBidict`` provided
-  (including :class:`reversibility <collections.abc.Reversible>`)
-  on all supported Python versions,
-  but with less space overhead.
-
-- Remove ``namedbidict`` due to low usage.
-
-- Fix a bug where e.g. ``bidict(None)`` would incorrectly return an empty bidict
-  rather than raising :class:`TypeError`.
-
 - The :func:`repr` of ordered bidicts now matches that of regular bidicts,
-  e.g. ``OrderedBidict({1: 1})`` rather than ``OrderedBidict([(1, 1)])``
-  (and accordingly, ``__repr_delegate__`` has been removed
-  as it's no longer needed).
+  e.g. ``OrderedBidict({1: 1})`` rather than ``OrderedBidict([(1, 1)])``.
+
+  (Accordingly, the ``bidict.__repr_delegate__`` field has been removed
+  now that it's no longer needed.)
 
   This tracks with the change to :class:`collections.OrderedDict`\'s :func:`repr`
   `in Python 3.12 <https://github.com/python/cpython/pull/101661>`__.
+
+- Test with Python 3.12 in CI.
+
+  Note: Older versions of bidict also support Python 3.12,
+  even though they don't explicitly declare support for it.
+
+- Drop use of `Trove classifiers <https://github.com/pypa/trove-classifiers>`__
+  that declare support for specific Python versions in package metadata.
 
 
 0.22.1 (2022-12-31)

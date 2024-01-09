@@ -103,7 +103,7 @@ class MutableBidict(BidictBase[KT, VT], MutableBidirectionalMapping[KT, VT]):
 
         :raises bidict.KeyAndValueDuplicationError: if attempting to insert an
             item whose key duplicates one existing item's, and whose value
-            duplicates another existing item's, and *on_dup.kv* is
+            duplicates another existing item's, and *on_dup.val* is
             :attr:`~bidict.RAISE`.
         """
         self._update([(key, val)], on_dup=on_dup)

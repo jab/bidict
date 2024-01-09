@@ -152,11 +152,11 @@ class Oracle(t.Generic[KT, VT]):
                 assert val == oldval
                 return
             # key and val each duplicate a different existing item.
-            if on_dup.kv is RAISE:
+            if on_dup.val is RAISE:
                 raise KeyAndValueDuplicationError(key, val)
-            if on_dup.kv is DROP_NEW:
+            if on_dup.val is DROP_NEW:
                 return
-            assert on_dup.kv is DROP_OLD
+            assert on_dup.val is DROP_OLD
         elif isdupkey:
             if on_dup.key is RAISE:
                 raise KeyDuplicationError(key)

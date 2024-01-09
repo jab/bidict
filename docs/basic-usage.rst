@@ -242,44 +242,39 @@ Key and Value Duplication
 Note that it's possible for a given item to duplicate
 the key of one existing item,
 and the value of another existing item.
-In the following example,
-the third item we're trying to insert
-duplicates the first item's key
-and the second item's value:
+
+For example:
 
 .. code-block:: python
 
-   b.putall({1: 2, 3: 4, 1: 4}, on_dup=OnDup(...))
+   b.putall([(1, -1), (2, -2), (1, -2)], on_dup=OnDup(...))
 
-What should happen next?
+Here, the third item we're trying to insert, (1, -2),
+duplicates the key of the first item we're passing, (1, -1),
+and the value of the second item we're passing, (2, -2).
 
-Keep in mind, the active :class:`~bidict.OnDup`
+Keep in mind, the :class:`~bidict.OnDup`
 may specify one :class:`~bidict.OnDupAction`
 for :attr:`key duplication <bidict.OnDup.key>`
 and a different :class:`~bidict.OnDupAction`
 for :attr:`value duplication <bidict.OnDup.val>`.
 
-To account for this,
-:class:`~bidict.OnDup`
-allows you to use its
-:attr:`~bidict.OnDup.kv` field
-to indicate how you want to handle this case
-without ambiguity:
+In the case of a key and value duplication,
+the :class:`~bidict.OnDupAction`
+for :attr:`value duplication <bidict.OnDup.val>`
+takes precedence:
 
 .. doctest::
 
-   >>> from bidict import DROP_OLD
-   >>> on_dup = OnDup(key=DROP_OLD, val=RAISE, kv=RAISE)
-   >>> b.putall([(1, 2), (3, 4), (1, 4)], on_dup)
+   >>> on_dup = OnDup(key=DROP_OLD, val=RAISE)
+   >>> b.putall([(1, -1), (2, -2), (1, -2)], on_dup=on_dup)
    Traceback (most recent call last):
        ...
-   bidict.KeyAndValueDuplicationError: (1, 4)
-
-If not specified, *kv* defaults to whatever was provided for *val*.
+   bidict.KeyAndValueDuplicationError: (1, -2)
 
 Note that repeated insertions of the same item
 are construed as a no-op and will not raise,
-no matter what the active :class:`~bidict.OnDup` is:
+no matter what :class:`~bidict.OnDup` is:
 
 .. doctest::
 
