@@ -5,8 +5,8 @@ name: GitHub Actions updater
 "on":
   workflow_dispatch:
   schedule:
-    # First day of each month at noon
-    - cron: "0 12 1 * *"
+    # Second day of each month at noon
+    - cron: "0 12 2 * *"
 
 jobs:
   main:
