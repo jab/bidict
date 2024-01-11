@@ -23,6 +23,15 @@ giving access to inverse items:
    >>> element_by_symbol
    bidict({'He': 'helium'})
 
+Note you can also use
+:attr:`~bidict.BidictBase.inv` as a shortcut for
+:attr:`~bidict.BidictBase.inverse`:
+
+.. doctest::
+
+   >>> element_by_symbol.inv
+   bidict({'helium': 'He'})
+
 Both a :class:`bidict.bidict` and its inverse
 support the entire
 :class:`collections.abc.MutableMapping` interface:
@@ -381,6 +390,9 @@ of the items that we pass to `~bidict.bidict.forceupdate`:
    >>> b  # different items!
    bidict({1: 2, 2: 0})
 
+Of course, if you try to initialize or update a bidict
+with an iterable that yields items in a nondeterministic order,
+the results will vary accordingly.
 
 .. [#fn-fail-clean]
 

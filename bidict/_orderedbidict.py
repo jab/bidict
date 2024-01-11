@@ -24,6 +24,7 @@ from ._bidict import MutableBidict
 from ._orderedbase import OrderedBidictBase
 from ._typing import KT
 from ._typing import VT
+from ._typing import override
 
 
 class OrderedBidict(OrderedBidictBase[KT, VT], MutableBidict[KT, VT]):
@@ -37,18 +38,21 @@ class OrderedBidict(OrderedBidictBase[KT, VT], MutableBidict[KT, VT]):
         @property
         def inv(self) -> OrderedBidict[VT, KT]: ...
 
+    @override
     def clear(self) -> None:
         """Remove all items."""
         super().clear()
         self._node_by_korv.clear()
         self._sntl.nxt = self._sntl.prv = self._sntl
 
+    @override
     def _pop(self, key: KT) -> VT:
         val = super()._pop(key)
         node = self._node_by_korv[key if self._bykey else val]
         self._dissoc_node(node)
         return val
 
+    @override
     def popitem(self, last: bool = True) -> tuple[KT, VT]:
         """*b.popitem() → (k, v)*
 
@@ -91,10 +95,12 @@ class OrderedBidict(OrderedBidictBase[KT, VT], MutableBidict[KT, VT]):
     # which may delegate to the backing _fwdm dict, since this is a mutable ordered bidict,
     # and therefore the ordering of items can get out of sync with the backing mappings
     # after mutation. (Need not override values() because it delegates to .inverse.keys().)
+    @override
     def keys(self) -> t.KeysView[KT]:
         """A set-like object providing a view on the contained keys."""
         return _OrderedBidictKeysView(self)
 
+    @override
     def items(self) -> t.ItemsView[KT, VT]:
         """A set-like object providing a view on the contained items."""
         return _OrderedBidictItemsView(self)
@@ -124,7 +130,7 @@ class _OrderedBidictItemsView(t.ItemsView[KT, VT]):
 # For better performance, make _OrderedBidictKeysView and _OrderedBidictItemsView delegate
 # to backing dicts for the methods they inherit from collections.abc.Set. (Cannot delegate
 # for __iter__ and __reversed__ since they are order-sensitive.) See also: https://bugs.python.org/issue46713
-_OView: t.TypeAlias = 'type[_OrderedBidictKeysView[KT]] | type[_OrderedBidictItemsView[KT, t.Any]]'
+_OView: t.TypeAlias = t.Union[t.Type[_OrderedBidictKeysView[KT]], t.Type[_OrderedBidictItemsView[KT, t.Any]]]
 _setmethodnames: t.Iterable[str] = (
     '__lt__ __le__ __gt__ __ge__ __eq__ __ne__ __sub__ __rsub__ '
     '__or__ __ror__ __xor__ __rxor__ __and__ __rand__ isdisjoint'

@@ -19,19 +19,15 @@ from ._typing import Maplike
 from ._typing import MapOrItems
 
 
-@t.overload
-def iteritems(__arg: MapOrItems[KT, VT]) -> ItemsIter[KT, VT]: ...
-@t.overload
-def iteritems(__arg: MapOrItems[str, VT], **kw: VT) -> ItemsIter[str, VT]: ...
-def iteritems(__arg: MapOrItems[KT, VT], **kw: VT) -> ItemsIter[KT, VT] | ItemsIter[str, VT]:
+def iteritems(arg: MapOrItems[KT, VT] = (), /, **kw: VT) -> ItemsIter[KT, VT]:
     """Yield the items from *arg* and *kw* in the order given."""
-    if isinstance(__arg, t.Mapping):
-        yield from __arg.items()
-    elif isinstance(__arg, Maplike):
-        yield from ((k, __arg[k]) for k in __arg.keys())
+    if isinstance(arg, t.Mapping):
+        yield from arg.items()
+    elif isinstance(arg, Maplike):
+        yield from ((k, arg[k]) for k in arg.keys())
     else:
-        yield from __arg
-    yield from kw.items()
+        yield from arg
+    yield from t.cast(ItemsIter[KT, VT], kw.items())
 
 
 swap = itemgetter(1, 0)

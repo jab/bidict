@@ -17,6 +17,7 @@ import pickle
 import sys
 import typing as t
 import weakref
+from copy import copy
 from copy import deepcopy
 from functools import partial
 from itertools import product
@@ -44,7 +45,6 @@ from bidict_test_fixtures import zip_equal
 from hypothesis import assume
 from hypothesis import given
 from hypothesis import note
-from hypothesis import settings
 from hypothesis.stateful import RuleBasedStateMachine
 from hypothesis.stateful import initialize
 from hypothesis.stateful import invariant
@@ -91,7 +91,6 @@ on_dups = tuple(starmap(OnDup, product(OD, repeat=2)))
 on_dup = sampled_from(on_dups)
 
 
-@settings(deadline=None)  # TODO: tune?
 class BidictStateMachine(RuleBasedStateMachine):
     bi: MutableBidict[int, int]
     oracle: Oracle[int, int]
@@ -155,7 +154,7 @@ class BidictStateMachine(RuleBasedStateMachine):
 
     @rule()
     def copy(self) -> None:
-        for cp in (self.bi.copy(), deepcopy(self.bi)):
+        for cp in (copy(self.bi), deepcopy(self.bi)):
             assert_bi_and_inv_are_inverse(cp)
             assert_bidicts_equal(cp, self.bi)
 
@@ -284,15 +283,19 @@ class BidictStateMachine(RuleBasedStateMachine):
         assert (val, key) == next(it(self.oracle.data_inv.items()))
 
 
-# TODO: This test case hangs with no output while running
 BidictStateMachineTest = BidictStateMachine.TestCase
 
 
 @pytest.mark.parametrize('bi_t', bidict_types)
-def test_init_with_bad_args(bi_t: BT[KT, VT]) -> None:
+def test_init_and_update_with_bad_args(bi_t: BT[KT, VT]) -> None:
     for bad_args in ((None,), (0,), (False,), (True,), ({}, {})):  # type: ignore[var-annotated]
         with pytest.raises(TypeError):
-            bi_t(*bad_args)
+            bi_t(*bad_args)  # type: ignore[arg-type]
+        if not issubclass(bi_t, MutableBidict):
+            continue
+        bi = bi_t()
+        with pytest.raises(TypeError):
+            bi.update(*bad_args)  # type: ignore[arg-type]
 
 
 @pytest.mark.parametrize('bi_t', bidict_types)

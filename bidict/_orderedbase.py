@@ -29,9 +29,8 @@ from ._typing import MISSING
 from ._typing import OKT
 from ._typing import OVT
 from ._typing import VT
-from ._typing import Items
-from ._typing import Maplike
 from ._typing import MapOrItems
+from ._typing import override
 
 
 AT = t.TypeVar('AT')  # attr type
@@ -119,13 +118,7 @@ class OrderedBidictBase(BidictBase[KT, VT]):
     _node_by_korv: bidict[t.Any, Node]
     _bykey: bool
 
-    @t.overload
-    def __init__(self, __m: Maplike[KT, VT], **kw: VT) -> None: ...
-    @t.overload
-    def __init__(self, __i: Items[KT, VT], **kw: VT) -> None: ...
-    @t.overload
-    def __init__(self, **kw: VT) -> None: ...
-    def __init__(self, *args: MapOrItems[KT, VT], **kw: VT) -> None:
+    def __init__(self, arg: MapOrItems[KT, VT] = (), /, **kw: VT) -> None:
         """Make a new ordered bidirectional mapping.
         The signature behaves like that of :class:`dict`.
         Items passed in are added in the order they are passed,
@@ -137,7 +130,7 @@ class OrderedBidictBase(BidictBase[KT, VT]):
         self._sntl = SentinelNode()
         self._node_by_korv = bidict()
         self._bykey = True
-        super().__init__(*args, **kw)
+        super().__init__(arg, **kw)
 
     if t.TYPE_CHECKING:
 
@@ -147,6 +140,7 @@ class OrderedBidictBase(BidictBase[KT, VT]):
         @property
         def inv(self) -> OrderedBidictBase[VT, KT]: ...
 
+    @override
     def _make_inverse(self) -> OrderedBidictBase[VT, KT]:
         inv = t.cast(OrderedBidictBase[VT, KT], super()._make_inverse())
         inv._sntl = self._sntl
@@ -162,6 +156,7 @@ class OrderedBidictBase(BidictBase[KT, VT]):
         del self._node_by_korv.inverse[node]
         node.unlink()
 
+    @override
     def _init_from(self, other: MapOrItems[KT, VT]) -> None:
         """See :meth:`BidictBase._init_from`."""
         super()._init_from(other)
@@ -174,6 +169,7 @@ class OrderedBidictBase(BidictBase[KT, VT]):
         for k, v in iteritems(other):
             korv_by_node_set(new_node(), k if bykey else v)
 
+    @override
     def _prep_write(self, newkey: KT, newval: VT, oldkey: OKT[KT], oldval: OVT[VT], save_unwrite: bool) -> PreparedWrite:
         """See :meth:`bidict.BidictBase._prep_write`."""
         write, unwrite = super()._prep_write(newkey, newval, oldkey, oldval, save_unwrite)
@@ -219,10 +215,12 @@ class OrderedBidictBase(BidictBase[KT, VT]):
                 unwrite_append(partial(assoc, node, oldkey, newval))
         return write, unwrite
 
+    @override
     def __iter__(self) -> t.Iterator[KT]:
         """Iterator over the contained keys in insertion order."""
         return self._iter(reverse=False)
 
+    @override
     def __reversed__(self) -> t.Iterator[KT]:
         """Iterator over the contained keys in reverse insertion order."""
         return self._iter(reverse=True)

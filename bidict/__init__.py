@@ -76,7 +76,7 @@ from ._exc import DuplicationError as DuplicationError
 from ._exc import KeyAndValueDuplicationError as KeyAndValueDuplicationError
 from ._exc import KeyDuplicationError as KeyDuplicationError
 from ._exc import ValueDuplicationError as ValueDuplicationError
-from ._frozenbidict import frozenbidict as frozenbidict
+from ._frozen import frozenbidict as frozenbidict
 from ._iter import inverted as inverted
 from ._orderedbase import OrderedBidictBase as OrderedBidictBase
 from ._orderedbidict import OrderedBidict as OrderedBidict

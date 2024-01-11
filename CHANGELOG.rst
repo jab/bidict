@@ -26,10 +26,11 @@ please consider sponsoring bidict on GitHub.`
 0.23.0 (not yet released)
 -------------------------
 
-Primarily, this release simplifies bidict by removing features
-that few if any users depend on.
-
-It also contains a few other minor improvements.
+Primarily, this release simplifies bidict by removing minor features
+that are no longer necessary or evidently are substantially unused.
+These simplifications will make it easier to improve bidict in the future,
+including further potential performance improvements.
+It also contains several other minor improvements.
 
 - Drop support for Python 3.7,
   which reached end of life on 2023-06-27,
@@ -53,8 +54,13 @@ It also contains a few other minor improvements.
   as well as
   :ref:`just value duplication <basic-usage:values must be unique>`.
 
-- Fix a bug where e.g. ``bidict(None)`` would incorrectly return an empty bidict
-  rather than raising :class:`TypeError`.
+- Improve type hints for the
+  :attr:`~bidict.BidictBase.inv` shortcut alias
+  for :attr:`~bidict.BidictBase.inverse`.
+
+- Fix a bug where calls like
+  ``bidict(None)``, ``bi.update(False)``, etc.
+  would fail to raise a :class:`TypeError`.
 
 - All :meth:`~bidict.bidict.__init__`,
   :meth:`~bidict.bidict.update`,

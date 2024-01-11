@@ -8,7 +8,7 @@
 #                             * Code review nav *
 #                        (see comments in __init__.py)
 # ============================================================================
-# ← Prev: _abc.py              Current: _base.py      Next: _frozenbidict.py →
+# ← Prev: _abc.py              Current: _base.py            Next: _frozen.py →
 # ============================================================================
 
 
@@ -40,16 +40,16 @@ from ._typing import MISSING
 from ._typing import OKT
 from ._typing import OVT
 from ._typing import VT
-from ._typing import Items
 from ._typing import Maplike
 from ._typing import MapOrItems
+from ._typing import override
 
 
-OldKV: t.TypeAlias = 'tuple[OKT[KT], OVT[VT]]'
-DedupResult: t.TypeAlias = 'OldKV[KT, VT] | None'
-Write: t.TypeAlias = 'list[t.Callable[[], None]]'
+OldKV: t.TypeAlias = t.Tuple[OKT[KT], OVT[VT]]
+DedupResult: t.TypeAlias = t.Optional[OldKV[KT, VT]]
+Write: t.TypeAlias = t.List[t.Callable[[], None]]
 Unwrite: t.TypeAlias = Write
-PreparedWrite: t.TypeAlias = 'tuple[Write, Unwrite]'
+PreparedWrite: t.TypeAlias = t.Tuple[Write, Unwrite]
 BT = t.TypeVar('BT', bound='BidictBase[t.Any, t.Any]')
 
 
@@ -58,16 +58,6 @@ class BidictKeysView(t.KeysView[KT], t.ValuesView[KT]):
     the :class:`~collections.abc.ValuesView` result of calling *bi.values()*
     is also a :class:`~collections.abc.KeysView` of *bi.inverse*.
     """
-
-
-def get_arg(*args: MapOrItems[KT, VT]) -> MapOrItems[KT, VT]:
-    """Ensure there's at most one arg in *args* and that it is iterable, then return it."""
-    if len(args) > 1:
-        raise TypeError(f'Expected at most 1 positional argument, got {len(args)}')
-    arg = args[0] if args else ()
-    if not isinstance(arg, (t.Iterable, Maplike)):
-        raise TypeError(f"'{arg.__class__.__name__}' object is not iterable")
-    return arg
 
 
 class BidictBase(BidirectionalMapping[KT, VT]):
@@ -101,7 +91,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         cls._ensure_inv_cls()
         cls._set_reversed()
 
-    __reversed__: t.Any
+    __reversed__: t.ClassVar[t.Any]
 
     @classmethod
     def _set_reversed(cls) -> None:
@@ -113,9 +103,6 @@ class BidictBase(BidirectionalMapping[KT, VT]):
             overridden = resolved is not BidictBase.__reversed__
             if overridden:  # E.g. OrderedBidictBase, OrderedBidict
                 return
-        # The following will be False for MutableBidict, bidict, and frozenbidict on Python < 3.8,
-        # and True for them on 3.8+ (where dicts are reversible). Will also be True for custom
-        # subclasses like SortedBidict (see https://bidict.rtfd.io/extending.html#sortedbidict-recipes).
         backing_reversible = all(issubclass(i, t.Reversible) for i in (cls._fwdm_cls, cls._invm_cls))
         cls.__reversed__ = _fwdm_reversed if backing_reversible else None
 
@@ -123,14 +110,26 @@ class BidictBase(BidirectionalMapping[KT, VT]):
     def _ensure_inv_cls(cls) -> None:
         """Ensure :attr:`_inv_cls` is set, computing it dynamically if necessary.
 
+        All subclasses provided in :mod:`bidict` are their own inverse classes,
+        i.e., their backing forward and inverse mappings are both the same type,
+        but users may define subclasses where this is not the case.
+        This method ensures that the inverse class is computed correctly regardless.
+
         See: :ref:`extending:Dynamic Inverse Class Generation`
         (https://bidict.rtfd.io/extending.html#dynamic-inverse-class-generation)
-
-        All subclasses provided in :mod:`bidict` are their own inverse classes,
-        but custom, user-defined subclasses may have distinct inverse classes.
         """
-        if cls.__dict__.get('_inv_cls'):
-            return  # Already set, nothing to do.
+        # This _ensure_inv_cls() method is (indirectly) corecursive with _make_inv_cls() below
+        # in the case that we need to dynamically generate the inverse class:
+        #   1. _ensure_inv_cls() calls cls._make_inv_cls()
+        #   2. cls._make_inv_cls() calls type(..., (cls, ...), ...) to dynamically generate inv_cls
+        #   3. Our __init_subclass__ hook (see above) is automatically called on inv_cls
+        #   4. inv_cls.__init_subclass__() calls inv_cls._ensure_inv_cls()
+        #   5. inv_cls._ensure_inv_cls() resolves to this implementation
+        #      (inv_cls deliberately does not override this), so we're back where we started.
+        # But since the _make_inv_cls() call will have set inv_cls.__dict__._inv_cls,
+        # just check if it's already set before calling _make_inv_cls() to prevent infinite recursion.
+        if getattr(cls, '__dict__', {}).get('_inv_cls'):  # Don't assume cls.__dict__ (e.g. mypyc native class)
+            return
         cls._inv_cls = cls._make_inv_cls()
 
     @classmethod
@@ -153,26 +152,22 @@ class BidictBase(BidirectionalMapping[KT, VT]):
             '_invm_cls': cls._fwdm_cls,
         }
 
-    @t.overload
-    def __init__(self, **kw: VT) -> None: ...
-    @t.overload
-    def __init__(self, __m: Maplike[KT, VT], **kw: VT) -> None: ...
-    @t.overload
-    def __init__(self, __i: Items[KT, VT], **kw: VT) -> None: ...
-    def __init__(self, *args: MapOrItems[KT, VT], **kw: VT) -> None:
+    def __init__(self, arg: MapOrItems[KT, VT] = (), /, **kw: VT) -> None:
         """Make a new bidirectional mapping.
         The signature behaves like that of :class:`dict`.
-        Items passed in are added in the order they are passed,
-        respecting the :attr:`on_dup` class attribute in the process.
+        ktems passed via positional arg are processed first,
+        followed by any items passed via keyword argument.
+        Any duplication encountered along the way
+        is handled as per :attr:`on_dup`.
         """
         self._fwdm = self._fwdm_cls()
         self._invm = self._invm_cls()
-        if args or kw:
-            self._update(get_arg(*args), kw, rbof=False)
+        self._update(arg, kw, rbof=False)
 
     # If Python ever adds support for higher-kinded types, `inverse` could use them, e.g.
     #     def inverse(self: BT[KT, VT]) -> BT[VT, KT]:
     # Ref: https://github.com/python/typing/issues/548#issuecomment-621571821
+    @override
     @property
     def inverse(self) -> BidictBase[VT, KT]:
         """The inverse of this bidirectional mapping instance."""
@@ -223,6 +218,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         items = dict(self.items()) if self else ''
         return f'{clsname}({items})'
 
+    @override
     def values(self) -> BidictKeysView[VT]:
         """A set-like object providing a view on the contained values.
 
@@ -238,6 +234,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         """
         return t.cast(BidictKeysView[VT], self.inverse.keys())
 
+    @override
     def keys(self) -> t.KeysView[KT]:
         """A set-like object providing a view on the contained keys.
 
@@ -255,6 +252,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         fwdm = self._fwdm
         return fwdm.keys() if isinstance(fwdm, dict) else BidictKeysView(self)
 
+    @override
     def items(self) -> t.ItemsView[KT, VT]:
         """A set-like object providing a view on the contained items.
 
@@ -274,6 +272,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
     # The inherited collections.abc.Mapping.__contains__() method is implemented by doing a `try`
     # `except KeyError` around `self[key]`. The following implementation is much faster,
     # especially in the missing case.
+    @override
     def __contains__(self, key: t.Any) -> bool:
         """True if the mapping contains the specified key, else False."""
         return key in self._fwdm
@@ -281,6 +280,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
     # The inherited collections.abc.Mapping.__eq__() method is implemented in terms of an inefficient
     # `dict(self.items()) == dict(other.items())` comparison, so override it with a
     # more efficient implementation.
+    @override
     def __eq__(self, other: object) -> bool:
         """*x.__eq__(other)　⟺　x == other*
 
@@ -431,7 +431,8 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         on_dup: OnDup | None = None,
     ) -> None:
         """Update, possibly rolling back on failure as per *rbof*."""
-        # Must process input in a single pass, since arg may be a generator.
+        if not isinstance(arg, (t.Iterable, Maplike)):
+            raise TypeError(f"'{arg.__class__.__name__}' object is not iterable")
         if not arg and not kw:
             return
         if on_dup is None:
@@ -446,6 +447,8 @@ class BidictBase(BidirectionalMapping[KT, VT]):
             # which includes duplication checking. (If arg is some BidirectionalMapping
             # that does not inherit from BidictBase, it's a foreign implementation, so we
             # perform duplication checking to err on the safe side.)
+
+        # Note: We must process input in a single pass, since arg may be a generator.
 
         # If we roll back on failure and we know that there are more updates to process than
         # already-contained items, our rollback strategy is to update a copy of self (without
@@ -480,6 +483,10 @@ class BidictBase(BidirectionalMapping[KT, VT]):
             if rbof and unwrite:  # save the unwrite for later application if needed
                 append_unwrite(unwrite)
 
+    def __copy__(self: BT) -> BT:
+        """Used for the copy protocol. See the :mod:`copy` module."""
+        return self.copy()
+
     def copy(self: BT) -> BT:
         """Make a (shallow) copy of this bidict."""
         # Could just `return self.__class__(self)` here, but the below is faster. The former
@@ -509,10 +516,6 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         inv = other.inverse if isinstance(other, BidictBase) else inverted(self._fwdm)
         self._invm.update(inv)
 
-    #: Used for the copy protocol.
-    #: *See also* the :mod:`copy` module
-    __copy__ = copy
-
     # other's type is Mapping rather than Maplike since bidict() | SupportsKeysAndGetItem({})
     # raises a TypeError, just like dict() | SupportsKeysAndGetItem({}) does.
     def __or__(self: BT, other: t.Mapping[KT, VT]) -> BT:
@@ -531,14 +534,17 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         new._update(self, rbof=False)
         return new
 
+    @override
     def __len__(self) -> int:
         """The number of contained items."""
         return len(self._fwdm)
 
+    @override
     def __iter__(self) -> t.Iterator[KT]:
         """Iterator over the contained keys."""
         return iter(self._fwdm)
 
+    @override
     def __getitem__(self, key: KT) -> VT:
         """*x.__getitem__(key) ⟺ x[key]*"""
         return self._fwdm[key]
@@ -572,5 +578,5 @@ class GeneratedBidictInverse:
 
 #                             * Code review nav *
 # ============================================================================
-# ← Prev: _abc.py              Current: _base.py      Next: _frozenbidict.py →
+# ← Prev: _abc.py              Current: _base.py            Next: _frozen.py →
 # ============================================================================

@@ -53,7 +53,7 @@ and then follow the path suggested in the "code review nav" comments at the
 top of the file:
 
 - `_base.py <https://github.com/jab/bidict/blob/main/bidict/_base.py#L8>`__
-- `_frozenbidict.py <https://github.com/jab/bidict/blob/main/bidict/_frozenbidict.py#L8>`__
+- `_frozen.py <https://github.com/jab/bidict/blob/main/bidict/_frozen.py#L8>`__
 - `_bidict.py <https://github.com/jab/bidict/blob/main/bidict/_bidict.py#L8>`__
 - `_orderedbase.py <https://github.com/jab/bidict/blob/main/bidict/_orderedbase.py#L8>`__
 - `_orderedbidict.py <https://github.com/jab/bidict/blob/main/bidict/_orderedbidict.py#L8>`__

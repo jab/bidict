@@ -1,4 +1,5 @@
 *.pyc
+*.so
 __pycache__
 .DS_Store
 .benchmarks
