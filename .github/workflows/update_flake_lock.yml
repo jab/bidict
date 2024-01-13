@@ -1,26 +1,27 @@
-name: flake.lock updater
+name: update flake.lock
 
 "on":
   workflow_dispatch:
   schedule:
-    # First day of each month at noon
-    - cron: "0 12 1 * *"
+    # Third day of each month at noon
+    - cron: "0 12 3 * *"
 
 jobs:
   main:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
-      - name: Install Nix
+      - name: check out code
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+      - name: install Nix
         uses: DeterminateSystems/nix-installer-action@cd46bde16ab981b0a7b2dce0574509104543276e
-      - name: Update flake.lock
+      - name: update flake.lock
         uses: DeterminateSystems/update-flake-lock@da2fd6f2563fe3e4f2af8be73b864088564e263d
         with:
           token: ${{ secrets.FLAKE_LOCK_UPDATE_ACTION_TOKEN }}
           pr-title: "Update flake.lock"
           pr-labels: |
-            dependencies
             automated
+            dependencies
 
 permissions:
   contents: read

@@ -1,7 +1,6 @@
-name: test PyPI release
+name: release to test.pypi.org
 
 "on":
-  workflow_dispatch:
   push:
     tags:
       # To publish a test release to test.pypi.org,
@@ -14,12 +13,14 @@ name: test PyPI release
       #     git tag -d 0.21.3.rc1
       #     git push origin :0.21.3.rc1
       - "[0-9]+.[0-9]+.[0-9]+.rc[0-9]+"
+  workflow_dispatch:
 
 jobs:
   main:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+      - name: check out source
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
       - uses: actions/setup-python@0a5c61591373683505ea898e09a3ea4f39ef2b9c
         with:
           python-version: '3.12'

@@ -55,12 +55,21 @@ Making Changes
 
 - If not using a VSCode devcontainer, you can try the following
   to set up a development environment manually:
-  ``./init_dev_env``
 
-  This requires you to either already have Python and pre-commit on your PATH,
-  or to just have Nix and direnv, in which case all development dependencies
-  will be auto-installed and added to your PATH in an isolated development environment
-  every time you cd into your clone (and auto-removed when you cd out of it).
+  - If you have `Nix <https://nixos.org>`__, you can run
+    ``nix develop`` from within your clone to start a shell
+    where all supported Python versions as well as ``pre-commit``
+    are installed and added to your PATH.
+
+    Otherwise, manually ensure you have `pre-commit <https://pre-commit.com>`__
+    and at least the latest `stable Python version <https://python.org/downloads/>`__
+    installed and on your PATH.
+
+  - Run ``./init_dev_env``
+
+    This installs the git hooks for ``pre-commit`` in your clone,
+    creates a virtualenv with all the development dependencies installed,
+    and reminds you to activate the virtualenv env it just created when ready.
 
 - Create a topic branch off of ``main`` for your changes:
   ``git checkout -b <topic> main``
