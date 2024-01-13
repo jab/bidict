@@ -1,4 +1,4 @@
-name: linters
+name: lint
 
 "on":
   push:
@@ -15,14 +15,20 @@ jobs:
   lint:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
-      - uses: actions/setup-python@0a5c61591373683505ea898e09a3ea4f39ef2b9c
+      - name: check out source
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+      - name: set up Python
+        uses: actions/setup-python@0a5c61591373683505ea898e09a3ea4f39ef2b9c
         with:
           python-version: '3.12'
-      - run: python -m pip install -U pip setuptools wheel
+          cache: pip
+          cache-dependency-path: dev-deps/python3.12/test.txt
       - name: install dependencies
-        run: pip install pre-commit
-      - uses: pre-commit/action@646c83fcd040023954eafda54b4db0192ce70507
+        run: |
+          python -m pip install -U pip setuptools wheel
+          python -m pip install pre-commit
+      - name: run pre-commit
+        uses: pre-commit/action@646c83fcd040023954eafda54b4db0192ce70507
         with:
           extra_args: --all-files --verbose
 

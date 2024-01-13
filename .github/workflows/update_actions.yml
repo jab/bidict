@@ -1,6 +1,6 @@
 # https://github.com/marketplace/actions/github-actions-version-updater
 
-name: GitHub Actions updater
+name: update GitHub Actions
 
 "on":
   workflow_dispatch:
@@ -12,14 +12,16 @@ jobs:
   main:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+      - name: check out code
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
         with:
           token: ${{ secrets.ACTIONS_VERSION_UPDATER_TOKEN }}
-      - uses: saadmk11/github-actions-version-updater@64be81ba69383f81f2be476703ea6570c4c8686e
+      - name: update GitHub Actions
+        uses: saadmk11/github-actions-version-updater@64be81ba69383f81f2be476703ea6570c4c8686e
         with:
           token: ${{ secrets.ACTIONS_VERSION_UPDATER_TOKEN }}
           update_version_with: release-commit-sha
-          pull_request_labels: "dependencies, automated"
+          pull_request_labels: "automated, dependencies"
 
 permissions:
   contents: write
