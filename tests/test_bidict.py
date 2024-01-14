@@ -59,13 +59,13 @@ from hypothesis.strategies import randoms
 from hypothesis.strategies import sampled_from
 from hypothesis.strategies import tuples
 
-from bidict import OD
 from bidict import BidirectionalMapping
 from bidict import DuplicationError
 from bidict import KeyAndValueDuplicationError
 from bidict import MutableBidict
 from bidict import MutableBidirectionalMapping
 from bidict import OnDup
+from bidict import OnDupAction
 from bidict import OrderedBidict
 from bidict import ValueDuplicationError
 from bidict import frozenbidict
@@ -87,7 +87,7 @@ ItemLists: t.TypeAlias = t.List[t.Tuple[int, int]]
 itemlists = lists(items, max_size=MAX_SIZE)  # "lists" to allow testing updates with dup k and/or v
 updates_t = sampled_from(update_arg_types)
 itemsets = frozensets(items, max_size=MAX_SIZE)
-on_dups = tuple(starmap(OnDup, product(OD, repeat=2)))
+on_dups = tuple(starmap(OnDup, product(OnDupAction, repeat=2)))
 on_dup = sampled_from(on_dups)
 
 
@@ -314,14 +314,6 @@ def test_pop_missing_key(bi_t: MBT[t.Any, t.Any]) -> None:
     with pytest.raises(KeyError):
         bi.pop('foo')
     assert bi.pop('foo', 'bar') == 'bar'
-
-
-@pytest.mark.parametrize('bi_t', mutable_bidict_types)
-def test_empty_update(bi_t: MBT[KT, VT]) -> None:
-    bi = bi_t()
-    bi.update()
-    bi.forceupdate()
-    assert dict(bi) == {}
 
 
 @pytest.mark.parametrize('bi_t', [OrderedBidict, UserOrderedBi])

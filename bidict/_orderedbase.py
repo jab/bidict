@@ -21,7 +21,7 @@ from functools import partial
 from weakref import ref as weakref
 
 from ._base import BidictBase
-from ._base import PreparedWrite
+from ._base import WriteSpec
 from ._bidict import bidict
 from ._iter import iteritems
 from ._typing import KT
@@ -115,6 +115,7 @@ class SentinelNode(Node):
 class OrderedBidictBase(BidictBase[KT, VT]):
     """Base class implementing an ordered :class:`BidirectionalMapping`."""
 
+    _ordered: t.ClassVar[bool] = True
     _node_by_korv: bidict[t.Any, Node]
     _bykey: bool
 
@@ -170,18 +171,18 @@ class OrderedBidictBase(BidictBase[KT, VT]):
             korv_by_node_set(new_node(), k if bykey else v)
 
     @override
-    def _prep_write(self, newkey: KT, newval: VT, oldkey: OKT[KT], oldval: OVT[VT], save_unwrite: bool) -> PreparedWrite:
+    def _prep_write(self, newkey: KT, newval: VT, oldkey: OKT[KT], oldval: OVT[VT], save_unwrite: bool) -> WriteSpec:
         """See :meth:`bidict.BidictBase._prep_write`."""
-        write, unwrite = super()._prep_write(newkey, newval, oldkey, oldval, save_unwrite)
-        write_append, unwrite_append = write.append, unwrite.append
+        writes, unwrites = super()._prep_write(newkey, newval, oldkey, oldval, save_unwrite)
+        append_write, append_unwrite = writes.append, unwrites.append
         assoc, dissoc = self._assoc_node, self._dissoc_node
         node_by_korv, bykey = self._node_by_korv, self._bykey
         if oldval is MISSING and oldkey is MISSING:  # no key or value duplication
             # {0: 1, 2: 3} | {4: 5} => {0: 1, 2: 3, 4: 5}
             newnode = self._sntl.new_last_node()
-            write_append(partial(assoc, newnode, newkey, newval))
+            append_write(partial(assoc, newnode, newkey, newval))
             if save_unwrite:
-                unwrite_append(partial(dissoc, newnode))
+                append_unwrite(partial(dissoc, newnode))
         elif oldval is not MISSING and oldkey is not MISSING:  # key and value duplication across two different items
             # {0: 1, 2: 3} | {0: 3} => {0: 3}
             #    n1, n2             =>   n1   (collapse n1 and n2 into n1)
@@ -192,28 +193,28 @@ class OrderedBidictBase(BidictBase[KT, VT]):
             else:
                 oldnode = node_by_korv[newval]
                 newnode = node_by_korv[oldval]
-            write_append(partial(dissoc, oldnode))
-            write_append(partial(assoc, newnode, newkey, newval))
+            append_write(partial(dissoc, oldnode))
+            append_write(partial(assoc, newnode, newkey, newval))
             if save_unwrite:
-                unwrite_append(partial(assoc, newnode, newkey, oldval))
-                unwrite_append(partial(assoc, oldnode, oldkey, newval))
-                unwrite_append(oldnode.relink)
+                append_unwrite(partial(assoc, newnode, newkey, oldval))
+                append_unwrite(partial(assoc, oldnode, oldkey, newval))
+                append_unwrite(oldnode.relink)
         elif oldval is not MISSING:  # just key duplication
             # {0: 1, 2: 3} | {2: 4} => {0: 1, 2: 4}
             # oldkey: MISSING, oldval: 3, newkey: 2, newval: 4
             node = node_by_korv[newkey if bykey else oldval]
-            write_append(partial(assoc, node, newkey, newval))
+            append_write(partial(assoc, node, newkey, newval))
             if save_unwrite:
-                unwrite_append(partial(assoc, node, newkey, oldval))
+                append_unwrite(partial(assoc, node, newkey, oldval))
         else:
             assert oldkey is not MISSING  # just value duplication
             # {0: 1, 2: 3} | {4: 3} => {0: 1, 4: 3}
             # oldkey: 2, oldval: MISSING, newkey: 4, newval: 3
             node = node_by_korv[oldkey if bykey else newval]
-            write_append(partial(assoc, node, newkey, newval))
+            append_write(partial(assoc, node, newkey, newval))
             if save_unwrite:
-                unwrite_append(partial(assoc, node, oldkey, newval))
-        return write, unwrite
+                append_unwrite(partial(assoc, node, oldkey, newval))
+        return writes, unwrites
 
     @override
     def __iter__(self) -> t.Iterator[KT]:

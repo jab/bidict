@@ -27,10 +27,12 @@ please consider sponsoring bidict on GitHub.`
 -------------------------
 
 Primarily, this release simplifies bidict by removing minor features
-that are no longer necessary or evidently are substantially unused.
+that are no longer necessary or evidently are substantially unused,
+and includes some minor performance improvements.
 These simplifications will make it easier to improve bidict in the future,
 including further potential performance improvements.
-It also contains several other minor improvements.
+
+It also contains several other improvements.
 
 - Drop support for Python 3.7,
   which reached end of life on 2023-06-27,
@@ -61,6 +63,10 @@ It also contains several other minor improvements.
 - Fix a bug where calls like
   ``bidict(None)``, ``bi.update(False)``, etc.
   would fail to raise a :class:`TypeError`.
+
+- Further optimize performance of
+  :meth:`~bidict.bidict.update`
+  and related methods.
 
 - All :meth:`~bidict.bidict.__init__`,
   :meth:`~bidict.bidict.update`,

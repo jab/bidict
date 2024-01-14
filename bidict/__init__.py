@@ -65,12 +65,12 @@ from ._bidict import MutableBidict as MutableBidict
 from ._bidict import bidict as bidict
 from ._dup import DROP_NEW as DROP_NEW
 from ._dup import DROP_OLD as DROP_OLD
-from ._dup import OD as OD
 from ._dup import ON_DUP_DEFAULT as ON_DUP_DEFAULT
 from ._dup import ON_DUP_DROP_OLD as ON_DUP_DROP_OLD
 from ._dup import ON_DUP_RAISE as ON_DUP_RAISE
 from ._dup import RAISE as RAISE
 from ._dup import OnDup as OnDup
+from ._dup import OnDupAction as OnDupAction
 from ._exc import BidictException as BidictException
 from ._exc import DuplicationError as DuplicationError
 from ._exc import KeyAndValueDuplicationError as KeyAndValueDuplicationError
@@ -86,10 +86,6 @@ from .metadata import __description__ as __description__
 from .metadata import __license__ as __license__
 from .metadata import __url__ as __url__
 from .metadata import __version__ as __version__
-
-
-#: Alias
-OnDupAction = OD
 
 
 # Set __module__ of re-exported classes to the 'bidict' top-level module, so that e.g.

@@ -87,6 +87,15 @@ def test_empty_bi_update_from_bi(n: int, benchmark: t.Any) -> None:
 
 
 @pytest.mark.parametrize('n', LENS)
+def test_small_bi_update_from_bi(n: int, benchmark: t.Any) -> None:
+    """Benchmark updating a small bidict from another bidict that has no duplication."""
+    bi = bidict.bidict(zip(range(-9, 0), range(-9, 0)))
+    other = BIDICTS_BY_LEN[n]
+    benchmark(bi.update, other)
+    assert bi.keys() == set(range(-9, 0)) | other.keys()
+
+
+@pytest.mark.parametrize('n', LENS)
 def test_small_bi_large_update_fails_worst_case(n: int, benchmark: t.Any) -> None:
     """Benchmark updating a small bidict with a large update that fails on the final item and then rolls back."""
     bi = bidict.bidict(zip(range(-9, 0), range(-9, 0)))

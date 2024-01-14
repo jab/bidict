@@ -47,7 +47,7 @@ DT = t.TypeVar('DT')  #: for default arguments
 ODT: t.TypeAlias = t.Union[DT, MissingT]  #: optional default arg type
 
 
-if not hasattr(t, 'override'):  # < 3.12
+if not hasattr(t, 'override'):  # Python < 3.12 compat
     try:
         from typing_extensions import override as override
     except ImportError:
@@ -56,5 +56,5 @@ if not hasattr(t, 'override'):  # < 3.12
         def override(f: _F, /) -> _F:  # no-op
             return f
 
-else:
+else:  # Python 3.12+
     override = t.override

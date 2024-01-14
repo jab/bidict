@@ -30,7 +30,7 @@ def iteritems(arg: MapOrItems[KT, VT] = (), /, **kw: VT) -> ItemsIter[KT, VT]:
     yield from t.cast(ItemsIter[KT, VT], kw.items())
 
 
-swap = itemgetter(1, 0)
+swap: t.Final = itemgetter(1, 0)
 
 
 def inverted(arg: MapOrItems[KT, VT]) -> ItemsIter[VT, KT]:
