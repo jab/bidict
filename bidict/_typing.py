@@ -45,16 +45,3 @@ OVT: t.TypeAlias = t.Union[VT, MissingT]  #: optional value type
 
 DT = t.TypeVar('DT')  #: for default arguments
 ODT: t.TypeAlias = t.Union[DT, MissingT]  #: optional default arg type
-
-
-if not hasattr(t, 'override'):  # < 3.12
-    try:
-        from typing_extensions import override as override
-    except ImportError:
-        _F = t.TypeVar('_F', bound=t.Callable[..., t.Any])
-
-        def override(f: _F, /) -> _F:  # no-op
-            return f
-
-else:
-    override = t.override

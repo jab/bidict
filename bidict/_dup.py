@@ -14,7 +14,7 @@ import typing as t
 from enum import Enum
 
 
-class OD(Enum):
+class OnDupAction(Enum):
     """An action to take to prevent duplication from occurring."""
 
     #: Raise a :class:`~bidict.DuplicationError`.
@@ -28,9 +28,9 @@ class OD(Enum):
         return f'{self.__class__.__name__}.{self.name}'
 
 
-RAISE: t.Final[OD] = OD.RAISE
-DROP_OLD: t.Final[OD] = OD.DROP_OLD
-DROP_NEW: t.Final[OD] = OD.DROP_NEW
+RAISE: t.Final[OnDupAction] = OnDupAction.RAISE
+DROP_OLD: t.Final[OnDupAction] = OnDupAction.DROP_OLD
+DROP_NEW: t.Final[OnDupAction] = OnDupAction.DROP_NEW
 
 
 class OnDup(t.NamedTuple):
@@ -47,8 +47,8 @@ class OnDup(t.NamedTuple):
     (https://bidict.rtfd.io/basic-usage.html#values-must-be-unique)
     """
 
-    key: OD = DROP_OLD
-    val: OD = RAISE
+    key: OnDupAction = DROP_OLD
+    val: OnDupAction = RAISE
 
 
 #: Default :class:`OnDup` used for the

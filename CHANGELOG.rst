@@ -27,10 +27,12 @@ please consider sponsoring bidict on GitHub.`
 -------------------------
 
 Primarily, this release simplifies bidict by removing minor features
-that are no longer necessary or evidently are substantially unused.
-These simplifications will make it easier to improve bidict in the future,
-including further potential performance improvements.
-It also contains several other minor improvements.
+that are no longer necessary or that have little to no apparent usage,
+and it also includes some minor performance optimizations.
+These changes will make it easier to maintain and improve bidict in the future,
+including further potential performance optimizations.
+
+It also contains several other improvements.
 
 - Drop support for Python 3.7,
   which reached end of life on 2023-06-27,

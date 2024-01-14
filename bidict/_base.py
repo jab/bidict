@@ -42,14 +42,13 @@ from ._typing import OVT
 from ._typing import VT
 from ._typing import Maplike
 from ._typing import MapOrItems
-from ._typing import override
 
 
 OldKV: t.TypeAlias = t.Tuple[OKT[KT], OVT[VT]]
 DedupResult: t.TypeAlias = t.Optional[OldKV[KT, VT]]
-Write: t.TypeAlias = t.List[t.Callable[[], None]]
+Write: t.TypeAlias = t.Callable[[], None]
 Unwrite: t.TypeAlias = Write
-PreparedWrite: t.TypeAlias = t.Tuple[Write, Unwrite]
+WriteSpec: t.TypeAlias = t.Tuple[t.List[Write], t.List[Unwrite]]
 BT = t.TypeVar('BT', bound='BidictBase[t.Any, t.Any]')
 
 
@@ -162,12 +161,11 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         """
         self._fwdm = self._fwdm_cls()
         self._invm = self._invm_cls()
-        self._update(arg, kw, rbof=False)
+        self._update(arg, kw, rollback=False)
 
     # If Python ever adds support for higher-kinded types, `inverse` could use them, e.g.
     #     def inverse(self: BT[KT, VT]) -> BT[VT, KT]:
     # Ref: https://github.com/python/typing/issues/548#issuecomment-621571821
-    @override
     @property
     def inverse(self) -> BidictBase[VT, KT]:
         """The inverse of this bidirectional mapping instance."""
@@ -218,7 +216,6 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         items = dict(self.items()) if self else ''
         return f'{clsname}({items})'
 
-    @override
     def values(self) -> BidictKeysView[VT]:
         """A set-like object providing a view on the contained values.
 
@@ -234,7 +231,6 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         """
         return t.cast(BidictKeysView[VT], self.inverse.keys())
 
-    @override
     def keys(self) -> t.KeysView[KT]:
         """A set-like object providing a view on the contained keys.
 
@@ -249,10 +245,9 @@ class BidictBase(BidirectionalMapping[KT, VT]):
           - having a .mapping attribute in Python 3.10+
             that exposes a mappingproxy to *b._fwdm*.
         """
-        fwdm = self._fwdm
-        return fwdm.keys() if isinstance(fwdm, dict) else BidictKeysView(self)
+        fwdm, fwdm_cls = self._fwdm, self._fwdm_cls
+        return fwdm.keys() if fwdm_cls is dict else BidictKeysView(self)
 
-    @override
     def items(self) -> t.ItemsView[KT, VT]:
         """A set-like object providing a view on the contained items.
 
@@ -267,12 +262,11 @@ class BidictBase(BidirectionalMapping[KT, VT]):
           - having a .mapping attribute in Python 3.10+
             that exposes a mappingproxy to *b._fwdm*.
         """
-        return self._fwdm.items() if isinstance(self._fwdm, dict) else super().items()
+        return self._fwdm.items() if self._fwdm_cls is dict else super().items()
 
     # The inherited collections.abc.Mapping.__contains__() method is implemented by doing a `try`
     # `except KeyError` around `self[key]`. The following implementation is much faster,
     # especially in the missing case.
-    @override
     def __contains__(self, key: t.Any) -> bool:
         """True if the mapping contains the specified key, else False."""
         return key in self._fwdm
@@ -280,7 +274,6 @@ class BidictBase(BidirectionalMapping[KT, VT]):
     # The inherited collections.abc.Mapping.__eq__() method is implemented in terms of an inefficient
     # `dict(self.items()) == dict(other.items())` comparison, so override it with a
     # more efficient implementation.
-    @override
     def __eq__(self, other: object) -> bool:
         """*x.__eq__(other)　⟺　x == other*
 
@@ -362,12 +355,12 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         # else neither isdupkey nor isdupval.
         return oldkey, oldval
 
-    def _prep_write(self, newkey: KT, newval: VT, oldkey: OKT[KT], oldval: OVT[VT], save_unwrite: bool) -> PreparedWrite:
-        """Given (newkey, newval) to insert, return the list of operations necessary to perform the write.
+    def _spec_write(self, newkey: KT, newval: VT, oldkey: OKT[KT], oldval: OVT[VT], save_unwrites: bool) -> WriteSpec:
+        """Given (newkey, newval) to insert, return the operations necessary to perform the write.
 
         *oldkey* and *oldval* are as returned by :meth:`_dedup`.
 
-        If *save_unwrite* is true, also return the list of inverse operations necessary to undo the write.
+        If *save_unwrites* is true, also include the inverse operations necessary to undo the write.
         This design allows :meth:`_update` to roll back a partially applied update that fails part-way through
         when necessary. This design also allows subclasses that require additional operations to complete
         a write to easily extend this implementation. For example, :class:`bidict.OrderedBidictBase` calls this
@@ -377,25 +370,26 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         fwdm, invm = self._fwdm, self._invm
         fwdm_set, invm_set = fwdm.__setitem__, invm.__setitem__
         fwdm_del, invm_del = fwdm.__delitem__, invm.__delitem__
-        write: list[t.Callable[[], None]] = [
+        writes: list[Write] = [
             partial(fwdm_set, newkey, newval),
             partial(invm_set, newval, newkey),
         ]
-        write_append = write.append
-        unwrite: list[t.Callable[[], None]] = []
+        unwrites: list[Unwrite] = []
         if oldval is MISSING and oldkey is MISSING:  # no key or value duplication
             # {0: 1, 2: 3} | {4: 5} => {0: 1, 2: 3, 4: 5}
-            if save_unwrite:
-                unwrite = [
+            if save_unwrites:
+                unwrites = [
                     partial(fwdm_del, newkey),
                     partial(invm_del, newval),
                 ]
         elif oldval is not MISSING and oldkey is not MISSING:  # key and value duplication across two different items
             # {0: 1, 2: 3} | {0: 3} => {0: 3}
-            write_append(partial(fwdm_del, oldkey))
-            write_append(partial(invm_del, oldval))
-            if save_unwrite:
-                unwrite = [
+            writes.extend((
+                partial(fwdm_del, oldkey),
+                partial(invm_del, oldval),
+            ))
+            if save_unwrites:
+                unwrites = [
                     partial(fwdm_set, newkey, oldval),
                     partial(invm_set, oldval, newkey),
                     partial(fwdm_set, oldkey, newval),
@@ -403,9 +397,9 @@ class BidictBase(BidirectionalMapping[KT, VT]):
                 ]
         elif oldval is not MISSING:  # just key duplication
             # {0: 1, 2: 3} | {2: 4} => {0: 1, 2: 4}
-            write_append(partial(invm_del, oldval))
-            if save_unwrite:
-                unwrite = [
+            writes.append(partial(invm_del, oldval))
+            if save_unwrites:
+                unwrites = [
                     partial(fwdm_set, newkey, oldval),
                     partial(invm_set, oldval, newkey),
                     partial(invm_del, newval),
@@ -413,75 +407,70 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         else:
             assert oldkey is not MISSING  # just value duplication
             # {0: 1, 2: 3} | {4: 3} => {0: 1, 4: 3}
-            write_append(partial(fwdm_del, oldkey))
-            if save_unwrite:
-                unwrite = [
+            writes.append(partial(fwdm_del, oldkey))
+            if save_unwrites:
+                unwrites = [
                     partial(fwdm_set, oldkey, newval),
                     partial(invm_set, newval, oldkey),
                     partial(fwdm_del, newkey),
                 ]
-        return write, unwrite
+        return writes, unwrites
 
     def _update(
         self,
         arg: MapOrItems[KT, VT],
         kw: t.Mapping[str, VT] = MappingProxyType({}),
         *,
-        rbof: bool | None = None,
+        rollback: bool | None = None,
         on_dup: OnDup | None = None,
     ) -> None:
-        """Update, possibly rolling back on failure as per *rbof*."""
+        """Update with the items from *arg* and *kw*, maybe failing and rolling back as per *on_dup* and *rollback*."""
+        # Note: We must process input in a single pass, since arg may be a generator.
         if not isinstance(arg, (t.Iterable, Maplike)):
             raise TypeError(f"'{arg.__class__.__name__}' object is not iterable")
         if not arg and not kw:
             return
         if on_dup is None:
             on_dup = self.on_dup
-        if rbof is None:
-            rbof = RAISE in on_dup
-        if not self and not kw:
-            if isinstance(arg, BidictBase):  # can skip dup check
-                self._init_from(arg)
-                return
-            # If arg is not a BidictBase, fall through to the general treatment below,
-            # which includes duplication checking. (If arg is some BidirectionalMapping
-            # that does not inherit from BidictBase, it's a foreign implementation, so we
-            # perform duplication checking to err on the safe side.)
+        if rollback is None:
+            rollback = RAISE in on_dup
 
-        # Note: We must process input in a single pass, since arg may be a generator.
-
-        # If we roll back on failure and we know that there are more updates to process than
-        # already-contained items, our rollback strategy is to update a copy of self (without
-        # rolling back on failure), and then to become the copy if all updates succeed.
-        if rbof and isinstance(arg, t.Sized) and len(arg) + len(kw) > len(self):
-            target = self.copy()
-            target._update(arg, kw, rbof=False, on_dup=on_dup)
-            self._init_from(target)
+        # Fast path when we're empty and updating only from another bidict (i.e. no dup vals in new items).
+        if not self and not kw and isinstance(arg, BidictBase):
+            self._init_from(arg)
             return
 
-        # There are more already-contained items than updates to process, or we don't know
-        # how many updates there are to process. If we need to roll back on failure,
-        # save a log of Unwrites as we update so we can undo changes if the update fails.
+        # Fast path when we're adding more items than we contain already and rollback is enabled:
+        # Update a copy of self with rollback disabled. Fail if that fails, otherwise become the copy.
+        if rollback and isinstance(arg, t.Sized) and len(arg) + len(kw) > len(self):
+            tmp = self.copy()
+            tmp._update(arg, kw, rollback=False, on_dup=on_dup)
+            self._init_from(tmp)
+            return
+
+        # In all other cases, benchmarking has indicated that the update is best implemented as follows:
+        # For each new item, perform a dup check (raising if necessary), compute the associated writes we need to
+        # perform on our backing _fwdm and _invm mappings, and apply the writes. If rollback is enabled, also compute
+        # the associated unwrites as we go. If the update results in a DuplicationError and rollback is enabled, apply
+        # the accumulated unwrites before raising to ensure we fail clean.
         unwrites: list[Unwrite] = []
-        append_unwrite = unwrites.append
-        prep_write = self._prep_write
+        extend_unwrites = unwrites.extend
+        spec_write = self._spec_write
         for key, val in iteritems(arg, **kw):
             try:
                 dedup_result = self._dedup(key, val, on_dup)
             except DuplicationError:
-                if rbof:
-                    while unwrites:  # apply saved unwrites
-                        unwrite = unwrites.pop()
-                        for unwriteop in unwrite:
-                            unwriteop()
+                if rollback:
+                    for unwrite in reversed(unwrites):
+                        unwrite()
                 raise
             if dedup_result is None:  # no-op
                 continue
-            write, unwrite = prep_write(key, val, *dedup_result, save_unwrite=rbof)
-            for writeop in write:  # apply the write
-                writeop()
-            if rbof and unwrite:  # save the unwrite for later application if needed
-                append_unwrite(unwrite)
+            writes, new_unwrites = spec_write(key, val, *dedup_result, save_unwrites=rollback)
+            for write in writes:
+                write()
+            if rollback and new_unwrites:  # save new unwrites in case we need them later
+                extend_unwrites(new_unwrites)
 
     def __copy__(self: BT) -> BT:
         """Used for the copy protocol. See the :mod:`copy` module."""
@@ -523,7 +512,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         if not isinstance(other, t.Mapping):
             return NotImplemented
         new = self.copy()
-        new._update(other, rbof=False)
+        new._update(other, rollback=False)
         return new
 
     def __ror__(self: BT, other: t.Mapping[KT, VT]) -> BT:
@@ -531,20 +520,17 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         if not isinstance(other, t.Mapping):
             return NotImplemented
         new = self.__class__(other)
-        new._update(self, rbof=False)
+        new._update(self, rollback=False)
         return new
 
-    @override
     def __len__(self) -> int:
         """The number of contained items."""
         return len(self._fwdm)
 
-    @override
     def __iter__(self) -> t.Iterator[KT]:
         """Iterator over the contained keys."""
         return iter(self._fwdm)
 
-    @override
     def __getitem__(self, key: KT) -> VT:
         """*x.__getitem__(key) ⟺ x[key]*"""
         return self._fwdm[key]

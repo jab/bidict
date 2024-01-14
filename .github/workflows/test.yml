@@ -1,4 +1,5 @@
-name: test
+# This name appears as the text in the build badge: https://github.com/jab/bidict/actions/workflows/test.yml/badge.svg
+name: tests
 
 "on":
   workflow_dispatch:
@@ -29,7 +30,6 @@ jobs:
           - pyversion: "3.12"
             enable_coverage: true
           - pyversion: "3.11"
-            enable_coverage: true
           - pyversion: "3.10"
           - pyversion: "3.9"
           - pyversion: "3.8"

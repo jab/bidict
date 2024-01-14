@@ -41,7 +41,7 @@ Status
 Features
 --------
 
-- Depended on by
+- Mature: Depended on by
   Google, Venmo, CERN, Baidu, Tencent,
   and teams across the world since 2009
 
@@ -62,6 +62,7 @@ Features
 
 - 100% test coverage
   running continuously across all supported Python versions
+  (including property-based tests and benchmarks)
 
 
 Installation

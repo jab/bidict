@@ -2,7 +2,7 @@ coverage
 coverage-enable-subprocess
 hypothesis
 pytest
-pytest-benchmark[histogram]
+pytest-benchmark
 pytest-sphinx
 pytest-xdist
 sortedcollections

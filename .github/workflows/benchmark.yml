@@ -1,0 +1,72 @@
+name: benchmark
+
+"on":
+  push:
+    branches:
+      - main
+      - dev
+      - deps
+  pull_request:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: (optional) ref to benchmark
+
+env:
+  FORCE_COLOR: "1"
+  PYTHONHASHSEED: "42"
+  BASELINE_URL: https://github.com/jab/bidict/releases/download/microbenchmarks/GHA-linux-cachegrind-x86_64-CPython-3.12.1-baseline.json
+
+jobs:
+  benchmark:
+    runs-on: ubuntu-latest
+    steps:
+      - name: install valgrind
+        uses: awalsh128/cache-apt-pkgs-action@44c33b32f808cdddd5ac0366d70595ed63661ed8
+        with:
+          packages: valgrind
+      - name: check out source
+        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+        with:
+          fetch-depth: 0
+      - name: set up Python
+        uses: actions/setup-python@0a5c61591373683505ea898e09a3ea4f39ef2b9c
+        with:
+          python-version: '3.12'
+          cache: pip
+          cache-dependency-path: dev-deps/python3.12/test.txt
+      - name: install PyPI dependencies
+        run: |
+          python -m pip install -U pip setuptools wheel
+          python -m pip install -r dev-deps/python3.12/test.txt
+      - name: install the version of bidict to benchmark
+        run: |
+          git checkout ${{ github.event.inputs.ref || github.sha }}
+          pip install .
+          # restore the current revision so we use its version of tests/microbenchmarks.py
+          git checkout ${{ github.sha }}
+          # move aside the 'bidict' subdirectory to make sure we always import the installed version
+          mv -v bidict src
+      - name: download baseline benchmark results
+        run: |
+          curl -Lso baseline.json "$BASELINE_URL"
+          line1=$(head -n1 baseline.json)
+          [ "$line1" = "{" ]
+      - name: benchmark and compare to baseline
+        run: |
+          ./cachegrind.py pytest -n0 \
+              --benchmark-autosave \
+              --benchmark-compare=baseline.json \
+              --benchmark-compare-fail=min:10% \
+              tests/microbenchmarks.py
+      - name: archive benchmark results
+        uses: actions/upload-artifact@1eb3cb2b3e0f29609092a73eb033bb759a334595
+        with:
+          name: microbenchmark results
+          path: .benchmarks
+          if-no-files-found: error
+
+permissions:
+  contents: read

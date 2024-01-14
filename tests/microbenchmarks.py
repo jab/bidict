@@ -4,7 +4,11 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-"""Microbenchmarks."""
+"""Microbenchmarks.
+
+Uses https://pytest-benchmark.readthedocs.io/en/v4.0.0/pedantic.html
+which pairs well with ../cachegrind.py (as used by ../.github/workflows/benchmark.yml).
+"""
 
 from __future__ import annotations
 
@@ -20,15 +24,12 @@ import bidict
 
 consume: t.Any = partial(deque, maxlen=0)
 LENS = (99, 999, 9_999)
-DICTS_BY_LEN = {n: dict(zip(range(n), range(n))) for n in LENS}
+DICTS_BY_LEN = {n: {i: i for i in range(n)} for n in LENS}
 BIDICTS_BY_LEN = {n: bidict.bidict(DICTS_BY_LEN[n]) for n in LENS}
 ORDERED_BIDICTS_BY_LEN = {n: bidict.OrderedBidict(DICTS_BY_LEN[n]) for n in LENS}
 DICTS_BY_LEN_LAST_ITEM_DUPVAL = {n: {**DICTS_BY_LEN[n], n - 1: 0} for n in LENS}
 
 BIDICT_AND_DICT_ONLY_LAST_ITEM_DIFFERENT = {n: (BIDICTS_BY_LEN[n], DICTS_BY_LEN_LAST_ITEM_DUPVAL[n]) for n in LENS}
-_checkbi, _checkd = next(iter(BIDICT_AND_DICT_ONLY_LAST_ITEM_DIFFERENT.values()))
-assert _checkbi != _checkd
-assert tuple(_checkbi.items())[:-1] == tuple(_checkd.items())[:-1]
 
 ORDERED_BIDICT_AND_DICT_ONLY_LAST_ITEM_DIFFERENT = {
     n: (bidict.OrderedBidict(bi_and_d[0]), bi_and_d[1])
@@ -51,14 +52,14 @@ for _i in LENS:
 def test_bi_init_from_dict(n: int, benchmark: t.Any) -> None:
     """Benchmark initializing a new bidict from a dict."""
     other = DICTS_BY_LEN[n]
-    benchmark(bidict.bidict, other)
+    benchmark.pedantic(bidict.bidict, args=(other,))
 
 
 @pytest.mark.parametrize('n', LENS)
 def test_bi_init_from_bi(n: int, benchmark: t.Any) -> None:
     """Benchmark initializing a bidict from another bidict."""
     other = BIDICTS_BY_LEN[n]
-    benchmark(bidict.bidict, other)
+    benchmark.pedantic(bidict.bidict, args=(other,))
 
 
 @pytest.mark.parametrize('n', LENS)
@@ -66,15 +67,11 @@ def test_bi_init_fail_worst_case(n: int, benchmark: t.Any) -> None:
     """Benchmark initializing a bidict from a dict with a final duplicate value."""
     other = DICTS_BY_LEN_LAST_ITEM_DUPVAL[n]
 
-    def expect_failing_init() -> None:
-        try:
+    def failing_init() -> None:
+        with pytest.raises(bidict.DuplicationError):
             bidict.bidict(other)
-        except bidict.DuplicationError:
-            pass
-        else:
-            raise Exception('Expected DuplicationError')
 
-    benchmark(expect_failing_init)
+    benchmark.pedantic(failing_init)
 
 
 @pytest.mark.parametrize('n', LENS)
@@ -82,40 +79,45 @@ def test_empty_bi_update_from_bi(n: int, benchmark: t.Any) -> None:
     """Benchmark updating an empty bidict from another bidict."""
     bi: bidict.bidict[int, int] = bidict.bidict()
     other = BIDICTS_BY_LEN[n]
-    benchmark(bi.update, other)
+    benchmark.pedantic(bi.update, args=(other,))
     assert bi == other
+
+
+@pytest.mark.parametrize('n', LENS)
+def test_small_bi_update_from_bi(n: int, benchmark: t.Any) -> None:
+    """Benchmark updating a small bidict from another bidict that has no duplication."""
+    bi = bidict.bidict({i: i for i in range(-9, 0)})
+    other = BIDICTS_BY_LEN[n]
+    benchmark.pedantic(bi.update, args=(other,))
+    assert bi.keys() == set(range(-9, 0)) | other.keys()
 
 
 @pytest.mark.parametrize('n', LENS)
 def test_small_bi_large_update_fails_worst_case(n: int, benchmark: t.Any) -> None:
     """Benchmark updating a small bidict with a large update that fails on the final item and then rolls back."""
-    bi = bidict.bidict(zip(range(-9, 0), range(-9, 0)))
+    bi = bidict.bidict({i: i for i in range(-9, 0)})
     other = DICTS_BY_LEN_LAST_ITEM_DUPVAL[n]
 
-    def apply_failing_update() -> None:
-        try:
+    def failing_update() -> None:
+        with pytest.raises(bidict.DuplicationError):
             bi.update(other)
-        except bidict.DuplicationError:
-            pass  # Rollback should happen here.
-        else:
-            raise Exception('Expected DuplicationError')
 
-    benchmark(apply_failing_update)
-    assert list(bi.items()) == list(zip(range(-9, 0), range(-9, 0)))
+    benchmark.pedantic(failing_update)
+    assert list(bi.items()) == [(i, i) for i in range(-9, 0)]
 
 
 @pytest.mark.parametrize('n', LENS)
 def test_bi_iter(n: int, benchmark: t.Any) -> None:
     """Benchmark iterating over a bidict."""
     bi = BIDICTS_BY_LEN[n]
-    benchmark(consume, iter(bi))
+    benchmark.pedantic(consume, args=(iter(bi),))
 
 
 @pytest.mark.parametrize('n', LENS)
 def test_orderedbi_iter(n: int, benchmark: t.Any) -> None:
     """Benchmark iterating over an OrderedBidict."""
     ob = ORDERED_BIDICTS_BY_LEN[n]
-    benchmark(consume, iter(ob))
+    benchmark.pedantic(consume, args=(iter(ob),))
 
 
 @pytest.mark.parametrize('n', LENS)
@@ -123,7 +125,7 @@ def test_bi_contains_key_present(n: int, benchmark: t.Any) -> None:
     """Benchmark bidict.__contains__ with a contained key."""
     bi = BIDICTS_BY_LEN[n]
     key = next(iter(bi))
-    result = benchmark(bi.__contains__, key)
+    result = benchmark.pedantic(bi.__contains__, args=(key,))
     assert result
 
 
@@ -131,7 +133,7 @@ def test_bi_contains_key_present(n: int, benchmark: t.Any) -> None:
 def test_bi_contains_key_missing(n: int, benchmark: t.Any) -> None:
     """Benchmark bidict.__contains__ with a missing key."""
     bi = BIDICTS_BY_LEN[n]
-    result = benchmark(bi.__contains__, object())
+    result = benchmark.pedantic(bi.__contains__, args=(object(),))
     assert not result
 
 
@@ -139,7 +141,7 @@ def test_bi_contains_key_missing(n: int, benchmark: t.Any) -> None:
 def test_bi_equals_with_equal_dict(n: int, benchmark: t.Any) -> None:
     """Benchmark bidict.__eq__ with an equivalent dict."""
     bi, d = BIDICT_AND_DICT_LAST_TWO_ITEMS_DIFFERENT_ORDER[n]
-    result = benchmark(bi.__eq__, d)
+    result = benchmark.pedantic(bi.__eq__, args=(d,))
     assert result
 
 
@@ -147,7 +149,7 @@ def test_bi_equals_with_equal_dict(n: int, benchmark: t.Any) -> None:
 def test_orderedbi_equals_with_equal_dict(n: int, benchmark: t.Any) -> None:
     """Benchmark OrderedBidict.__eq__ with an equivalent dict."""
     ob, d = ORDERED_BIDICT_AND_DICT_LAST_TWO_ITEMS_DIFFERENT_ORDER[n]
-    result = benchmark(ob.__eq__, d)
+    result = benchmark.pedantic(ob.__eq__, args=(d,))
     assert result
 
 
@@ -156,7 +158,7 @@ def test_orderedbi_items_equals_with_equal_dict_items(n: int, benchmark: t.Any) 
     """Benchmark OrderedBidict.items().__eq__ with an equivalent dict_items."""
     ob, d = ORDERED_BIDICT_AND_DICT_LAST_TWO_ITEMS_DIFFERENT_ORDER[n]
     obi, di = ob.items(), d.items()
-    result = benchmark(obi.__eq__, di)
+    result = benchmark.pedantic(obi.__eq__, args=(di,))
     assert result
 
 
@@ -165,7 +167,7 @@ def test_orderedbi_items_equals_with_unequal_dict_items(n: int, benchmark: t.Any
     """Benchmark OrderedBidict.items().__eq__ with an unequal dict_items."""
     ob, d = ORDERED_BIDICT_AND_DICT_ONLY_LAST_ITEM_DIFFERENT[n]
     obi, di = ob.items(), d.items()
-    result = benchmark(obi.__eq__, di)
+    result = benchmark.pedantic(obi.__eq__, args=(di,))
     assert not result
 
 
@@ -173,7 +175,7 @@ def test_orderedbi_items_equals_with_unequal_dict_items(n: int, benchmark: t.Any
 def test_bi_equals_with_unequal_dict(n: int, benchmark: t.Any) -> None:
     """Benchmark bidict.__eq__ with an unequal dict."""
     bi, d = BIDICT_AND_DICT_ONLY_LAST_ITEM_DIFFERENT[n]
-    result = benchmark(bi.__eq__, d)
+    result = benchmark.pedantic(bi.__eq__, args=(d,))
     assert not result
 
 
@@ -181,7 +183,7 @@ def test_bi_equals_with_unequal_dict(n: int, benchmark: t.Any) -> None:
 def test_orderedbi_equals_with_unequal_dict(n: int, benchmark: t.Any) -> None:
     """Benchmark OrderedBidict.__eq__ with an unequal dict."""
     ob, d = ORDERED_BIDICT_AND_DICT_ONLY_LAST_ITEM_DIFFERENT[n]
-    result = benchmark(ob.__eq__, d)
+    result = benchmark.pedantic(ob.__eq__, args=(d,))
     assert not result
 
 
@@ -189,7 +191,7 @@ def test_orderedbi_equals_with_unequal_dict(n: int, benchmark: t.Any) -> None:
 def test_bi_order_sensitive_equals_dict(n: int, benchmark: t.Any) -> None:
     """Benchmark bidict.equals_order_sensitive with an order-sensitive-equal dict."""
     bi, d = BIDICTS_BY_LEN[n], DICTS_BY_LEN[n]
-    result = benchmark(bi.equals_order_sensitive, d)
+    result = benchmark.pedantic(bi.equals_order_sensitive, args=(d,))
     assert result
 
 
@@ -197,7 +199,7 @@ def test_bi_order_sensitive_equals_dict(n: int, benchmark: t.Any) -> None:
 def test_orderedbi_order_sensitive_equals_dict(n: int, benchmark: t.Any) -> None:
     """Benchmark OrderedBidict.equals_order_sensitive with an order-sensitive-equal dict."""
     ob, d = ORDERED_BIDICTS_BY_LEN[n], DICTS_BY_LEN[n]
-    result = benchmark(ob.equals_order_sensitive, d)
+    result = benchmark.pedantic(ob.equals_order_sensitive, args=(d,))
     assert result
 
 
@@ -205,7 +207,7 @@ def test_orderedbi_order_sensitive_equals_dict(n: int, benchmark: t.Any) -> None
 def test_bi_equals_order_sensitive_with_unequal_dict(n: int, benchmark: t.Any) -> None:
     """Benchmark bidict.equals_order_sensitive with an order-sensitive-unequal dict."""
     bi, d = BIDICT_AND_DICT_LAST_TWO_ITEMS_DIFFERENT_ORDER[n]
-    result = benchmark(bi.equals_order_sensitive, d)
+    result = benchmark.pedantic(bi.equals_order_sensitive, args=(d,))
     assert not result
 
 
@@ -213,7 +215,7 @@ def test_bi_equals_order_sensitive_with_unequal_dict(n: int, benchmark: t.Any) -
 def test_orderedbi_equals_order_sensitive_with_unequal_dict(n: int, benchmark: t.Any) -> None:
     """Benchmark OrderedBidict.equals_order_sensitive with an order-sensitive-unequal dict."""
     ob, d = ORDERED_BIDICT_AND_DICT_LAST_TWO_ITEMS_DIFFERENT_ORDER[n]
-    result = benchmark(ob.equals_order_sensitive, d)
+    result = benchmark.pedantic(ob.equals_order_sensitive, args=(d,))
     assert not result
 
 
@@ -221,18 +223,18 @@ def test_orderedbi_equals_order_sensitive_with_unequal_dict(n: int, benchmark: t
 def test_copy(n: int, benchmark: t.Any) -> None:
     """Benchmark creating a copy of a bidict."""
     bi = BIDICTS_BY_LEN[n]
-    benchmark(bi.copy)
+    benchmark.pedantic(bi.copy)
 
 
 @pytest.mark.parametrize('n', LENS)
 def test_pickle(n: int, benchmark: t.Any) -> None:
     """Benchmark pickling a bidict."""
     bi = BIDICTS_BY_LEN[n]
-    benchmark(pickle.dumps, bi)
+    benchmark.pedantic(pickle.dumps, args=(bi,))
 
 
 @pytest.mark.parametrize('n', LENS)
 def test_unpickle(n: int, benchmark: t.Any) -> None:
     """Benchmark unpickling a bidict."""
     bp = pickle.dumps(BIDICTS_BY_LEN[n])
-    benchmark(pickle.loads, bp)
+    benchmark.pedantic(pickle.loads, args=(bp,))
