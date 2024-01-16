@@ -44,6 +44,9 @@ jobs:
       - name: install the version of bidict to benchmark
         run: |
           git checkout ${{ github.event.inputs.ref || github.sha }}
+          pip install mypy[mypyc]
+          mypyc bidict/_hotloop.py
+          ls -l bidict/*.so
           pip install .
           # restore the current revision so we use its version of tests/microbenchmarks.py
           git checkout ${{ github.sha }}

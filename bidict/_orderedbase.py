@@ -21,7 +21,6 @@ from functools import partial
 from weakref import ref as weakref
 
 from ._base import BidictBase
-from ._base import WriteSpec
 from ._bidict import bidict
 from ._iter import iteritems
 from ._typing import KT
@@ -30,6 +29,9 @@ from ._typing import OKT
 from ._typing import OVT
 from ._typing import VT
 from ._typing import MapOrItems
+from ._typing import Unwrite
+from ._typing import Write
+from ._typing import WriteSpec
 
 
 AT = t.TypeVar('AT')  # attr type
@@ -166,9 +168,17 @@ class OrderedBidictBase(BidictBase[KT, VT]):
         for k, v in iteritems(other):
             korv_by_node_set(new_node(), k if bykey else v)
 
-    def _spec_write(self, newkey: KT, newval: VT, oldkey: OKT[KT], oldval: OVT[VT], save_unwrites: bool) -> WriteSpec:
+    def _post_spec_write(
+        self,
+        writes: list[Write],
+        unwrites: list[Unwrite],
+        newkey: KT,
+        newval: VT,
+        oldkey: OKT[KT],
+        oldval: OVT[VT],
+        save_unwrites: bool,
+    ) -> WriteSpec:
         """See :meth:`bidict.BidictBase._spec_write`."""
-        writes, unwrites = super()._spec_write(newkey, newval, oldkey, oldval, save_unwrites)
         assoc, dissoc = self._assoc_node, self._dissoc_node
         node_by_korv, bykey = self._node_by_korv, self._bykey
         if oldval is MISSING and oldkey is MISSING:  # no key or value duplication

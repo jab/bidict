@@ -45,3 +45,9 @@ OVT: t.TypeAlias = t.Union[VT, MissingT]  #: optional value type
 
 DT = t.TypeVar('DT')  #: for default arguments
 ODT: t.TypeAlias = t.Union[DT, MissingT]  #: optional default arg type
+
+OldKV: t.TypeAlias = t.Tuple[OKT[KT], OVT[VT]]
+DedupResult: t.TypeAlias = t.Optional[OldKV[KT, VT]]
+Write: t.TypeAlias = t.Callable[[], None]
+Unwrite: t.TypeAlias = Write
+WriteSpec: t.TypeAlias = t.Tuple[t.List[Write], t.List[Unwrite]]
