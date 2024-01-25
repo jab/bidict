@@ -134,33 +134,42 @@ Sponsoring
   :target: https://github.com/sponsors/jab
   :alt: Sponsor through GitHub
 
-.. image:: https://img.shields.io/badge/Gumroad-sponsor-55a0a4.svg
-  :target: https://gumroad.com/l/bidict
-  :alt: Sponsor through Gumroad
-
 .. image:: https://img.shields.io/badge/PayPal-sponsor-blue.svg
   :target: https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=jabronson%40gmail%2ecom&lc=US&item_name=Sponsor%20bidict
   :alt: Sponsor through PayPal
 
 Bidict is the product of thousands of hours of my unpaid work
-over the ~15 years that I've been the sole maintainer.
+over the 15+ years that I've been the sole maintainer.
 
 If bidict has helped you or your company accomplish your work,
-please `sponsor my work through GitHub <https://github.com/sponsors/jab>`__,
-and/or ask your company to do the same.
+please sponsor my work through one of the following,
+and/or ask your company to do the same:
 
-Choose a tier and GitHub handles everything else.
-Your GitHub sponsorship will automatically go
-on the same bill you already have set up with GitHub,
-so after the one-click signup, there's nothing else to do.
+- `GitHub <https://github.com/sponsors/jab>`__
+- `PayPal <https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=jabronson%40gmail%2ecom&lc=US&item_name=Sponsor%20bidict>`__
+- `Tidelift <https://tidelift.com>`__
+- `thanks.dev <https://thanks.dev>`__
+- `Gumroad <https://gumroad.com/l/bidict>`__
+- `a support engagement with my LLC <https://bidict.readthedocs.io/#enterprise-support>`__
 
-You can also sponsor my work through
-`Gumroad <https://gumroad.com/l/bidict>`__ or
-`PayPal <https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=jabronson%40gmail%2ecom&lc=US&item_name=Sponsor%20bidict>`__,
-or through a support engagement with my LLC.
-See `Enterprise Support
-<https://bidict.readthedocs.io/#enterprise-support>`__
-for details.
+If you're not sure which to use, GitHub is an easy option,
+especially if you already have a GitHub account.
+Just choose a monthly or one-time amount, and GitHub handles everything else.
+Your bidict sponsorship on GitHub will automatically go
+on the same regular bill as any other GitHub charges you pay for.
+PayPal is another easy option for one-time contributions.
+
+See the following for rationale and examples of companies
+supporting the open source projects they depend on
+in this manner:
+
+- `<https://engineering.atspotify.com/2022/04/announcing-the-spotify-foss-fund/>`__
+- `<https://blog.sentry.io/2021/10/21/we-just-gave-154-999-dollars-and-89-cents-to-open-source-maintainers>`__
+- `<https://engineering.indeedblog.com/blog/2019/07/foss-fund-six-months-in/>`__
+
+.. - `<https://sethmlarson.dev/blog/people-in-your-software-supply-chain>`__
+.. - `<https://www.cognitect.com/blog/supporting-open-source-developers>`__
+.. - `<https://vorpus.org/blog/the-unreasonable-effectiveness-of-investment-in-open-source-infrastructure/>`__
 
 
 Code of Conduct
