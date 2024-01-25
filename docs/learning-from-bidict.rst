@@ -4,7 +4,7 @@ Learning from ``bidict``
 Working on bidict has taken me to
 some of the most interesting and unexpected places
 I've gotten to visit in many years of programming.
-(When I started this project ~15 years ago,
+(When I started this project 15+ years ago,
 I'd never heard of things like higher-kinded types.
 Thanks to bidict, I not only learned about them,
 I got to `share a practical example with Guido
