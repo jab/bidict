@@ -19,7 +19,7 @@ jobs:
       - name: update development dependencies
         run: nix develop --command bash -c './init_dev_env && ./update_dev_dependencies'
       - name: create PR
-        uses: peter-evans/create-pull-request@153407881ec5c347639a548ade7d8ad1d6740e38
+        uses: peter-evans/create-pull-request@b1ddad2c994a25fbc81a28b3ec0e368bb2021c50
         with:
           token: ${{ secrets.DEV_DEPS_UPDATE_TOKEN }}
           title: Update development dependencies
