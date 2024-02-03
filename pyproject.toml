@@ -54,6 +54,9 @@ pretty = true
 
 [tool.ruff]
 preview = true
+line-length = 121
+
+[tool.ruff.lint]
 # https://beta.ruff.rs/docs/rules/
 extend-select = [
   "A",
@@ -84,9 +87,7 @@ extend-select = [
   "YTT",
 ]
 
-line-length = 121
-
-[tool.ruff.isort]
+[tool.ruff.lint.isort]
 force-single-line = true
 lines-after-imports = 2
 

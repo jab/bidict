@@ -62,7 +62,7 @@ class Node:
     """
 
     prv: WeakAttr[Node] = WeakAttr(slot='_prv_weak')
-    __slots__ = ('_prv_weak', 'nxt', '__weakref__')
+    __slots__ = ('__weakref__', '_prv_weak', 'nxt')
 
     nxt: Node | WeakAttr[Node]  # Allow subclasses to use a WeakAttr for nxt too (see SentinelNode)
 
