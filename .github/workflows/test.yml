@@ -78,9 +78,12 @@ jobs:
       - name: maybe upload to Codecov  # https://github.com/codecov/codecov-action
         if: matrix.enable_coverage
         uses: codecov/codecov-action@e0b68c6749509c5f83f984dd99a76a1c1a231044
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         with:
           verbose: true
           fail_ci_if_error: false  # https://github.com/codecov/codecov-action/issues/557
+
 
 permissions:
   contents: read
