@@ -28,15 +28,15 @@
       # Development environment output
       devShells = forAllSystems ({ pkgs }: {
         default = pkgs.mkShell {
-          packages = [
-            pkgs.pre-commit
-            pkgs.python312
-            pkgs.python311
-            pkgs.python310
-            pkgs.python39
-            pkgs.python38
-            pkgs.pypy310
-            pkgs.pypy39
+          packages = with pkgs; [
+            pre-commit
+            python312
+            python311
+            python310
+            python39
+            python38
+            pypy310
+            pypy39
           ];
         };
       });
