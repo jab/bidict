@@ -376,7 +376,7 @@ already in an initial bidict:
    bidict({1: 2, 0: 0})
 
 Now let's do the exact same thing, but with a different order
-of the items that we pass to `~bidict.bidict.forceupdate`:
+of the items that we pass to :meth:`~bidict.bidict.forceupdate`:
 
 .. doctest::
 
