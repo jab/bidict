@@ -13,7 +13,9 @@ bidict
    :special-members:
    :show-inheritance:
    :undoc-members:
-   :inherited-members:
+
+.. autoattribute:: bidict.BidictBase._fwdm_cls
+.. autoattribute:: bidict.BidictBase._invm_cls
 
 .. autodata:: bidict.RAISE
 .. autodata:: bidict.DROP_OLD

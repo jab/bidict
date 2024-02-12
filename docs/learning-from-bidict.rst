@@ -187,7 +187,7 @@ Python surprises
   <https://en.wikipedia.org/wiki/Equality_(mathematics)#Basic_properties>`__.
   This can lead to some even more unusual behavior than the above.
   As an example, let's see what would happen if
-  :meth:`bidict.frozenbidict.__eq__`
+  ``bidict.frozenbidict.__eq__()``
   behaved this way:
 
   .. doctest::
@@ -218,7 +218,7 @@ Python surprises
 
   According to Raymond Hettinger,
   the Python core developer who built Python's collections foundation,
-  :meth:`collections.OrderedDict.__eq__`
+  :class:`collections.OrderedDict`\'s ``__eq__()`` implementation
   should have been order-insensitive.
   Making it order-sensitive violates the transitive property of equality
   as well as the `Liskov substitution principle
@@ -360,7 +360,7 @@ How to deeply integrate with Python's :mod:`collections` and other built-in APIs
 - Beyond implementing :class:`collections.abc.Mapping`,
   bidicts implement additional APIs
   that :class:`dict` and :class:`~collections.OrderedDict` implement
-  (e.g. :meth:`setdefault`, :meth:`popitem`, etc.).
+  (e.g. ``setdefault()``, ``popitem()``, etc.).
 
   - When creating a new API, making it familiar, memorable, and intuitive
     is hugely important to a good user experience.
@@ -369,7 +369,7 @@ How to deeply integrate with Python's :mod:`collections` and other built-in APIs
   implementing :meth:`abc.ABCMeta.__subclasshook__`,
   any class that implements the required methods of the
   :class:`~collections.abc.Hashable` interface
-  (namely, :meth:`~collections.abc.Hashable.__hash__`)
+  (namely, ``__hash__()``)
   makes it a virtual subclass already, no need to explicitly extend.
   I.e. As long as ``Foo`` implements a ``__hash__()`` method,
   ``issubclass(Foo, Hashable)`` will always be True,
@@ -433,7 +433,7 @@ Python's data model
   of :class:`~bidict.frozenbidict`.
 
   - Consider :class:`~bidict.frozenbidict`:
-    its :meth:`~bidict.frozenbidict.__eq__`
+    its ``__eq__()``
     is :ref:`order-insensitive <eq-order-insensitive>`.
     So all contained items must participate in the hash order-insensitively.
 

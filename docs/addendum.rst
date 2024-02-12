@@ -80,7 +80,7 @@ Terminology
 
   Concretely, this allows :class:`~bidict.bidict`\s
   to return a set-like (*dict_keys*) object
-  for :meth:`~bidict.bidict.values`,
+  for :meth:`~bidict.BidictBase.values`,
   rather than a non-set-like *dict_values* object.
 
 

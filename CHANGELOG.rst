@@ -64,8 +64,8 @@ It also contains several other improvements.
   ``bidict(None)``, ``bi.update(False)``, etc.
   would fail to raise a :class:`TypeError`.
 
-- All :meth:`~bidict.bidict.__init__`,
-  :meth:`~bidict.bidict.update`,
+- All :meth:`~bidict.BidictBase.__init__`,
+  :meth:`~bidict.MutableBidict.update`,
   and related methods
   now handle `SupportsKeysAndGetItem
   <https://github.com/python/typeshed/blob/3eb9ff/stdlib/_typeshed/__init__.pyi#L128-L131>`__
@@ -169,7 +169,7 @@ It also contains several other improvements.
 - Optimize the
   :class:`~collections.abc.MappingView` objects returned by
   :meth:`bidict.OrderedBidict.keys`,
-  :meth:`bidict.OrderedBidict.values`, and
+  :meth:`bidict.OrderedBidict.values <bidict.BidictBase.values>`, and
   :meth:`bidict.OrderedBidict.items`
   to delegate to backing ``dict_keys`` and ``dict_items``
   objects if available, which are much faster in CPython.
@@ -204,7 +204,7 @@ It also contains several other improvements.
   :class:`~collections.abc.MappingView` objects
   returned by
   :meth:`bidict.OrderedBidict.keys`,
-  :meth:`bidict.OrderedBidict.values`, and
+  :meth:`bidict.OrderedBidict.values <bidict.BidictBase.values>`, and
   :meth:`bidict.OrderedBidict.items`
   are now
   :class:`~collections.abc.Reversible`.
@@ -387,12 +387,12 @@ Remove APIs deprecated in the previous release:
 - ``bidict.OVERWRITE`` and ``bidict.IGNORE``.
 
 - The ``on_dup_key``, ``on_dup_val``, and ``on_dup_kv`` arguments of
-  :meth:`~bidict.bidict.put` and :meth:`~bidict.bidict.putall`.
+  :meth:`~bidict.MutableBidict.put` and :meth:`~bidict.MutableBidict.putall`.
 
 - The ``on_dup_key``, ``on_dup_val``, and ``on_dup_kv``
   :class:`~bidict.bidict` class attributes.
 
-- Remove :meth:`bidict.BidirectionalMapping.__subclasshook__`
+- Remove ``bidict.BidirectionalMapping.__subclasshook__``
   due to lack of use and maintenance cost.
 
   Fixes a bug introduced in 0.15.0
@@ -439,7 +439,7 @@ Remove APIs deprecated in the previous release:
 
 - Deprecate the
   ``on_dup_key``, ``on_dup_val``, and ``on_dup_kv`` arguments
-  of :meth:`~bidict.bidict.put` and :meth:`~bidict.bidict.putall`.
+  of :meth:`~bidict.MutableBidict.put` and :meth:`~bidict.MutableBidict.putall`.
   A :class:`UserWarning` will now be emitted if these are used.
 
   These have been subsumed by the new *on_dup* argument,
@@ -460,23 +460,23 @@ Remove APIs deprecated in the previous release:
   A :class:`UserWarning` will now be emitted if these are used.
 
   These have been subsumed by the new
-  :attr:`~bidict.bidict.on_dup` class attribute,
+  :attr:`~bidict.BidictBase.on_dup` class attribute,
   which takes an :class:`~bidict.OnDup` instance.
 
   See the updated :doc:`extending` docs for example usage.
 
 - Improve the more efficient implementations of
-  :meth:`~bidict.BidirectionalMapping.keys`,
-  :meth:`~bidict.BidirectionalMapping.values`, and
-  :meth:`~bidict.BidirectionalMapping.items`,
+  ``bidict.BidirectionalMapping.keys``,
+  ``bidict.BidirectionalMapping.values``, and
+  ``bidict.BidirectionalMapping.items``,
   and now also provide a more efficient implementation of
-  :meth:`~bidict.BidirectionalMapping.__iter__`
+  ``bidict.BidirectionalMapping.__iter__``
   by delegating to backing :class:`dict`\s
   in the bidict types for which this is possible.
 
 - Move
   :meth:`bidict.BidictBase.values` to
-  :meth:`bidict.BidirectionalMapping.values`,
+  ``bidict.BidirectionalMapping.values``,
   since the implementation is generic.
 
 - No longer use ``__all__`` in :mod:`bidict`'s ``__init__.py``.
@@ -486,7 +486,7 @@ Remove APIs deprecated in the previous release:
 -------------------
 
 - Backport fix from v0.20.0
-  that removes :meth:`bidict.BidirectionalMapping.__subclasshook__`
+  that removes ``bidict.BidirectionalMapping.__subclasshook__``
   due to lack of use and maintenance cost.
 
 
@@ -527,7 +527,7 @@ Remove APIs deprecated in the previous release:
   and make :attr:`bidict.BidictBase.inv` an alias for :attr:`~bidict.BidictBase.inverse`.
   :issue:`86`
 
-- :meth:`bidict.BidirectionalMapping.__subclasshook__` now requires an ``inverse`` attribute
+- ``bidict.BidirectionalMapping.__subclasshook__`` now requires an ``inverse`` attribute
   rather than an ``inv`` attribute for a class to qualify as a virtual subclass.
   This breaking change is expected to affect few if any users.
 
@@ -558,8 +558,7 @@ with minor breaking changes to semi-private APIs.
   and resurrect a mutable bidict parent class that omits the mixins
   as :class:`bidict.MutableBidict`.
 
-- Rename ``__repr_delegate__`` to
-  :class:`~bidict.BidictBase._repr_delegate`.
+- Rename ``__repr_delegate__`` to ``_repr_delegate``.
 
 
 0.17.4 (2018-11-14)
@@ -635,7 +634,7 @@ Minor code, interop, and (semi-)private API improvements.
 **Bugfix Release**
 
 Fix a regression in 0.17.0 that could cause erroneous behavior
-when updating items of an :class:`~bidict.Orderedbidict`'s inverse,
+when updating items of an :class:`~bidict.OrderedBidict`'s inverse,
 e.g. ``some_ordered_bidict.inv[foo] = bar``.
 
 
@@ -645,9 +644,9 @@ e.g. ``some_ordered_bidict.inv[foo] = bar``.
 **Speedups and memory usage improvements**
 
 - Pass
-  :meth:`~bidict.bidict.keys`,
-  :meth:`~bidict.bidict.values`, and
-  :meth:`~bidict.bidict.items` calls
+  :meth:`~bidict.BidictBase.keys`,
+  :meth:`~bidict.BidictBase.values`, and
+  :meth:`~bidict.BidictBase.items` calls
   (as well as their ``iter*`` and ``view*`` counterparts on Python 2)
   through to the backing ``_fwdm`` and ``_invm`` dicts
   so that they run as fast as possible
@@ -802,10 +801,10 @@ The following breaking changes are expected to affect few if any users.
 - Pickling ordered bidicts now requires
   at least version 2 of the pickle protocol.
   If you are using Python 3,
-  :attr:`pickle.DEFAULT_PROTOCOL` is 3 anyway,
+  :obj:`pickle.DEFAULT_PROTOCOL` is 3 anyway,
   so this will not affect you.
   However if you are using in Python 2,
-  :attr:`~pickle.DEFAULT_PROTOCOL` is 0,
+  :obj:`~pickle.DEFAULT_PROTOCOL` is 0,
   so you must now explicitly specify the version
   in your :func:`pickle.dumps` calls,
   e.g. ``pickle.dumps(ob, 2)``.

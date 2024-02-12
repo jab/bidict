@@ -121,7 +121,8 @@ class OrderedBidictBase(BidictBase[KT, VT]):
         """Make a new ordered bidirectional mapping.
         The signature behaves like that of :class:`dict`.
         Items passed in are added in the order they are passed,
-        respecting the :attr:`on_dup` class attribute in the process.
+        respecting the :attr:`~bidict.BidictBase.on_dup`
+        class attribute in the process.
 
         The order in which items are inserted is remembered,
         similar to :class:`collections.OrderedDict`.

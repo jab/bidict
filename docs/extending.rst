@@ -11,10 +11,10 @@ Let's look at some examples.
 
 If you'd like
 :attr:`~bidict.ON_DUP_DROP_OLD`
-to be the default :class:`~bidict.bidict.on_dup` behavior
-(for :meth:`~bidict.bidict.__init__`,
-:meth:`~bidict.bidict.__setitem__`, and
-:meth:`~bidict.bidict.update`),
+to be the default :class:`~bidict.BidictBase.on_dup` behavior
+(for :meth:`~bidict.BidictBase.__init__`,
+:meth:`~bidict.MutableBidict.__setitem__`, and
+:meth:`~bidict.MutableBidict.update`),
 you can use the following recipe:
 
 .. doctest::
@@ -34,8 +34,8 @@ you can use the following recipe:
    YoloBidict({'three': 1})
 
 Of course, ``YoloBidict``'s inherited
-:meth:`~bidict.bidict.put` and
-:meth:`~bidict.bidict.putall` methods
+:meth:`~bidict.MutableBidict.put` and
+:meth:`~bidict.MutableBidict.putall` methods
 still allow specifying a custom :class:`~bidict.OnDup`
 per call via the *on_dup* argument,
 and will both still default to raising for all duplication types.

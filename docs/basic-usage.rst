@@ -143,7 +143,7 @@ all you have to do is say so explicitly:
    >>> b
    bidict({'two': 1})
 
-Similarly, initializations and :meth:`~bidict.bidict.update` calls
+Similarly, initializations and :meth:`~bidict.MutableBidict.update` calls
 that would overwrite the key of an existing value
 raise an exception too:
 
@@ -191,9 +191,9 @@ This design naturally falls out of the behavior of Python's built-in dict,
 and protects against unexpected data loss.
 
 One set of alternatives to this behavior is provided by
-:meth:`~bidict.bidict.forceput`
+:meth:`~bidict.MutableBidict.forceput`
 (mentioned above)
-and :meth:`~bidict.bidict.forceupdate`,
+and :meth:`~bidict.MutableBidict.forceupdate`,
 which allow you to explicitly overwrite existing keys and values:
 
 .. doctest::
@@ -208,8 +208,8 @@ which allow you to explicitly overwrite existing keys and values:
    bidict({'four': 1})
 
 For even more control,
-you can use :meth:`~bidict.bidict.put`
-and :meth:`~bidict.bidict.putall`.
+you can use :meth:`~bidict.MutableBidict.put`
+and :meth:`~bidict.MutableBidict.putall`.
 These variants allow you to pass
 an :class:`~bidict.OnDup` instance
 to specify custom :class:`~bidict.OnDupAction`\s
@@ -233,16 +233,16 @@ for each type of duplication that can occur.
 for convenience.
 
 If no *on_dup* argument is passed,
-:meth:`~bidict.bidict.put` and
-:meth:`~bidict.bidict.putall`
+:meth:`~bidict.MutableBidict.put` and
+:meth:`~bidict.MutableBidict.putall`
 will use :attr:`~bidict.ON_DUP_RAISE`,
 providing stricter-by-default alternatives to
-:meth:`~bidict.bidict.__setitem__`
+:meth:`~bidict.MutableBidict.__setitem__`
 and
-:meth:`~bidict.bidict.update`.
+:meth:`~bidict.MutableBidict.update`.
 (These defaults complement the looser alternatives
-provided by :meth:`~bidict.bidict.forceput`
-and :meth:`~bidict.bidict.forceupdate`.)
+provided by :meth:`~bidict.MutableBidict.forceput`
+and :meth:`~bidict.MutableBidict.forceupdate`.)
 
 
 Key and Value Duplication
@@ -351,16 +351,16 @@ Order Matters
 Performing a bulk insert operation –
 i.e. passing multiple items to
 :meth:`~bidict.BidictBase.__init__`,
-:meth:`~bidict.bidict.update`,
-:meth:`~bidict.bidict.forceupdate`,
-or :meth:`~bidict.bidict.putall` –
+:meth:`~bidict.MutableBidict.update`,
+:meth:`~bidict.MutableBidict.forceupdate`,
+or :meth:`~bidict.MutableBidict.putall` –
 is like inserting each of those items individually in sequence.
 [#fn-fail-clean]_
 
 Therefore, the order of the items provided to the bulk insert operation
 is significant to the result.
 
-For example, let's try calling `~bidict.bidict.forceupdate`
+For example, let's try calling `~bidict.MutableBidict.forceupdate`
 with a list of three items that duplicate some keys and values
 already in an initial bidict:
 
@@ -376,7 +376,7 @@ already in an initial bidict:
    bidict({1: 2, 0: 0})
 
 Now let's do the exact same thing, but with a different order
-of the items that we pass to :meth:`~bidict.bidict.forceupdate`:
+of the items that we pass to :meth:`~bidict.MutableBidict.forceupdate`:
 
 .. doctest::
 

@@ -35,12 +35,12 @@ DROP_NEW: t.Final[OnDupAction] = OnDupAction.DROP_NEW
 class OnDup(t.NamedTuple):
     r"""A combination of :class:`~bidict.OnDupAction`\s specifying how to handle various types of duplication.
 
-    The :attr:`key` field specifies what action to take when a duplicate key is encountered.
+    The :attr:`~OnDup.key` field specifies what action to take when a duplicate key is encountered.
 
-    The :attr:`val` field specifies what action to take when a duplicate value is encountered.
+    The :attr:`~OnDup.val` field specifies what action to take when a duplicate value is encountered.
 
     In the case of both key and value duplication across two different items,
-    only :attr:`val` is used.
+    only :attr:`~OnDup.val` is used.
 
     *See also* :ref:`basic-usage:Values Must Be Unique`
     (https://bidict.rtfd.io/basic-usage.html#values-must-be-unique)

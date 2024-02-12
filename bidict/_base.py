@@ -280,7 +280,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         Equivalent to *dict(x.items()) == dict(other.items())*
         but more efficient.
 
-        Note that :meth:`bidict's __eq__() <bidict.bidict.__eq__>` implementation
+        Note that :meth:`bidict's __eq__() <bidict.BidictBase.__eq__>` implementation
         is inherited by subclasses,
         in particular by the ordered bidict subclasses,
         so even with ordered bidicts,

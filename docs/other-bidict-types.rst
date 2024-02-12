@@ -126,8 +126,8 @@ and LRU caches.
 
 .. _eq-order-insensitive:
 
-:meth:`~bidict.OrderedBidict.__eq__` is order-insensitive
-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+:meth:`~bidict.OrderedBidict`\'s ``__eq__()`` is order-insensitive
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 To ensure that ``==`` comparison for any bidict always upholds the
 `transitive property of equality
@@ -153,7 +153,7 @@ For order-sensitive equality tests, use
    False
 
 (Note that this improves on the behavior of
-:meth:`collections.OrderedDict.__eq__`.
+``collections.OrderedDict.__eq__()``.
 For more about this, see
 :ref:`learning-from-bidict:Python surprises`.)
 
