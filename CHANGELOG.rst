@@ -23,8 +23,8 @@ please consider sponsoring bidict on GitHub.`
    Click the "Watch" dropdown, choose "Custom", and then choose "Releases".
 
 
-0.23.0 (not yet released)
--------------------------
+0.23.0 (2024-02-14)
+-------------------
 
 Primarily, this release simplifies bidict by removing minor features
 that are no longer necessary or that have little to no apparent usage,

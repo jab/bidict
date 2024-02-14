@@ -21,7 +21,7 @@ Status
    :target: https://bidict.readthedocs.io/en/main/
    :alt: Documentation
 
-.. image:: https://github.com/jab/bidict/actions/workflows/test.yml/badge.svg?branch=main
+.. image:: https://github.com/jab/bidict/actions/workflows/test.yml/badge.svg
    :target: https://github.com/jab/bidict/actions/workflows/test.yml?query=branch%3Amain
    :alt: GitHub Actions CI status
 
