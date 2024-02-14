@@ -6,7 +6,7 @@
 
 """Define bidict package metadata."""
 
-__version__ = '0.23.0'
+__version__ = '0.24.0.dev0'
 __author__ = {'name': 'Joshua Bronson', 'email': 'jabronson@gmail.com'}
 __copyright__ = '© 2009-2024 Joshua Bronson'
 __description__ = 'The bidirectional mapping library for Python.'
