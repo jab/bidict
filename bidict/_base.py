@@ -46,9 +46,7 @@ from ._typing import MapOrItems
 
 OldKV: t.TypeAlias = t.Tuple[OKT[KT], OVT[VT]]
 DedupResult: t.TypeAlias = t.Optional[OldKV[KT, VT]]
-Write: t.TypeAlias = t.Callable[[], None]
-Unwrite: t.TypeAlias = Write
-WriteSpec: t.TypeAlias = t.Tuple[t.List[Write], t.List[Unwrite]]
+Unwrite: t.TypeAlias = t.Callable[[], None]
 BT = t.TypeVar('BT', bound='BidictBase[t.Any, t.Any]')
 
 
@@ -355,66 +353,63 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         # else neither isdupkey nor isdupval.
         return oldkey, oldval
 
-    def _spec_write(self, newkey: KT, newval: VT, oldkey: OKT[KT], oldval: OVT[VT], save_unwrites: bool) -> WriteSpec:
-        """Given (newkey, newval) to insert, return the operations necessary to perform the write.
+    def _write(self, newkey: KT, newval: VT, oldkey: OKT[KT], oldval: OVT[VT], unwrites: list[Unwrite] | None) -> None:
+        """Insert (newkey, newval), extending *unwrites* with associated inverse operations if provided.
 
         *oldkey* and *oldval* are as returned by :meth:`_dedup`.
 
-        If *save_unwrites* is true, also include the inverse operations necessary to undo the write.
+        If *unwrites* is not None, it is extended with the inverse operations necessary to undo the write.
         This design allows :meth:`_update` to roll back a partially applied update that fails part-way through
-        when necessary. This design also allows subclasses that require additional operations to complete
-        a write to easily extend this implementation. For example, :class:`bidict.OrderedBidictBase` calls this
-        inherited implementation, and then extends the list of ops returned with additional operations
-        needed to keep its internal linked list nodes consistent with its items' order as changes are made.
+        when necessary.
+
+        This design also allows subclasses that require additional operations to easily extend this implementation.
+        For example, :class:`bidict.OrderedBidictBase` calls this inherited implementation, and then extends *unwrites*
+        with additional operations needed to keep its internal linked list nodes consistent with its items' order
+        as changes are made.
         """
         fwdm, invm = self._fwdm, self._invm
         fwdm_set, invm_set = fwdm.__setitem__, invm.__setitem__
         fwdm_del, invm_del = fwdm.__delitem__, invm.__delitem__
-        writes: list[Write] = [
-            partial(fwdm_set, newkey, newval),
-            partial(invm_set, newval, newkey),
-        ]
-        unwrites: list[Unwrite] = []
+        # Always perform the following writes regardless of duplication.
+        fwdm_set(newkey, newval)
+        invm_set(newval, newkey)
         if oldval is MISSING and oldkey is MISSING:  # no key or value duplication
             # {0: 1, 2: 3} | {4: 5} => {0: 1, 2: 3, 4: 5}
-            if save_unwrites:
-                unwrites = [
+            if unwrites is not None:
+                unwrites.extend((
                     partial(fwdm_del, newkey),
                     partial(invm_del, newval),
-                ]
+                ))
         elif oldval is not MISSING and oldkey is not MISSING:  # key and value duplication across two different items
             # {0: 1, 2: 3} | {0: 3} => {0: 3}
-            writes.extend((
-                partial(fwdm_del, oldkey),
-                partial(invm_del, oldval),
-            ))
-            if save_unwrites:
-                unwrites = [
+            fwdm_del(oldkey)
+            invm_del(oldval)
+            if unwrites is not None:
+                unwrites.extend((
                     partial(fwdm_set, newkey, oldval),
                     partial(invm_set, oldval, newkey),
                     partial(fwdm_set, oldkey, newval),
                     partial(invm_set, newval, oldkey),
-                ]
+                ))
         elif oldval is not MISSING:  # just key duplication
             # {0: 1, 2: 3} | {2: 4} => {0: 1, 2: 4}
-            writes.append(partial(invm_del, oldval))
-            if save_unwrites:
-                unwrites = [
+            invm_del(oldval)
+            if unwrites is not None:
+                unwrites.extend((
                     partial(fwdm_set, newkey, oldval),
                     partial(invm_set, oldval, newkey),
                     partial(invm_del, newval),
-                ]
+                ))
         else:
             assert oldkey is not MISSING  # just value duplication
             # {0: 1, 2: 3} | {4: 3} => {0: 1, 4: 3}
-            writes.append(partial(fwdm_del, oldkey))
-            if save_unwrites:
-                unwrites = [
+            fwdm_del(oldkey)
+            if unwrites is not None:
+                unwrites.extend((
                     partial(fwdm_set, oldkey, newval),
                     partial(invm_set, newval, oldkey),
                     partial(fwdm_del, newkey),
-                ]
-        return writes, unwrites
+                ))
 
     def _update(
         self,
@@ -449,28 +444,23 @@ class BidictBase(BidirectionalMapping[KT, VT]):
             return
 
         # In all other cases, benchmarking has indicated that the update is best implemented as follows:
-        # For each new item, perform a dup check (raising if necessary), compute the associated writes we need to
-        # perform on our backing _fwdm and _invm mappings, and apply the writes. If rollback is enabled, also compute
-        # the associated unwrites as we go. If the update results in a DuplicationError and rollback is enabled, apply
-        # the accumulated unwrites before raising to ensure we fail clean.
-        unwrites: list[Unwrite] = []
-        extend_unwrites = unwrites.extend
-        spec_write = self._spec_write
+        # For each new item, perform a dup check (raising if necessary), and apply the associated writes we need to
+        # perform on our backing _fwdm and _invm mappings. If rollback is enabled, also compute the associated unwrites
+        # as we go. If the update results in a DuplicationError and rollback is enabled, apply the accumulated unwrites
+        # before raising, to ensure that we fail clean.
+        write = self._write
+        unwrites: list[Unwrite] | None = [] if rollback else None
         for key, val in iteritems(arg, **kw):
             try:
                 dedup_result = self._dedup(key, val, on_dup)
             except DuplicationError:
-                if rollback:
+                if unwrites is not None:
                     for unwrite in reversed(unwrites):
                         unwrite()
                 raise
             if dedup_result is None:  # no-op
                 continue
-            writes, new_unwrites = spec_write(key, val, *dedup_result, save_unwrites=rollback)
-            for write in writes:
-                write()
-            if rollback and new_unwrites:  # save new unwrites in case we need them later
-                extend_unwrites(new_unwrites)
+            write(key, val, *dedup_result, unwrites=unwrites)
 
     def __copy__(self: BT) -> BT:
         """Used for the copy protocol. See the :mod:`copy` module."""

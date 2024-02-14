@@ -21,7 +21,7 @@ from functools import partial
 from weakref import ref as weakref
 
 from ._base import BidictBase
-from ._base import WriteSpec
+from ._base import Unwrite
 from ._bidict import bidict
 from ._iter import iteritems
 from ._typing import KT
@@ -167,16 +167,16 @@ class OrderedBidictBase(BidictBase[KT, VT]):
         for k, v in iteritems(other):
             korv_by_node_set(new_node(), k if bykey else v)
 
-    def _spec_write(self, newkey: KT, newval: VT, oldkey: OKT[KT], oldval: OVT[VT], save_unwrites: bool) -> WriteSpec:
+    def _write(self, newkey: KT, newval: VT, oldkey: OKT[KT], oldval: OVT[VT], unwrites: list[Unwrite] | None) -> None:
         """See :meth:`bidict.BidictBase._spec_write`."""
-        writes, unwrites = super()._spec_write(newkey, newval, oldkey, oldval, save_unwrites)
+        super()._write(newkey, newval, oldkey, oldval, unwrites)
         assoc, dissoc = self._assoc_node, self._dissoc_node
         node_by_korv, bykey = self._node_by_korv, self._bykey
         if oldval is MISSING and oldkey is MISSING:  # no key or value duplication
             # {0: 1, 2: 3} | {4: 5} => {0: 1, 2: 3, 4: 5}
             newnode = self._sntl.new_last_node()
-            writes.append(partial(assoc, newnode, newkey, newval))
-            if save_unwrites:
+            assoc(newnode, newkey, newval)
+            if unwrites is not None:
                 unwrites.append(partial(dissoc, newnode))
         elif oldval is not MISSING and oldkey is not MISSING:  # key and value duplication across two different items
             # {0: 1, 2: 3} | {0: 3} => {0: 3}
@@ -188,11 +188,9 @@ class OrderedBidictBase(BidictBase[KT, VT]):
             else:
                 oldnode = node_by_korv[newval]
                 newnode = node_by_korv[oldval]
-            writes.extend((
-                partial(dissoc, oldnode),
-                partial(assoc, newnode, newkey, newval),
-            ))
-            if save_unwrites:
+            dissoc(oldnode)
+            assoc(newnode, newkey, newval)
+            if unwrites is not None:
                 unwrites.extend((
                     partial(assoc, newnode, newkey, oldval),
                     partial(assoc, oldnode, oldkey, newval),
@@ -202,18 +200,17 @@ class OrderedBidictBase(BidictBase[KT, VT]):
             # {0: 1, 2: 3} | {2: 4} => {0: 1, 2: 4}
             # oldkey: MISSING, oldval: 3, newkey: 2, newval: 4
             node = node_by_korv[newkey if bykey else oldval]
-            writes.append(partial(assoc, node, newkey, newval))
-            if save_unwrites:
+            assoc(node, newkey, newval)
+            if unwrites is not None:
                 unwrites.append(partial(assoc, node, newkey, oldval))
         else:
             assert oldkey is not MISSING  # just value duplication
             # {0: 1, 2: 3} | {4: 3} => {0: 1, 4: 3}
             # oldkey: 2, oldval: MISSING, newkey: 4, newval: 3
             node = node_by_korv[oldkey if bykey else newval]
-            writes.append(partial(assoc, node, newkey, newval))
-            if save_unwrites:
+            assoc(node, newkey, newval)
+            if unwrites is not None:
                 unwrites.append(partial(assoc, node, oldkey, newval))
-        return writes, unwrites
 
     def __iter__(self) -> t.Iterator[KT]:
         """Iterator over the contained keys in insertion order."""

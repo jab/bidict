@@ -28,8 +28,13 @@ please consider sponsoring bidict on GitHub.`
 
 Primarily, this release simplifies bidict by removing minor features
 that are no longer necessary or that have little to no apparent usage,
-and it also includes some minor performance optimizations.
-These changes will make it easier to maintain and improve bidict in the future,
+and it also includes some performance optimizations.
+
+Specifically, initializing or updating a bidict
+is now up to 70% faster in microbenchmarks.
+
+The changes in this release will also make it easier
+to maintain and improve bidict in the future,
 including further potential performance optimizations.
 
 It also contains several other improvements.
