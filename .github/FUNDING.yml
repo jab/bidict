@@ -1,13 +1,16 @@
+# https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/displaying-a-sponsor-button-in-your-repository
+
 github: "jab"
 custom:
+  - http://paypal.me/js3
+  - https://thanks.dev
   - https://gumroad.com/l/bidict
-  - https://www.paypal.com/cgi-bin/webscr?cmd=_xclick&business=jabronson%40gmail%2ecom&lc=US&item_name=Support%20bidict&button_subtype=services&currency_code=USD&bn=PP%2dBuyNowBF%3aPaypal%2dBuy%2520a%2520Drink%2dblue%2esvg%3aNonHosted
 tidelift: "pypi/bidict"
 
-patreon: # Replace with a single Patreon username
-open_collective: # Replace with a single Open Collective username
-ko_fi: # Replace with a single Ko-fi username
-community_bridge: # Replace with a single Community Bridge project-name e.g., cloud-foundry
+community_bridge: # PROJECT-NAME
+issuehunt: # USERNAME
+ko_fi: # USERNAME
 liberapay: # Replace with a single Liberapay username
-issuehunt: # Replace with a single IssueHunt username
-otechie: # Replace with a single Otechie username
+open_collective: # Replace with a single Open Collective username
+patreon: # Replace with a single Patreon username
+polar: # USERNAME
