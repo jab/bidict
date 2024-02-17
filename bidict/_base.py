@@ -18,7 +18,6 @@ from __future__ import annotations
 
 import typing as t
 import weakref
-from functools import partial
 from itertools import starmap
 from operator import eq
 from types import MappingProxyType
@@ -46,7 +45,7 @@ from ._typing import MapOrItems
 
 OldKV: t.TypeAlias = t.Tuple[OKT[KT], OVT[VT]]
 DedupResult: t.TypeAlias = t.Optional[OldKV[KT, VT]]
-Unwrite: t.TypeAlias = t.Callable[[], None]
+Unwrites: t.TypeAlias = t.List[t.Tuple[t.Any, ...]]
 BT = t.TypeVar('BT', bound='BidictBase[t.Any, t.Any]')
 
 
@@ -353,7 +352,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         # else neither isdupkey nor isdupval.
         return oldkey, oldval
 
-    def _write(self, newkey: KT, newval: VT, oldkey: OKT[KT], oldval: OVT[VT], unwrites: list[Unwrite] | None) -> None:
+    def _write(self, newkey: KT, newval: VT, oldkey: OKT[KT], oldval: OVT[VT], unwrites: Unwrites | None) -> None:
         """Insert (newkey, newval), extending *unwrites* with associated inverse operations if provided.
 
         *oldkey* and *oldval* are as returned by :meth:`_dedup`.
@@ -377,8 +376,8 @@ class BidictBase(BidirectionalMapping[KT, VT]):
             # {0: 1, 2: 3} | {4: 5} => {0: 1, 2: 3, 4: 5}
             if unwrites is not None:
                 unwrites.extend((
-                    partial(fwdm_del, newkey),
-                    partial(invm_del, newval),
+                    (fwdm_del, newkey),
+                    (invm_del, newval),
                 ))
         elif oldval is not MISSING and oldkey is not MISSING:  # key and value duplication across two different items
             # {0: 1, 2: 3} | {0: 3} => {0: 3}
@@ -386,19 +385,19 @@ class BidictBase(BidirectionalMapping[KT, VT]):
             invm_del(oldval)
             if unwrites is not None:
                 unwrites.extend((
-                    partial(fwdm_set, newkey, oldval),
-                    partial(invm_set, oldval, newkey),
-                    partial(fwdm_set, oldkey, newval),
-                    partial(invm_set, newval, oldkey),
+                    (fwdm_set, newkey, oldval),
+                    (invm_set, oldval, newkey),
+                    (fwdm_set, oldkey, newval),
+                    (invm_set, newval, oldkey),
                 ))
         elif oldval is not MISSING:  # just key duplication
             # {0: 1, 2: 3} | {2: 4} => {0: 1, 2: 4}
             invm_del(oldval)
             if unwrites is not None:
                 unwrites.extend((
-                    partial(fwdm_set, newkey, oldval),
-                    partial(invm_set, oldval, newkey),
-                    partial(invm_del, newval),
+                    (fwdm_set, newkey, oldval),
+                    (invm_set, oldval, newkey),
+                    (invm_del, newval),
                 ))
         else:
             assert oldkey is not MISSING  # just value duplication
@@ -406,9 +405,9 @@ class BidictBase(BidirectionalMapping[KT, VT]):
             fwdm_del(oldkey)
             if unwrites is not None:
                 unwrites.extend((
-                    partial(fwdm_set, oldkey, newval),
-                    partial(invm_set, newval, oldkey),
-                    partial(fwdm_del, newkey),
+                    (fwdm_set, oldkey, newval),
+                    (invm_set, newval, oldkey),
+                    (fwdm_del, newkey),
                 ))
 
     def _update(
@@ -449,18 +448,17 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         # as we go. If the update results in a DuplicationError and rollback is enabled, apply the accumulated unwrites
         # before raising, to ensure that we fail clean.
         write = self._write
-        unwrites: list[Unwrite] | None = [] if rollback else None
+        unwrites: Unwrites | None = [] if rollback else None
         for key, val in iteritems(arg, **kw):
             try:
                 dedup_result = self._dedup(key, val, on_dup)
             except DuplicationError:
                 if unwrites is not None:
-                    for unwrite in reversed(unwrites):
-                        unwrite()
+                    for fn, *args in reversed(unwrites):
+                        fn(*args)
                 raise
-            if dedup_result is None:  # no-op
-                continue
-            write(key, val, *dedup_result, unwrites=unwrites)
+            if dedup_result is not None:
+                write(key, val, *dedup_result, unwrites=unwrites)
 
     def __copy__(self: BT) -> BT:
         """Used for the copy protocol. See the :mod:`copy` module."""
