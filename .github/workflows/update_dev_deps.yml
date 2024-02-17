@@ -2,8 +2,8 @@ name: update dev deps
 
 "on":
   schedule:
-    # First day of each month at noon
-    - cron: "0 12 1 * *"
+    # First day of every third month at noon
+    - cron: "0 12 1 */3 *"
   workflow_dispatch:
 
 jobs:
