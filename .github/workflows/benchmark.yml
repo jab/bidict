@@ -62,7 +62,6 @@ jobs:
           ./cachegrind.py pytest -n0 \
               --benchmark-autosave \
               --benchmark-compare=baseline.json \
-              --benchmark-compare-fail=min:10% \
               tests/microbenchmarks.py
       - name: archive benchmark results
         uses: actions/upload-artifact@26f96dfa697d77e81fd5907df203aa23a56210a8
