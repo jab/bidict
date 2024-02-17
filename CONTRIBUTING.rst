@@ -22,8 +22,8 @@ Getting Started
 - Search through the `tracker <https://github.com/jab/bidict/issues?q=>`__
   to see if an issue or pull request has already been created for what you're interested in.
   If so, feel free to add comments to it or just hit the "subscribe" button to follow progress.
-  If not, you can `join the chat room <https://gitter.im/jab/bidict>`__ to discuss there,
-  post in the `GitHub Discussions forum <https://github.com/jab/bidict/discussions>`__,
+  If not, you can post in the
+  `GitHub Discussions forum <https://github.com/jab/bidict/discussions>`__,
   or go ahead and `create a new issue <https://github.com/jab/bidict/issues/new>`__:
 
   - Clearly describe the issue giving as much relevant context as possible.

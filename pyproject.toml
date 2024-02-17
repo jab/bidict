@@ -25,15 +25,10 @@ classifiers = [
 ]
 
 [project.urls]
-Homepage = "https://bidict.readthedocs.io"
-Repository = "https://github.com/jab/bidict"
-Documentation = "https://bidict.readthedocs.io"
-Donate = "https://github.com/sponsors/jab"
 Changelog = "https://bidict.readthedocs.io/changelog.html"
-Chat = "https://gitter.im/jab/bidict"
-"Source Code" = "https://github.com/jab/bidict"
-"Issue Tracker" = "https://github.com/jab/bidict/issues"
-"Enterprise Support" = "https://bidict.readthedocs.io/#enterprise-support"
+Documentation = "https://bidict.readthedocs.io"
+Funding = "https://bidict.readthedocs.io/#sponsoring"
+Repository = "https://github.com/jab/bidict"
 
 [build-system]
 requires = ["setuptools >= 40.9.0"]

@@ -116,8 +116,7 @@ in case your question has already been addressed.
 
 Otherwise, please feel free to
 `start a new discussion <https://github.com/jab/bidict/discussions>`__
-or `create a new issue <https://github.com/jab/bidict/issues/new>`__ on GitHub,
-or ask in the `bidict chatroom <https://gitter.im/jab/bidict>`__
+or `create a new issue <https://github.com/jab/bidict/issues/new>`__ on GitHub
 for voluntary community support.
 
 
@@ -130,7 +129,6 @@ please let me know in any of the following ways:
 
 - `star bidict on GitHub <https://github.com/jab/bidict>`__
 - post in `GitHub Discussions <https://github.com/jab/bidict/discussions>`__
-- leave a message in the `chat room <https://gitter.im/jab/bidict>`__
 - `email me <mailto:jabronson@gmail.com>`__
 
 
