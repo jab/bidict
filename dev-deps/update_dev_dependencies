@@ -1,0 +1,67 @@
+#!/usr/bin/env bash
+#
+# Copyright 2009-2024 Joshua Bronson. All rights reserved.
+#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+
+# shellcheck disable=SC2086,SC1091
+
+
+set -euo pipefail
+
+log() {
+  >&2 printf "> %s\n" "$@"
+}
+
+
+main() {
+  local -r dotslash="$(dirname "$(readlink -f "$0")")"
+  source "$dotslash/py_ver.env"
+  if ! type "$DEFAULT_PY"; then
+    log "Error: No $DEFAULT_PY on PATH. Hint: Check /init_dev_env and try again."
+    exit 1
+  fi
+  local -r venv_dir="$dotslash/../.venv"
+  if [ ! -e "$venv_dir/bin/$DEFAULT_PY" ]; then
+    log "Error: No such file "$venv_dir/bin/$DEFAULT_PY". Hint: Check /init_dev_env and try again."
+    exit 2
+  fi
+  if ! type "pre-commit"; then
+    log "Error: pre-commit not found in PATH."
+    exit 3
+  fi
+
+  local -r pip_compile_pfx="uv pip compile --generate-hashes --upgrade"
+  for py in python3.12 python3.11 python3.10 python3.9 python3.8 pypy3.10 pypy3.9; do
+    if ! $py -m sysconfig >/dev/null; then
+      log "Detected broken $py installation -> skipping"
+      continue
+    fi
+    local py_ver pip_compile
+    py_ver="$(echo "$py" | grep -o '3\.[0-9]\+')"
+    pip_compile="$pip_compile_pfx --python-version=$py_ver"
+    $pip_compile dev-deps/test.in -o "dev-deps/$py/test.txt" >/dev/null
+    # Compile remaining depsets just for our dev interpreter:
+    if [ "$py" = "$DEFAULT_PY" ]; then
+      for depset in docs dev; do
+        $pip_compile "dev-deps/$depset.in" -o "dev-deps/$py/$depset.txt"
+      done
+    fi
+  done
+  log "Upgrading PyPI dependencies: Done"
+
+  log "Upgrading pre-commit hooks..."
+  pre-commit autoupdate
+
+  log "Done."
+  log "Reminders:"
+  log " - Re-run /init_dev_env when ready to sync the new requirements to the dev env."
+  log " - Check release notes of upgraded packages for anything that affects bidict."
+  log " - Ensure tests pass for all supported Python versions."
+  log " - Check output for any new warnings, not just test failures."
+  log " - Ensure 'pre-commit run --all-files' still succeeds."
+}
+
+main

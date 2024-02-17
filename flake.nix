@@ -37,6 +37,7 @@
             python38
             pypy310
             pypy39
+            uv
           ];
         };
       });
