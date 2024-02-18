@@ -1,9 +1,11 @@
 coverage
 coverage-enable-subprocess
 hypothesis
+mypy
 pytest
 pytest-benchmark
 pytest-sphinx
 pytest-xdist
 sortedcollections
 sortedcontainers
+typing_extensions

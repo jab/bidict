@@ -60,6 +60,7 @@ jobs:
       - name: benchmark and compare to baseline
         run: |
           ./cachegrind.py pytest -n0 \
+              --benchmark-enable \
               --benchmark-autosave \
               --benchmark-compare=baseline.json \
               tests/microbenchmarks.py

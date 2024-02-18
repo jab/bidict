@@ -18,7 +18,7 @@ VT = t.TypeVar('VT')
 VT_co = t.TypeVar('VT_co', covariant=True)
 
 
-Items: t.TypeAlias = t.Iterable[t.Tuple[KT, VT]]
+Items = t.Iterable[t.Tuple[KT, VT]]
 
 
 @t.runtime_checkable
@@ -26,11 +26,13 @@ class Maplike(t.Protocol[KT, VT_co]):
     """Like typeshed's SupportsKeysAndGetItem, but usable at runtime."""
 
     def keys(self) -> t.Iterable[KT]: ...
+
     def __getitem__(self, __key: KT) -> VT_co: ...
 
 
-MapOrItems: t.TypeAlias = t.Union[Maplike[KT, VT], Items[KT, VT]]
-ItemsIter: t.TypeAlias = t.Iterator[t.Tuple[KT, VT]]
+MapOrItems = t.Union[Maplike[KT, VT], Items[KT, VT]]
+MappOrItems = t.Union[t.Mapping[KT, VT], Items[KT, VT]]
+ItemsIter = t.Iterator[t.Tuple[KT, VT]]
 
 
 class MissingT(Enum):
@@ -40,8 +42,8 @@ class MissingT(Enum):
 
 
 MISSING: t.Final[t.Literal[MissingT.MISSING]] = MissingT.MISSING
-OKT: t.TypeAlias = t.Union[KT, MissingT]  #: optional key type
-OVT: t.TypeAlias = t.Union[VT, MissingT]  #: optional value type
+OKT = t.Union[KT, MissingT]  #: optional key type
+OVT = t.Union[VT, MissingT]  #: optional value type
 
 DT = t.TypeVar('DT')  #: for default arguments
-ODT: t.TypeAlias = t.Union[DT, MissingT]  #: optional default arg type
+ODT = t.Union[DT, MissingT]  #: optional default arg type

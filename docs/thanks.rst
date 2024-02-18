@@ -23,7 +23,11 @@ People
   Tom Viner for being bidict's Adopt Pytest helper for the month,
   and Brianna Laugher for coordinating.
 
-- Daniel Pope, Leif Walsh, David Turner, and Michael Arntzenius
+- Daniel Pope,
+  Leif Walsh,
+  David Turner,
+  Itamar Turner-Trauring,
+  and Michael Arntzenius
   for suggestions, code reviews, and design discussion.
 
 - Leif Walsh for contributing the initial
@@ -36,7 +40,11 @@ People
 
 - Bernát Gábor for pyproject.toml support.
 
-- Richard Sanger, Zeyi Wang, and Amol Sahsrabudhe for reporting bugs.
+- Richard Sanger,
+  Zeyi Wang,
+  Brian Maissy,
+  and Amol Sahsrabudhe
+  for reporting bugs.
 
 
 Projects

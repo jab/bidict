@@ -58,6 +58,7 @@ from hypothesis.strategies import lists
 from hypothesis.strategies import randoms
 from hypothesis.strategies import sampled_from
 from hypothesis.strategies import tuples
+from typing_extensions import assert_type
 
 from bidict import BidirectionalMapping
 from bidict import DuplicationError
@@ -78,12 +79,12 @@ MAX_SIZE = 5  # Used for init_items and updates. 5 is enough to cover all possib
 
 keys = integers(min_value=1, max_value=10)
 vals = keys.map(operator.neg)
-InitItems: t.TypeAlias = t.Dict[t.Any, t.Any]
+InitItems = t.Dict[t.Any, t.Any]
 init_items = dictionaries(vals, keys, max_size=MAX_SIZE).map(lambda d: {v: k for (k, v) in d.items()})  # no dup vals
 bidict_t = sampled_from(bidict_types)
 mut_bidict_t = sampled_from(mutable_bidict_types)
 items = tuples(keys, vals)
-ItemLists: t.TypeAlias = t.List[t.Tuple[int, int]]
+ItemLists = t.List[t.Tuple[int, int]]
 itemlists = lists(items, max_size=MAX_SIZE)  # "lists" to allow testing updates with dup k and/or v
 updates_t = sampled_from(update_arg_types)
 itemsets = frozensets(items, max_size=MAX_SIZE)
@@ -532,6 +533,13 @@ def test_inv_aliases_inverse(bi_t: BT[KT, VT]) -> None:
     bi = bi_t()
     assert bi.inverse is bi.inv
     assert bi.inv.inverse is bi.inverse.inv
+
+
+def test_static_types() -> None:
+    d = {'1': 1}
+    fb = frozenbidict(d)
+    assert_type(fb, frozenbidict[str, int])
+    assert_type(fb.inv, frozenbidict[int, str])
 
 
 def assert_calls_match(call1: t.Callable[..., t.Any], call2: t.Callable[..., t.Any]) -> None:

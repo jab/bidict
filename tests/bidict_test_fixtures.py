@@ -43,8 +43,8 @@ class SupportsKeysAndGetItem(t.Generic[KT, VT]):
         return self._mapping[key]
 
 
-BB: t.TypeAlias = BidictBase[KT, VT]
-BT: t.TypeAlias = t.Type[BB[KT, VT]]
+BB = BidictBase[KT, VT]
+BT = t.Type[BB[KT, VT]]
 user_bidict_types: list[BT[t.Any, t.Any]] = []
 
 
@@ -76,13 +76,13 @@ class UserBiNotOwnInv(bidict[KT, VT]):
 UserBiNotOwnInvInv = UserBiNotOwnInv._inv_cls
 assert UserBiNotOwnInvInv is not UserBiNotOwnInv
 
-BTs: t.TypeAlias = t.Tuple[BT[t.Any, t.Any], ...]
+BTs = t.Tuple[BT[t.Any, t.Any], ...]
 builtin_bidict_types: BTs = (bidict, frozenbidict, OrderedBidict)
 bidict_types: BTs = (*builtin_bidict_types, *user_bidict_types)
 update_arg_types = (*bidict_types, list, dict, iter, SupportsKeysAndGetItem)
 mutable_bidict_types: BTs = tuple(t for t in bidict_types if issubclass(t, MutableBidirectionalMapping))
 assert frozenbidict not in mutable_bidict_types
-MBT: t.TypeAlias = t.Union[t.Type[bidict[KT, VT]], t.Type[OrderedBidict[KT, VT]]]
+MBT = t.Union[t.Type[bidict[KT, VT]], t.Type[OrderedBidict[KT, VT]]]
 
 
 def should_be_reversible(bi_t: BT[KT, VT]) -> bool:
