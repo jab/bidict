@@ -23,8 +23,8 @@ please consider sponsoring bidict on GitHub.`
    Click the "Watch" dropdown, choose "Custom", and then choose "Releases".
 
 
-0.23.1 (not yet released)
--------------------------
+0.23.1 (2024-02-18)
+-------------------
 
 Fix a regression in 0.23.0 that could defeat type inference
 of a bidict's key type and value type when running in Python 3.8 or 3.9.
