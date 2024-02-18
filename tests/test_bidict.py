@@ -12,7 +12,6 @@ Mainly these are property-based tests implemented via https://hypothesis.works.
 from __future__ import annotations
 
 import gc
-import operator
 import pickle
 import sys
 import typing as t
@@ -78,7 +77,7 @@ MAX_SIZE = 5  # Used for init_items and updates. 5 is enough to cover all possib
 
 
 keys = integers(min_value=1, max_value=10)
-vals = keys.map(operator.neg)
+vals = integers(min_value=-10, max_value=-1)  # faster than keys.map(operator.neg)
 InitItems = t.Dict[t.Any, t.Any]
 init_items = dictionaries(vals, keys, max_size=MAX_SIZE).map(lambda d: {v: k for (k, v) in d.items()})  # no dup vals
 bidict_t = sampled_from(bidict_types)
@@ -367,9 +366,6 @@ def test_inverted(items: ItemLists, bidict_t: BT[int, int]) -> None:
 @given(init_items=init_items)
 def test_frozenbidicts_hashable(init_items: InitItems) -> None:
     """Frozen bidicts can be hashed (and therefore inserted into sets and mappings)."""
-    from hypothesis import event
-
-    event('size', len(init_items))
     bi = frozenbidict(init_items)
     h1 = hash(bi)
     h2 = hash(bi)

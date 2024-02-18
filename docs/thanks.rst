@@ -23,6 +23,16 @@ People
   Tom Viner for being bidict's Adopt Pytest helper for the month,
   and Brianna Laugher for coordinating.
 
+- Zac Hatfield-Dodds for the amazing work
+  (as well as soliciting feedback) on
+  `Hypothesis <https://hypothesis.works>`__,
+  `Hypofuzz <https://hypofuzz.com>`__,
+  and `Pytest <https://pytest.org>`__.`
+
+- Harrison Goldstein for building
+  `Tyche <https://marketplace.visualstudio.com/items?itemName=HarrisonGoldstein.tyche>`__
+  and showing me how to use it.
+
 - Daniel Pope,
   Leif Walsh,
   David Turner,
@@ -55,6 +65,7 @@ Projects
 - `Tidelift <https://tidelift.com>`__
 - `Pytest <https://docs.pytest.org>`__
 - `Hypothesis <https://hypothesis.readthedocs.io>`__
+- `Tyche <https://marketplace.visualstudio.com/items?itemName=HarrisonGoldstein.tyche>`__
 - `Pytest-Benchmark <https://pytest-benchmark.readthedocs.io>`__
 - `Coverage <https://coverage.readthedocs.io>`__
 - `Codecov <https://codecov.io>`__
