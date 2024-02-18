@@ -25,9 +25,10 @@ classifiers = [
 ]
 
 [project.urls]
+# https://github.com/pypi/warehouse/blob/main/warehouse/templates/packaging/detail.html#L20-L62
 Changelog = "https://bidict.readthedocs.io/changelog.html"
 Documentation = "https://bidict.readthedocs.io"
-Funding = "https://bidict.readthedocs.io/#sponsoring"
+Sponsor = "https://bidict.readthedocs.io/#sponsoring"
 Repository = "https://github.com/jab/bidict"
 
 [build-system]

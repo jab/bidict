@@ -27,7 +27,7 @@ People
   (as well as soliciting feedback) on
   `Hypothesis <https://hypothesis.works>`__,
   `Hypofuzz <https://hypofuzz.com>`__,
-  and `Pytest <https://pytest.org>`__.`
+  and `Pytest <https://pytest.org>`__.
 
 - Harrison Goldstein for building
   `Tyche <https://marketplace.visualstudio.com/items?itemName=HarrisonGoldstein.tyche>`__
