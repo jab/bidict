@@ -18,14 +18,13 @@ log() {
 
 main() {
   local -r dotslash="$(dirname "$(readlink -f "$0")")"
-  source "$dotslash/py_ver.env"
+  source "$dotslash/dev.env"
   if ! type "$DEFAULT_PY"; then
     log "Error: No $DEFAULT_PY on PATH. Hint: Check /init_dev_env and try again."
     exit 1
   fi
-  local -r venv_dir="$dotslash/../.venv"
-  if [ ! -e "$venv_dir/bin/$DEFAULT_PY" ]; then
-    log "Error: No such file "$venv_dir/bin/$DEFAULT_PY". Hint: Check /init_dev_env and try again."
+  if [ ! -e "$VENV_DIR/bin/$DEFAULT_PY" ]; then
+    log "Error: No such file "$VENV_DIR/bin/$DEFAULT_PY". Hint: Check /init_dev_env and try again."
     exit 2
   fi
   if ! type "pre-commit"; then
@@ -33,7 +32,7 @@ main() {
     exit 3
   fi
 
-  local -r pip_compile_pfx="uv pip compile --generate-hashes --upgrade"
+  local -r pip_compile_pfx="uv pip compile --upgrade"
   for py in python3.12 python3.11 python3.10 python3.9 python3.8 pypy3.10 pypy3.9; do
     if ! $py -m sysconfig >/dev/null; then
       log "Detected broken $py installation -> skipping"

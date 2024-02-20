@@ -39,6 +39,18 @@
             pypy39
             uv
           ];
+          shellHook = ''
+            export HYPOTHESIS_EXPERIMENTAL_OBSERVABILITY=1
+            source ./dev-deps/dev.env
+            if test -e "$VENV_SUBDIR"; then
+              echo "* Using pre-existing development virtualenv dir ($VENV_SUBDIR)"
+            else
+              echo "* No pre-existing development virtualenv dir ($VENV_SUBDIR), initializing..."
+              ./init_dev_env
+            fi
+            source "$VENV_SUBDIR/bin/activate"
+            echo "* Activated development virtualenv ($VENV_SUBDIR)"
+          '';
         };
       });
     };
