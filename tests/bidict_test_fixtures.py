@@ -10,6 +10,8 @@ import operator
 import typing as t
 from collections import UserDict
 from dataclasses import dataclass
+from itertools import chain
+from itertools import combinations
 from itertools import starmap
 
 from bidict import DROP_NEW
@@ -90,6 +92,12 @@ def should_be_reversible(bi_t: BT[KT, VT]) -> bool:
 
 
 assert all(not should_be_reversible(bi_t) or issubclass(bi_t, t.Reversible) for bi_t in bidict_types)
+
+
+def powerset(iterable: t.Iterable[t.Any]) -> t.Iterable[tuple[t.Any, ...]]:
+    if not isinstance(iterable, (tuple, list)):
+        iterable = tuple(iterable)
+    return chain.from_iterable(combinations(iterable, r) for r in range(len(iterable) + 1))
 
 
 SET_OPS: t.Any = (

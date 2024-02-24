@@ -3,6 +3,13 @@ name: tests
 
 "on":
   workflow_dispatch:
+    inputs:
+      hypothesis_profile:
+        type: choice
+        description: (optional)
+        options:
+        - default
+        - more-examples
   schedule:
     - cron: "15 16 * * *"
   push:
@@ -57,10 +64,10 @@ jobs:
           key: mypy
       - name: run mypy
         run: python -m mypy bidict tests
-      - name: maybe set --hypothesis-profile=more-examples  # See tests/conftest.py
-        if: ${{ github.event_name == 'schedule' }}
+      - name: set hypothesis profile
         run: |
-          echo PYTEST_ADDOPTS="${PYTEST_ADDOPTS} --hypothesis-profile=more-examples" >> "${GITHUB_ENV}"
+          hypothesis_profile=${{ github.event.inputs.hypothesis_profile || (github.event_name == 'schedule' && 'more-examples' || 'default') }}
+          echo PYTEST_ADDOPTS="${PYTEST_ADDOPTS} --hypothesis-profile=$hypothesis_profile" >> "${GITHUB_ENV}"
       - name: cache .hypothesis dir
         uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2
         with:

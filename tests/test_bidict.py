@@ -38,6 +38,7 @@ from bidict_test_fixtures import UserOrderedBi
 from bidict_test_fixtures import bidict_types
 from bidict_test_fixtures import dedup
 from bidict_test_fixtures import mutable_bidict_types
+from bidict_test_fixtures import powerset
 from bidict_test_fixtures import should_be_reversible
 from bidict_test_fixtures import update_arg_types
 from bidict_test_fixtures import zip_equal
@@ -50,13 +51,8 @@ from hypothesis.stateful import invariant
 from hypothesis.stateful import precondition
 from hypothesis.stateful import rule
 from hypothesis.strategies import booleans
-from hypothesis.strategies import dictionaries
-from hypothesis.strategies import frozensets
-from hypothesis.strategies import integers
-from hypothesis.strategies import lists
 from hypothesis.strategies import randoms
 from hypothesis.strategies import sampled_from
-from hypothesis.strategies import tuples
 from typing_extensions import assert_type
 
 from bidict import BidirectionalMapping
@@ -73,20 +69,18 @@ from bidict import inverted
 from bidict._typing import MapOrItems
 
 
-MAX_SIZE = 5  # Used for init_items and updates. 5 is enough to cover all possible duplication scenarios.
+Items = t.Sequence[t.Tuple[int, int]]
+Items121 = t.Dict[t.Any, t.Any]
 
-
-keys = integers(min_value=1, max_value=10)
-vals = integers(min_value=-10, max_value=-1)  # faster than keys.map(operator.neg)
-InitItems = t.Dict[t.Any, t.Any]
-init_items = dictionaries(vals, keys, max_size=MAX_SIZE).map(lambda d: {v: k for (k, v) in d.items()})  # no dup vals
+ks = tuple(range(1, 5))
+vs = tuple(range(-1, -5, -1))
+keys = sampled_from(ks)
+vals = sampled_from(vs)
+items = sampled_from(list(powerset(product(ks, vs))))
+items121 = items.map(dedup)
 bidict_t = sampled_from(bidict_types)
 mut_bidict_t = sampled_from(mutable_bidict_types)
-items = tuples(keys, vals)
-ItemLists = t.List[t.Tuple[int, int]]
-itemlists = lists(items, max_size=MAX_SIZE)  # "lists" to allow testing updates with dup k and/or v
 updates_t = sampled_from(update_arg_types)
-itemsets = frozensets(items, max_size=MAX_SIZE)
 on_dups = tuple(starmap(OnDup, product(OnDupAction, repeat=2)))
 on_dup = sampled_from(on_dups)
 
@@ -95,10 +89,10 @@ class BidictStateMachine(RuleBasedStateMachine):
     bi: MutableBidict[int, int]
     oracle: Oracle[int, int]
 
-    @initialize(mut_bidict_t=mut_bidict_t, init_items=init_items)
-    def init(self, mut_bidict_t: type[MutableBidict[int, int]], init_items: InitItems) -> None:
-        self.bi = mut_bidict_t(init_items)
-        self.oracle = Oracle(init_items, ordered=self.is_ordered())
+    @initialize(mut_bidict_t=mut_bidict_t, items121=items121)
+    def init(self, mut_bidict_t: type[MutableBidict[int, int]], items121: Items121) -> None:
+        self.bi = mut_bidict_t(items121)
+        self.oracle = Oracle(items121, ordered=self.is_ordered())
 
     def is_ordered(self) -> bool:
         return isinstance(self.bi, OrderedBidict)
@@ -111,7 +105,7 @@ class BidictStateMachine(RuleBasedStateMachine):
     viewnames = sampled_from(('keys', 'values', 'items'))
 
     # Would make this an invariant rather than a rule, but it slows down the tests too much.
-    @rule(rand=randoms(), viewname=viewnames, set_op=sampled_from(SET_OPS), other_set=itemsets)
+    @rule(rand=randoms(), viewname=viewnames, set_op=sampled_from(SET_OPS), other_set=items.map(frozenset))
     def assert_views_match_oracle(self, rand: Random, viewname: str, set_op: t.Any, other_set: t.Any) -> None:
         check = getattr(self.bi, viewname)()
         expect = getattr(self.oracle.data, viewname)() if viewname != 'values' else self.oracle.data_inv.keys()
@@ -177,7 +171,7 @@ class BidictStateMachine(RuleBasedStateMachine):
             partial(self.oracle.put, key, val, on_dup),
         )
 
-    @rule(updates=itemlists, updates_t=updates_t, on_dup=on_dup)
+    @rule(updates=items, updates_t=updates_t, on_dup=on_dup)
     def putall(self, updates: MapOrItems[int, int], updates_t: t.Any, on_dup: OnDup) -> None:
         # Don't let the updates_t(updates) calls below raise a DuplicationError.
         if isinstance(updates_t, type) and issubclass(updates_t, BidirectionalMapping):
@@ -188,14 +182,14 @@ class BidictStateMachine(RuleBasedStateMachine):
             partial(self.oracle.putall, updates_t(updates), on_dup),
         )
 
-    @rule(other=init_items)
+    @rule(other=items121)
     def __ior__(self, other: t.Mapping[KT, VT]) -> None:
         assert_calls_match(
             partial(self.bi.__ior__, other),
             partial(self.oracle.__ior__, other),
         )
 
-    @rule(other=init_items)
+    @rule(other=items121)
     def __or__(self, other: t.Mapping[KT, VT]) -> None:
         assert_calls_match(
             partial(self.bi.__or__, other),
@@ -204,7 +198,7 @@ class BidictStateMachine(RuleBasedStateMachine):
 
     # https://bidict.rtfd.io/basic-usage.html#order-matters
     @precondition(lambda self: zip_equal(self.bi, self.oracle.data))
-    @rule(other=init_items)
+    @rule(other=items121)
     def __ror__(self, other: t.Mapping[KT, VT]) -> None:
         assert_calls_match(
             partial(self.bi.__ror__, other),
@@ -341,38 +335,38 @@ def test_eq_and_or_with_non_mapping(bi_t: BT[KT, VT], non_mapping: t.Any) -> Non
         non_mapping | bi
 
 
-@given(init_items=init_items, bidict_t=bidict_t, rand=randoms())
-def test_ne_ordsens_to_equal_map_with_diff_order(init_items: InitItems, bidict_t: BT[KT, VT], rand: Random) -> None:
-    bi = bidict_t(init_items)
-    items_shuf = list(init_items.items())
+@given(items121=items121.filter(lambda x: len(x) > 2), bidict_t=bidict_t, rand=randoms())
+def test_equals_order_sensitive(items121: Items121, bidict_t: BT[KT, VT], rand: Random) -> None:
+    bi = bidict_t(items121)
+    items_shuf = list(items121.items())
     rand.shuffle(items_shuf)
-    assume(not zip_equal(items_shuf, init_items.items()))
+    assume(not zip_equal(items_shuf, items121.items()))
     map_shuf = dict(items_shuf)
     assert bi == map_shuf
     assert not bi.equals_order_sensitive(map_shuf)
 
 
-@given(items=itemlists, bidict_t=bidict_t)
-def test_inverted(items: ItemLists, bidict_t: BT[int, int]) -> None:
-    check_list = list(inverted(inverted(items)))
-    expect_list = items
-    assert check_list == expect_list
+@given(items=items, bidict_t=bidict_t)
+def test_inverted(items: Items, bidict_t: BT[int, int]) -> None:
+    check = tuple(inverted(inverted(items)))
+    expect = items
+    assert check == expect
     items_nodup = dedup(items)
     check_bi = bidict_t(inverted(bidict_t(items_nodup)))
     expect_bi = bidict_t({v: k for (k, v) in items_nodup.items()})
     assert_bidicts_equal(check_bi, expect_bi)
 
 
-@given(init_items=init_items)
-def test_frozenbidicts_hashable(init_items: InitItems) -> None:
+@given(items121=items121)
+def test_frozenbidicts_hashable(items121: Items121) -> None:
     """Frozen bidicts can be hashed (and therefore inserted into sets and mappings)."""
-    bi = frozenbidict(init_items)
+    bi = frozenbidict(items121)
     h1 = hash(bi)
     h2 = hash(bi)
     assert h1 == h2
     assert {bi}
     assert {bi: bi}
-    bi2 = frozenbidict(init_items)
+    bi2 = frozenbidict(items121)
     assert bi2 == bi
     assert hash(bi2) == h1
 
@@ -381,14 +375,13 @@ def test_frozenbidicts_hashable(init_items: InitItems) -> None:
 # (Hypothesis doesn't always generate examples that cover all the branches otherwise.)
 @pytest.mark.parametrize(('bi_t', 'on_dup'), product(mutable_bidict_types, on_dups))
 def test_putall_matches_bulk_put(bi_t: type[MutableBidict[int, int]], on_dup: OnDup) -> None:
-    init_items = {0: 0, 1: 1}
-    bi = bi_t(init_items)
+    bi = bi_t({0: 0, 1: 1})
     for k1, v1, k2, v2 in product(range(4), repeat=4):
         for b in bi, bi.inv:
             assert_putall_matches_bulk_put(b, [(k1, v1), (k2, v2)], on_dup)
 
 
-def assert_putall_matches_bulk_put(bi: MutableBidict[int, int], new_items: ItemLists, on_dup: OnDup) -> None:
+def assert_putall_matches_bulk_put(bi: MutableBidict[int, int], new_items: Items, on_dup: OnDup) -> None:
     tmp = bi.copy()
     checkexc = None
     expectexc = None
@@ -485,8 +478,8 @@ def test_bidicts_freed_on_zero_refcount(bidict_t: BT[KT, VT]) -> None:
 
 
 @skip_if_pypy
-@given(init_items=init_items)
-def test_orderedbidict_nodes_freed_on_zero_refcount(init_items: InitItems) -> None:
+@given(items121=items121)
+def test_orderedbidict_nodes_freed_on_zero_refcount(items121: Items121) -> None:
     """On CPython, the moment you have no more references to an ordered bidict,
     the refcount of each of its internal nodes drops to 0
     (i.e. the linked list of nodes does not create a reference cycle),
@@ -494,7 +487,7 @@ def test_orderedbidict_nodes_freed_on_zero_refcount(init_items: InitItems) -> No
     """
     gc.disable()
     try:
-        ob = OrderedBidict(init_items)
+        ob = OrderedBidict(items121)
         nodes = weakref.WeakSet(ob._sntl.iternodes())
         assert len(nodes) == len(ob)
         del ob
@@ -503,10 +496,10 @@ def test_orderedbidict_nodes_freed_on_zero_refcount(init_items: InitItems) -> No
         gc.enable()
 
 
-@given(init_items=init_items)
-def test_orderedbidict_nodes_consistent(init_items: InitItems) -> None:
+@given(items121=items121)
+def test_orderedbidict_nodes_consistent(items121: Items121) -> None:
     """The nodes in an ordered bidict's backing linked list should be the same as those in its backing mapping."""
-    ob = OrderedBidict(init_items)
+    ob = OrderedBidict(items121)
     mapnodes = set(ob._node_by_korv.inverse)
     linkedlistnodes = set(ob._sntl.iternodes())
     assert mapnodes == linkedlistnodes
