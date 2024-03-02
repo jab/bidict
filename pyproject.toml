@@ -53,7 +53,7 @@ preview = true
 line-length = 121
 
 [tool.ruff.lint]
-# https://beta.ruff.rs/docs/rules/
+# https://docs.astral.sh/ruff/rules/
 extend-select = [
   "A",
   "ARG",
@@ -81,6 +81,9 @@ extend-select = [
   "UP",
   "W",
   "YTT",
+]
+ignore = [
+  "E301",  # https://github.com/astral-sh/ruff/issues/10211 (blank lines covered by `ruff format` anyway)
 ]
 
 [tool.ruff.lint.isort]

@@ -122,7 +122,6 @@ class MutableBidict(BidictBase[KT, VT], MutableBidirectionalMapping[KT, VT]):
     def pop(self, key: KT, /) -> VT: ...
     @t.overload
     def pop(self, key: KT, default: DT = ..., /) -> VT | DT: ...
-
     def pop(self, key: KT, default: ODT[DT] = MISSING, /) -> VT | DT:
         """*x.pop(k[, d]) → v*
 
