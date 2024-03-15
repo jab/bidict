@@ -38,9 +38,8 @@ for i in $req_sets; do
 done
 uv pip sync "$out_dir"/*.txt
 
-# TODO Until https://github.com/astral-sh/uv/issues/1594 is fixed, we can't use the following:
-# if ! uv pip show -qq bidict; then
-# so work around this as follows:
+# TODO Use the following instead of the line after once we pick up a new enough uv (0.1.16+):
+# if ! uv pip show -q bidict; then
 if ! uv pip freeze | grep -q ^bidict; then
   uv pip install -e .
 fi
