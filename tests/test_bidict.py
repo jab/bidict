@@ -335,8 +335,10 @@ def test_eq_and_or_with_non_mapping(bi_t: BT[KT, VT], non_mapping: t.Any) -> Non
         non_mapping | bi
 
 
-@given(items121=items121.filter(lambda x: len(x) > 2), bidict_t=bidict_t, rand=randoms())
+@given(items121=items121, bidict_t=bidict_t, rand=randoms())
 def test_equals_order_sensitive(items121: Items121, bidict_t: BT[KT, VT], rand: Random) -> None:
+    # Ensure there are at least 3 items in items121.
+    items121.update({5: -5, 6: -6, 7: -7})
     bi = bidict_t(items121)
     items_shuf = list(items121.items())
     rand.shuffle(items_shuf)

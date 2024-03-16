@@ -56,7 +56,7 @@ main() {
 
   log "Done."
   log "Reminders:"
-  log " - Re-run /init_dev_env when ready to sync the new requirements to the dev env."
+  log " - Re-run init_dev_env when ready to sync the new requirements to the dev env."
   log " - Check release notes of upgraded packages for anything that affects bidict."
   log " - Ensure tests pass for all supported Python versions."
   log " - Check output for any new warnings, not just test failures."

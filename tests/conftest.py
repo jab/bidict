@@ -7,4 +7,5 @@
 from hypothesis import settings
 
 
+settings.register_profile('less-examples', max_examples=20, stateful_step_count=20)
 settings.register_profile('more-examples', deadline=None, max_examples=200, stateful_step_count=100)

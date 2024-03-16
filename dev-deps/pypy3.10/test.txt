@@ -2,7 +2,7 @@
 #    uv pip compile --upgrade --python-version=3.10 dev-deps/test.in -o dev-deps/pypy3.10/test.txt
 attrs==23.2.0
     # via hypothesis
-coverage==7.4.2
+coverage==7.4.4
     # via coverage-enable-subprocess
 coverage-enable-subprocess==1.0
 exceptiongroup==1.2.0
@@ -11,19 +11,19 @@ exceptiongroup==1.2.0
     #   pytest
 execnet==2.0.2
     # via pytest-xdist
-hypothesis==6.98.9
+hypothesis==6.99.6
 iniconfig==2.0.0
     # via pytest
-mypy==1.8.0
+mypy==1.9.0
 mypy-extensions==1.0.0
     # via mypy
-packaging==23.2
+packaging==24.0
     # via pytest
 pluggy==1.4.0
     # via pytest
 py-cpuinfo==9.0.0
     # via pytest-benchmark
-pytest==8.0.1
+pytest==8.0.2
     # via
     #   pytest-benchmark
     #   pytest-sphinx
@@ -40,5 +40,5 @@ tomli==2.0.1
     # via
     #   mypy
     #   pytest
-typing-extensions==4.9.0
+typing-extensions==4.10.0
     # via mypy
