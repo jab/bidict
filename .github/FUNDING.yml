@@ -1,16 +1,15 @@
 # https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/displaying-a-sponsor-button-in-your-repository
 
-github: "jab"
+github: jab
+tidelift: pypi/bidict
+polar: jab
+ko_fi: joshbronson
 custom:
   - http://paypal.me/js3
   - https://thanks.dev
   - https://gumroad.com/l/bidict
-tidelift: "pypi/bidict"
-
 community_bridge: # PROJECT-NAME
 issuehunt: # USERNAME
-ko_fi: # USERNAME
 liberapay: # Replace with a single Liberapay username
 open_collective: # Replace with a single Open Collective username
 patreon: # Replace with a single Patreon username
-polar: # USERNAME
