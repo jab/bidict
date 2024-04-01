@@ -4,9 +4,7 @@ name: update flake.lock
   workflow_dispatch:
   schedule:
     # Third day of every third month at noon
-    #- cron: "0 12 3 */3 *"
-    # Wait till Dec 3 (by which point py38 will be EOL and Nix 24.11 will be out)
-    - cron: "0 12 3 12 *"
+    - cron: "0 12 3 */3 *"
 
 jobs:
   main:

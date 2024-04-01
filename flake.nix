@@ -34,10 +34,8 @@
             python311
             python310
             python39
-            python38
             pypy310
             pypy39
-            uv
           ];
           shellHook = ''
             export HYPOTHESIS_EXPERIMENTAL_OBSERVABILITY=1

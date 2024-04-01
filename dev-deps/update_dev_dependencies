@@ -33,7 +33,7 @@ main() {
   fi
 
   local -r pip_compile_pfx="uv pip compile --upgrade"
-  for py in python3.12 python3.11 python3.10 python3.9 python3.8 pypy3.10 pypy3.9; do
+  for py in python3.12 python3.11 python3.10 python3.9 pypy3.10 pypy3.9; do
     if ! $py -m sysconfig >/dev/null; then
       log "Detected broken $py installation -> skipping"
       continue
