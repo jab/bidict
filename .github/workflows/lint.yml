@@ -18,7 +18,7 @@ jobs:
       - name: check out source
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
       - name: set up Python
-        uses: actions/setup-python@0a5c61591373683505ea898e09a3ea4f39ef2b9c
+        uses: actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d
         with:
           python-version: '3.12'
           cache: pip
@@ -28,7 +28,7 @@ jobs:
           python -m pip install -U pip setuptools wheel
           python -m pip install pre-commit
       - name: run pre-commit
-        uses: pre-commit/action@646c83fcd040023954eafda54b4db0192ce70507
+        uses: pre-commit/action@2c7b3805fd2a0fd8c1884dcaebf91fc102a13ecd
         with:
           extra_args: --all-files --verbose
 
