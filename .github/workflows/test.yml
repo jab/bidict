@@ -48,7 +48,7 @@ jobs:
       - name: check out source
         uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
       - name: set up Python ${{ matrix.pyversion }}
-        uses: actions/setup-python@0a5c61591373683505ea898e09a3ea4f39ef2b9c
+        uses: actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d
         with:
           python-version: ${{ matrix.pyversion }}
           cache: pip
@@ -58,7 +58,7 @@ jobs:
           python -m pip install -U pip setuptools wheel
           python -m pip install -r dev-deps/${{ matrix.deps_subdir || format('python{0}', matrix.pyversion) }}/test.txt
       - name: cache .mypy_cache dir
-        uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2
+        uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9
         with:
           path: .mypy_cache
           key: mypy
@@ -69,7 +69,7 @@ jobs:
           hypothesis_profile=${{ github.event.inputs.hypothesis_profile || (github.event_name == 'schedule' && 'more-examples' || 'default') }}
           echo PYTEST_ADDOPTS="${PYTEST_ADDOPTS} --hypothesis-profile=$hypothesis_profile" >> "${GITHUB_ENV}"
       - name: cache .hypothesis dir
-        uses: actions/cache@13aacd865c20de90d75de3b17ebe84f7a17d57d2
+        uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9
         with:
           path: .hypothesis
           key: hypothesis|${{ runner.os }}|${{ matrix.pyversion }}
@@ -92,7 +92,7 @@ jobs:
           coverage report
       - name: maybe upload to Codecov  # https://github.com/codecov/codecov-action
         if: matrix.enable_coverage
-        uses: codecov/codecov-action@e0b68c6749509c5f83f984dd99a76a1c1a231044
+        uses: codecov/codecov-action@c16abc29c95fcf9174b58eb7e1abf4c866893bc8
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         with:

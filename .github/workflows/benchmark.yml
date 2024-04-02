@@ -24,7 +24,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: install valgrind
-        uses: awalsh128/cache-apt-pkgs-action@44c33b32f808cdddd5ac0366d70595ed63661ed8
+        uses: awalsh128/cache-apt-pkgs-action@a6c3917cc929dd0345bfb2d3feaf9101823370ad
         with:
           packages: valgrind
       - name: check out source
@@ -32,7 +32,7 @@ jobs:
         with:
           fetch-depth: 0
       - name: set up Python
-        uses: actions/setup-python@0a5c61591373683505ea898e09a3ea4f39ef2b9c
+        uses: actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d
         with:
           # Pin to micro-release for better reproducibility.
           # When upgrading to a new Python version, remember to upload new associated baseline
@@ -67,7 +67,7 @@ jobs:
               --benchmark-compare=baseline.json \
               tests/microbenchmarks.py
       - name: archive benchmark results
-        uses: actions/upload-artifact@26f96dfa697d77e81fd5907df203aa23a56210a8
+        uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3
         with:
           name: microbenchmark results
           path: .benchmarks
