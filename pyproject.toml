@@ -82,9 +82,6 @@ extend-select = [
   "W",
   "YTT",
 ]
-ignore = [
-  "E301",  # https://github.com/astral-sh/ruff/issues/10211 (blank lines covered by `ruff format` anyway)
-]
 
 [tool.ruff.lint.isort]
 force-single-line = true
