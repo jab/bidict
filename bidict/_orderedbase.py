@@ -167,7 +167,6 @@ class OrderedBidictBase(BidictBase[KT, VT]):
             korv_by_node_set(new_node(), k if bykey else v)
 
     def _write(self, newkey: KT, newval: VT, oldkey: OKT[KT], oldval: OVT[VT], unwrites: Unwrites | None) -> None:
-        """See :meth:`bidict.BidictBase._spec_write`."""
         super()._write(newkey, newval, oldkey, oldval, unwrites)
         assoc, dissoc = self._assoc_node, self._dissoc_node
         node_by_korv, bykey = self._node_by_korv, self._bykey
