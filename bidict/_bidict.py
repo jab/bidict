@@ -103,7 +103,7 @@ class MutableBidict(BidictBase[KT, VT], MutableBidirectionalMapping[KT, VT]):
             duplicates another existing item's, and *on_dup.val* is
             :attr:`~bidict.RAISE`.
         """
-        self._update(((key, val),), on_dup=on_dup)
+        self._insert(((key, val),), on_dup=on_dup)
 
     def forceput(self, key: KT, val: VT) -> None:
         """Associate *key* with *val* unconditionally.
@@ -149,11 +149,11 @@ class MutableBidict(BidictBase[KT, VT], MutableBidirectionalMapping[KT, VT]):
 
     def update(self, arg: MapOrItems[KT, VT] = (), /, **kw: VT) -> None:
         """Like calling :meth:`putall` with *self.on_dup* passed for *on_dup*."""
-        self._update(arg, kw=kw)
+        self._insert(arg, kw=kw)
 
     def forceupdate(self, arg: MapOrItems[KT, VT] = (), /, **kw: VT) -> None:
         """Like a bulk :meth:`forceput`."""
-        self._update(arg, kw=kw, on_dup=ON_DUP_DROP_OLD)
+        self._insert(arg, kw=kw, on_dup=ON_DUP_DROP_OLD)
 
     def putall(self, items: MapOrItems[KT, VT], on_dup: OnDup = ON_DUP_RAISE) -> None:
         """Like a bulk :meth:`put`.
@@ -161,7 +161,7 @@ class MutableBidict(BidictBase[KT, VT], MutableBidirectionalMapping[KT, VT]):
         If one of the given items causes an exception to be raised,
         none of the items is inserted.
         """
-        self._update(items, on_dup=on_dup)
+        self._insert(items, on_dup=on_dup)
 
     # other's type is Mapping rather than Maplike since bidict() |= SupportsKeysAndGetItem({})
     # raises a TypeError, just like dict() |= SupportsKeysAndGetItem({}) does.

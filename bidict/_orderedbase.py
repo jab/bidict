@@ -20,7 +20,6 @@ import typing as t
 from weakref import ref as weakref
 
 from ._base import BidictBase
-from ._base import Unwrites
 from ._bidict import bidict
 from ._iter import iteritems
 from ._typing import KT
@@ -29,6 +28,7 @@ from ._typing import OKT
 from ._typing import OVT
 from ._typing import VT
 from ._typing import MapOrItems
+from ._typing import Unwrites
 
 
 AT = t.TypeVar('AT')  # attr type

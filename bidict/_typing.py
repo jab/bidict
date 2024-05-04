@@ -46,3 +46,7 @@ OVT = t.Union[VT, MissingT]  #: optional value type
 
 DT = t.TypeVar('DT')  #: for default arguments
 ODT = t.Union[DT, MissingT]  #: optional default arg type
+
+OldKV = t.Tuple[OKT[KT], OVT[VT]]
+DedupResult = t.Optional[OldKV[KT, VT]]
+Unwrites = t.List[t.Tuple[t.Any, ...]]
