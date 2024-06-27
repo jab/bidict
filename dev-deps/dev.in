@@ -1,4 +1,5 @@
 pytest-clarity
 pytest-icdiff
 tox
-tox-uv
+# tox-uv  # causing running `tox` to fail with `ModuleNotFoundError: No module named 'setuptools'`
+uv

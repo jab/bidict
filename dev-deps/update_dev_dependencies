@@ -19,44 +19,26 @@ log() {
 main() {
   local -r dotslash="$(dirname "$(readlink -f "$0")")"
   source "$dotslash/dev.env"
-  if ! type "$DEFAULT_PY"; then
-    log "Error: No $DEFAULT_PY on PATH. Hint: Check /init_dev_env and try again."
-    exit 1
-  fi
-  if [ ! -e "$VENV_DIR/bin/$DEFAULT_PY" ]; then
-    log "Error: No such file "$VENV_DIR/bin/$DEFAULT_PY". Hint: Check /init_dev_env and try again."
-    exit 2
-  fi
-  if ! type "pre-commit"; then
-    log "Error: pre-commit not found in PATH."
-    exit 3
-  fi
-
-  local -r pip_compile_pfx="uv pip compile --upgrade"
-  for py in python3.12 python3.11 python3.10 python3.9 pypy3.10 pypy3.9; do
-    if ! $py -m sysconfig >/dev/null; then
-      log "Detected broken $py installation -> skipping"
-      continue
-    fi
-    local py_ver pip_compile
-    py_ver="$(echo "$py" | grep -o '3\.[0-9]\+')"
-    pip_compile="$pip_compile_pfx --python-version=$py_ver"
-    $pip_compile dev-deps/test.in -o "dev-deps/$py/test.txt" >/dev/null
-    # Compile remaining depsets just for our dev interpreter:
-    if [ "$py" = "$DEFAULT_PY" ]; then
-      for depset in docs dev; do
-        $pip_compile "dev-deps/$depset.in" -o "dev-deps/$py/$depset.txt"
-      done
+  for cmd in "$DEFAULT_PY" uv pre-commit; do
+    if ! type "$cmd"; then
+      log "Error: No '$cmd' on PATH. Hint: Check /init_dev_env and try again."
+      exit 1
     fi
   done
-  log "Upgrading PyPI dependencies: Done"
 
+  local -r pip_compile="uv pip compile --upgrade --universal"
+  for depset in test docs dev; do
+    $pip_compile "dev-deps/$depset.in" -o "dev-deps/$depset.txt" >/dev/null
+  done
+  uv pip sync dev-deps/*.txt
+  uv pip show -q bidict || uv pip install -e "$BIDICT_ROOT_DIR"
+  log "Upgrading PyPI dependencies: Done"
+  log
   log "Upgrading pre-commit hooks..."
   pre-commit autoupdate
-
   log "Done."
+  log
   log "Reminders:"
-  log " - Re-run init_dev_env when ready to sync the new requirements to the dev env."
   log " - Check release notes of upgraded packages for anything that affects bidict."
   log " - Ensure tests pass for all supported Python versions."
   log " - Check output for any new warnings, not just test failures."

@@ -52,11 +52,11 @@ jobs:
         with:
           python-version: ${{ matrix.pyversion }}
           cache: pip
-          cache-dependency-path: dev-deps/${{ matrix.deps_subdir || format('python{0}', matrix.pyversion) }}/test.txt
+          cache-dependency-path: dev-deps/test.txt
       - name: install dependencies
         run: |
-          python -m pip install -U pip setuptools wheel
-          python -m pip install -r dev-deps/${{ matrix.deps_subdir || format('python{0}', matrix.pyversion) }}/test.txt
+          python -m pip install -U uv pip setuptools wheel
+          uv pip install -r dev-deps/test.txt
       - name: cache .mypy_cache dir
         uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9
         with:
