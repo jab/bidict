@@ -2,3 +2,4 @@ pytest-clarity
 pytest-icdiff
 tox
 tox-uv
+uv

@@ -6,13 +6,13 @@ formats:
   - htmlzip
 
 build:
-  os: "ubuntu-22.04"
+  os: "ubuntu-24.04"
   tools:
     python: "3.12"
 
 python:
   install:
-    - requirements: dev-deps/python3.12/docs.txt
+    - requirements: dev-deps/docs.txt
     - method: pip
       path: .
 

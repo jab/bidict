@@ -17,7 +17,7 @@ jobs:
         with:
           python-version: '3.12'
       - name: install dependencies
-        run: python -m pip install -U pip setuptools build
+        run: python -m pip install -U build
       - run: python -m build
       - name: Publish
         uses: pypa/gh-action-pypi-publish@81e9d935c883d0b210363ab89cf05f3894778450
