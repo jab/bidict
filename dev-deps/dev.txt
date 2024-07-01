@@ -60,7 +60,7 @@ tox==4.15.1
     #   tox-uv
 tox-uv==1.9.1
     # via -r dev-deps/dev.in
-uv==0.2.17
+uv==0.2.18
     # via
     #   -r dev-deps/dev.in
     #   tox-uv
