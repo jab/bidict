@@ -28,7 +28,7 @@ jobs:
         with:
           packages: valgrind
       - name: check out source
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
         with:
           fetch-depth: 0
       - name: set up Python
@@ -67,7 +67,7 @@ jobs:
               --benchmark-compare=baseline.json \
               tests/microbenchmarks.py
       - name: archive benchmark results
-        uses: actions/upload-artifact@5d5d22a31266ced268874388b861e4b58bb5c2f3
+        uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808
         with:
           name: microbenchmark results
           path: .benchmarks

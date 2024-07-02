@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: check out source
-        uses: actions/checkout@b4ffde65f46336ab88eb53be808477a3936bae11
+        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
       - name: set up Python
         uses: actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d
         with:
