@@ -54,3 +54,7 @@ repos:
     rev: v0.10.0.1
     hooks:
       - id: shellcheck
+
+# Ref: https://pre-commit.ci/#configuration
+ci:
+  autoupdate_schedule: quarterly
