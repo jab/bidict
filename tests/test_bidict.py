@@ -165,7 +165,7 @@ class BidictStateMachine(RuleBasedStateMachine):
         self.oracle.clear()
 
     @rule(key=keys, val=vals, on_dup=on_dup)
-    def put(self, key: int, val: complex, on_dup: OnDup) -> None:
+    def put(self, key: int, val: int, on_dup: OnDup) -> None:
         assert_calls_match(
             partial(self.bi.put, key, val, on_dup),
             partial(self.oracle.put, key, val, on_dup),
@@ -183,14 +183,14 @@ class BidictStateMachine(RuleBasedStateMachine):
         )
 
     @rule(other=items121)
-    def __ior__(self, other: t.Mapping[KT, VT]) -> None:
+    def __ior__(self, other: t.Mapping[int, int]) -> None:
         assert_calls_match(
             partial(self.bi.__ior__, other),
             partial(self.oracle.__ior__, other),
         )
 
     @rule(other=items121)
-    def __or__(self, other: t.Mapping[KT, VT]) -> None:
+    def __or__(self, other: t.Mapping[int, int]) -> None:
         assert_calls_match(
             partial(self.bi.__or__, other),
             partial(self.oracle.__or__, other),
@@ -199,7 +199,7 @@ class BidictStateMachine(RuleBasedStateMachine):
     # https://bidict.rtfd.io/basic-usage.html#order-matters
     @precondition(lambda self: zip_equal(self.bi, self.oracle.data))
     @rule(other=items121)
-    def __ror__(self, other: t.Mapping[KT, VT]) -> None:
+    def __ror__(self, other: t.Mapping[int, int]) -> None:
         assert_calls_match(
             partial(self.bi.__ror__, other),
             partial(self.oracle.__ror__, other),
@@ -282,14 +282,15 @@ BidictStateMachineTest = BidictStateMachine.TestCase
 
 @pytest.mark.parametrize('bi_t', bidict_types)
 def test_init_and_update_with_bad_args(bi_t: BT[KT, VT]) -> None:
-    for bad_args in ((None,), (0,), (False,), (True,), ({}, {})):  # type: ignore[var-annotated]
+    bad_args: t.Any
+    for bad_args in ((None,), (0,), (False,), (True,), ({}, {})):
         with pytest.raises(TypeError):
-            bi_t(*bad_args)  # type: ignore[arg-type]
+            bi_t(*bad_args)
         if not issubclass(bi_t, MutableBidict):
             continue
         bi = bi_t()
         with pytest.raises(TypeError):
-            bi.update(*bad_args)  # type: ignore[arg-type]
+            bi.update(*bad_args)
 
 
 @pytest.mark.parametrize('bi_t', bidict_types)
@@ -437,7 +438,7 @@ def test_abstract_bimap_init_fails() -> None:
 
     for bi_t in (BidirectionalMapping, MutableBidirectionalMapping, AbstractBimap):
         with pytest.raises(TypeError, match="Can't instantiate abstract class"):
-            bi_t()
+            bi_t()  # type: ignore[abstract]
 
 
 def test_bimap_bad_inverse() -> None:
