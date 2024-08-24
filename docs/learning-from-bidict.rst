@@ -125,7 +125,7 @@ for how this was implemented.
 
 It's super cool when you find a way to bend Python's syntax
 to support new use cases like this
-that stll feel like they fit well into the language,
+that still feel like they fit well into the language,
 especially given that Python (wisely) limits
 how much you can customize its syntax.
 

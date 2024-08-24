@@ -83,8 +83,8 @@ extend-select = [
   "YTT",
 ]
 
-[tool.ruff.lint.per-file-ignores]
-"_abc.py" = ["A005"]  # Shadowing built-in module
+[tool.ruff.lint.flake8-builtins]
+builtins-allowed-modules = ["_abc"]
 
 [tool.ruff.lint.isort]
 force-single-line = true

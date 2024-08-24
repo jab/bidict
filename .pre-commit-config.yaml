@@ -36,7 +36,7 @@ repos:
         args: ["--uri-ignore-words-list", "*"]  # https://github.com/codespell-project/codespell/issues/2473
 
   - repo: https://github.com/crate-ci/typos
-    rev: v1.23.6
+    rev: v1.24.1
     hooks:
       - id: typos
         args: [--write-changes]
@@ -50,7 +50,7 @@ repos:
           - pytest
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.6.1
+    rev: v0.6.2
     hooks:
       - id: ruff
         args: [--fix, --exit-non-zero-on-fix]

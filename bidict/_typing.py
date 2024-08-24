@@ -30,7 +30,6 @@ class Maplike(t.Protocol[KT, VT_co]):
 
 
 MapOrItems = t.Union[Maplike[KT, VT], Items[KT, VT]]
-MappOrItems = t.Union[t.Mapping[KT, VT], Items[KT, VT]]
 ItemsIter = t.Iterator[t.Tuple[KT, VT]]
 
 

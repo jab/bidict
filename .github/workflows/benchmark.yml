@@ -54,7 +54,7 @@ jobs:
           mv -v bidict src
       - name: download baseline benchmark results
         run: |
-          curl -Lso baseline.json "$BASELINE_URL"
+          curl -L -s -o baseline.json "$BASELINE_URL"
           line1=$(head -n1 baseline.json)
           [ "$line1" = "{" ]
       - name: benchmark and compare to baseline
