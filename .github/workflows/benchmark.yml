@@ -40,14 +40,19 @@ jobs:
           python-version: '3.12.2'
           cache: pip
           cache-dependency-path: dev-deps/test.txt
-      - name: install PyPI dependencies
+      - name: set up cached uv
+        uses: hynek/setup-cached-uv@4b4bfa932036976749a9653b0fa4fa10b1a7092b
+      - name: create and activate virtualenv
         run: |
-          python -m pip install -U uv
-          python -m uv pip install -r dev-deps/test.txt
+          uv venv
+          source .venv/bin/activate
+          echo PATH="$PATH" >> "$GITHUB_ENV"
+      - name: uv pip install
+        run: uv pip install -r dev-deps/test.txt
       - name: install the version of bidict to benchmark
         run: |
           git checkout ${{ github.event.inputs.ref || github.sha }}
-          python -m uv pip install .
+          uv pip install --no-deps .
           # restore the current revision so we use its version of tests/microbenchmarks.py
           git checkout ${{ github.sha }}
           # move aside the 'bidict' subdirectory to make sure we always import the installed version
