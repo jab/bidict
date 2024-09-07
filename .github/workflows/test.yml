@@ -51,8 +51,6 @@ jobs:
         uses: actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d
         with:
           python-version: ${{ matrix.pyversion }}
-          cache: pip
-          cache-dependency-path: dev-deps/test.txt
       - name: set up cached uv
         uses: hynek/setup-cached-uv@4b4bfa932036976749a9653b0fa4fa10b1a7092b
       - name: create and activate virtualenv
