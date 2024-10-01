@@ -36,13 +36,13 @@ repos:
         args: ["--uri-ignore-words-list", "*"]  # https://github.com/codespell-project/codespell/issues/2473
 
   - repo: https://github.com/crate-ci/typos
-    rev: v1.24.1
+    rev: v1.25.0
     hooks:
       - id: typos
         args: [--write-changes]
 
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.11.1
+    rev: v1.11.2
     hooks:
       - id: mypy
         additional_dependencies:
@@ -50,7 +50,7 @@ repos:
           - pytest
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.6.2
+    rev: v0.6.8
     hooks:
       - id: ruff
         args: [--fix, --exit-non-zero-on-fix]
