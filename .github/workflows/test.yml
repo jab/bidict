@@ -46,13 +46,13 @@ jobs:
             deps_subdir: "pypy3.9"
     steps:
       - name: check out source
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
+        uses: actions/checkout@d632683dd7b4114ad314bca15554477dd762a938
       - name: set up Python ${{ matrix.pyversion }}
-        uses: actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d
+        uses: actions/setup-python@f677139bbe7f9c59b41e40162b753c062f5d49a3
         with:
           python-version: ${{ matrix.pyversion }}
       - name: set up cached uv
-        uses: hynek/setup-cached-uv@4b4bfa932036976749a9653b0fa4fa10b1a7092b
+        uses: hynek/setup-cached-uv@3e2b834ff80f67c4f272449b9f1aa388c294ae48
       - name: create and activate virtualenv
         run: |
           uv venv
@@ -95,7 +95,7 @@ jobs:
           coverage report
       - name: maybe upload to Codecov  # https://github.com/codecov/codecov-action
         if: matrix.enable_coverage
-        uses: codecov/codecov-action@e28ff129e5465c2c0dcc6f003fc735cb6ae0c673
+        uses: codecov/codecov-action@b9fd7d16f6d7d1b5d2bec1a2887e65ceed900238
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         with:
