@@ -12,11 +12,11 @@ coverage-enable-subprocess==1.0
     # via -r dev-deps/test.in
 execnet==2.1.1
     # via pytest-xdist
-hypothesis==6.111.1
+hypothesis==6.112.2
     # via -r dev-deps/test.in
 iniconfig==2.0.0
     # via pytest
-mypy==1.11.1
+mypy==1.11.2
     # via -r dev-deps/test.in
 mypy-extensions==1.0.0
     # via mypy
@@ -26,7 +26,7 @@ pluggy==1.5.0
     # via pytest
 py-cpuinfo==9.0.0
     # via pytest-benchmark
-pytest==8.3.2
+pytest==8.3.3
     # via
     #   -r dev-deps/test.in
     #   pytest-benchmark
