@@ -39,7 +39,6 @@ jobs:
           - pyversion: "3.11"
           - pyversion: "3.10"
           - pyversion: "3.9"
-          - pyversion: "3.8"
           - pyversion: "pypy-3.10"
             deps_subdir: "pypy3.10"
           - pyversion: "pypy-3.9"
