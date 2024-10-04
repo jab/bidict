@@ -18,7 +18,7 @@ VT = t.TypeVar('VT')
 VT_co = t.TypeVar('VT_co', covariant=True)
 
 
-Items = t.Iterable[t.Tuple[KT, VT]]
+Items = t.Iterable[tuple[KT, VT]]
 
 
 @t.runtime_checkable
@@ -30,7 +30,7 @@ class Maplike(t.Protocol[KT, VT_co]):
 
 
 MapOrItems = t.Union[Maplike[KT, VT], Items[KT, VT]]
-ItemsIter = t.Iterator[t.Tuple[KT, VT]]
+ItemsIter = t.Iterator[tuple[KT, VT]]
 
 
 class MissingT(Enum):

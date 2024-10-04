@@ -53,7 +53,7 @@ repos:
     rev: v0.6.8
     hooks:
       - id: ruff
-        args: [--fix, --exit-non-zero-on-fix]
+        args: [--fix, --unsafe-fixes]
       - id: ruff-format
 
   - repo: https://github.com/shellcheck-py/shellcheck-py

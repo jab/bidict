@@ -5,7 +5,7 @@ description = "The bidirectional mapping library for Python."
 authors = [{ name = "Joshua Bronson", email = "jabronson@gmail.com" }]
 license = { text = "MPL 2.0" }
 dependencies = []
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 readme = "README.rst"
 keywords = [
   "bidict",

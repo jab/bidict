@@ -43,9 +43,9 @@ from ._typing import Maplike
 from ._typing import MapOrItems
 
 
-OldKV = t.Tuple[OKT[KT], OVT[VT]]
+OldKV = tuple[OKT[KT], OVT[VT]]
 DedupResult = t.Optional[OldKV[KT, VT]]
-Unwrites = t.List[t.Tuple[t.Any, ...]]
+Unwrites = list[tuple[t.Any, ...]]
 BT = t.TypeVar('BT', bound='BidictBase[t.Any, t.Any]')
 
 
@@ -139,7 +139,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         diff['_inv_cls'] = cls
         inv_cls = type(f'{cls.__name__}Inv', (cls, GeneratedBidictInverse), diff)
         inv_cls.__module__ = cls.__module__
-        return t.cast(t.Type[BT], inv_cls)
+        return t.cast(type[BT], inv_cls)
 
     @classmethod
     def _inv_cls_dict_diff(cls) -> dict[str, t.Any]:

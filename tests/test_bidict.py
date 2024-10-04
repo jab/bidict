@@ -69,8 +69,8 @@ from bidict import inverted
 from bidict._typing import MapOrItems
 
 
-Items = t.Sequence[t.Tuple[int, int]]
-Items121 = t.Dict[t.Any, t.Any]
+Items = t.Sequence[tuple[int, int]]
+Items121 = dict[t.Any, t.Any]
 
 ks = tuple(range(1, 5))
 vs = tuple(range(-1, -5, -1))
