@@ -40,9 +40,6 @@ jobs:
           - pyversion: "3.10"
           - pyversion: "3.9"
           - pyversion: "pypy-3.10"
-            deps_subdir: "pypy3.10"
-          - pyversion: "pypy-3.9"
-            deps_subdir: "pypy3.9"
     steps:
       - name: check out source
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
@@ -54,11 +51,9 @@ jobs:
         uses: hynek/setup-cached-uv@4b4bfa932036976749a9653b0fa4fa10b1a7092b
       - name: create and activate virtualenv
         run: |
-          uv venv
+          uv sync --extra=test
           source .venv/bin/activate
           echo PATH="$PATH" >> "$GITHUB_ENV"
-      - name: uv pip install
-        run: uv pip install -r dev-deps/test.txt
       - name: cache .mypy_cache dir
         uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9
         with:
@@ -78,12 +73,9 @@ jobs:
       - name: maybe enable coverage
         if: matrix.enable_coverage
         run: |
+          echo COVERAGE_CORE=sysmon >> "$GITHUB_ENV"
           echo COVERAGE_PROCESS_START="$(pwd)/.coveragerc" >> "$GITHUB_ENV"
           echo RUN_PYTEST_CMD="coverage run -m pytest" >> "$GITHUB_ENV"
-      - name: set COVERAGE_CORE=sysmon if py3.12
-        if: matrix.pyversion == '3.12'
-        run: |
-          echo COVERAGE_CORE=sysmon >> "$GITHUB_ENV"
       - name: run pytest
         run: ${RUN_PYTEST_CMD:-pytest}
       - name: combine and show any collected coverage

@@ -42,14 +42,13 @@ jobs:
         uses: hynek/setup-cached-uv@4b4bfa932036976749a9653b0fa4fa10b1a7092b
       - name: create and activate virtualenv
         run: |
-          uv venv
+          uv sync --extra=test
           source .venv/bin/activate
           echo PATH="$PATH" >> "$GITHUB_ENV"
-      - name: uv pip install
-        run: uv pip install -r dev-deps/test.txt
       - name: install the version of bidict to benchmark
         run: |
           git checkout ${{ github.event.inputs.ref || github.sha }}
+          # install a non-editable version of bidict at the revision under test
           uv pip install --no-deps .
           # restore the current revision so we use its version of tests/microbenchmarks.py
           git checkout ${{ github.sha }}

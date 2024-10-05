@@ -31,6 +31,33 @@ Documentation = "https://bidict.readthedocs.io"
 Sponsor = "https://bidict.readthedocs.io/#sponsoring"
 Repository = "https://github.com/jab/bidict"
 
+[project.optional-dependencies]
+test = [
+  "coverage",
+  "coverage-enable-subprocess",
+  "hypothesis",
+  "mypy",
+  "pytest",
+  "pytest-benchmark",
+  "pytest-sphinx",
+  "pytest-xdist",
+  "sortedcollections",
+  "sortedcontainers",
+  "typing_extensions",
+]
+dev = [
+  "pytest-clarity",
+  "pytest-icdiff",
+  "tox",
+  "tox-uv",
+  "uv",
+]
+docs = [
+  "sphinx",
+  "sphinx-copybutton",
+  "furo",
+]
+
 [build-system]
 requires = ["setuptools >= 40.9.0"]
 build-backend = "setuptools.build_meta"

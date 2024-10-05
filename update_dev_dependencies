@@ -17,21 +17,17 @@ log() {
 
 
 main() {
-  local -r dotslash="$(dirname "$(readlink -f "$0")")"
-  source "$dotslash/dev.env"
-  for cmd in "$DEFAULT_PY" uv pre-commit; do
+  declare -r hint="Hint: Use 'nix develop' to bootstrap a development environment"
+
+  for cmd in uv pre-commit; do
     if ! type "$cmd"; then
-      log "Error: No '$cmd' on PATH. Hint: Check /init_dev_env and try again."
+      log "Error: No '$cmd' on PATH. $hint"
       exit 1
     fi
   done
 
-  local -r pip_compile="uv pip compile --upgrade --universal"
-  for depset in test docs dev; do
-    $pip_compile "dev-deps/$depset.in" -o "dev-deps/$depset.txt" >/dev/null
-  done
-  uv pip sync dev-deps/*.txt
-  uv pip show -q bidict || uv pip install -e "$BIDICT_ROOT_DIR"
+  log "Upgrading PyPI dependencies..."
+  uv lock --upgrade
   log "Upgrading PyPI dependencies: Done"
   log
   log "Upgrading pre-commit hooks..."

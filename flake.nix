@@ -21,18 +21,12 @@
           python39
           pypy310
           pypy39
-          uv  # bootstrap uv version
+          uv  # bootstrap uv version (another version is installed in the dev env by this version)
         ];
         shellHook = ''
-          source ./dev-deps/dev.env
-          if test -e "$VENV_SUBDIR"; then
-            echo "* Using pre-existing development virtualenv dir ($VENV_SUBDIR)"
-          else
-            echo "* No pre-existing development virtualenv dir ($VENV_SUBDIR), initializing..."
-            ./init_dev_env
-          fi
-          source "$VENV_SUBDIR/bin/activate"
-          echo "* Activated development virtualenv ($VENV_SUBDIR)"
+          ./init_dev_env
+          source ".venv/bin/activate"
+          echo "* Activated development virtualenv"
         '';
       };
     });

@@ -12,9 +12,7 @@ set -euo pipefail
 
 declare -r hint="Hint: Use 'nix develop' to bootstrap a development environment"
 
-source "$BIDICT_ROOT_DIR/dev-deps/dev.env"
-
-for cmd in uv pre-commit "$DEFAULT_PY"; do
+for cmd in uv pre-commit; do
   if ! type "$cmd"; then
     >&2 echo "Error: No '$cmd' on PATH. $hint"
     exit 1
@@ -22,9 +20,6 @@ for cmd in uv pre-commit "$DEFAULT_PY"; do
 done
 pre-commit install -f
 
-test -d "$VENV_DIR" || uv venv --python="$DEFAULT_PY" "$VENV_DIR"
-uv pip sync dev-deps/*.txt
-uv pip show -q bidict || uv pip install -e "$BIDICT_ROOT_DIR"
-
-echo "Development virtualenv initialized: $VENV_DIR"
-echo "To activate, run: source $VENV_DIR/bin/activate (or equivalent for your shell)"
+uv sync --all-extras
+echo "Development virtualenv initialized"
+echo "To activate, run: source .venv/bin/activate (or equivalent for your shell)"
