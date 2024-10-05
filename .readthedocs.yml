@@ -9,13 +9,10 @@ build:
   os: "ubuntu-24.04"
   tools:
     python: "3.12"
-
-python:
-  install:
-    - requirements: dev-deps/docs.txt
-    - method: pip
-      path: .
-
-sphinx:
-  configuration: docs/conf.py
-  fail_on_warning: true
+  # https://docs.readthedocs.io/en/stable/build-customization.html#install-dependencies-with-uv
+  commands:
+    - asdf plugin add uv
+    - asdf install uv latest
+    - asdf global uv latest
+    - uv sync --extra=docs
+    - .venv/bin/python -m sphinx -TWn --keep-going -b html -d docs/_build/doctrees docs $READTHEDOCS_OUTPUT/html
