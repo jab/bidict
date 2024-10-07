@@ -2,7 +2,7 @@ exclude: ^\.benchmarks
 
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.6.0
+    rev: v5.0.0
     hooks:
       - id: check-added-large-files
       - id: check-case-conflict
@@ -36,7 +36,7 @@ repos:
         args: ["--uri-ignore-words-list", "*"]  # https://github.com/codespell-project/codespell/issues/2473
 
   - repo: https://github.com/crate-ci/typos
-    rev: v1.25.0
+    rev: v1.26.0
     hooks:
       - id: typos
         args: [--write-changes]
