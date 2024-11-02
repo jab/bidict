@@ -42,7 +42,7 @@ jobs:
         uses: hynek/setup-cached-uv@4b4bfa932036976749a9653b0fa4fa10b1a7092b
       - name: create and activate virtualenv
         run: |
-          uv sync --extra=test
+          uv sync --only-group=test
           source .venv/bin/activate
           echo PATH="$PATH" >> "$GITHUB_ENV"
       - name: install the version of bidict to benchmark

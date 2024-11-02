@@ -20,6 +20,5 @@ for cmd in uv pre-commit; do
 done
 pre-commit install -f
 
-uv sync --all-extras
-echo "Development virtualenv initialized"
-echo "To activate, run: source .venv/bin/activate (or equivalent for your shell)"
+uv sync
+echo "Development virtualenv initialized and activated"

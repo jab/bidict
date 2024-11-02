@@ -31,7 +31,7 @@ Documentation = "https://bidict.readthedocs.io"
 Sponsor = "https://bidict.readthedocs.io/#sponsoring"
 Repository = "https://github.com/jab/bidict"
 
-[project.optional-dependencies]
+[dependency-groups]
 test = [
   "coverage",
   "coverage-enable-subprocess",
@@ -57,6 +57,9 @@ docs = [
   "sphinx-copybutton",
   "furo",
 ]
+
+[tool.uv]
+default-groups = ["test", "dev", "docs"]
 
 [build-system]
 requires = ["setuptools >= 40.9.0"]
