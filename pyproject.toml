@@ -113,9 +113,6 @@ extend-select = [
   "YTT",
 ]
 
-[tool.ruff.lint.flake8-builtins]
-builtins-allowed-modules = ["_abc"]
-
 [tool.ruff.lint.isort]
 force-single-line = true
 lines-after-imports = 2
