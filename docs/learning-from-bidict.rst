@@ -87,7 +87,7 @@ From :class:`~bidict.BidictBase`,
 :class:`~bidict.OrderedBidictBase` inherits the use of two regular dicts
 to store the contents of the forward and inverse items.
 
-To store the _ordering_ of the items,
+To store the *ordering* of the items,
 we use a doubly-linked list
 (much like :class:`~collections.OrderedDict`),
 allowing us to e.g. move any item to the front
