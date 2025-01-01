@@ -2,7 +2,7 @@ exclude: ^\.benchmarks
 
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v5.0.0
+    rev: v6.0.0
     hooks:
       - id: check-added-large-files
       - id: check-case-conflict
@@ -17,7 +17,7 @@ repos:
       - id: trailing-whitespace
 
   - repo: https://gitlab.com/bmares/check-json5
-    rev: v1.0.0
+    rev: v1.0.1
     hooks:
       - id: check-json5
 
@@ -30,19 +30,20 @@ repos:
       - id: remove-tabs
 
   - repo: https://github.com/codespell-project/codespell
-    rev: v2.3.0
+    rev: v2.4.1
     hooks:
       - id: codespell
         args: ["--uri-ignore-words-list", "*"]  # https://github.com/codespell-project/codespell/issues/2473
 
-  - repo: https://github.com/crate-ci/typos
-    rev: v1.28.1
-    hooks:
-      - id: typos
-        args: [--write-changes]
+  # Disable until https://github.com/crate-ci/typos/issues/390 is resolved:
+  # - repo: https://github.com/crate-ci/typos
+  #   rev: v1.41.0
+  #   hooks:
+  #     - id: typos
+  #       args: [--write-changes]
 
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.13.0
+    rev: v1.19.1
     hooks:
       - id: mypy
         additional_dependencies:
@@ -50,14 +51,14 @@ repos:
           - pytest
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.8.1
+    rev: v0.14.10
     hooks:
       - id: ruff
         args: [--fix, --unsafe-fixes]
       - id: ruff-format
 
   - repo: https://github.com/shellcheck-py/shellcheck-py
-    rev: v0.10.0.1
+    rev: v0.11.0.1
     hooks:
       - id: shellcheck
 
