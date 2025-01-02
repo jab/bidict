@@ -28,18 +28,18 @@ jobs:
         with:
           packages: valgrind
       - name: check out source
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
         with:
           fetch-depth: 0
       - name: set up Python
-        uses: actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d
+        uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b
         with:
           # Pin to micro-release for better reproducibility.
           # When upgrading to a new Python version, remember to upload new associated baseline
           # benchmark results here: https://github.com/jab/bidict/releases/edit/microbenchmarks
           python-version: '3.12.2'
       - name: set up cached uv
-        uses: hynek/setup-cached-uv@4b4bfa932036976749a9653b0fa4fa10b1a7092b
+        uses: hynek/setup-cached-uv@757bedc3f972eb7227a1aa657651f15a8527c817
       - name: create and activate virtualenv
         run: |
           uv sync --only-group=test
@@ -69,7 +69,7 @@ jobs:
               --benchmark-compare=baseline.json \
               tests/microbenchmarks.py
       - name: archive benchmark results
-        uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808
+        uses: actions/upload-artifact@6f51ac03b9356f520e9adb1b1b7802705f340c2b
         with:
           name: microbenchmark results
           path: .benchmarks
