@@ -16,14 +16,16 @@
 
 from __future__ import annotations
 
-import typing as t
 from abc import abstractmethod
+from collections.abc import Iterator
+from collections.abc import Mapping
+from collections.abc import MutableMapping
 
 from ._typing import KT
 from ._typing import VT
 
 
-class BidirectionalMapping(t.Mapping[KT, VT]):
+class BidirectionalMapping(Mapping[KT, VT]):
     """Abstract base class for bidirectional mapping types.
 
     Extends :class:`collections.abc.Mapping` primarily by adding the
@@ -50,7 +52,7 @@ class BidirectionalMapping(t.Mapping[KT, VT]):
         # subclasses must actually provide their own implementation.
         raise NotImplementedError
 
-    def __inverted__(self) -> t.Iterator[tuple[VT, KT]]:
+    def __inverted__(self) -> Iterator[tuple[VT, KT]]:
         """Get an iterator over the items in :attr:`inverse`.
 
         This is functionally equivalent to iterating over the items in the
@@ -67,7 +69,7 @@ class BidirectionalMapping(t.Mapping[KT, VT]):
         return iter(self.inverse.items())
 
 
-class MutableBidirectionalMapping(BidirectionalMapping[KT, VT], t.MutableMapping[KT, VT]):
+class MutableBidirectionalMapping(BidirectionalMapping[KT, VT], MutableMapping[KT, VT]):
     """Abstract base class for mutable bidirectional mapping types."""
 
     __slots__ = ()

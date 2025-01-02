@@ -18,6 +18,14 @@ from __future__ import annotations
 
 import typing as t
 import weakref
+from collections.abc import ItemsView
+from collections.abc import Iterable
+from collections.abc import Iterator
+from collections.abc import KeysView
+from collections.abc import Mapping
+from collections.abc import MutableMapping
+from collections.abc import Reversible
+from collections.abc import ValuesView
 from itertools import starmap
 from operator import eq
 from types import MappingProxyType
@@ -49,7 +57,7 @@ Unwrites = list[tuple[t.Any, ...]]
 BT = t.TypeVar('BT', bound='BidictBase[t.Any, t.Any]')
 
 
-class BidictKeysView(t.KeysView[KT], t.ValuesView[KT]):
+class BidictKeysView(KeysView[KT], ValuesView[KT]):
     """Since the keys of a bidict are the values of its inverse (and vice versa),
     the :class:`~collections.abc.ValuesView` result of calling *bi.values()*
     is also a :class:`~collections.abc.KeysView` of *bi.inverse*.
@@ -68,12 +76,12 @@ class BidictBase(BidirectionalMapping[KT, VT]):
     #: :doc:`extending` (https://bidict.rtfd.io/extending.html)
     on_dup = ON_DUP_DEFAULT
 
-    _fwdm: t.MutableMapping[KT, VT]  #: the backing forward mapping (*key* → *val*)
-    _invm: t.MutableMapping[VT, KT]  #: the backing inverse mapping (*val* → *key*)
+    _fwdm: MutableMapping[KT, VT]  #: the backing forward mapping (*key* → *val*)
+    _invm: MutableMapping[VT, KT]  #: the backing inverse mapping (*val* → *key*)
 
     # Use Any rather than KT/VT in the following to avoid "ClassVar cannot contain type variables" errors:
-    _fwdm_cls: t.ClassVar[type[t.MutableMapping[t.Any, t.Any]]] = dict  #: class of the backing forward mapping
-    _invm_cls: t.ClassVar[type[t.MutableMapping[t.Any, t.Any]]] = dict  #: class of the backing inverse mapping
+    _fwdm_cls: t.ClassVar[type[MutableMapping[t.Any, t.Any]]] = dict  #: class of the backing forward mapping
+    _invm_cls: t.ClassVar[type[MutableMapping[t.Any, t.Any]]] = dict  #: class of the backing inverse mapping
 
     #: The class of the inverse bidict instance.
     _inv_cls: t.ClassVar[type[BidictBase[t.Any, t.Any]]]
@@ -99,7 +107,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
             overridden = resolved is not BidictBase.__reversed__
             if overridden:  # E.g. OrderedBidictBase, OrderedBidict
                 return
-        backing_reversible = all(issubclass(i, t.Reversible) for i in (cls._fwdm_cls, cls._invm_cls))
+        backing_reversible = all(issubclass(i, Reversible) for i in (cls._fwdm_cls, cls._invm_cls))
         cls.__reversed__ = _fwdm_reversed if backing_reversible else None
 
     @classmethod
@@ -228,7 +236,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         """
         return t.cast(BidictKeysView[VT], self.inverse.keys())
 
-    def keys(self) -> t.KeysView[KT]:
+    def keys(self) -> KeysView[KT]:
         """A set-like object providing a view on the contained keys.
 
         When *b._fwdm* is a :class:`dict`, *b.keys()* returns a
@@ -245,7 +253,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         fwdm, fwdm_cls = self._fwdm, self._fwdm_cls
         return fwdm.keys() if fwdm_cls is dict else BidictKeysView(self)
 
-    def items(self) -> t.ItemsView[KT, VT]:
+    def items(self) -> ItemsView[KT, VT]:
         """A set-like object providing a view on the contained items.
 
         When *b._fwdm* is a :class:`dict`, *b.items()* returns a
@@ -286,7 +294,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
 
         *See also* :meth:`equals_order_sensitive`
         """
-        if isinstance(other, t.Mapping):
+        if isinstance(other, Mapping):
             return self._fwdm.items() == other.items()
         # Ref: https://docs.python.org/3/library/constants.html#NotImplemented
         return NotImplemented
@@ -297,7 +305,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         *See also* :ref:`eq-order-insensitive`
         (https://bidict.rtfd.io/other-bidict-types.html#eq-is-order-insensitive)
         """
-        if not isinstance(other, t.Mapping) or len(self) != len(other):
+        if not isinstance(other, Mapping) or len(self) != len(other):
             return False
         return all(starmap(eq, zip(self.items(), other.items())))
 
@@ -413,14 +421,14 @@ class BidictBase(BidirectionalMapping[KT, VT]):
     def _update(
         self,
         arg: MapOrItems[KT, VT],
-        kw: t.Mapping[str, VT] = MappingProxyType({}),
+        kw: Mapping[str, VT] = MappingProxyType({}),
         *,
         rollback: bool | None = None,
         on_dup: OnDup | None = None,
     ) -> None:
         """Update with the items from *arg* and *kw*, maybe failing and rolling back as per *on_dup* and *rollback*."""
         # Note: We must process input in a single pass, since arg may be a generator.
-        if not isinstance(arg, (t.Iterable, Maplike)):
+        if not isinstance(arg, (Iterable, Maplike)):
             raise TypeError(f"'{arg.__class__.__name__}' object is not iterable")
         if not arg and not kw:
             return
@@ -495,17 +503,17 @@ class BidictBase(BidirectionalMapping[KT, VT]):
 
     # other's type is Mapping rather than Maplike since bidict() | SupportsKeysAndGetItem({})
     # raises a TypeError, just like dict() | SupportsKeysAndGetItem({}) does.
-    def __or__(self: BT, other: t.Mapping[KT, VT]) -> BT:
+    def __or__(self: BT, other: Mapping[KT, VT]) -> BT:
         """Return self|other."""
-        if not isinstance(other, t.Mapping):
+        if not isinstance(other, Mapping):
             return NotImplemented
         new = self.copy()
         new._update(other, rollback=False)
         return new
 
-    def __ror__(self: BT, other: t.Mapping[KT, VT]) -> BT:
+    def __ror__(self: BT, other: Mapping[KT, VT]) -> BT:
         """Return other|self."""
-        if not isinstance(other, t.Mapping):
+        if not isinstance(other, Mapping):
             return NotImplemented
         new = self.__class__(other)
         new._update(self, rollback=False)
@@ -515,7 +523,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         """The number of contained items."""
         return len(self._fwdm)
 
-    def __iter__(self) -> t.Iterator[KT]:
+    def __iter__(self) -> Iterator[KT]:
         """Iterator over the contained keys."""
         return iter(self._fwdm)
 
@@ -526,7 +534,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
     def __reduce__(self) -> tuple[t.Any, ...]:
         """Return state information for pickling."""
         cls = self.__class__
-        inst: t.Mapping[t.Any, t.Any] = self
+        inst: Mapping[t.Any, t.Any] = self
         # If this bidict's class is dynamically generated, pickle the inverse instead, whose (presumably not
         # dynamically generated) class the caller is more likely to have a reference to somewhere in sys.modules
         # that pickle can discover.
@@ -537,9 +545,9 @@ class BidictBase(BidirectionalMapping[KT, VT]):
 
 
 # See BidictBase._set_reversed() above.
-def _fwdm_reversed(self: BidictBase[KT, t.Any]) -> t.Iterator[KT]:
+def _fwdm_reversed(self: BidictBase[KT, t.Any]) -> Iterator[KT]:
     """Iterator over the contained keys in reverse order."""
-    assert isinstance(self._fwdm, t.Reversible)
+    assert isinstance(self._fwdm, Reversible)
     return reversed(self._fwdm)
 
 

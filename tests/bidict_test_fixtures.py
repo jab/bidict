@@ -9,6 +9,10 @@ from __future__ import annotations
 import operator
 import typing as t
 from collections import UserDict
+from collections.abc import Iterable
+from collections.abc import KeysView
+from collections.abc import Mapping
+from collections.abc import Reversible
 from dataclasses import dataclass
 from itertools import chain
 from itertools import combinations
@@ -36,9 +40,9 @@ VT = t.TypeVar('VT')
 
 class SupportsKeysAndGetItem(t.Generic[KT, VT]):
     def __init__(self, *args: t.Any, **kw: t.Any) -> None:
-        self._mapping: t.Mapping[KT, VT] = dict(*args, **kw)
+        self._mapping: Mapping[KT, VT] = dict(*args, **kw)
 
-    def keys(self) -> t.KeysView[KT]:
+    def keys(self) -> KeysView[KT]:
         return self._mapping.keys()
 
     def __getitem__(self, key: KT) -> VT:
@@ -91,10 +95,10 @@ def should_be_reversible(bi_t: BT[KT, VT]) -> bool:
     return bi_t in builtin_bidict_types or issubclass(bi_t, OrderedBidict)
 
 
-assert all(not should_be_reversible(bi_t) or issubclass(bi_t, t.Reversible) for bi_t in bidict_types)
+assert all(not should_be_reversible(bi_t) or issubclass(bi_t, Reversible) for bi_t in bidict_types)
 
 
-def powerset(iterable: t.Iterable[t.Any]) -> t.Iterable[tuple[t.Any, ...]]:
+def powerset(iterable: Iterable[t.Any]) -> Iterable[tuple[t.Any, ...]]:
     if not isinstance(iterable, (tuple, list)):
         iterable = tuple(iterable)
     return chain.from_iterable(combinations(iterable, r) for r in range(len(iterable) + 1))
@@ -196,7 +200,7 @@ class Oracle(t.Generic[KT, VT]):
     def putall(self, updates: MapOrItems[KT, VT], on_dup: OnDup = DEFAULT_ON_DUP) -> None:
         # https://bidict.readthedocs.io/en/main/basic-usage.html#order-matters
         tmp = self.data.copy()
-        if isinstance(updates, t.Mapping):
+        if isinstance(updates, Mapping):
             updates = updates.items()
         elif hasattr(updates, 'keys') and hasattr(updates, '__getitem__'):
             updates = [(k, updates[k]) for k in updates.keys()]
@@ -207,18 +211,18 @@ class Oracle(t.Generic[KT, VT]):
             self.data = tmp  # fail clean (no partially-applied updates)
             raise
 
-    def __ior__(self, other: t.Mapping[KT, VT]) -> dict[KT, VT]:
+    def __ior__(self, other: Mapping[KT, VT]) -> dict[KT, VT]:
         self.putall(other)
         return self.data
 
-    def __or__(self, other: t.Mapping[KT, VT]) -> dict[KT, VT]:
+    def __or__(self, other: Mapping[KT, VT]) -> dict[KT, VT]:
         before = self.data.copy()
         self.putall(other)
         after = self.data
         self.data = before
         return after
 
-    def __ror__(self, other: t.Mapping[KT, VT]) -> dict[KT, VT]:
+    def __ror__(self, other: Mapping[KT, VT]) -> dict[KT, VT]:
         before = self.data.copy()
         self.data = {}
         try:
@@ -239,7 +243,7 @@ class Oracle(t.Generic[KT, VT]):
             self.data = {key: val, **self.data}
 
 
-def zip_equal(i1: t.Iterable[t.Any], i2: t.Iterable[t.Any]) -> bool:
+def zip_equal(i1: Iterable[t.Any], i2: Iterable[t.Any]) -> bool:
     return all(starmap(operator.eq, zip(i1, i2)))
 
 

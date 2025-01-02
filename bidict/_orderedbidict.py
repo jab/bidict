@@ -17,6 +17,10 @@
 from __future__ import annotations
 
 import typing as t
+from collections.abc import ItemsView
+from collections.abc import Iterable
+from collections.abc import Iterator
+from collections.abc import KeysView
 from collections.abc import Set
 
 from ._base import BidictKeysView
@@ -91,11 +95,11 @@ class OrderedBidict(OrderedBidictBase[KT, VT], MutableBidict[KT, VT]):
     # which may delegate to the backing _fwdm dict, since this is a mutable ordered bidict,
     # and therefore the ordering of items can get out of sync with the backing mappings
     # after mutation. (Need not override values() because it delegates to .inverse.keys().)
-    def keys(self) -> t.KeysView[KT]:
+    def keys(self) -> KeysView[KT]:
         """A set-like object providing a view on the contained keys."""
         return _OrderedBidictKeysView(self)
 
-    def items(self) -> t.ItemsView[KT, VT]:
+    def items(self) -> ItemsView[KT, VT]:
         """A set-like object providing a view on the contained items."""
         return _OrderedBidictItemsView(self)
 
@@ -108,14 +112,14 @@ class OrderedBidict(OrderedBidictBase[KT, VT], MutableBidict[KT, VT]):
 class _OrderedBidictKeysView(BidictKeysView[KT]):
     _mapping: OrderedBidict[KT, t.Any]
 
-    def __reversed__(self) -> t.Iterator[KT]:
+    def __reversed__(self) -> Iterator[KT]:
         return reversed(self._mapping)
 
 
-class _OrderedBidictItemsView(t.ItemsView[KT, VT]):
+class _OrderedBidictItemsView(ItemsView[KT, VT]):
     _mapping: OrderedBidict[KT, VT]
 
-    def __reversed__(self) -> t.Iterator[tuple[KT, VT]]:
+    def __reversed__(self) -> Iterator[tuple[KT, VT]]:
         ob = self._mapping
         for key in reversed(ob):
             yield key, ob[key]
@@ -125,7 +129,7 @@ class _OrderedBidictItemsView(t.ItemsView[KT, VT]):
 # to backing dicts for the methods they inherit from collections.abc.Set. (Cannot delegate
 # for __iter__ and __reversed__ since they are order-sensitive.) See also: https://bugs.python.org/issue46713
 _OView = t.Union[type[_OrderedBidictKeysView[KT]], type[_OrderedBidictItemsView[KT, t.Any]]]
-_setmethodnames: t.Iterable[str] = (
+_setmethodnames: Iterable[str] = (
     '__lt__ __le__ __gt__ __ge__ __eq__ __ne__ __sub__ __rsub__ '
     '__or__ __ror__ __xor__ __rxor__ __and__ __rand__ isdisjoint'
 ).split()

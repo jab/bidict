@@ -16,6 +16,7 @@
 from __future__ import annotations
 
 import typing as t
+from collections.abc import ItemsView
 
 from ._base import BidictBase
 from ._typing import KT
@@ -40,7 +41,7 @@ class frozenbidict(BidictBase[KT, VT]):
         if getattr(self, '_hash', None) is None:
             # The following is like hash(frozenset(self.items()))
             # but more memory efficient. See also: https://bugs.python.org/issue46684
-            self._hash = t.ItemsView(self)._hash()
+            self._hash = ItemsView(self)._hash()
         return self._hash
 
 

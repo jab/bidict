@@ -10,6 +10,7 @@
 from __future__ import annotations
 
 import typing as t
+from collections.abc import Mapping
 from operator import itemgetter
 
 from ._typing import KT
@@ -21,7 +22,7 @@ from ._typing import MapOrItems
 
 def iteritems(arg: MapOrItems[KT, VT] = (), /, **kw: VT) -> ItemsIter[KT, VT]:
     """Yield the items from *arg* and *kw* in the order given."""
-    if isinstance(arg, t.Mapping):
+    if isinstance(arg, Mapping):
         yield from arg.items()
     elif isinstance(arg, Maplike):
         yield from ((k, arg[k]) for k in arg.keys())

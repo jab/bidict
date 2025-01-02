@@ -16,6 +16,10 @@ import pickle
 import sys
 import typing as t
 import weakref
+from collections.abc import Callable
+from collections.abc import Mapping
+from collections.abc import Reversible
+from collections.abc import Sequence
 from copy import copy
 from copy import deepcopy
 from functools import partial
@@ -69,7 +73,7 @@ from bidict import inverted
 from bidict._typing import MapOrItems
 
 
-Items = t.Sequence[tuple[int, int]]
+Items = Sequence[tuple[int, int]]
 Items121 = dict[t.Any, t.Any]
 
 ks = tuple(range(1, 5))
@@ -141,13 +145,13 @@ class BidictStateMachine(RuleBasedStateMachine):
     def assert_reversed_works(self) -> None:
         assert list(reversed(self.bi)) == list(self.bi)[::-1]
         items = self.bi.items()
-        assert isinstance(items, t.Reversible)
+        assert isinstance(items, Reversible)
         assert list(reversed(items)) == list(items)[::-1]
         if self.is_ordered():
             assert zip_equal(reversed(self.bi), reversed(self.oracle.data))
             assert zip_equal(reversed(items), reversed(self.oracle.data.items()))
             values = self.bi.values()
-            assert isinstance(values, t.Reversible)
+            assert isinstance(values, Reversible)
             assert zip_equal(reversed(values), reversed(self.oracle.data.values()))
 
     @rule()
@@ -187,14 +191,14 @@ class BidictStateMachine(RuleBasedStateMachine):
         )
 
     @rule(other=items121)
-    def __ior__(self, other: t.Mapping[int, int]) -> None:
+    def __ior__(self, other: Mapping[int, int]) -> None:
         assert_calls_match(
             partial(self.bi.__ior__, other),
             partial(self.oracle.__ior__, other),
         )
 
     @rule(other=items121)
-    def __or__(self, other: t.Mapping[int, int]) -> None:
+    def __or__(self, other: Mapping[int, int]) -> None:
         assert_calls_match(
             partial(self.bi.__or__, other),
             partial(self.oracle.__or__, other),
@@ -203,7 +207,7 @@ class BidictStateMachine(RuleBasedStateMachine):
     # https://bidict.rtfd.io/basic-usage.html#order-matters
     @precondition(lambda self: zip_equal(self.bi, self.oracle.data))
     @rule(other=items121)
-    def __ror__(self, other: t.Mapping[int, int]) -> None:
+    def __ror__(self, other: Mapping[int, int]) -> None:
         assert_calls_match(
             partial(self.bi.__ror__, other),
             partial(self.oracle.__ror__, other),
@@ -538,7 +542,7 @@ def test_static_types() -> None:
     assert_type(fb.inv, frozenbidict[int, str])
 
 
-def assert_calls_match(call1: t.Callable[..., t.Any], call2: t.Callable[..., t.Any]) -> None:
+def assert_calls_match(call1: Callable[..., t.Any], call2: Callable[..., t.Any]) -> None:
     results: dict[t.Any, t.Any] = {call1: None, call2: None}
     for call in results:
         try:
@@ -548,7 +552,7 @@ def assert_calls_match(call1: t.Callable[..., t.Any], call2: t.Callable[..., t.A
     assert results[call1] == results[call2]
 
 
-def assert_mappings_are_inverse(m1: t.Mapping[KT, VT], m2: t.Mapping[VT, KT]) -> None:
+def assert_mappings_are_inverse(m1: Mapping[KT, VT], m2: Mapping[VT, KT]) -> None:
     assert len(m1) == len(m2)
     assert all(k == m2[v] for (k, v) in m1.items())
     assert m1.keys() == frozenset(m2.values())

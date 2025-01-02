@@ -10,6 +10,8 @@
 from __future__ import annotations
 
 import typing as t
+from collections.abc import Iterable
+from collections.abc import Iterator
 from enum import Enum
 
 
@@ -18,19 +20,19 @@ VT = t.TypeVar('VT')
 VT_co = t.TypeVar('VT_co', covariant=True)
 
 
-Items = t.Iterable[tuple[KT, VT]]
+Items = Iterable[tuple[KT, VT]]
 
 
 @t.runtime_checkable
 class Maplike(t.Protocol[KT, VT_co]):
     """Like typeshed's SupportsKeysAndGetItem, but usable at runtime."""
 
-    def keys(self) -> t.Iterable[KT]: ...
+    def keys(self) -> Iterable[KT]: ...
     def __getitem__(self, __key: KT) -> VT_co: ...
 
 
 MapOrItems = t.Union[Maplike[KT, VT], Items[KT, VT]]
-ItemsIter = t.Iterator[tuple[KT, VT]]
+ItemsIter = Iterator[tuple[KT, VT]]
 
 
 class MissingT(Enum):

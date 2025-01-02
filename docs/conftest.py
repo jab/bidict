@@ -18,7 +18,7 @@ import bidict
 
 # https://github.com/thisch/pytest-sphinx/issues/5#issuecomment-618072237
 @pytest.fixture(autouse=True)
-def _add_doctest_globals(doctest_namespace: t.MutableMapping[str, t.Any]) -> None:
+def _add_doctest_globals(doctest_namespace: MutableMapping[str, t.Any]) -> None:
     doctest_namespace['Mapping'] = Mapping
     doctest_namespace['MutableMapping'] = MutableMapping
     doctest_namespace['pypy'] = sys.implementation.name == 'pypy'

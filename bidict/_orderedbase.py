@@ -17,6 +17,7 @@
 from __future__ import annotations
 
 import typing as t
+from collections.abc import Iterator
 from weakref import ref as weakref
 
 from ._base import BidictBase
@@ -94,7 +95,7 @@ class SentinelNode(Node):
     def __init__(self) -> None:
         super().__init__(self, self)
 
-    def iternodes(self, *, reverse: bool = False) -> t.Iterator[Node]:
+    def iternodes(self, *, reverse: bool = False) -> Iterator[Node]:
         """Iterator yielding nodes in the requested order."""
         attr = 'prv' if reverse else 'nxt'
         node = getattr(self, attr)
@@ -210,15 +211,15 @@ class OrderedBidictBase(BidictBase[KT, VT]):
             if unwrites is not None:
                 unwrites.append((assoc, node, oldkey, newval))
 
-    def __iter__(self) -> t.Iterator[KT]:
+    def __iter__(self) -> Iterator[KT]:
         """Iterator over the contained keys in insertion order."""
         return self._iter(reverse=False)
 
-    def __reversed__(self) -> t.Iterator[KT]:
+    def __reversed__(self) -> Iterator[KT]:
         """Iterator over the contained keys in reverse insertion order."""
         return self._iter(reverse=True)
 
-    def _iter(self, *, reverse: bool = False) -> t.Iterator[KT]:
+    def _iter(self, *, reverse: bool = False) -> Iterator[KT]:
         nodes = self._sntl.iternodes(reverse=reverse)
         korv_by_node = self._node_by_korv.inverse
         if self._bykey:
