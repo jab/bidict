@@ -36,13 +36,13 @@ repos:
         args: ["--uri-ignore-words-list", "*"]  # https://github.com/codespell-project/codespell/issues/2473
 
   - repo: https://github.com/crate-ci/typos
-    rev: v1.28.1
+    rev: typos-dict-v0.12.1
     hooks:
       - id: typos
         args: [--write-changes]
 
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.13.0
+    rev: v1.14.1
     hooks:
       - id: mypy
         additional_dependencies:

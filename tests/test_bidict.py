@@ -140,11 +140,15 @@ class BidictStateMachine(RuleBasedStateMachine):
     @invariant()
     def assert_reversed_works(self) -> None:
         assert list(reversed(self.bi)) == list(self.bi)[::-1]
-        assert list(reversed(self.bi.items())) == list(self.bi.items())[::-1]
+        items = self.bi.items()
+        assert isinstance(items, t.Reversible)
+        assert list(reversed(items)) == list(items)[::-1]
         if self.is_ordered():
             assert zip_equal(reversed(self.bi), reversed(self.oracle.data))
-            assert zip_equal(reversed(self.bi.items()), reversed(self.oracle.data.items()))
-            assert zip_equal(reversed(self.bi.values()), reversed(self.oracle.data.values()))
+            assert zip_equal(reversed(items), reversed(self.oracle.data.items()))
+            values = self.bi.values()
+            assert isinstance(values, t.Reversible)
+            assert zip_equal(reversed(values), reversed(self.oracle.data.values()))
 
     @rule()
     def copy(self) -> None:
