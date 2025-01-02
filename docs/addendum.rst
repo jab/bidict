@@ -105,8 +105,7 @@ where :class:`~bidict.bidict`\s could be used for fun and profit
   ``dis.opnames``.
   These could be combined into a single bidict.
 
-- Python 3's
-  :mod:`html.entities` module
+- The :mod:`html.entities` module
   maintains separate
   ``html.entities.name2codepoint`` and
   ``html.entities.codepoint2name`` dicts.

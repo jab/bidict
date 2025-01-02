@@ -10,7 +10,7 @@ name: update GitHub Actions
 
 jobs:
   main:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: check out code
         uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
