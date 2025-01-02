@@ -43,20 +43,20 @@ jobs:
           - pyversion: "pypy-3.10"
     steps:
       - name: check out source
-        uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
       - name: set up Python ${{ matrix.pyversion }}
-        uses: actions/setup-python@82c7e631bb3cdc910f68e0081d67478d79c6982d
+        uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b
         with:
           python-version: ${{ matrix.pyversion }}
       - name: set up cached uv
-        uses: hynek/setup-cached-uv@4b4bfa932036976749a9653b0fa4fa10b1a7092b
+        uses: hynek/setup-cached-uv@757bedc3f972eb7227a1aa657651f15a8527c817
       - name: create and activate virtualenv
         run: |
           uv sync --only-group=test
           source .venv/bin/activate
           echo PATH="$PATH" >> "$GITHUB_ENV"
       - name: cache .mypy_cache dir
-        uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9
+        uses: actions/cache@1bd1e32a3bdc45362d1e726936510720a7c30a57
         with:
           path: .mypy_cache
           key: mypy
@@ -67,7 +67,7 @@ jobs:
           hypothesis_profile=${{ github.event.inputs.hypothesis_profile || (github.event_name == 'schedule' && 'more-examples' || 'default') }}
           echo PYTEST_ADDOPTS="$PYTEST_ADDOPTS --hypothesis-profile=$hypothesis_profile" >> "$GITHUB_ENV"
       - name: cache .hypothesis dir
-        uses: actions/cache@0c45773b623bea8c8e75f6c82b208c3cf94ea4f9
+        uses: actions/cache@1bd1e32a3bdc45362d1e726936510720a7c30a57
         with:
           path: .hypothesis
           key: hypothesis|${{ runner.os }}|${{ matrix.pyversion }}
@@ -87,7 +87,7 @@ jobs:
           coverage report
       - name: maybe upload to Codecov  # https://github.com/codecov/codecov-action
         if: matrix.enable_coverage
-        uses: codecov/codecov-action@e28ff129e5465c2c0dcc6f003fc735cb6ae0c673
+        uses: codecov/codecov-action@1e68e06f1dbfde0e4cefc87efeba9e4643565303
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         with:
