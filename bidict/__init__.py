@@ -1,4 +1,4 @@
-# Copyright 2009-2024 Joshua Bronson. All rights reserved.
+# Copyright 2009-2025 Joshua Bronson. All rights reserved.
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -47,7 +47,7 @@ if you are reading this elsewhere.
 
 ----
 
-.. :copyright: (c) 2009-2024 Joshua Bronson.
+.. :copyright: (c) 2009-2025 Joshua Bronson.
 .. :license: MPLv2. See LICENSE for details.
 """
 

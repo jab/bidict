@@ -1,4 +1,4 @@
-# Copyright 2009-2024 Joshua Bronson. All rights reserved.
+# Copyright 2009-2025 Joshua Bronson. All rights reserved.
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -8,7 +8,7 @@
 
 __version__ = '0.23.2.dev0'
 __author__ = {'name': 'Joshua Bronson', 'email': 'jabronson@gmail.com'}
-__copyright__ = '© 2009-2024 Joshua Bronson'
+__copyright__ = '© 2009-2025 Joshua Bronson'
 __description__ = 'The bidirectional mapping library for Python.'
 __license__ = 'MPL 2.0'
 __url__ = 'https://bidict.readthedocs.io'
