@@ -16,7 +16,6 @@ from collections.abc import Reversible
 from dataclasses import dataclass
 from itertools import chain
 from itertools import combinations
-from itertools import starmap
 
 from bidict import DROP_NEW
 from bidict import DROP_OLD
@@ -244,7 +243,7 @@ class Oracle(t.Generic[KT, VT]):
 
 
 def zip_equal(i1: Iterable[t.Any], i2: Iterable[t.Any]) -> bool:
-    return all(starmap(operator.eq, zip(i1, i2)))
+    return all(map(operator.eq, i1, i2))
 
 
 def invdict(d: dict[KT, VT]) -> dict[VT, KT]:

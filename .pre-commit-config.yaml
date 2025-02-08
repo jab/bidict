@@ -30,19 +30,19 @@ repos:
       - id: remove-tabs
 
   - repo: https://github.com/codespell-project/codespell
-    rev: v2.3.0
+    rev: v2.4.1
     hooks:
       - id: codespell
         args: ["--uri-ignore-words-list", "*"]  # https://github.com/codespell-project/codespell/issues/2473
 
   - repo: https://github.com/crate-ci/typos
-    rev: dictgen-v0.3.1
+    rev: typos-dict-v0.12.4
     hooks:
       - id: typos
         args: [--write-changes]
 
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.14.1
+    rev: v1.15.0
     hooks:
       - id: mypy
         additional_dependencies:
@@ -50,7 +50,7 @@ repos:
           - pytest
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.8.6
+    rev: v0.9.5
     hooks:
       - id: ruff
         args: [--fix, --unsafe-fixes]

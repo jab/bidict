@@ -26,7 +26,6 @@ from collections.abc import Mapping
 from collections.abc import MutableMapping
 from collections.abc import Reversible
 from collections.abc import ValuesView
-from itertools import starmap
 from operator import eq
 from types import MappingProxyType
 
@@ -307,7 +306,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         """
         if not isinstance(other, Mapping) or len(self) != len(other):
             return False
-        return all(starmap(eq, zip(self.items(), other.items())))
+        return all(map(eq, self.items(), other.items()))
 
     def _dedup(self, key: KT, val: VT, on_dup: OnDup) -> DedupResult[KT, VT]:
         """Check *key* and *val* for any duplication in self.
