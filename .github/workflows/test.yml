@@ -45,7 +45,7 @@ jobs:
       - name: check out source
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
       - name: set up Python ${{ matrix.pyversion }}
-        uses: actions/setup-python@0b93645e9fea7318ecaed2b359559ac225c90a2b
+        uses: actions/setup-python@8d9ed9ac5c53483de85588cdf95a591a75ab9f55
         with:
           python-version: ${{ matrix.pyversion }}
       - name: set up cached uv
@@ -56,7 +56,7 @@ jobs:
           source .venv/bin/activate
           echo PATH="$PATH" >> "$GITHUB_ENV"
       - name: cache .mypy_cache dir
-        uses: actions/cache@1bd1e32a3bdc45362d1e726936510720a7c30a57
+        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684
         with:
           path: .mypy_cache
           key: mypy
@@ -67,7 +67,7 @@ jobs:
           hypothesis_profile=${{ github.event.inputs.hypothesis_profile || (github.event_name == 'schedule' && 'more-examples' || 'default') }}
           echo PYTEST_ADDOPTS="$PYTEST_ADDOPTS --hypothesis-profile=$hypothesis_profile" >> "$GITHUB_ENV"
       - name: cache .hypothesis dir
-        uses: actions/cache@1bd1e32a3bdc45362d1e726936510720a7c30a57
+        uses: actions/cache@5a3ec84eff668545956fd18022155c47e93e2684
         with:
           path: .hypothesis
           key: hypothesis|${{ runner.os }}|${{ matrix.pyversion }}
@@ -87,7 +87,7 @@ jobs:
           coverage report
       - name: maybe upload to Codecov  # https://github.com/codecov/codecov-action
         if: matrix.enable_coverage
-        uses: codecov/codecov-action@1e68e06f1dbfde0e4cefc87efeba9e4643565303
+        uses: codecov/codecov-action@0565863a31f2c772f9f0395002a31e3f06189574
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         with:
