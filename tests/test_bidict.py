@@ -108,7 +108,7 @@ class BidictStateMachine(RuleBasedStateMachine):
 
     viewnames = sampled_from(('keys', 'values', 'items'))
 
-    # Would make this an invariant rather than a rule, but it slows down the tests too much.
+    # TODO: Try @invariant rather than @rule now that hypothesis is faster / it might not slow down the tests too much.
     @rule(rand=randoms(), viewname=viewnames, set_op=sampled_from(SET_OPS), other_set=items.map(frozenset))
     def assert_views_match_oracle(self, rand: Random, viewname: str, set_op: t.Any, other_set: t.Any) -> None:
         check = getattr(self.bi, viewname)()

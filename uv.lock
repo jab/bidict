@@ -114,7 +114,7 @@ docs = [
 test = [
     { name = "coverage" },
     { name = "coverage-enable-subprocess" },
-    { name = "hypothesis", specifier = "==6.131.19" },
+    { name = "hypothesis" },
     { name = "mypy" },
     { name = "pytest" },
     { name = "pytest-benchmark" },
@@ -388,16 +388,16 @@ wheels = [
 
 [[package]]
 name = "hypothesis"
-version = "6.131.19"
+version = "6.135.14"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "attrs" },
     { name = "exceptiongroup", marker = "python_full_version < '3.11'" },
     { name = "sortedcontainers" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/ec/74/4eae666e0f18a950f64c81b0241ab5077bfe9a526b311300ea73d8f55191/hypothesis-6.131.19.tar.gz", hash = "sha256:eadb7d26427a66332dc06f4a6c91a95dbe3827e7618bec4913e3610d74ff76ef", size = 437718, upload-time = "2025-05-19T20:24:14.583Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/70/a5/d4f74ba61bbe5dd001c998ae8b85f9bfdc6cd29e6c5693d1116847b64251/hypothesis-6.135.14.tar.gz", hash = "sha256:2666df50b3cc40ea08b161a5389d6a1cd5aa3cab0dd8fde0ae339389714a4f67", size = 452884, upload-time = "2025-06-20T19:16:38.199Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/f1/21/aee2202905589b9d274afa7db029eab2ac2020d35f461e79a11d12442a5c/hypothesis-6.131.19-py3-none-any.whl", hash = "sha256:a021c5d0af6ac93d6f84f15644c0619962342c0acb03af583c61de39d88cfafe", size = 502225, upload-time = "2025-05-19T20:24:10.786Z" },
+    { url = "https://files.pythonhosted.org/packages/ce/cf/491a487229b04a2ad56175c74700cfb79635dfce2d942becc6ab10c0ceb9/hypothesis-6.135.14-py3-none-any.whl", hash = "sha256:0dd5b8095e36bd288367c631f864a16c30500b01b17943dcea681233f7421860", size = 519115, upload-time = "2025-06-20T19:16:34.539Z" },
 ]
 
 [[package]]

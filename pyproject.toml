@@ -35,7 +35,7 @@ Repository = "https://github.com/jab/bidict"
 test = [
   "coverage",
   "coverage-enable-subprocess",
-  "hypothesis==6.131.19",  # Seeing https://github.com/hypothesisWorks/hypothesis/issues/4431 with newer versions
+  "hypothesis",
   "mypy",
   "pytest",
   "pytest-benchmark",
