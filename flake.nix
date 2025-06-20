@@ -18,7 +18,6 @@
           python312
           python311
           python310
-          python39
           pypy310
           uv  # Bootstrap version used to install a possibly-newer version when 'uv sync' is run (via uv.lock)
         ];

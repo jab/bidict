@@ -14,5 +14,5 @@ build:
     - asdf plugin add uv
     - asdf install uv latest
     - asdf global uv latest
-    - uv sync --extra=docs
+    - uv sync --group=docs
     - .venv/bin/python -m sphinx -TWn --keep-going -b html -d docs/_build/doctrees docs $READTHEDOCS_OUTPUT/html

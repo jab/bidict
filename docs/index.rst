@@ -14,4 +14,4 @@
    thanks
    code-of-conduct
 
-.. include:: README.rst
+.. include:: ../README.rst
