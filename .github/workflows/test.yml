@@ -74,7 +74,6 @@ jobs:
       - name: maybe enable coverage
         if: matrix.enable_coverage
         run: |
-          echo COVERAGE_CORE=sysmon >> "$GITHUB_ENV"
           echo COVERAGE_PROCESS_START="$(pwd)/.coveragerc" >> "$GITHUB_ENV"
           echo RUN_PYTEST_CMD="coverage run -m pytest" >> "$GITHUB_ENV"
       - name: run pytest
