@@ -35,14 +35,6 @@ from ._typing import MapOrItems
 class MutableBidict(BidictBase[KT, VT], MutableBidirectionalMapping[KT, VT]):
     """Base class for mutable bidirectional mappings."""
 
-    if t.TYPE_CHECKING:
-
-        @property
-        def inverse(self) -> MutableBidict[VT, KT]: ...
-
-        @property
-        def inv(self) -> MutableBidict[VT, KT]: ...
-
     def _pop(self, key: KT) -> VT:
         val = self._fwdm.pop(key)
         del self._invm[val]
@@ -178,14 +170,6 @@ class bidict(MutableBidict[KT, VT]):
     See :ref:`intro:Introduction` and :ref:`basic-usage:Basic Usage`
     to get started (also available at https://bidict.rtfd.io).
     """
-
-    if t.TYPE_CHECKING:
-
-        @property
-        def inverse(self) -> bidict[VT, KT]: ...
-
-        @property
-        def inv(self) -> bidict[VT, KT]: ...
 
 
 #                             * Code review nav *

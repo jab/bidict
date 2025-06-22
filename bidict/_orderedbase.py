@@ -132,14 +132,6 @@ class OrderedBidictBase(BidictBase[KT, VT]):
         self._bykey = True
         super().__init__(arg, **kw)
 
-    if t.TYPE_CHECKING:
-
-        @property
-        def inverse(self) -> OrderedBidictBase[VT, KT]: ...
-
-        @property
-        def inv(self) -> OrderedBidictBase[VT, KT]: ...
-
     def _make_inverse(self) -> OrderedBidictBase[VT, KT]:
         inv = t.cast(OrderedBidictBase[VT, KT], super()._make_inverse())
         inv._sntl = self._sntl

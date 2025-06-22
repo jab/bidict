@@ -33,14 +33,6 @@ from ._typing import VT
 class OrderedBidict(OrderedBidictBase[KT, VT], MutableBidict[KT, VT]):
     """Mutable bidict type that maintains items in insertion order."""
 
-    if t.TYPE_CHECKING:
-
-        @property
-        def inverse(self) -> OrderedBidict[VT, KT]: ...
-
-        @property
-        def inv(self) -> OrderedBidict[VT, KT]: ...
-
     def clear(self) -> None:
         """Remove all items."""
         super().clear()

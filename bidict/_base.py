@@ -83,7 +83,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
     _invm_cls: t.ClassVar[type[MutableMapping[t.Any, t.Any]]] = dict  #: class of the backing inverse mapping
 
     #: The class of the inverse bidict instance.
-    _inv_cls: t.ClassVar[type[BidictBase[t.Any, t.Any]]]
+    _inv_cls: t.ClassVar[type[t.Self[t.Any, t.Any]]]
 
     def __init_subclass__(cls) -> None:
         super().__init_subclass__()
@@ -171,7 +171,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
     #     def inverse(self: BT[KT, VT]) -> BT[VT, KT]:
     # Ref: https://github.com/python/typing/issues/548#issuecomment-621571821
     @property
-    def inverse(self) -> BidictBase[VT, KT]:
+    def inverse(self) -> t.Self[VT, KT]:
         """The inverse of this bidirectional mapping instance."""
         # When `bi.inverse` is called for the first time, this method
         # computes the inverse instance, stores it for subsequent use, and then
@@ -203,14 +203,14 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         # avoiding an unintended potential deallocation.
         return inv
 
-    def _make_inverse(self) -> BidictBase[VT, KT]:
-        inv: BidictBase[VT, KT] = self._inv_cls()
+    def _make_inverse(self) -> t.Self[VT, KT]:
+        inv: t.Self[VT, KT] = self._inv_cls()
         inv._fwdm = self._invm
         inv._invm = self._fwdm
         return inv
 
     @property
-    def inv(self) -> BidictBase[VT, KT]:
+    def inv(self) -> t.Self[VT, KT]:
         """Alias for :attr:`inverse`."""
         return self.inverse
 

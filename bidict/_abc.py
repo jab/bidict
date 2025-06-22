@@ -16,6 +16,7 @@
 
 from __future__ import annotations
 
+import typing as t
 from abc import abstractmethod
 from collections.abc import Iterator
 from collections.abc import Mapping
@@ -39,7 +40,7 @@ class BidirectionalMapping(Mapping[KT, VT]):
 
     @property
     @abstractmethod
-    def inverse(self) -> BidirectionalMapping[VT, KT]:
+    def inverse(self) -> t.Self[VT, KT]:
         """The inverse of this bidirectional mapping instance.
 
         *See also* :attr:`bidict.BidictBase.inverse`, :attr:`bidict.BidictBase.inv`

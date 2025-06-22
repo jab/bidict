@@ -15,7 +15,6 @@
 
 from __future__ import annotations
 
-import typing as t
 from collections.abc import ItemsView
 
 from ._base import BidictBase
@@ -27,14 +26,6 @@ class frozenbidict(BidictBase[KT, VT]):
     """Immutable, hashable bidict type."""
 
     _hash: int
-
-    if t.TYPE_CHECKING:
-
-        @property
-        def inverse(self) -> frozenbidict[VT, KT]: ...
-
-        @property
-        def inv(self) -> frozenbidict[VT, KT]: ...
 
     def __hash__(self) -> int:
         """The hash of this bidict as determined by its items."""
