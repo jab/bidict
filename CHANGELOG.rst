@@ -23,6 +23,15 @@ please consider sponsoring bidict on GitHub.`
    Click the "Watch" dropdown, choose "Custom", and then choose "Releases".
 
 
+0.23.2 (not yet released)
+-------------------------
+
+- Remove ``bidict.metadata`` and associated metadata from the
+  :mod:`bidict` module (e.g. ``bidict.__version__``).
+  Use e.g. :func:`importlib.metadata.metadata("bidict")["Version"]
+  <importlib.metadata.metadata>` instead.
+
+
 0.23.1 (2024-02-18)
 -------------------
 
@@ -681,7 +690,7 @@ e.g. ``some_ordered_bidict.inv[foo] = bar``.
 **Misc**
 
 - Add ``bidict.__version_info__`` attribute
-  to complement :attr:`bidict.__version__`.
+  to complement ``bidict.__version__``.
 
 
 0.16.0 (2018-04-06)

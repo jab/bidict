@@ -18,13 +18,7 @@
 
 """Sphinx configuration."""
 
-
-# Prefer having to run `pip install .` to get bidict on PYTHONPATH over the
-# typical `sys.path.insert(0, os.path.abspath('..'))` hack so that we avoid the
-# `bidict` module incorrectly importing as a _frozen_importlib_external.NamespaceLoader
-# object, which doesn't allow accessing e.g. the .metadata submodule.
-
-import bidict
+from importlib.metadata import metadata
 
 
 # -- General configuration ------------------------------------------------
@@ -67,16 +61,16 @@ source_suffix = '.rst'
 # The master toctree document.
 master_doc = 'index'
 
-# General information about the project.
-project = 'bidict'
-author = bidict.metadata.__author__['name']
-copyright = bidict.metadata.__copyright__.lstrip('© ')  # noqa: A001
+bidict_metadata = metadata('bidict')  # bidict must be on PYTHONPATH (e.g. installed)
+project = bidict_metadata['Name']
+author = bidict_metadata['Author']
+copyright = f'2009-2025 {author}'  # noqa: A001
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
 # built documents.
 # The full version, including alpha/beta/rc tags.
-release = bidict.__version__
+release = bidict_metadata['Version']
 # The short X.Y version.
 version = '.'.join(release.split('.')[:2])
 

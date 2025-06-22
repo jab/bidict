@@ -1,9 +1,10 @@
 [project]
 name = "bidict"
-dynamic = ["version"]
+version = "0.23.2.dev0"
 description = "The bidirectional mapping library for Python."
 authors = [{ name = "Joshua Bronson", email = "jabronson@gmail.com" }]
-license = { text = "MPL 2.0" }
+license = "MPL-2.0"
+license-files = ["LICENSE"]
 dependencies = []
 requires-python = ">=3.9"
 readme = "README.rst"
@@ -61,15 +62,13 @@ docs = [
 [tool.uv]
 default-groups = ["test", "dev", "docs"]
 
+[tool.uv.build-backend]
+module-root = ""
+source-exclude = [".mypy_cache"]
+
 [build-system]
-requires = ["setuptools >= 40.9.0"]
-build-backend = "setuptools.build_meta"
-
-[tool.setuptools]
-packages = ["bidict"]
-
-[tool.setuptools.dynamic]
-version = {attr = "bidict.metadata.__version__"}
+requires = ["uv_build>=0.7.13,<0.8.0"]
+build-backend = "uv_build"
 
 [tool.mypy]
 strict = true

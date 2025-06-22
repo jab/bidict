@@ -23,7 +23,3 @@ bidict
 .. autodata:: bidict.ON_DUP_DEFAULT
 .. autodata:: bidict.ON_DUP_RAISE
 .. autodata:: bidict.ON_DUP_DROP_OLD
-
-.. attribute:: __version__
-
-   The version of bidict represented as a string.

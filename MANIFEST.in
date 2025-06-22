@@ -1,3 +1,0 @@
-include bidict/py.typed
-recursive-exclude docs *
-recursive-exclude tests *

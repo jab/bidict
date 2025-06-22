@@ -80,12 +80,6 @@ from ._frozen import frozenbidict as frozenbidict
 from ._iter import inverted as inverted
 from ._orderedbase import OrderedBidictBase as OrderedBidictBase
 from ._orderedbidict import OrderedBidict as OrderedBidict
-from .metadata import __author__ as __author__
-from .metadata import __copyright__ as __copyright__
-from .metadata import __description__ as __description__
-from .metadata import __license__ as __license__
-from .metadata import __url__ as __url__
-from .metadata import __version__ as __version__
 
 
 # Set __module__ of re-exported classes to the 'bidict' top-level module, so that e.g.

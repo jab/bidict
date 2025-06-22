@@ -53,6 +53,7 @@ jobs:
       - name: create and activate virtualenv
         run: |
           uv sync --only-group=test
+          uv pip install -e .
           source .venv/bin/activate
           echo PATH="$PATH" >> "$GITHUB_ENV"
       - name: cache .mypy_cache dir
