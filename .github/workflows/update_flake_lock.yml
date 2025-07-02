@@ -13,9 +13,9 @@ jobs:
       - name: check out code
         uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683
       - name: install Nix
-        uses: DeterminateSystems/nix-installer-action@e50d5f73bfe71c2dd0aa4218de8f4afa59f8f81d
+        uses: DeterminateSystems/nix-installer-action@21a544727d0c62386e78b4befe52d19ad12692e3
       - name: update flake.lock
-        uses: DeterminateSystems/update-flake-lock@a2bbe0274e3a0c4194390a1e445f734c597ebc37
+        uses: DeterminateSystems/update-flake-lock@428c2b58a4b7414dabd372acb6a03dba1084d3ab
         with:
           token: ${{ secrets.FLAKE_LOCK_UPDATE_ACTION_TOKEN }}
           pr-title: "Update flake.lock"
