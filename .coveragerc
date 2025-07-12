@@ -3,14 +3,16 @@ branch = True
 # TODO: Uncomment out the following once sysmon supports branch coverage and dynamic_context:
 # core = sysmon
 parallel = True
-source = bidict
+source =
+  bidict
+  tests
 dynamic_context = test_function
 
 [report]
 precision = 1
 show_missing = True
 # Don't show files in the report that are 100% covered:
-skip_covered = True
+#skip_covered = True
 exclude_also =
   @.*overload
   if .*TYPE_CHECKING

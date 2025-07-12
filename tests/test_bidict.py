@@ -57,6 +57,7 @@ from hypothesis.stateful import rule
 from hypothesis.strategies import booleans
 from hypothesis.strategies import randoms
 from hypothesis.strategies import sampled_from
+from typing_extensions import TypeIs
 from typing_extensions import assert_type
 
 from bidict import BidirectionalMapping
@@ -89,6 +90,10 @@ on_dups = tuple(starmap(OnDup, product(OnDupAction, repeat=2)))
 on_dup = sampled_from(on_dups)
 
 
+def is_ordered(bi: BidirectionalMapping[int, int]) -> TypeIs[OrderedBidict[int, int]]:
+    return isinstance(bi, OrderedBidict)
+
+
 class BidictStateMachine(RuleBasedStateMachine):
     bi: MutableBidict[int, int]
     oracle: Oracle[int, int]
@@ -99,7 +104,7 @@ class BidictStateMachine(RuleBasedStateMachine):
         self.oracle = Oracle(items121, ordered=self.is_ordered())
 
     def is_ordered(self) -> bool:
-        return isinstance(self.bi, OrderedBidict)
+        return is_ordered(self.bi)
 
     @invariant()
     def assert_match_oracle(self) -> None:
@@ -252,16 +257,23 @@ class BidictStateMachine(RuleBasedStateMachine):
         return bool(self.bi)
 
     @precondition(is_nonempty)
-    @rule(last=booleans())
-    def popitem(self, last: bool) -> None:
-        kw = {'last': last} if self.is_ordered() else {}
-        popped_item = self.bi.popitem(**kw)
-        self.oracle.pop(popped_item[0])
-        assert popped_item not in self.bi.items()
-        if self.is_nonempty():
-            inv_popped_item = self.bi.inv.popitem(**kw)
-            self.oracle.pop(inv_popped_item[1])
-            assert inv_popped_item not in self.bi.inv.items()
+    @rule(last=booleans(), flip=booleans(), inv=booleans())
+    def popitem(self, last: bool, inv: bool, flip: bool) -> None:
+        bi, oracle = self.bi, self.oracle
+        if is_ordered(bi):
+            if not inv:
+                expect = oracle.popitem(last=last)
+                check = bi.popitem(last=last)
+            else:
+                expect = oracle.popitem(last=last)[::-1]
+                check = bi.inv.popitem(last=last)
+            assert check == expect
+            assert check not in bi.items()
+        else:
+            fst, snd = (bi, oracle) if flip else (oracle, bi)
+            k, v = fst.popitem()
+            assert snd.pop(k) == v
+            assert (k, v) not in bi.items()
 
     @precondition(is_nonempty)
     @rule(random=randoms())

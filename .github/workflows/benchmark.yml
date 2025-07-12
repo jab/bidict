@@ -61,13 +61,13 @@ jobs:
           [ "$line1" = "{" ]
       - name: benchmark and compare to baseline
         run: |
-          ./cachegrind.py pytest -n0 \
+          ./cachegrind.py pytest -c /dev/null -n0 \
               --benchmark-autosave \
               --benchmark-columns=min,rounds,iterations \
               --benchmark-disable-gc \
               --benchmark-group-by=name \
               --benchmark-compare=baseline.json \
-              tests/microbenchmarks.py
+              microbenchmarks.py
       - name: archive benchmark results
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
