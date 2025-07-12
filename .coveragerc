@@ -3,7 +3,9 @@ branch = True
 # TODO: Uncomment out the following once sysmon supports branch coverage and dynamic_context:
 # core = sysmon
 parallel = True
-source = bidict
+source =
+  bidict
+  tests
 dynamic_context = test_function
 
 [report]

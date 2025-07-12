@@ -98,8 +98,7 @@ assert all(not should_be_reversible(bi_t) or issubclass(bi_t, Reversible) for bi
 
 
 def powerset(iterable: Iterable[t.Any]) -> Iterable[tuple[t.Any, ...]]:
-    if not isinstance(iterable, (tuple, list)):
-        iterable = tuple(iterable)
+    iterable = tuple(iterable)
     return chain.from_iterable(combinations(iterable, r) for r in range(len(iterable) + 1))
 
 
