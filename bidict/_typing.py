@@ -18,9 +18,15 @@ from enum import Enum
 KT = t.TypeVar('KT')
 VT = t.TypeVar('VT')
 VT_co = t.TypeVar('VT_co', covariant=True)
-
+MissingT = Enum('MissingT', {'MISSING': 'MISSING'})
+MISSING: t.Final[t.Literal[MissingT.MISSING]] = MissingT.MISSING
+OKT = t.Union[KT, MissingT]  #: optional key type
+OVT = t.Union[VT, MissingT]  #: optional value type
+DT = t.TypeVar('DT')  #: for default arguments
+ODT = t.Union[DT, MissingT]  #: optional default arg type
 
 Items = Iterable[tuple[KT, VT]]
+ItemsIter = Iterator[tuple[KT, VT]]
 
 
 @t.runtime_checkable
@@ -32,18 +38,3 @@ class Maplike(t.Protocol[KT, VT_co]):
 
 
 MapOrItems = t.Union[Maplike[KT, VT], Items[KT, VT]]
-ItemsIter = Iterator[tuple[KT, VT]]
-
-
-class MissingT(Enum):
-    """Sentinel used to represent none/missing when None itself can't be used."""
-
-    MISSING = 'MISSING'
-
-
-MISSING: t.Final[t.Literal[MissingT.MISSING]] = MissingT.MISSING
-OKT = t.Union[KT, MissingT]  #: optional key type
-OVT = t.Union[VT, MissingT]  #: optional value type
-
-DT = t.TypeVar('DT')  #: for default arguments
-ODT = t.Union[DT, MissingT]  #: optional default arg type
