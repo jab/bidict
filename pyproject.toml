@@ -35,7 +35,6 @@ Repository = "https://github.com/jab/bidict"
 [dependency-groups]
 test = [
   "coverage",
-  "coverage-enable-subprocess",
   "hypothesis",
   "mypy",
   "pytest",
