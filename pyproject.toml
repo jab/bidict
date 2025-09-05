@@ -48,6 +48,7 @@ test = [
 dev = [
   "pytest-clarity",
   "pytest-icdiff",
+  "pytest-sugar",
   "tox",
   "tox-uv",
   "uv",
