@@ -24,7 +24,7 @@ main() {
   done
 
   log "Upgrading PyPI dependencies..."
-  uv lock --upgrade
+  uv lock --upgrade && uv sync
   log "Upgrading PyPI dependencies: Done"
   log
   log "Upgrading pre-commit hooks..."
@@ -32,7 +32,6 @@ main() {
   log "Done."
   log
   log "Reminders:"
-  log " - Run 'uv sync' to pick up PyPI dependency upgrades."
   log " - Check release notes of upgraded packages for anything that affects bidict."
   log " - Ensure tests pass for all supported Python versions."
   log " - Check output for any new warnings, not just test failures."
