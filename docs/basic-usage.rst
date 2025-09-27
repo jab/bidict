@@ -175,11 +175,9 @@ in keeping with dict's behavior:
    >>> b['one'] = 2  # succeeds
    >>> b
    bidict({'one': 2})
-   >>> b.update({'one': 3, 'one': 4, 'one': 5})
+   >>> b.update([('one', 3), ('one', 4), ('one', 5)])
    >>> b
    bidict({'one': 5})
-   >>> bidict({'one': 1, 'one': 2})
-   bidict({'one': 2})
 
 In summary,
 when attempting to insert an item whose key duplicates an existing item's,
