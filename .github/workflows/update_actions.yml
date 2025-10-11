@@ -17,7 +17,7 @@ jobs:
         with:
           token: ${{ secrets.ACTIONS_VERSION_UPDATER_TOKEN }}
       - name: update GitHub Actions
-        uses: saadmk11/github-actions-version-updater@64be81ba69383f81f2be476703ea6570c4c8686e
+        uses: saadmk11/github-actions-version-updater@v0.9.0
         with:
           token: ${{ secrets.ACTIONS_VERSION_UPDATER_TOKEN }}
           update_version_with: release-commit-sha
