@@ -34,12 +34,12 @@ jobs:
       matrix:
         include:
           # https://github.com/actions/python-versions/blob/main/versions-manifest.json
+          - pyversion: "3.14"
           - pyversion: "3.13"
             enable_coverage: true
           - pyversion: "3.12"
           - pyversion: "3.11"
           - pyversion: "3.10"
-          - pyversion: "3.9"
           - pyversion: "pypy-3.10"
     steps:
       - name: check out source

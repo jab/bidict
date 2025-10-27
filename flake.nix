@@ -14,6 +14,7 @@
       devShell = pkgs.mkShell {
         packages = with pkgs; [
           pre-commit
+          python314
           python313
           python312
           python311
