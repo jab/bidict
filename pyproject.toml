@@ -121,3 +121,16 @@ docstring-code-format = true
 docstring-code-line-length = "dynamic"
 preview = true
 quote-style = "single"
+
+[tool.pytest]
+addopts = [
+  "-vv",
+  "--doctest-modules",
+  "--doctest-glob=docs/*.rst",
+  "--durations=5",
+  "--hypothesis-profile=less-examples",
+  "--numprocesses=auto",
+]
+doctest_optionflags = ["ELLIPSIS"]
+strict = true
+testpaths = ["bidict", "tests", "docs"]
