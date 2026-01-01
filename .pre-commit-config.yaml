@@ -17,7 +17,7 @@ repos:
       - id: trailing-whitespace
 
   - repo: https://gitlab.com/bmares/check-json5
-    rev: v1.0.0
+    rev: v1.0.1
     hooks:
       - id: check-json5
 
@@ -43,7 +43,7 @@ repos:
 #       args: [--write-changes]
 
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.18.2
+    rev: v1.19.1
     hooks:
       - id: mypy
         additional_dependencies:
@@ -51,7 +51,7 @@ repos:
           - pytest
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.14.4
+    rev: v0.14.10
     hooks:
       - id: ruff-check
         args: [--fix, --unsafe-fixes]

@@ -4,8 +4,9 @@
     "recommendations": [
       "HarrisonGoldstein.tyche",
       "charliermarsh.ruff",
-      // "tamasfe.even-better-toml",
       // "lextudio.restructuredtext",
+      "ms-python.mypy-type-checker",
+      // "tamasfe.even-better-toml",
       // "trond-snekvik.simple-rst",
     ],
     "unwantedRecommendations": [],

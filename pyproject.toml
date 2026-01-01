@@ -36,7 +36,7 @@ Repository = "https://github.com/jab/bidict"
 test = [
   "coverage",
   "hypothesis",
-  "mypy",
+  "mypy; implementation_name != 'pypy'",  # https://github.com/python/mypy/issues/20329
   "pytest",
   "pytest-benchmark",
   "pytest-sphinx",

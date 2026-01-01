@@ -61,8 +61,9 @@ jobs:
         with:
           path: .mypy_cache
           key: mypy
-      - name: run mypy
-        run: mypy bidict tests
+      - name: maybe run mypy
+        run: |
+          if python3 -m mypy -V; then mypy bidict tests; else echo 'Skipping mypy (not available)'; fi
       - name: set hypothesis profile
         run: |
           hypothesis_profile=${{ github.event.inputs.hypothesis_profile || (github.event_name == 'schedule' && 'more-examples' || 'default') }}
