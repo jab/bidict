@@ -1,4 +1,4 @@
-# Copyright 2009-2025 Joshua Bronson. All rights reserved.
+# Copyright 2009-2026 Joshua Bronson. All rights reserved.
 #
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this
@@ -64,7 +64,7 @@ master_doc = 'index'
 bidict_metadata = metadata('bidict')  # bidict must be on PYTHONPATH (e.g. installed)
 project = bidict_metadata['Name']
 author = bidict_metadata['Author']
-copyright = f'2009-2025 {author}'  # noqa: A001
+copyright = f'2009-2026 {author}'  # noqa: A001
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
