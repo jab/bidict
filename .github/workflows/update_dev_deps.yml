@@ -11,15 +11,15 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: check out code
-        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
       - name: install Nix
-        uses: DeterminateSystems/nix-installer-action@786fff0690178f1234e4e1fe9b536e94f5433196
+        uses: DeterminateSystems/nix-installer-action@c5a866b6ab867e88becbed4467b93592bce69f8a
       # - name: set up upterm session
       #   uses: lhotari/action-upterm@v1
       - name: update development dependencies
         run: nix develop --command bash -c './update_dev_dependencies'
       - name: create PR
-        uses: peter-evans/create-pull-request@271a8d0340265f705b14b6d32b9829c1cb33d45e
+        uses: peter-evans/create-pull-request@98357b18bf14b5342f975ff684046ec3b2a07725
         with:
           token: ${{ secrets.DEV_DEPS_UPDATE_TOKEN }}
           title: Update development dependencies
