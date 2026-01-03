@@ -24,7 +24,8 @@ jobs:
           token: ${{ secrets.DEV_DEPS_UPDATE_TOKEN }}
           title: Update development dependencies
           labels: automated,dependencies
-          commit-message: Upgrade dev dependencies.
+          commit-message: Update dev dependencies.
+          branch: deps
 
 permissions:
   contents: read
