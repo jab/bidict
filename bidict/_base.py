@@ -49,6 +49,7 @@ from ._typing import VT
 from ._typing import Maplike
 from ._typing import MapOrItems
 from ._typing import Self
+from ._typing import override
 
 
 OldKV: t.TypeAlias = tuple[OKT[KT], OVT[VT]]
@@ -171,6 +172,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
     #     def inverse(self: BT[KT, VT]) -> BT[VT, KT]:
     # Ref: https://github.com/python/typing/issues/548#issuecomment-621571821
     @property
+    @override
     def inverse(self) -> BidictBase[VT, KT]:
         """The inverse of this bidirectional mapping instance."""
         # When `bi.inverse` is called for the first time, this method
@@ -214,12 +216,14 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         """Alias for :attr:`inverse`."""
         return self.inverse
 
+    @override
     def __repr__(self) -> str:
         """See :func:`repr`."""
         clsname = self.__class__.__name__
         items = dict(self.items()) if self else ''
         return f'{clsname}({items})'
 
+    @override
     def values(self) -> BidictKeysView[VT]:
         """A set-like object providing a view on the contained values.
 
@@ -235,6 +239,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         """
         return t.cast(BidictKeysView[VT], self.inverse.keys())
 
+    @override
     def keys(self) -> KeysView[KT]:
         """A set-like object providing a view on the contained keys.
 
@@ -252,6 +257,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         fwdm, fwdm_cls = self._fwdm, self._fwdm_cls
         return fwdm.keys() if fwdm_cls is dict else BidictKeysView(self)
 
+    @override
     def items(self) -> ItemsView[KT, VT]:
         """A set-like object providing a view on the contained items.
 
@@ -271,6 +277,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
     # The inherited collections.abc.Mapping.__contains__() method is implemented by doing a `try`
     # `except KeyError` around `self[key]`. The following implementation is much faster,
     # especially in the missing case.
+    @override
     def __contains__(self, key: t.Any) -> bool:
         """True if the mapping contains the specified key, else False."""
         return key in self._fwdm
@@ -278,6 +285,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
     # The inherited collections.abc.Mapping.__eq__() method is implemented in terms of an inefficient
     # `dict(self.items()) == dict(other.items())` comparison, so override it with a
     # more efficient implementation.
+    @override
     def __eq__(self, other: object) -> bool:
         """*x.__eq__(other)　⟺　x == other*
 
@@ -518,14 +526,17 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         new._update(self, rollback=False)
         return new
 
+    @override
     def __len__(self) -> int:
         """The number of contained items."""
         return len(self._fwdm)
 
+    @override
     def __iter__(self) -> Iterator[KT]:
         """Iterator over the contained keys."""
         return iter(self._fwdm)
 
+    @override
     def __getitem__(self, key: KT) -> VT:
         """*x.__getitem__(key) ⟺ x[key]*"""
         return self._fwdm[key]

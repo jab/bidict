@@ -21,6 +21,7 @@ from collections.abc import ItemsView
 from ._base import BidictBase
 from ._typing import KT
 from ._typing import VT
+from ._typing import override
 
 
 class frozenbidict(BidictBase[KT, VT]):
@@ -36,6 +37,7 @@ class frozenbidict(BidictBase[KT, VT]):
         @property
         def inv(self) -> frozenbidict[VT, KT]: ...
 
+    @override
     def __hash__(self) -> int:
         """The hash of this bidict as determined by its items."""
         if getattr(self, '_hash', None) is None:

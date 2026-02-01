@@ -28,6 +28,7 @@ from ._bidict import MutableBidict
 from ._orderedbase import OrderedBidictBase
 from ._typing import KT
 from ._typing import VT
+from ._typing import override
 
 
 class OrderedBidict(OrderedBidictBase[KT, VT], MutableBidict[KT, VT]):
@@ -41,6 +42,7 @@ class OrderedBidict(OrderedBidictBase[KT, VT], MutableBidict[KT, VT]):
         @property
         def inv(self) -> OrderedBidict[VT, KT]: ...
 
+    @override
     def clear(self) -> None:
         """Remove all items."""
         super().clear()
@@ -53,6 +55,7 @@ class OrderedBidict(OrderedBidictBase[KT, VT], MutableBidict[KT, VT]):
         self._dissoc_node(node)
         return val
 
+    @override
     def popitem(self, last: bool = True) -> tuple[KT, VT]:
         """*b.popitem() → (k, v)*
 
@@ -95,10 +98,12 @@ class OrderedBidict(OrderedBidictBase[KT, VT], MutableBidict[KT, VT]):
     # which may delegate to the backing _fwdm dict, since this is a mutable ordered bidict,
     # and therefore the ordering of items can get out of sync with the backing mappings
     # after mutation. (Need not override values() because it delegates to .inverse.keys().)
+    @override
     def keys(self) -> KeysView[KT]:
         """A set-like object providing a view on the contained keys."""
         return _OrderedBidictKeysView(self)
 
+    @override
     def items(self) -> ItemsView[KT, VT]:
         """A set-like object providing a view on the contained items."""
         return _OrderedBidictItemsView(self)

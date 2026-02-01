@@ -30,6 +30,7 @@ from ._typing import OKT
 from ._typing import OVT
 from ._typing import VT
 from ._typing import MapOrItems
+from ._typing import override
 
 
 AT = t.TypeVar('AT')  # attr type
@@ -140,6 +141,7 @@ class OrderedBidictBase(BidictBase[KT, VT]):
         @property
         def inv(self) -> OrderedBidictBase[VT, KT]: ...
 
+    @override
     def _make_inverse(self) -> OrderedBidictBase[VT, KT]:
         inv = t.cast(OrderedBidictBase[VT, KT], super()._make_inverse())
         inv._sntl = self._sntl
@@ -155,6 +157,7 @@ class OrderedBidictBase(BidictBase[KT, VT]):
         del self._node_by_korv.inverse[node]
         node.unlink()
 
+    @override
     def _init_from(self, other: MapOrItems[KT, VT]) -> None:
         """See :meth:`BidictBase._init_from`."""
         super()._init_from(other)
@@ -167,6 +170,7 @@ class OrderedBidictBase(BidictBase[KT, VT]):
         for k, v in iteritems(other):
             korv_by_node_set(new_node(), k if bykey else v)
 
+    @override
     def _write(self, newkey: KT, newval: VT, oldkey: OKT[KT], oldval: OVT[VT], unwrites: Unwrites | None) -> None:
         super()._write(newkey, newval, oldkey, oldval, unwrites)
         assoc, dissoc = self._assoc_node, self._dissoc_node
@@ -211,10 +215,12 @@ class OrderedBidictBase(BidictBase[KT, VT]):
             if unwrites is not None:
                 unwrites.append((assoc, node, oldkey, newval))
 
+    @override
     def __iter__(self) -> Iterator[KT]:
         """Iterator over the contained keys in insertion order."""
         return self._iter(reverse=False)
 
+    @override
     def __reversed__(self) -> Iterator[KT]:
         """Iterator over the contained keys in reverse insertion order."""
         return self._iter(reverse=True)

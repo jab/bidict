@@ -30,6 +30,7 @@ from ._typing import MISSING
 from ._typing import ODT
 from ._typing import VT
 from ._typing import MapOrItems
+from ._typing import override
 
 
 class MutableBidict(BidictBase[KT, VT], MutableBidirectionalMapping[KT, VT]):
@@ -48,10 +49,12 @@ class MutableBidict(BidictBase[KT, VT], MutableBidirectionalMapping[KT, VT]):
         del self._invm[val]
         return val
 
+    @override
     def __delitem__(self, key: KT) -> None:
         """*x.__delitem__(y)　⟺　del x[y]*"""
         self._pop(key)
 
+    @override
     def __setitem__(self, key: KT, val: VT) -> None:
         """Set the value for *key* to *val*.
 
@@ -114,6 +117,7 @@ class MutableBidict(BidictBase[KT, VT], MutableBidirectionalMapping[KT, VT]):
         """
         self.put(key, val, on_dup=ON_DUP_DROP_OLD)
 
+    @override
     def clear(self) -> None:
         """Remove all items."""
         self._fwdm.clear()
@@ -123,6 +127,7 @@ class MutableBidict(BidictBase[KT, VT], MutableBidirectionalMapping[KT, VT]):
     def pop(self, key: KT, /) -> VT: ...
     @t.overload
     def pop(self, key: KT, default: DT = ..., /) -> VT | DT: ...
+    @override
     def pop(self, key: KT, default: ODT[DT] = MISSING, /) -> VT | DT:
         """*x.pop(k[, d]) → v*
 
@@ -137,6 +142,7 @@ class MutableBidict(BidictBase[KT, VT], MutableBidirectionalMapping[KT, VT]):
                 raise
             return default
 
+    @override
     def popitem(self) -> tuple[KT, VT]:
         """*x.popitem() → (k, v)*
 
@@ -148,6 +154,7 @@ class MutableBidict(BidictBase[KT, VT], MutableBidirectionalMapping[KT, VT]):
         del self._invm[val]
         return key, val
 
+    @override
     def update(self, arg: MapOrItems[KT, VT] = (), /, **kw: VT) -> None:
         """Like calling :meth:`putall` with *self.on_dup* passed for *on_dup*."""
         self._update(arg, kw=kw)
