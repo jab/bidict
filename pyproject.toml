@@ -113,6 +113,7 @@ extend-select = [
   "W",
   "YTT",
 ]
+ignore = ["RUF067"]  # Allow __init__.py to set __module__ on re-exported classes
 
 [tool.ruff.lint.isort]
 force-single-line = true
