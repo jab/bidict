@@ -87,7 +87,7 @@ bidict_types: BTs = (*builtin_bidict_types, *user_bidict_types)
 update_arg_types = (*bidict_types, list, dict, iter, SupportsKeysAndGetItem)
 mutable_bidict_types: BTs = tuple(t for t in bidict_types if issubclass(t, MutableBidirectionalMapping))
 assert frozenbidict not in mutable_bidict_types
-MBT = t.Union[type[bidict[KT, VT]], type[OrderedBidict[KT, VT]]]
+MBT = type[bidict[KT, VT]] | type[OrderedBidict[KT, VT]]
 
 
 def should_be_reversible(bi_t: BT[KT, VT]) -> bool:

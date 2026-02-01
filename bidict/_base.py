@@ -50,9 +50,9 @@ from ._typing import Maplike
 from ._typing import MapOrItems
 
 
-OldKV = tuple[OKT[KT], OVT[VT]]
-DedupResult = t.Optional[OldKV[KT, VT]]
-Unwrites = list[tuple[t.Any, ...]]
+OldKV: t.TypeAlias = tuple[OKT[KT], OVT[VT]]
+DedupResult: t.TypeAlias = OldKV[KT, VT] | None
+Unwrites: t.TypeAlias = list[tuple[t.Any, ...]]
 BT = t.TypeVar('BT', bound='BidictBase[t.Any, t.Any]')
 
 

@@ -20,13 +20,13 @@ VT = t.TypeVar('VT')
 VT_co = t.TypeVar('VT_co', covariant=True)
 MissingT = Enum('MissingT', {'MISSING': 'MISSING'})
 MISSING: t.Final[t.Literal[MissingT.MISSING]] = MissingT.MISSING
-OKT = t.Union[KT, MissingT]  #: optional key type
-OVT = t.Union[VT, MissingT]  #: optional value type
+OKT: t.TypeAlias = KT | MissingT  #: optional key type
+OVT: t.TypeAlias = VT | MissingT  #: optional value type
 DT = t.TypeVar('DT')  #: for default arguments
-ODT = t.Union[DT, MissingT]  #: optional default arg type
+ODT: t.TypeAlias = DT | MissingT  #: optional default arg type
 
-Items = Iterable[tuple[KT, VT]]
-ItemsIter = Iterator[tuple[KT, VT]]
+Items: t.TypeAlias = Iterable[tuple[KT, VT]]
+ItemsIter: t.TypeAlias = Iterator[tuple[KT, VT]]
 
 
 @t.runtime_checkable
@@ -37,4 +37,4 @@ class Maplike(t.Protocol[KT, VT_co]):
     def __getitem__(self, __key: KT) -> VT_co: ...
 
 
-MapOrItems = t.Union[Maplike[KT, VT], Items[KT, VT]]
+MapOrItems: t.TypeAlias = Maplike[KT, VT] | Items[KT, VT]

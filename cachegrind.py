@@ -84,7 +84,7 @@ def parse_cachegrind_output(temp_file: t.IO[str]) -> dict[str, int]:
             summary = line[len('summary:') :].strip()
     assert header
     assert summary
-    return dict(zip(header.split(), (int(i) for i in summary.split())))
+    return dict(zip(header.split(), (int(i) for i in summary.split()), strict=False))
 
 
 def get_counts(cg_results: dict[str, int]) -> dict[str, int]:
