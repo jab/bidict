@@ -63,7 +63,9 @@ master_doc = 'index'
 
 bidict_metadata = metadata('bidict')  # bidict must be on PYTHONPATH (e.g. installed)
 project = bidict_metadata['Name']
-author = bidict_metadata['Author']
+# Extract author name from "Name <email>" format
+author_email = bidict_metadata['Author-email']
+author = author_email.split('<')[0].strip() if author_email else 'Joshua Bronson'
 copyright = f'2009-2026 {author}'  # noqa: A001
 
 # The version info for the project you're documenting, acts as replacement for
