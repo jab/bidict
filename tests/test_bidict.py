@@ -287,8 +287,9 @@ class BidictStateMachine(RuleBasedStateMachine):
     @precondition(is_nonempty)
     @rule(random=randoms(), last=booleans())
     def move_to_end_randkey(self, random: Random, last: bool) -> None:
+        assert is_ordered(self.bi)
         key, val = random.choice(tuple(self.oracle.data.items()))
-        self.bi.move_to_end(key, last=last)  # type: ignore[attr-defined]
+        self.bi.move_to_end(key, last=last)
         self.oracle.move_to_end(key, last=last)
         it: t.Any = reversed if last else iter
         assert (key, val) == next(it(self.bi.items()))
