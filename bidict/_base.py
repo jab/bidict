@@ -55,6 +55,7 @@ from ._typing import override
 OldKV: t.TypeAlias = tuple[OKT[KT], OVT[VT]]
 DedupResult: t.TypeAlias = OldKV[KT, VT] | None
 Unwrites: t.TypeAlias = list[tuple[t.Any, ...]]
+ReversedIter: t.TypeAlias = t.Callable[['BidictBase[KT, t.Any]'], Iterator[KT]]
 
 
 class BidictKeysView(KeysView[KT], ValuesView[KT]):
@@ -95,7 +96,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         cls._ensure_inv_cls()
         cls._set_reversed()
 
-    __reversed__: t.ClassVar[t.Any]
+    __reversed__: t.ClassVar[ReversedIter[t.Any] | None]
 
     @classmethod
     def _set_reversed(cls) -> None:
