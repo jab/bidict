@@ -71,6 +71,8 @@ from bidict import OrderedBidict
 from bidict import ValueDuplicationError
 from bidict import frozenbidict
 from bidict import inverted
+from bidict._orderedbase import Node as OrderedBidictNode
+from bidict._orderedbase import WeakAttr
 from bidict._typing import MapOrItems
 
 
@@ -527,6 +529,12 @@ def test_orderedbidict_nodes_consistent(items121: Items121) -> None:
     mapnodes = set(ob._node_by_korv.inverse)
     linkedlistnodes = set(ob._sntl.iternodes())
     assert mapnodes == linkedlistnodes
+
+
+def test_orderedbidict_weakattr_class_access() -> None:
+    """Accessing a WeakAttr descriptor from the Node class should return the descriptor itself."""
+    descriptor = OrderedBidictNode.prv
+    assert isinstance(descriptor, WeakAttr)
 
 
 def test_abc_slots() -> None:
