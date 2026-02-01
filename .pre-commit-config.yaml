@@ -35,12 +35,11 @@ repos:
       - id: codespell
         args: ["--uri-ignore-words-list", "*"]  # https://github.com/codespell-project/codespell/issues/2473
 
-# Stop using this at least until https://github.com/crate-ci/typos/issues/390 is fixed:
-# - repo: https://github.com/crate-ci/typos
-#   rev: v1.33.1
-#   hooks:
-#     - id: typos
-#       args: [--write-changes]
+  - repo: https://github.com/adhtruong/mirrors-typos
+    rev: v1.42.3
+    hooks:
+      - id: typos
+        args: [--write-changes]
 
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: v1.19.1
