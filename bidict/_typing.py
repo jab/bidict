@@ -9,10 +9,17 @@
 
 from __future__ import annotations
 
+import sys
 import typing as t
 from collections.abc import Iterable
 from collections.abc import Iterator
 from enum import Enum
+
+
+if sys.version_info >= (3, 11):
+    from typing import Self as Self
+else:
+    from typing_extensions import Self as Self
 
 
 KT = t.TypeVar('KT')

@@ -48,12 +48,12 @@ from ._typing import OVT
 from ._typing import VT
 from ._typing import Maplike
 from ._typing import MapOrItems
+from ._typing import Self
 
 
 OldKV: t.TypeAlias = tuple[OKT[KT], OVT[VT]]
 DedupResult: t.TypeAlias = OldKV[KT, VT] | None
 Unwrites: t.TypeAlias = list[tuple[t.Any, ...]]
-BT = t.TypeVar('BT', bound='BidictBase[t.Any, t.Any]')
 
 
 class BidictKeysView(KeysView[KT], ValuesView[KT]):
@@ -136,7 +136,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         cls._inv_cls = cls._make_inv_cls()
 
     @classmethod
-    def _make_inv_cls(cls: type[BT]) -> type[BT]:
+    def _make_inv_cls(cls) -> type[Self]:
         diff = cls._inv_cls_dict_diff()
         cls_is_own_inv = all(getattr(cls, k, MISSING) == v for (k, v) in diff.items())
         if cls_is_own_inv:
@@ -146,7 +146,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         diff['_inv_cls'] = cls
         inv_cls = type(f'{cls.__name__}Inv', (cls, GeneratedBidictInverse), diff)
         inv_cls.__module__ = cls.__module__
-        return t.cast(type[BT], inv_cls)
+        return t.cast(type[Self], inv_cls)
 
     @classmethod
     def _inv_cls_dict_diff(cls) -> dict[str, t.Any]:
@@ -467,28 +467,28 @@ class BidictBase(BidirectionalMapping[KT, VT]):
             if dedup_result is not None:
                 write(key, val, *dedup_result, unwrites=unwrites)
 
-    def __copy__(self: BT) -> BT:
+    def __copy__(self) -> Self:
         """Used for the copy protocol. See the :mod:`copy` module."""
         return self.copy()
 
-    def copy(self: BT) -> BT:
+    def copy(self) -> Self:
         """Make a (shallow) copy of this bidict."""
         # Could just `return self.__class__(self)` here, but the below is faster. The former
         # would copy this bidict's items into a new instance one at a time (checking for duplication
         # for each item), whereas the below copies from the backing mappings all at once, and foregoes
         # item-by-item duplication checking since the backing mappings have been checked already.
-        return self._from_other(self.__class__, self)
+        return self._from_other(self)
 
-    @staticmethod
-    def _from_other(bt: type[BT], other: MapOrItems[KT, VT], inv: bool = False) -> BT:
+    @classmethod
+    def _from_other(cls, other: MapOrItems[KT, VT], inv: bool = False) -> Self:
         """Fast, private constructor based on :meth:`_init_from`.
 
         If *inv* is true, return the inverse of the instance instead of the instance itself.
         (Useful for pickling with dynamically-generated inverse classes -- see :meth:`__reduce__`.)
         """
-        inst = bt()
+        inst = cls()
         inst._init_from(other)
-        return t.cast(BT, inst.inverse) if inv else inst
+        return t.cast(Self, inst.inverse) if inv else inst
 
     def _init_from(self, other: MapOrItems[KT, VT]) -> None:
         """Fast init from *other*, bypassing item-by-item duplication checking."""
@@ -502,7 +502,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
 
     # other's type is Mapping rather than Maplike since bidict() | SupportsKeysAndGetItem({})
     # raises a TypeError, just like dict() | SupportsKeysAndGetItem({}) does.
-    def __or__(self: BT, other: Mapping[KT, VT]) -> BT:
+    def __or__(self, other: Mapping[KT, VT]) -> Self:
         """Return self|other."""
         if not isinstance(other, Mapping):
             return NotImplemented
@@ -510,7 +510,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         new._update(other, rollback=False)
         return new
 
-    def __ror__(self: BT, other: Mapping[KT, VT]) -> BT:
+    def __ror__(self, other: Mapping[KT, VT]) -> Self:
         """Return other|self."""
         if not isinstance(other, Mapping):
             return NotImplemented
@@ -540,7 +540,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         if should_invert := isinstance(self, GeneratedBidictInverse):
             cls = self._inv_cls
             inst = self.inverse
-        return self._from_other, (cls, dict(inst), should_invert)
+        return cls._from_other, (dict(inst), should_invert)
 
 
 # See BidictBase._set_reversed() above.
