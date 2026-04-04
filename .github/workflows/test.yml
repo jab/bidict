@@ -35,8 +35,8 @@ jobs:
         include:
           # https://github.com/actions/python-versions/blob/main/versions-manifest.json
           - pyversion: "3.14"
-          - pyversion: "3.13"
             enable_coverage: true
+          - pyversion: "3.13"
           - pyversion: "3.12"
           - pyversion: "3.11"
             enable_coverage: true
@@ -77,7 +77,6 @@ jobs:
       - name: maybe enable coverage
         if: matrix.enable_coverage
         run: |
-          echo COVERAGE_PROCESS_START="$(pwd)/.coveragerc" >> "$GITHUB_ENV"
           echo RUN_PYTEST_CMD="coverage run -m pytest" >> "$GITHUB_ENV"
       - name: run pytest
         run: ${RUN_PYTEST_CMD:-pytest}

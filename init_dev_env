@@ -21,4 +21,4 @@ done
 pre-commit install -f
 
 uv sync
-echo "Development virtualenv initialized and activated"
+echo "Development virtualenv initialized"

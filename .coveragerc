@@ -1,13 +1,13 @@
 [run]
 branch = True
-# TODO: Uncomment out the following once sysmon supports branch coverage and dynamic_context:
-# core = sysmon
+core = sysmon
+# Uncomment out the following once it's supported by the sysmon core (https://github.com/coveragepy/coveragepy/issues/2150):
+# dynamic_context = test_function
 parallel = True
 patch = subprocess
 source =
   bidict
   tests
-dynamic_context = test_function
 
 [report]
 precision = 1
@@ -16,5 +16,3 @@ show_missing = True
 skip_covered = True
 exclude_also =
   @.*overload
-  if .*TYPE_CHECKING
-  def .*: \.\.\.$
