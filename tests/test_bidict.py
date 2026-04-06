@@ -57,6 +57,7 @@ from hypothesis.stateful import rule
 from hypothesis.strategies import booleans
 from hypothesis.strategies import randoms
 from hypothesis.strategies import sampled_from
+from typing_extensions import Self
 from typing_extensions import TypeIs
 from typing_extensions import assert_type
 
@@ -198,7 +199,7 @@ class BidictStateMachine(RuleBasedStateMachine):
         )
 
     @rule(other=items121)
-    def __ior__(self, other: Mapping[int, int]) -> None:
+    def __ior__(self, other: Mapping[int, int]) -> Self:
         assert_calls_match(
             partial(self.bi.__ior__, other),
             partial(self.oracle.__ior__, other),

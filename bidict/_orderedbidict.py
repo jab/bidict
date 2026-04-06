@@ -21,7 +21,7 @@ from collections.abc import ItemsView
 from collections.abc import Iterable
 from collections.abc import Iterator
 from collections.abc import KeysView
-from collections.abc import Set
+from collections.abc import Set as AbstractSet
 
 from ._base import BidictKeysView
 from ._bidict import MutableBidict
@@ -134,10 +134,23 @@ class _OrderedBidictItemsView(ItemsView[KT, VT]):
 # to backing dicts for the methods they inherit from collections.abc.Set. (Cannot delegate
 # for __iter__ and __reversed__ since they are order-sensitive.) See also: https://bugs.python.org/issue46713
 _OView: t.TypeAlias = type[_OrderedBidictKeysView[KT]] | type[_OrderedBidictItemsView[KT, t.Any]]
-_setmethodnames: Iterable[str] = (
-    '__lt__ __le__ __gt__ __ge__ __eq__ __ne__ __sub__ __rsub__ '
-    '__or__ __ror__ __xor__ __rxor__ __and__ __rand__ isdisjoint'
-).split()
+_setmethodnames: Iterable[str] = [
+    '__lt__',
+    '__le__',
+    '__gt__',
+    '__ge__',
+    '__eq__',
+    '__ne__',
+    '__sub__',
+    '__rsub__',
+    '__or__',
+    '__ror__',
+    '__xor__',
+    '__rxor__',
+    '__and__',
+    '__rand__',
+    'isdisjoint',
+]
 
 
 def _override_set_methods_to_use_backing_dict(cls: _OView[KT], viewname: str) -> None:
@@ -145,7 +158,7 @@ def _override_set_methods_to_use_backing_dict(cls: _OView[KT], viewname: str) ->
         def method(self: _OrderedBidictKeysView[KT] | _OrderedBidictItemsView[KT, t.Any], *args: t.Any) -> t.Any:
             fwdm = self._mapping._fwdm
             if not isinstance(fwdm, dict):  # dict view speedup not available, fall back to Set's implementation.
-                return getattr(Set, methodname)(self, *args)
+                return getattr(AbstractSet, methodname)(self, *args)
             fwdm_dict_view = getattr(fwdm, viewname)()
             fwdm_dict_view_method = getattr(fwdm_dict_view, methodname)
             if (

@@ -201,7 +201,7 @@ class Oracle(t.Generic[KT, VT]):
         if isinstance(updates, Mapping):
             updates = updates.items()
         elif hasattr(updates, 'keys') and hasattr(updates, '__getitem__'):
-            updates = [(k, updates[k]) for k in updates.keys()]
+            updates = [(k, updates[k]) for k in updates]
         try:
             for key, val in updates:
                 self.put(key, val, on_dup)

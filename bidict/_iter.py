@@ -25,7 +25,7 @@ def iteritems(arg: MapOrItems[KT, VT] = (), /, **kw: VT) -> ItemsIter[KT, VT]:
     if isinstance(arg, Mapping):
         yield from arg.items()
     elif isinstance(arg, Maplike):
-        yield from ((k, arg[k]) for k in arg.keys())
+        yield from ((k, arg[k]) for k in arg)
     else:
         yield from arg
     yield from t.cast(ItemsIter[KT, VT], kw.items())

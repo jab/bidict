@@ -19,6 +19,8 @@ from __future__ import annotations
 import typing as t
 from collections.abc import Mapping
 
+from typing_extensions import Self
+
 from ._abc import MutableBidirectionalMapping
 from ._base import BidictBase
 from ._dup import ON_DUP_DROP_OLD
@@ -173,7 +175,7 @@ class MutableBidict(BidictBase[KT, VT], MutableBidirectionalMapping[KT, VT]):
 
     # other's type is Mapping rather than Maplike since bidict() |= SupportsKeysAndGetItem({})
     # raises a TypeError, just like dict() |= SupportsKeysAndGetItem({}) does.
-    def __ior__(self, other: Mapping[KT, VT]) -> MutableBidict[KT, VT]:
+    def __ior__(self, other: Mapping[KT, VT]) -> Self:
         """Return self|=other."""
         self.update(other)
         return self
