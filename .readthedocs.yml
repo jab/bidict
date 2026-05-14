@@ -1,18 +1,22 @@
 ---
-# https://docs.readthedocs.io/en/latest/config-file/
+# https://docs.readthedocs.io/en/stable/config-file/v2.html
 version: 2
 
 formats:
   - htmlzip
 
+sphinx:
+  configuration: docs/conf.py
+  fail_on_warning: true
+
 build:
   os: "ubuntu-24.04"
   tools:
     python: "3.12"
-  # https://docs.readthedocs.io/en/stable/build-customization.html#install-dependencies-with-uv
-  commands:
-    - asdf plugin add uv
-    - asdf install uv latest
-    - asdf global uv latest
-    - uv sync --group=docs
-    - .venv/bin/python -m sphinx -TWn --keep-going -b html -d docs/_build/doctrees docs $READTHEDOCS_OUTPUT/html
+
+python:
+  install:
+    - method: uv
+      command: sync
+      groups:
+        - docs

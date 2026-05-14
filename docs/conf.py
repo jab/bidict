@@ -235,6 +235,8 @@ linkcheck_ignore = [
 ]
 linkcheck_timeout = 10  # 5s default too low
 
+nitpicky = True
+
 nitpick_ignore_regex = [
     # work around https://github.com/sphinx-doc/sphinx/issues/10974
     ('py:(class|obj)', r'(bidict\._typing\.)?(KT|VT|DT|Maplike|MapOrItems|MissingT)'),
