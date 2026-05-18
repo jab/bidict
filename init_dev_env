@@ -12,13 +12,13 @@ set -euo pipefail
 
 declare -r hint="Hint: Use 'nix develop' to bootstrap a development environment"
 
-for cmd in uv pre-commit; do
+for cmd in uv prek; do
   if ! type "$cmd"; then
     >&2 echo "Error: No '$cmd' on PATH. $hint"
     exit 1
   fi
 done
-pre-commit install -f
+prek install -f
 
-uv sync
+uv sync --all-groups
 echo "Development virtualenv initialized"

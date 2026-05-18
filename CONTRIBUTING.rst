@@ -50,26 +50,26 @@ Making Changes
   cloning and installing extensions, which it should automatically prompt you to do
   when you open your clone in VS Code.
 
-  - Note that `pre-commit <https://pre-commit.com/>`__
-    is used to help achieve uniform style and quality standards.
+  - Note that `prek <https://github.com/j178/prek>`__
+    is used to help achieve uniform code style and quality standards
+    at commit time.
 
 - If not using a VSCode devcontainer, you can try the following
   to set up a development environment manually:
 
   - If you have `Nix <https://nixos.org>`__, you can run
     ``nix develop`` from within your clone to start a shell
-    where all supported Python versions as well as ``pre-commit``
+    where all supported Python versions as well as ``prek``
     are installed and added to your PATH.
 
-    Otherwise, manually ensure you have `pre-commit <https://pre-commit.com>`__
+    Otherwise, manually ensure you have `prek <https://github.com/j178/prek>`__
     and at least the latest `stable Python version <https://python.org/downloads/>`__
     installed and on your PATH.
 
   - Run ``./init_dev_env``
 
-    This installs the git hooks for ``pre-commit`` in your clone,
-    creates a virtualenv with all the development dependencies installed,
-    and reminds you to activate the virtualenv env it just created when ready.
+    This installs the ``prek``-based pre-commit hook in your clone,
+    and creates a virtualenv with all the development dependencies installed.
 
 - Create a topic branch off of ``main`` for your changes:
   ``git checkout -b <topic> main``

@@ -16,7 +16,7 @@ log() {
 main() {
   declare -r hint="Hint: Use 'nix develop' to bootstrap a development environment"
 
-  for cmd in uv pre-commit; do
+  for cmd in uv prek; do
     if ! type "$cmd"; then
       log "Error: No '$cmd' on PATH. $hint"
       exit 1
@@ -28,14 +28,14 @@ main() {
   log "Upgrading PyPI dependencies: Done"
   log
   log "Upgrading pre-commit hooks..."
-  pre-commit autoupdate
-  log "Done."
+  prek auto-update
+  log "Upgrading pre-commit hooks: Done"
   log
   log "Reminders:"
   log " - Check release notes of upgraded packages for anything that affects bidict."
   log " - Ensure tests pass for all supported Python versions."
   log " - Check output for any new warnings, not just test failures."
-  log " - Ensure 'pre-commit run --all-files' still succeeds."
+  log " - Ensure 'prek run --all-files' still succeeds."
 }
 
 main

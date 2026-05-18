@@ -1,8 +1,7 @@
 exclude: ^\.benchmarks
 
 repos:
-  - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v6.0.0
+  - repo: builtin
     hooks:
       - id: check-added-large-files
       - id: check-case-conflict
@@ -10,8 +9,6 @@ repos:
       - id: check-symlinks
       - id: check-toml
       - id: check-yaml
-      - id: debug-statements
-      - id: double-quote-string-fixer
       - id: end-of-file-fixer
       - id: mixed-line-ending
       - id: trailing-whitespace
@@ -36,13 +33,13 @@ repos:
         args: ["--uri-ignore-words-list", "*"]  # https://github.com/codespell-project/codespell/issues/2473
 
   - repo: https://github.com/adhtruong/mirrors-typos
-    rev: v1.45.0
+    rev: v1.46.2
     hooks:
       - id: typos
         args: [--write-changes]
 
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.20.0
+    rev: v2.1.0
     hooks:
       - id: mypy
         additional_dependencies:
@@ -50,7 +47,7 @@ repos:
           - pytest
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.15.10
+    rev: v0.15.13
     hooks:
       - id: ruff-check
         args: [--fix, --unsafe-fixes]
@@ -61,7 +58,3 @@ repos:
     hooks:
       - id: shellcheck
         exclude: ^.envrc$
-
-# Ref: https://pre-commit.ci/#configuration
-ci:
-  autoupdate_schedule: quarterly

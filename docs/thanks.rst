@@ -73,4 +73,4 @@ Projects
 - `Readthedocs <https://readthedocs.org>`__
 - `mypy <https://mypy.readthedocs.io>`__
 - `ruff <https://github.com/charliermarsh/ruff>`__
-- `pre-commit <https://pre-commit.com>`__
+- `prek <https://github.com/j178/prek>`__

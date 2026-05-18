@@ -225,7 +225,6 @@ extlinks = {
 linkcheck_ignore = [
     r'https://codecov\.io/.*',  # gives 405 for HEAD requests
     r'https://pypistats\.org/.*',  # unreliable
-    r'https://gitpod\.io/#.*',  # linkcheck complains about anchor links on this site
     # alternative links for readers on GitHub (which don't work on readthedocs.io):
     r'docs/learning-from-bidict\.rst',
     r'CHANGELOG\.rst',

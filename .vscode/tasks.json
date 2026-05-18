@@ -18,10 +18,10 @@
         {
             "label": "Lint",
             "type": "process",
-            "command": "pre-commit",
+            "command": "tox",
             "args": [
-                "run",
-                "--all-files"
+                "-e",
+                "lint"
             ],
             "group": "test",
             "presentation": {

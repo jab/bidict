@@ -198,7 +198,7 @@ class BidictStateMachine(RuleBasedStateMachine):
         )
 
     @rule(other=items121)
-    def __ior__(self, other: Mapping[int, int]) -> None:  # noqa: PYI034
+    def __ior__(self, other: Mapping[int, int]) -> None:
         assert_calls_match(
             partial(self.bi.__ior__, other),
             partial(self.oracle.__ior__, other),

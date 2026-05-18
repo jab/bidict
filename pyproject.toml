@@ -109,6 +109,7 @@ extend-select = [
   "RUF",
   "SLOT",
   "T20",
+  "T100",
   "TID",
   "UP",
   "W",

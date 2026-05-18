@@ -1,0 +1,29 @@
+name: lint
+
+"on":
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+      - dev
+      - deps
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  main:
+    name: lint
+    runs-on: ubuntu-24.04
+    steps:
+      - name: check out code
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+      - name: install Nix
+        uses: DeterminateSystems/nix-installer-action@ef8a148080ab6020fd15196c2084a2eea5ff2d25
+      # - name: set up upterm session
+      #   uses: lhotari/action-upterm@v1
+      - name: lint
+        run: nix develop --command tox -e lint
+
+permissions:
+  contents: read

@@ -13,7 +13,7 @@
     in {
       devShell = pkgs.mkShell {
         packages = with pkgs; [
-          pre-commit
+          prek
           python314
           python313
           python312
