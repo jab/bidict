@@ -17,7 +17,7 @@ jobs:
       # - name: set up upterm session
       #   uses: lhotari/action-upterm@v1
       - name: update development dependencies
-        run: nix develop --command bash -c './update_dev_dependencies'
+        run: nix develop .#update_deps --command bash -c './update_dev_dependencies'
       - name: create PR
         uses: peter-evans/create-pull-request@c0f553fe549906ede9cf27b5156039d195d2ece0
         with:

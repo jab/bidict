@@ -11,6 +11,9 @@ name: lint
     branches:
       - main
 
+env:
+  PREK_HOME: ~/.cache/prek
+
 jobs:
   main:
     name: lint
@@ -18,12 +21,40 @@ jobs:
     steps:
       - name: check out code
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          fetch-depth: 0
       - name: install Nix
         uses: DeterminateSystems/nix-installer-action@ef8a148080ab6020fd15196c2084a2eea5ff2d25
-      # - name: set up upterm session
-      #   uses: lhotari/action-upterm@v1
-      - name: lint
-        run: nix develop --command tox -e lint
+      - name: cache prek hook environments
+        uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7
+        with:
+          path: ${{ env.PREK_HOME }}
+          key: prek|${{ runner.os }}|${{ hashFiles('.pre-commit-config.yaml') }}
+      - name: lint changed files
+        run: |
+          if [[ "$GITHUB_EVENT_NAME" == 'pull_request' ]]; then
+            from_ref='${{ github.event.pull_request.base.sha }}'
+            to_ref='${{ github.event.pull_request.head.sha }}'
+          elif [[ "$GITHUB_EVENT_NAME" == 'push' ]]; then
+            from_ref='${{ github.event.before }}'
+            to_ref='${{ github.sha }}'
+            if [[ "$from_ref" == '0000000000000000000000000000000000000000' ]]; then
+              from_ref="$(git merge-base "origin/${{ github.event.repository.default_branch }}" "$to_ref")"
+            fi
+          else
+            to_ref='${{ github.sha }}'
+            from_ref="$(git merge-base "origin/${{ github.event.repository.default_branch }}" "$to_ref")"
+            if [[ -z "$(git diff --name-only "$from_ref" "$to_ref")" ]]; then
+              # No files changed between from_ref and to_ref -> run on all files:
+              nix develop .#lint --command prek run --all-files --show-diff-on-failure --verbose
+              exit 0
+            fi
+          fi
+          nix develop .#lint --command prek run \
+            --from-ref "$from_ref" \
+            --to-ref "$to_ref" \
+            --show-diff-on-failure \
+            --verbose
 
 permissions:
   contents: read
