@@ -12,6 +12,7 @@ __pycache__
 .mypy_cache
 .tox
 .venv
+.venv-benchmark
 bidict.egg-info
 build
 _build

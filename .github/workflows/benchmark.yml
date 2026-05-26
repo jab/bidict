@@ -17,7 +17,7 @@ name: benchmark
 env:
   FORCE_COLOR: "1"
   PYTHONHASHSEED: "42"
-  BASELINE_URL: https://github.com/jab/bidict/releases/download/microbenchmarks/GHA-linux-cachegrind-x86_64-CPython-3.12.2-baseline.json
+  BASELINE_RELEASE_TAG: microbenchmarks
 
 jobs:
   benchmark:
@@ -31,47 +31,53 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
         with:
           fetch-depth: 0
-      - name: set up Python
-        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
-        with:
-          # Pin to micro-release for better reproducibility.
-          # When upgrading to a new Python version, remember to upload new associated baseline
-          # benchmark results here: https://github.com/jab/bidict/releases/edit/microbenchmarks
-          python-version: '3.12.2'
-      - name: set up cached uv
-        uses: hynek/setup-cached-uv@4300ec2180bc77d705e626a34e381b81a4772c51
-      - name: create and activate virtualenv
+      - name: install Nix
+        uses: DeterminateSystems/nix-installer-action@ef8a148080ab6020fd15196c2084a2eea5ff2d25
+      - name: resolve benchmark metadata
+        id: metadata
         run: |
-          uv sync --only-group=test
-          source .venv/bin/activate
-          echo PATH="$PATH" >> "$GITHUB_ENV"
-      - name: install the version of bidict to benchmark
-        run: |
-          git checkout ${{ github.event.inputs.ref || github.sha }}
-          # install a non-editable version of bidict at the revision under test
-          uv pip install --no-deps .
-          # restore the current revision so we use its version of tests/microbenchmarks.py
-          git checkout ${{ github.sha }}
-          # move aside the 'bidict' subdirectory to make sure we always import the installed version
-          mv -v bidict src
-      - name: download baseline benchmark results
-        run: |
-          curl -L -s -o baseline.json "$BASELINE_URL"
-          line1=$(head -n1 baseline.json)
-          [ "$line1" = "{" ]
+          mapfile -t python_info < <(nix develop .#benchmark --command bash -c "python - <<'PY'
+          import platform
+          print(platform.python_version())
+          print(platform.python_implementation())
+          PY")
+          python_version=${python_info[0]}
+          python_impl=${python_info[1]}
+          python_series=${python_version%.*}
+          arch=$(uname -m)
+          baseline_asset_name="GHA-linux-cachegrind-${arch}-${python_impl}-${python_series}-baseline.json"
+          baseline_url="https://github.com/${GITHUB_REPOSITORY}/releases/download/${BASELINE_RELEASE_TAG}/${baseline_asset_name}"
+          {
+            echo "python_version=$python_version"
+            echo "python_series=$python_series"
+            echo "baseline_asset_name=$baseline_asset_name"
+            echo "baseline_url=$baseline_url"
+          } >> "$GITHUB_OUTPUT"
       - name: benchmark and compare to baseline
         run: |
-          ./cachegrind.py pytest -c /dev/null -n0 \
-              --benchmark-autosave \
-              --benchmark-columns=min,rounds,iterations \
-              --benchmark-disable-gc \
-              --benchmark-group-by=name \
-              --benchmark-compare=baseline.json \
-              microbenchmarks.py
+          nix develop .#benchmark --command bash -c '
+            git checkout ${{ github.event.inputs.ref || github.sha }}
+            # install a non-editable version of bidict at the revision under test
+            uv pip install --no-deps .
+            # restore the current revision so we use its version of tests/microbenchmarks.py
+            git checkout ${{ github.sha }}
+            # move aside the '"'"'bidict'"'"' subdirectory to make sure we always import the installed version
+            mv -v bidict src
+            curl -L -s -o baseline.json "${{ steps.metadata.outputs.baseline_url }}"
+            line1=$(head -n1 baseline.json)
+            [ "$line1" = "{" ]
+            ./cachegrind.py pytest -c /dev/null -n0 \
+                --benchmark-autosave \
+                --benchmark-columns=min,rounds,iterations \
+                --benchmark-disable-gc \
+                --benchmark-group-by=name \
+                --benchmark-compare=baseline.json \
+                microbenchmarks.py
+          '
       - name: archive benchmark results
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f
         with:
-          name: microbenchmark results
+          name: microbenchmark results (CPython ${{ steps.metadata.outputs.python_version }})
           path: .benchmarks
           if-no-files-found: error
 
