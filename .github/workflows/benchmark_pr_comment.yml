@@ -9,7 +9,7 @@ name: benchmark PR comment
 
 jobs:
   comment:
-    if: github.event.workflow_run.event == 'pull_request' && github.event.workflow_run.pull_requests[0]
+    if: github.event.workflow_run.event == 'pull_request'
     runs-on: ubuntu-24.04
     permissions:
       actions: read
@@ -19,8 +19,8 @@ jobs:
     steps:
       - name: download benchmark PR comment artifact
         env:
+          FALLBACK_PR_NUMBER: ${{ github.event.workflow_run.pull_requests[0].number || '' }}
           GH_TOKEN: ${{ github.token }}
-          PR_NUMBER: ${{ github.event.workflow_run.pull_requests[0].number }}
           REPOSITORY: ${{ github.repository }}
           RUN_ID: ${{ github.event.workflow_run.id }}
           RUN_URL: ${{ github.event.workflow_run.html_url }}
@@ -60,14 +60,37 @@ jobs:
 
             _This benchmark check is informational and does not block merging._
             EOF
+            python - <<'PY'
+            import json
+            import os
+            from pathlib import Path
+
+            Path('artifact/result.json').write_text(json.dumps({'pr_number': os.environ['FALLBACK_PR_NUMBER']}) + '\n')
+            PY
           fi
       - name: create or update sticky benchmark comment
         env:
           GH_TOKEN: ${{ github.token }}
-          PR_NUMBER: ${{ github.event.workflow_run.pull_requests[0].number }}
+          FALLBACK_PR_NUMBER: ${{ github.event.workflow_run.pull_requests[0].number || '' }}
           REPOSITORY: ${{ github.repository }}
         run: |
           set -euo pipefail
+          PR_NUMBER=$(
+            python - <<'PY'
+            import json
+            import os
+            from pathlib import Path
+
+            result_path = Path('artifact/result.json')
+            pr_number = ''
+            if result_path.exists():
+                pr_number = str(json.loads(result_path.read_text()).get('pr_number', ''))
+            if not pr_number:
+                pr_number = os.environ.get('FALLBACK_PR_NUMBER', '')
+            print(pr_number)
+            PY
+          )
+          [ -n "$PR_NUMBER" ]
           gh api "repos/${REPOSITORY}/issues/${PR_NUMBER}/comments?per_page=100" > comments.json
           comment_id=$(
             python - <<'PY'

@@ -130,6 +130,7 @@ jobs:
         if: always() && github.event_name == 'pull_request'
         env:
           BASELINE_ASSET_NAME: ${{ steps.metadata.outputs.baseline_asset_name }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
           RESULT_MESSAGE: ${{ steps.benchmark.outputs.result_message }}
           RESULT_STATE: ${{ steps.benchmark.outputs.result_state }}
         run: |
@@ -165,6 +166,7 @@ jobs:
           from pathlib import Path
 
           payload = {
+              'pr_number': os.environ['PR_NUMBER'],
               'result_state': os.environ['RESULT_STATE'],
               'result_message': os.environ['RESULT_MESSAGE'],
               'baseline_asset_name': os.environ['BASELINE_ASSET_NAME'],
