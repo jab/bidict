@@ -48,9 +48,10 @@ Making Changes
     to your PATH. This also pins ``uv`` to the flake-provided
     default Python when initializing ``.venv``.
 
-  - Otherwise, manually ensure you have `prek <https://github.com/j178/prek>`__
-    and at least the latest `stable Python version <https://python.org/downloads/>`__
-    installed and on your PATH.
+  - Otherwise, manually ensure you have `uv <https://docs.astral.sh/uv/>`__,
+    `prek <https://github.com/j178/prek>`__, and at least the latest
+    `stable Python version <https://python.org/downloads/>`__ installed
+    and on your PATH.
 
   - Run ``./init_dev_env``
 

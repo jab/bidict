@@ -54,7 +54,6 @@ dev = [
   "pytest-sugar",
   "tox",
   "tox-uv",
-  "uv",
 ]
 docs = [
   "sphinx",
