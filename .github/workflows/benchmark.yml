@@ -18,6 +18,7 @@ env:
   FORCE_COLOR: "1"
   PYTHONHASHSEED: "42"
   BASELINE_RELEASE_TAG: microbenchmarks
+  PR_BENCHMARK_COMPARE_FAIL: min:5%
 
 jobs:
   benchmark:
@@ -54,8 +55,16 @@ jobs:
             echo "baseline_url=$baseline_url"
           } >> "$GITHUB_OUTPUT"
       - name: benchmark and compare to baseline
+        id: benchmark
         run: |
+          compare_fail_expr=
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            compare_fail_expr="${PR_BENCHMARK_COMPARE_FAIL}"
+          fi
+
+          set +e
           nix develop .#benchmark --command bash -c '
+            set -euo pipefail
             git checkout ${{ github.event.inputs.ref || github.sha }}
             # install a non-editable version of bidict at the revision under test
             uv pip install --python "$VIRTUAL_ENV/bin/python" --no-deps .
@@ -66,19 +75,59 @@ jobs:
             curl -L -s -o baseline.json "${{ steps.metadata.outputs.baseline_url }}"
             line1=$(head -n1 baseline.json)
             [ "$line1" = "{" ]
+            compare_fail_args=()
+            if [ -n "${COMPARE_FAIL_EXPR:-}" ]; then
+              compare_fail_args+=(--benchmark-compare-fail="$COMPARE_FAIL_EXPR")
+            fi
             ./cachegrind.py pytest -c /dev/null -n0 \
                 --benchmark-autosave \
                 --benchmark-columns=min,rounds,iterations \
                 --benchmark-disable-gc \
                 --benchmark-group-by=name \
                 --benchmark-compare=baseline.json \
+                "${compare_fail_args[@]}" \
                 microbenchmarks.py
-          '
+          ' 2>&1 | tee benchmark-output.txt
+          benchmark_status=${PIPESTATUS[0]}
+          echo "exit_code=$benchmark_status" >> "$GITHUB_OUTPUT"
+          if [ "$benchmark_status" -ne 0 ] && [ "${{ github.event_name }}" = "pull_request" ]; then
+            echo "::warning::Benchmark comparison exceeded the informational PR threshold (${PR_BENCHMARK_COMPARE_FAIL}) or the benchmark run failed; see the job summary and artifact for details."
+            exit 0
+          fi
+          exit "$benchmark_status"
+        env:
+          COMPARE_FAIL_EXPR: ${{ github.event_name == 'pull_request' && env.PR_BENCHMARK_COMPARE_FAIL || '' }}
+      - name: summarize benchmark result
+        if: always()
+        run: |
+          {
+            echo '## Benchmark result'
+            echo
+            echo "- Baseline asset: \`${{ steps.metadata.outputs.baseline_asset_name }}\`"
+            echo "- Benchmark run: [${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID})"
+            if [ "${{ github.event_name }}" = "pull_request" ]; then
+              echo "- PR mode: informational only"
+              echo "- Warning threshold: \`${PR_BENCHMARK_COMPARE_FAIL}\`"
+            else
+              echo "- PR mode: n/a"
+              echo "- Warning threshold: not applied"
+            fi
+            if [ "${{ steps.benchmark.outputs.exit_code }}" = "0" ]; then
+              echo "- Result: no threshold-triggering regressions detected"
+            elif [ "${{ github.event_name }}" = "pull_request" ]; then
+              echo "- Result: threshold exceeded or benchmark execution failed; workflow kept green because PR benchmarking is non-blocking"
+            else
+              echo "- Result: benchmark step failed"
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
       - name: archive benchmark results
+        if: always()
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f
         with:
           name: microbenchmark results (CPython ${{ steps.metadata.outputs.python_version }})
-          path: .benchmarks
+          path: |
+            .benchmarks
+            benchmark-output.txt
           include-hidden-files: true
           if-no-files-found: error
 
