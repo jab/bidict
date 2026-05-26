@@ -56,7 +56,7 @@ jobs:
       - name: benchmark
         run: |
           nix develop .#benchmark --command bash -c '
-            uv pip install --no-deps .
+            uv pip install --python "$VIRTUAL_ENV/bin/python" --no-deps .
             # Move aside the working tree package so we always import the installed version.
             mv -v bidict src
             ./cachegrind.py pytest -c /dev/null -n0 \
