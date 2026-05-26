@@ -27,44 +27,35 @@ env:
 
 jobs:
   test-all:
-    name: ${{ matrix.pyversion }}
+    name: ${{ matrix.python }}
     runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
         include:
-          # https://github.com/actions/setup-python#basic-usage
-          - pyversion: "3.14"
+          - python: "3.14"
+            shell: test314
             enable_coverage: true
-          - pyversion: "3.13"
-          - pyversion: "3.12"
-          - pyversion: "3.11"
+          - python: "3.13"
+            shell: test313
+          - python: "3.12"
+            shell: test312
+          - python: "3.11"
+            shell: test311
             # bidict/_typing.py's `typing`/`typing_extensions` imports branch on python<3.12
             enable_coverage: true
-          - pyversion: "pypy-3.11"
+          - python: "pypy-3.11"
+            shell: testPyPy311
     steps:
       - name: check out source
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
-      - name: set up Python ${{ matrix.pyversion }}
-        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405
-        with:
-          python-version: ${{ matrix.pyversion }}
-      - name: set up cached uv
-        uses: hynek/setup-cached-uv@4300ec2180bc77d705e626a34e381b81a4772c51
-      - name: create and activate virtualenv
-        run: |
-          uv sync --only-group=test
-          uv pip install -e .
-          source .venv/bin/activate
-          echo PATH="$PATH" >> "$GITHUB_ENV"
+      - name: install Nix
+        uses: DeterminateSystems/nix-installer-action@ef8a148080ab6020fd15196c2084a2eea5ff2d25
       - name: cache .mypy_cache dir
         uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7
         with:
           path: .mypy_cache
           key: mypy
-      - name: maybe run mypy
-        run: |
-          if python3 -m mypy -V; then mypy bidict tests; else echo 'Skipping mypy (not available)'; fi
       - name: set hypothesis profile
         run: |
           hypothesis_profile=${{ github.event.inputs.hypothesis_profile || (github.event_name == 'schedule' && 'more-examples' || 'default') }}
@@ -73,19 +64,26 @@ jobs:
         uses: actions/cache@668228422ae6a00e4ad889ee87cd7109ec5666a7
         with:
           path: .hypothesis
-          key: hypothesis|${{ runner.os }}|${{ matrix.pyversion }}
+          key: hypothesis|${{ runner.os }}|${{ matrix.python }}
       - name: maybe enable coverage
         if: matrix.enable_coverage
         run: |
           echo RUN_PYTEST_CMD="coverage run -m pytest" >> "$GITHUB_ENV"
-      - name: run pytest
-        run: ${RUN_PYTEST_CMD:-pytest}
+      - name: run mypy and pytest
+        run: |
+          nix develop .#${{ matrix.shell }} --command bash -c "
+            set -euo pipefail
+            if python -m mypy -V; then mypy bidict tests; else echo 'Skipping mypy (not available)'; fi
+            \${RUN_PYTEST_CMD:-pytest}
+          "
       - name: combine and show any collected coverage
         if: matrix.enable_coverage
         run: |
-          coverage combine
-          coverage debug data
-          coverage report
+          nix develop .#${{ matrix.shell }} --command bash -c '
+            coverage combine
+            coverage debug data
+            coverage report
+          '
       - name: maybe upload to Codecov  # https://github.com/codecov/codecov-action
         if: matrix.enable_coverage
         uses: codecov/codecov-action@57e3a136b779b570ffcdbf80b3bdc90e7fab3de2
