@@ -90,6 +90,18 @@ jobs:
           ' 2>&1 | tee benchmark-output.txt
           benchmark_status=${PIPESTATUS[0]}
           echo "exit_code=$benchmark_status" >> "$GITHUB_OUTPUT"
+          if [ "$benchmark_status" -eq 0 ]; then
+            result_state=ok
+            result_message='no threshold-triggering regressions detected'
+          elif grep -Fq 'Performance has regressed:' benchmark-output.txt; then
+            result_state=regression
+            result_message="one or more benchmarks slowed down by at least ${PR_BENCHMARK_COMPARE_FAIL}; workflow kept green because PR benchmarking is informational"
+          else
+            result_state=failed
+            result_message='benchmark execution failed'
+          fi
+          echo "result_state=$result_state" >> "$GITHUB_OUTPUT"
+          echo "result_message=$result_message" >> "$GITHUB_OUTPUT"
           if [ "$benchmark_status" -ne 0 ] && [ "${{ github.event_name }}" = "pull_request" ]; then
             echo "::warning::Benchmark comparison exceeded the informational PR threshold (${PR_BENCHMARK_COMPARE_FAIL}) or the benchmark run failed; see the job summary and artifact for details."
             exit 0
@@ -112,14 +124,62 @@ jobs:
               echo "- PR mode: n/a"
               echo "- Warning threshold: not applied"
             fi
-            if [ "${{ steps.benchmark.outputs.exit_code }}" = "0" ]; then
-              echo "- Result: no threshold-triggering regressions detected"
-            elif [ "${{ github.event_name }}" = "pull_request" ]; then
-              echo "- Result: threshold exceeded or benchmark execution failed; workflow kept green because PR benchmarking is non-blocking"
-            else
-              echo "- Result: benchmark step failed"
-            fi
+            echo "- Result: ${{ steps.benchmark.outputs.result_message }}"
           } >> "$GITHUB_STEP_SUMMARY"
+      - name: prepare PR benchmark comment
+        if: always() && github.event_name == 'pull_request'
+        env:
+          BASELINE_ASSET_NAME: ${{ steps.metadata.outputs.baseline_asset_name }}
+          RESULT_MESSAGE: ${{ steps.benchmark.outputs.result_message }}
+          RESULT_STATE: ${{ steps.benchmark.outputs.result_state }}
+        run: |
+          mkdir -p benchmark-pr-comment
+          run_url="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+          case "$RESULT_STATE" in
+            ok)
+              status_line=':white_check_mark: No threshold-triggering regressions detected.'
+              ;;
+            regression)
+              status_line=':warning: Informational benchmark regression detected.'
+              ;;
+            *)
+              status_line=':warning: Benchmark execution failed.'
+              ;;
+          esac
+          cat > benchmark-pr-comment/comment.md <<EOF
+          <!-- bidict-benchmark-comment -->
+          ## Benchmark report
+
+          ${status_line}
+
+          - Baseline asset: \`${BASELINE_ASSET_NAME}\`
+          - Threshold: \`${PR_BENCHMARK_COMPARE_FAIL}\`
+          - Result: ${RESULT_MESSAGE}
+          - Run: [benchmark workflow run](${run_url})
+
+          _This benchmark check is informational and does not block merging._
+          EOF
+          python - <<'PY'
+          import json
+          import os
+          from pathlib import Path
+
+          payload = {
+              'result_state': os.environ['RESULT_STATE'],
+              'result_message': os.environ['RESULT_MESSAGE'],
+              'baseline_asset_name': os.environ['BASELINE_ASSET_NAME'],
+              'threshold': os.environ['PR_BENCHMARK_COMPARE_FAIL'],
+              'run_url': f"{os.environ['GITHUB_SERVER_URL']}/{os.environ['GITHUB_REPOSITORY']}/actions/runs/{os.environ['GITHUB_RUN_ID']}",
+          }
+          Path('benchmark-pr-comment/result.json').write_text(json.dumps(payload, indent=2) + '\n')
+          PY
+      - name: archive PR benchmark comment
+        if: always() && github.event_name == 'pull_request'
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f
+        with:
+          name: benchmark-pr-comment
+          path: benchmark-pr-comment
+          if-no-files-found: error
       - name: archive benchmark results
         if: always()
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f
