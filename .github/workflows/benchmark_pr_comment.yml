@@ -29,15 +29,7 @@ jobs:
           mkdir -p artifact
           gh api "repos/${REPOSITORY}/actions/runs/${RUN_ID}/artifacts" > artifacts.json
           artifact_id=$(
-            python - <<'PY'
-            import json
-
-            artifacts = json.load(open('artifacts.json'))['artifacts']
-            for artifact in artifacts:
-                if artifact['name'] == 'benchmark-pr-comment':
-                    print(artifact['id'])
-                    break
-            PY
+            python -c "import json; from pathlib import Path; artifacts = json.loads(Path('artifacts.json').read_text())['artifacts']; print(next((str(artifact['id']) for artifact in artifacts if artifact['name'] == 'benchmark-pr-comment'), ''))"
           )
           if [ -n "$artifact_id" ]; then
             gh api \
@@ -76,32 +68,12 @@ jobs:
         run: |
           set -euo pipefail
           PR_NUMBER=$(
-            python - <<'PY'
-            import json
-            import os
-            from pathlib import Path
-
-            result_path = Path('artifact/result.json')
-            pr_number = ''
-            if result_path.exists():
-                pr_number = str(json.loads(result_path.read_text()).get('pr_number', ''))
-            if not pr_number:
-                pr_number = os.environ.get('FALLBACK_PR_NUMBER', '')
-            print(pr_number)
-            PY
+            python -c "import json, os; from pathlib import Path; result_path = Path('artifact/result.json'); pr_number = str(json.loads(result_path.read_text()).get('pr_number', '')) if result_path.exists() else ''; print(pr_number or os.environ.get('FALLBACK_PR_NUMBER', ''))"
           )
           [ -n "$PR_NUMBER" ]
           gh api "repos/${REPOSITORY}/issues/${PR_NUMBER}/comments?per_page=100" > comments.json
           comment_id=$(
-            python - <<'PY'
-            import json
-
-            marker = '<!-- bidict-benchmark-comment -->'
-            for comment in json.load(open('comments.json')):
-                if marker in comment['body']:
-                    print(comment['id'])
-                    break
-            PY
+            python -c "import json; marker = '<!-- bidict-benchmark-comment -->'; comments = json.load(open('comments.json')); print(next((str(comment['id']) for comment in comments if marker in comment['body']), ''))"
           )
           python - <<'PY'
           import json
