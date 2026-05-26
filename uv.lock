@@ -112,6 +112,9 @@ docs = [
     { name = "sphinx", version = "9.1.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
     { name = "sphinx-copybutton" },
 ]
+native = [
+    { name = "bidict-base-opt-native" },
+]
 test = [
     { name = "coverage" },
     { name = "hypothesis" },
@@ -141,6 +144,7 @@ docs = [
     { name = "sphinx" },
     { name = "sphinx-copybutton" },
 ]
+native = [{ name = "bidict-base-opt-native", editable = "rust/bidict_base_opt_native" }]
 test = [
     { name = "coverage" },
     { name = "hypothesis" },
@@ -153,6 +157,11 @@ test = [
     { name = "sortedcontainers" },
     { name = "typing-extensions" },
 ]
+
+[[package]]
+name = "bidict-base-opt-native"
+version = "0.23.2.dev0"
+source = { editable = "rust/bidict_base_opt_native" }
 
 [[package]]
 name = "cachetools"

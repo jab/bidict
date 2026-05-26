@@ -12,7 +12,7 @@ set -euo pipefail
 
 declare -r hint="Hint: Use 'nix develop' to bootstrap a development environment"
 
-for cmd in uv prek; do
+for cmd in uv prek rustc cargo maturin; do
   if ! command -v "$cmd" >/dev/null 2>&1; then
     >&2 echo "Error: No '$cmd' on PATH. $hint"
     exit 1

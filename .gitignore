@@ -10,9 +10,14 @@ __pycache__
 .hypothesis
 .idea
 .mypy_cache
+.pytest_cache
+.ruff_cache
 .tox
 .venv
+.venv-*
 .venv-benchmark
+.jump
+benchmark_linux_arm64.sh
 bidict.egg-info
 build
 _build
@@ -20,3 +25,4 @@ coverage.xml
 dist
 htmlcov
 pip-wheel-metadata
+target

@@ -1,0 +1,14 @@
+[project]
+name = "bidict-base-opt-native"
+version = "0.23.2.dev0"
+description = "Optional native helpers for bidict."
+authors = [{ name = "Joshua Bronson", email = "jabronson@gmail.com" }]
+license = "MPL-2.0"
+requires-python = ">=3.11"
+
+[build-system]
+requires = ["maturin>=1.8,<2.0"]
+build-backend = "maturin"
+
+[tool.maturin]
+manifest-path = "Cargo.toml"

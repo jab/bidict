@@ -13,6 +13,7 @@
       lib = pkgs.lib;
       latestPython = pkgs.python314;
       commonTools = with pkgs; [prek uv];
+      nativeTools = with pkgs; [cargo rustc maturin];
       supportedPythons = with pkgs; [
         python314
         python313
@@ -74,7 +75,7 @@
       devShells = {
         default =
           let
-            packages = commonTools ++ supportedPythons;
+            packages = commonTools ++ nativeTools ++ supportedPythons;
           in
           pkgs.mkShell {
             inherit packages;
@@ -96,6 +97,7 @@
         };
         build = mkUvShell {
           python = pkgs.python313;
+          extraPackages = nativeTools;
         };
         lint = pkgs.mkShell {
           packages = with pkgs; [prek];
@@ -123,6 +125,7 @@
         };
         update_deps = mkUvShell {
           python = latestPython;
+          extraPackages = nativeTools;
         };
       };
     });

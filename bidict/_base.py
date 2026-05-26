@@ -41,6 +41,7 @@ from ._exc import KeyDuplicationError
 from ._exc import ValueDuplicationError
 from ._iter import inverted
 from ._iter import iteritems
+from ._native import build_bidict_maps as _build_bidict_maps
 from ._typing import KT
 from ._typing import MISSING
 from ._typing import OKT
@@ -447,6 +448,10 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         # Fast path when we're empty and updating only from another bidict (i.e. no dup vals in new items).
         if not self and not kw and isinstance(arg, BidictBase):
             self._init_from(arg)
+            return
+
+        if not self and self._fwdm_cls is dict and self._invm_cls is dict and _build_bidict_maps is not None:
+            self._fwdm, self._invm = _build_bidict_maps(iteritems(arg, **kw), on_dup)
             return
 
         # Fast path when we're adding more items than we contain already and rollback is enabled:
