@@ -27,6 +27,19 @@
             source ".venv/bin/activate"
           '';
         };
+        benchmark = pkgs.mkShell {
+          packages = with pkgs; [
+            python314
+            uv
+          ];
+          shellHook = ''
+            unset VIRTUAL_ENV
+            export UV_PROJECT_ENVIRONMENT=.venv-benchmark
+            export UV_PYTHON="$(command -v python)"
+            uv sync --only-group=test
+            source "$UV_PROJECT_ENVIRONMENT/bin/activate"
+          '';
+        };
         lint = pkgs.mkShell {
           packages = with pkgs; [prek];
         };

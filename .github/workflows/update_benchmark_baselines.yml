@@ -1,0 +1,122 @@
+name: update benchmark baselines
+
+"on":
+  push:
+    branches:
+      - main
+    paths:
+      - flake.lock
+      - flake.nix
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: (optional) ref to benchmark for the new baseline
+        required: false
+
+env:
+  FORCE_COLOR: "1"
+  PYTHONHASHSEED: "42"
+  BASELINE_RELEASE_TAG: microbenchmarks
+
+jobs:
+  update-baselines:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: install valgrind
+        uses: awalsh128/cache-apt-pkgs-action@acb598e5ddbc6f68a970c5da0688d2f3a9f04d05
+        with:
+          packages: valgrind
+      - name: check out source
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.ref || github.ref }}
+      - name: install Nix
+        uses: DeterminateSystems/nix-installer-action@ef8a148080ab6020fd15196c2084a2eea5ff2d25
+      - name: resolve benchmark metadata
+        id: metadata
+        run: |
+          mapfile -t python_info < <(nix develop .#benchmark --command bash -c "python - <<'PY'
+          import platform
+          print(platform.python_version())
+          print(platform.python_implementation())
+          PY")
+          python_version=${python_info[0]}
+          python_impl=${python_info[1]}
+          python_series=${python_version%.*}
+          arch=$(uname -m)
+          versioned_asset_name="GHA-linux-cachegrind-${arch}-${python_impl}-${python_version}-baseline.json"
+          series_asset_name="GHA-linux-cachegrind-${arch}-${python_impl}-${python_series}-baseline.json"
+          {
+            echo "python_version=$python_version"
+            echo "python_series=$python_series"
+            echo "versioned_asset_name=$versioned_asset_name"
+            echo "series_asset_name=$series_asset_name"
+          } >> "$GITHUB_OUTPUT"
+      - name: benchmark
+        run: |
+          nix develop .#benchmark --command bash -c '
+            uv pip install --no-deps .
+            # Move aside the working tree package so we always import the installed version.
+            mv -v bidict src
+            ./cachegrind.py pytest -c /dev/null -n0 \
+                --benchmark-autosave \
+                --benchmark-columns=min,rounds,iterations \
+                --benchmark-disable-gc \
+                --benchmark-group-by=name \
+                microbenchmarks.py
+          '
+      - name: prepare baseline assets
+        id: assets
+        run: |
+          benchmark_json=$(find .benchmarks -type f -name '*.json' | sort | tail -n1)
+          [ -n "$benchmark_json" ]
+          cp "$benchmark_json" '${{ steps.metadata.outputs.versioned_asset_name }}'
+          cp "$benchmark_json" '${{ steps.metadata.outputs.series_asset_name }}'
+          {
+            echo "benchmark_json=$benchmark_json"
+            echo "versioned_asset_path=${{ github.workspace }}/${{ steps.metadata.outputs.versioned_asset_name }}"
+            echo "series_asset_path=${{ github.workspace }}/${{ steps.metadata.outputs.series_asset_name }}"
+          } >> "$GITHUB_OUTPUT"
+      - name: ensure baseline release exists
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if gh release view "$BASELINE_RELEASE_TAG" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            exit 0
+          fi
+          gh release create "$BASELINE_RELEASE_TAG" \
+            --repo "$GITHUB_REPOSITORY" \
+            --title 'baseline microbenchmarks' \
+            --notes 'This tag exists merely so we have somewhere we can store the attached baseline benchmark data.'
+      - name: upload baseline assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release upload "$BASELINE_RELEASE_TAG" \
+            '${{ steps.assets.outputs.versioned_asset_path }}' \
+            '${{ steps.assets.outputs.series_asset_path }}' \
+            --repo "$GITHUB_REPOSITORY" \
+            --clobber
+      - name: write summary
+        run: |
+          {
+            echo '### Uploaded benchmark baselines'
+            echo
+            echo '- Python: `${{ steps.metadata.outputs.python_version }}`'
+            echo '- Versioned asset: `${{ steps.metadata.outputs.versioned_asset_name }}`'
+            echo '- Series alias: `${{ steps.metadata.outputs.series_asset_name }}`'
+            echo '- Source benchmark file: `${{ steps.assets.outputs.benchmark_json }}`'
+          } >> "$GITHUB_STEP_SUMMARY"
+      - name: archive benchmark results
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f
+        with:
+          name: microbenchmark baseline results (CPython ${{ steps.metadata.outputs.python_version }})
+          path: |
+            .benchmarks
+            ${{ steps.metadata.outputs.versioned_asset_name }}
+            ${{ steps.metadata.outputs.series_asset_name }}
+          if-no-files-found: error
+
+permissions:
+  contents: write
