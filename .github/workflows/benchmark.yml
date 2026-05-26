@@ -79,6 +79,7 @@ jobs:
         with:
           name: microbenchmark results (CPython ${{ steps.metadata.outputs.python_version }})
           path: .benchmarks
+          include-hidden-files: true
           if-no-files-found: error
 
 permissions:

@@ -116,6 +116,7 @@ jobs:
             .benchmarks
             ${{ steps.metadata.outputs.versioned_asset_name }}
             ${{ steps.metadata.outputs.series_asset_name }}
+          include-hidden-files: true
           if-no-files-found: error
 
 permissions:
