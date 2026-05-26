@@ -17,7 +17,7 @@ main() {
   declare -r hint="Hint: Use 'nix develop' to bootstrap a development environment"
 
   for cmd in uv prek; do
-    if ! type "$cmd"; then
+    if ! command -v "$cmd" >/dev/null 2>&1; then
       log "Error: No '$cmd' on PATH. $hint"
       exit 1
     fi
