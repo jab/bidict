@@ -34,7 +34,6 @@ jobs:
           if [ -n "$artifact_url" ]; then
             curl -LfsS \
               -H "Authorization: Bearer ${GH_TOKEN}" \
-              -H "Accept: application/octet-stream" \
               "$artifact_url" > artifact.zip
             python -c "from zipfile import ZipFile; ZipFile('artifact.zip').extractall('artifact')"
           else
