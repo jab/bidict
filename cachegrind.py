@@ -61,6 +61,7 @@ def run_with_cachegrind(args_list: list[str]) -> dict[str, int]:
         *DISABLE_ASLR_CMD,
         'valgrind',
         '--tool=cachegrind',
+        '--cache-sim=yes',
         # Set some reasonable L1 and LL values, based on Haswell.
         # Feel free to update, important part is that they are consistent across runs,
         # instead of the default of copying from the current machine.
