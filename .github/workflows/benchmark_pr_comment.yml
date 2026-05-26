@@ -28,13 +28,14 @@ jobs:
           set -euo pipefail
           mkdir -p artifact
           gh api "repos/${REPOSITORY}/actions/runs/${RUN_ID}/artifacts" > artifacts.json
-          artifact_id=$(
-            python -c "import json; from pathlib import Path; artifacts = json.loads(Path('artifacts.json').read_text())['artifacts']; print(next((str(artifact['id']) for artifact in artifacts if artifact['name'] == 'benchmark-pr-comment'), ''))"
+          artifact_url=$(
+            python -c "import json; from pathlib import Path; artifacts = json.loads(Path('artifacts.json').read_text())['artifacts']; print(next((artifact['archive_download_url'] for artifact in artifacts if artifact['name'] == 'benchmark-pr-comment'), ''))"
           )
-          if [ -n "$artifact_id" ]; then
-            gh api \
+          if [ -n "$artifact_url" ]; then
+            curl -LfsS \
+              -H "Authorization: Bearer ${GH_TOKEN}" \
               -H "Accept: application/octet-stream" \
-              "repos/${REPOSITORY}/actions/artifacts/${artifact_id}/zip" > artifact.zip
+              "$artifact_url" > artifact.zip
             python -c "from zipfile import ZipFile; ZipFile('artifact.zip').extractall('artifact')"
           else
             python -c "import json, os; from pathlib import Path; Path('artifact/comment.md').write_text('<!-- bidict-benchmark-comment -->\\n## Benchmark report\\n\\n:warning: Benchmark comment artifact not found.\\n\\n- Run: [benchmark workflow run]({})\\n- Result: the benchmark workflow completed, but it did not upload the PR comment artifact.\\n\\n_This benchmark check is informational and does not block merging._\\n'.format(os.environ['RUN_URL'])); Path('artifact/result.json').write_text(json.dumps({'pr_number': os.environ['FALLBACK_PR_NUMBER']}) + '\\n')"
