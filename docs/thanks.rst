@@ -40,10 +40,6 @@ People
   and Michael Arntzenius
   for suggestions, code reviews, and design discussion.
 
-- Leif Walsh for contributing the initial
-  `devcontainer <https://code.visualstudio.com/docs/remote/containers>`__
-  setup.
-
 - Jozef Knaperek for the bugfix.
 
 - Igor Nehoroshev for contributing the py.typed marker.

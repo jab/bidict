@@ -40,29 +40,14 @@ Getting Started
 Making Changes
 --------------
 
-- You can work on bidict in a Visual Studio Code
-  `devcontainer environment <https://code.visualstudio.com/docs/remote/containers>`__,
-  where development dependencies and some helpful VS Code extensions
-  are installed inside the dev container environment for you.
+- To set up a development environment:
 
-  Try ``Remote-Containers: Clone Repository in Container Volume...`` on this
-  repository. You may need to reload your VS Code window after it finishes
-  cloning and installing extensions, which it should automatically prompt you to do
-  when you open your clone in VS Code.
+  - If you have `Nix <https://nixos.org>`__, run ``nix develop``
+    from within your clone to start a shell where all supported
+    Python versions as well as ``prek`` are installed and added
+    to your PATH.
 
-  - Note that `prek <https://github.com/j178/prek>`__
-    is used to help achieve uniform code style and quality standards
-    at commit time.
-
-- If not using a VSCode devcontainer, you can try the following
-  to set up a development environment manually:
-
-  - If you have `Nix <https://nixos.org>`__, you can run
-    ``nix develop`` from within your clone to start a shell
-    where all supported Python versions as well as ``prek``
-    are installed and added to your PATH.
-
-    Otherwise, manually ensure you have `prek <https://github.com/j178/prek>`__
+  - Otherwise, manually ensure you have `prek <https://github.com/j178/prek>`__
     and at least the latest `stable Python version <https://python.org/downloads/>`__
     installed and on your PATH.
 
@@ -70,6 +55,10 @@ Making Changes
 
     This installs the ``prek``-based pre-commit hook in your clone,
     and creates a virtualenv with all the development dependencies installed.
+
+  - Note that `prek <https://github.com/j178/prek>`__
+    is used to help achieve uniform code style and quality standards
+    at commit time.
 
 - Create a topic branch off of ``main`` for your changes:
   ``git checkout -b <topic> main``
