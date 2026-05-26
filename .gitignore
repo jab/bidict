@@ -17,7 +17,6 @@ __pycache__
 .venv-*
 .venv-benchmark
 .jump
-benchmark_linux_arm64.sh
 bidict.egg-info
 build
 _build
