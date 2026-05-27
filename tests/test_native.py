@@ -50,6 +50,22 @@ def test_empty_update_uses_native_builder_when_available(monkeypatch: pytest.Mon
     assert dict(bi.inverse.items()) == {2: 1}
 
 
+def test_empty_mapping_update_passes_items_view_to_native_builder(monkeypatch: pytest.MonkeyPatch) -> None:
+    seen_type: type[object] | None = None
+
+    def fake_build(items: Iterable[tuple[int, int]], _on_dup: object) -> tuple[dict[int, int], dict[int, int]]:
+        nonlocal seen_type
+        seen_type = type(items)
+        return {1: 2}, {2: 1}
+
+    monkeypatch.setattr(base_mod, '_build_bidict_maps', fake_build)
+    bi = bidict[int, int]()
+
+    bi.update({1: 2})
+
+    assert seen_type is type({}.items())
+
+
 def test_empty_update_preserves_materialized_inverse(monkeypatch: pytest.MonkeyPatch) -> None:
     items_seen: list[tuple[int, int]] = []
     bi = bidict[int, int]()
@@ -111,6 +127,28 @@ def test_nonempty_bulk_update_uses_native_updater_when_available(monkeypatch: py
 
     assert items_seen == [(5, 6), (7, 8)]
     assert dict(bi.items()) == {1: 2, 3: 4, 5: 6, 7: 8}
+
+
+def test_nonempty_mapping_update_passes_items_view_to_native_updater(monkeypatch: pytest.MonkeyPatch) -> None:
+    seen_type: type[object] | None = None
+
+    def fake_update(
+        _fwd: dict[int, int],
+        _inv: dict[int, int],
+        items: Iterable[tuple[int, int]],
+        _on_dup: object,
+    ) -> tuple[dict[int, int], dict[int, int]]:
+        nonlocal seen_type
+        seen_type = type(items)
+        return {1: 2, 3: 4, 5: 6, 7: 8}, {2: 1, 4: 3, 6: 5, 8: 7}
+
+    monkeypatch.setattr(base_mod, '_update_bidict_maps', fake_update)
+    monkeypatch.setattr(base_mod, '_MIN_NATIVE_UPDATE_ITEMS', 2)
+    bi = bidict({1: 2, 3: 4})
+
+    bi.update({5: 6, 7: 8})
+
+    assert seen_type is type({}.items())
 
 
 def test_nonempty_small_update_skips_native_updater(monkeypatch: pytest.MonkeyPatch) -> None:

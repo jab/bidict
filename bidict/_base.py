@@ -62,6 +62,12 @@ _MIN_NATIVE_FORCEUPDATE_ITEMS = 4096
 _MIN_NATIVE_DUPVAL_PRESCAN_ITEMS = 16384
 
 
+def _native_items(arg: MapOrItems[KT, VT], kw: Mapping[str, VT]) -> Iterable[tuple[KT, VT]]:
+    if not kw and isinstance(arg, Mapping):
+        return arg.items()
+    return iteritems(arg, **kw)
+
+
 class BidictKeysView(KeysView[KT], ValuesView[KT]):
     """Since the keys of a bidict are the values of its inverse (and vice versa),
     the :class:`~collections.abc.ValuesView` result of calling *bi.values()*
@@ -500,7 +506,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
             return
 
         if not self and self._supports_native_map_swap() and _build_bidict_maps is not None:
-            self._set_map_data(*_build_bidict_maps(iteritems(arg, **kw), on_dup))
+            self._set_map_data(*_build_bidict_maps(_native_items(arg, kw), on_dup))
             return
 
         if self._should_use_native_update(incoming_len, on_dup):
@@ -509,7 +515,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
             invm = t.cast(dict[t.Any, t.Any], self._invm)
             native_update = _update_bidict_maps
             assert native_update is not None
-            self._set_map_data(*native_update(fwdm, invm, iteritems(arg, **kw), on_dup))
+            self._set_map_data(*native_update(fwdm, invm, _native_items(arg, kw), on_dup))
             return
 
         # Fast path when we're adding more items than we contain already and rollback is enabled:
