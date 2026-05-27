@@ -19,6 +19,8 @@ env:
   PYTHONHASHSEED: "42"
   BASELINE_RELEASE_TAG: microbenchmarks
   PR_BENCHMARK_COMPARE_FAIL: min:5%
+  PR_BENCHMARK_COMMENT_MAX_ROWS: "8"
+  PR_BENCHMARK_COMMENT_MIN_CHANGE_PCT: "1"
 
 jobs:
   benchmark:
@@ -88,6 +90,7 @@ jobs:
               compare_fail_args+=(--benchmark-compare-fail="$COMPARE_FAIL_EXPR")
             fi
             ./cachegrind.py pytest -c /dev/null -n0 \
+                --benchmark-json benchmark.json \
                 --benchmark-autosave \
                 --benchmark-columns=min,rounds,iterations \
                 --benchmark-disable-gc \
@@ -138,6 +141,8 @@ jobs:
         if: always() && github.event_name == 'pull_request'
         env:
           BASELINE_ASSET_NAME: ${{ steps.metadata.outputs.baseline_asset_name }}
+          COMMENT_MAX_ROWS: ${{ env.PR_BENCHMARK_COMMENT_MAX_ROWS }}
+          COMMENT_MIN_CHANGE_PCT: ${{ env.PR_BENCHMARK_COMMENT_MIN_CHANGE_PCT }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
           RESULT_MESSAGE: ${{ steps.benchmark.outputs.result_message }}
           RESULT_STATE: ${{ steps.benchmark.outputs.result_state }}
@@ -173,6 +178,81 @@ jobs:
           import os
           from pathlib import Path
 
+          baseline_path = Path('baseline.json')
+          benchmark_path = Path('benchmark.json')
+          comment_path = Path('benchmark-pr-comment/comment.md')
+          max_rows = int(os.environ['COMMENT_MAX_ROWS'])
+          min_change_pct = float(os.environ['COMMENT_MIN_CHANGE_PCT'])
+
+          def bench_key(bench: dict[str, object]) -> str:
+              return str(bench['name'])
+
+          def load_benchmark_mins(path: Path) -> dict[str, float]:
+              data = json.loads(path.read_text())
+              return {bench_key(bench): float(bench['stats']['min']) for bench in data['benchmarks']}
+
+          def format_row(name: str, baseline: float, current: float, delta_pct: float) -> str:
+              return (
+                  f"| `{name}` | {baseline * 1000:.3f} ms | {current * 1000:.3f} ms | {delta_pct:+.2f}% |"
+              )
+
+          if baseline_path.exists() and benchmark_path.exists():
+              baseline_mins = load_benchmark_mins(baseline_path)
+              benchmark_mins = load_benchmark_mins(benchmark_path)
+              shared = []
+              for name, current in benchmark_mins.items():
+                  baseline = baseline_mins.get(name)
+                  if baseline is None or baseline == 0:
+                      continue
+                  delta_pct = ((current - baseline) / baseline) * 100
+                  shared.append((name, baseline, current, delta_pct))
+
+              improvements = [
+                  entry for entry in shared if entry[3] <= -min_change_pct
+              ]
+              regressions = [
+                  entry for entry in shared if entry[3] >= min_change_pct
+              ]
+              improvements.sort(key=lambda entry: entry[3])
+              regressions.sort(key=lambda entry: entry[3], reverse=True)
+
+              lines = comment_path.read_text().rstrip().splitlines()
+              lines.extend(['', f'_Deltas below compare benchmark `min` time against `{os.environ["BASELINE_ASSET_NAME"]}`._'])
+
+              if improvements:
+                  lines.extend([
+                      '',
+                      '### Notable improvements',
+                      '',
+                      '| Benchmark | Baseline | PR | Delta |',
+                      '| --- | ---: | ---: | ---: |',
+                      *(
+                          format_row(name, baseline, current, delta_pct)
+                          for name, baseline, current, delta_pct in improvements[:max_rows]
+                      ),
+                  ])
+
+              if regressions:
+                  lines.extend([
+                      '',
+                      '### Notable regressions',
+                      '',
+                      '| Benchmark | Baseline | PR | Delta |',
+                      '| --- | ---: | ---: | ---: |',
+                      *(
+                          format_row(name, baseline, current, delta_pct)
+                          for name, baseline, current, delta_pct in regressions[:max_rows]
+                      ),
+                  ])
+
+              if not improvements and not regressions:
+                  lines.extend([
+                      '',
+                      f'_No benchmark deltas of at least {min_change_pct:.0f}% to report._',
+                  ])
+
+              comment_path.write_text('\n'.join(lines) + '\n')
+
           payload = {
               'pr_number': os.environ['PR_NUMBER'],
               'result_state': os.environ['RESULT_STATE'],
@@ -197,6 +277,8 @@ jobs:
           name: microbenchmark results (CPython ${{ steps.metadata.outputs.python_version }})
           path: |
             .benchmarks
+            baseline.json
+            benchmark.json
             benchmark-output.txt
           include-hidden-files: true
           if-no-files-found: error
