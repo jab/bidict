@@ -1,3 +1,8 @@
+#![allow(
+    clippy::useless_conversion,
+    reason = "PyO3 #[pyfunction] expansion triggers this false positive on PyResult returns"
+)]
+
 use pyo3::prelude::*;
 use pyo3::types::PyDict;
 use pyo3::types::PyType;
@@ -129,8 +134,8 @@ fn apply_items(
             py,
             fwd,
             inv,
-            &key.bind(py),
-            &val.bind(py),
+            key.bind(py),
+            val.bind(py),
             on_dup_key,
             on_dup_val,
         )?;

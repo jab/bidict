@@ -45,7 +45,8 @@ Making Changes
   - If you have `Nix <https://nixos.org>`__, run ``nix develop``
     from within your clone to start a shell where all supported
     Python versions as well as ``prek``, ``uv``, ``rustc``,
-    ``cargo``, and ``maturin`` are installed and added to your PATH.
+    ``cargo``, ``rustfmt``, ``cargo-clippy``, and ``maturin``
+    are installed and added to your PATH.
     This also pins ``uv`` to the flake-provided default Python
     when initializing ``.venv``.
 

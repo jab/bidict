@@ -12,8 +12,9 @@
       pkgs = import nixpkgs { inherit system; };
       lib = pkgs.lib;
       latestPython = pkgs.python314;
-      commonTools = with pkgs; [prek uv];
-      nativeTools = with pkgs; [cargo rustc rustfmt maturin];
+      baseDevTools = with pkgs; [prek uv];
+      rustDevTools = with pkgs; [cargo rustc rustfmt clippy maturin];
+      allDevTools = baseDevTools ++ rustDevTools;
       supportedPythons = with pkgs; [
         python314
         python313
@@ -53,7 +54,7 @@
         extraShellHook ? "",
       }:
         let
-          packages = commonTools ++ [python] ++ extraPackages;
+          packages = baseDevTools ++ [python] ++ extraPackages;
         in
         pkgs.mkShell {
           inherit packages;
@@ -75,7 +76,7 @@
       devShells = {
         default =
           let
-            packages = commonTools ++ nativeTools ++ supportedPythons;
+            packages = allDevTools ++ supportedPythons;
           in
           pkgs.mkShell {
             inherit packages;
@@ -97,11 +98,11 @@
         };
         build = mkUvShell {
           python = pkgs.python313;
-          extraPackages = nativeTools;
+          extraPackages = rustDevTools;
         };
         lint = pkgs.mkShell {
-          packages = commonTools ++ nativeTools;
-          shellHook = mkPathPrefix (commonTools ++ nativeTools);
+          packages = allDevTools;
+          shellHook = mkPathPrefix allDevTools;
         };
         test311 = mkTestShell {
           python = pkgs.python311;
@@ -125,7 +126,7 @@
         };
         update_deps = mkUvShell {
           python = latestPython;
-          extraPackages = nativeTools;
+          extraPackages = rustDevTools;
         };
       };
     });
