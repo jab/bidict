@@ -42,17 +42,22 @@ where
     PyErr::from_type_bound(err_type, args)
 }
 
-fn apply_item(
+struct ExistingItems {
+    oldval: Option<Py<PyAny>>,
+    oldkey: Option<Py<PyAny>>,
+}
+
+fn handle_dup_item(
     py: Python<'_>,
     fwd: &Bound<'_, PyDict>,
     inv: &Bound<'_, PyDict>,
     key: &Bound<'_, PyAny>,
     val: &Bound<'_, PyAny>,
-    on_dup_key: OnDupAction,
-    on_dup_val: OnDupAction,
+    existing: ExistingItems,
+    on_dup: (OnDupAction, OnDupAction),
 ) -> PyResult<()> {
-    let oldval = fwd.get_item(key)?.map(Bound::unbind);
-    let oldkey = inv.get_item(val)?.map(Bound::unbind);
+    let ExistingItems { oldval, oldkey } = existing;
+    let (on_dup_key, on_dup_val) = on_dup;
     let isdupkey = oldval.is_some();
     let isdupval = oldkey.is_some();
 
@@ -130,14 +135,23 @@ fn apply_items(
     for item in items.iter()? {
         let item = item?;
         let (key, val): (Py<PyAny>, Py<PyAny>) = item.extract()?;
-        apply_item(
+        let key = key.bind(py);
+        let val = val.bind(py);
+        let oldval = fwd.get_item(key)?.map(Bound::unbind);
+        let oldkey = inv.get_item(val)?.map(Bound::unbind);
+        if oldval.is_none() && oldkey.is_none() {
+            fwd.set_item(key, val)?;
+            inv.set_item(val, key)?;
+            continue;
+        }
+        handle_dup_item(
             py,
             fwd,
             inv,
-            key.bind(py),
-            val.bind(py),
-            on_dup_key,
-            on_dup_val,
+            key,
+            val,
+            ExistingItems { oldval, oldkey },
+            (on_dup_key, on_dup_val),
         )?;
     }
 
@@ -154,7 +168,22 @@ fn apply_mapping(
 ) -> PyResult<()> {
     if let Ok(dict) = mapping.downcast::<PyDict>() {
         for (key, val) in dict.iter() {
-            apply_item(py, fwd, inv, &key, &val, on_dup_key, on_dup_val)?;
+            let oldval = fwd.get_item(&key)?.map(Bound::unbind);
+            let oldkey = inv.get_item(&val)?.map(Bound::unbind);
+            if oldval.is_none() && oldkey.is_none() {
+                fwd.set_item(&key, &val)?;
+                inv.set_item(&val, &key)?;
+                continue;
+            }
+            handle_dup_item(
+                py,
+                fwd,
+                inv,
+                &key,
+                &val,
+                ExistingItems { oldval, oldkey },
+                (on_dup_key, on_dup_val),
+            )?;
         }
     } else {
         let items = mapping.call_method0("items")?;
