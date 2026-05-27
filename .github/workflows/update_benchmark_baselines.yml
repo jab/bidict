@@ -59,6 +59,14 @@ jobs:
             uv pip install --python "$VIRTUAL_ENV/bin/python" --no-deps .
             # Move aside the working tree package so we always import the installed version.
             mv -v bidict src
+            python - <<'"'"'PY'"'"'
+            from bidict import _native
+
+            assert _native.build_bidict_maps is not None
+            assert _native.build_bidict_maps_from_mapping is not None
+            assert _native.update_bidict_maps is not None
+            assert _native.update_bidict_maps_from_mapping is not None
+            PY
             ./cachegrind.py pytest -c /dev/null -n0 \
                 --benchmark-autosave \
                 --benchmark-columns=min,rounds,iterations \

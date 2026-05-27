@@ -36,16 +36,21 @@ jobs:
           - python: "3.14"
             shell: test314
             enable_coverage: true
+            enable_native: true
           - python: "3.13"
             shell: test313
+            enable_native: true
           - python: "3.12"
             shell: test312
+            enable_native: true
           - python: "3.11"
             shell: test311
             # bidict/_typing.py's `typing`/`typing_extensions` imports branch on python<3.12
             enable_coverage: true
+            enable_native: true
           - python: "pypy-3.11"
             shell: testPyPy311
+            enable_native: false
     steps:
       - name: check out source
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd
@@ -69,6 +74,19 @@ jobs:
         if: matrix.enable_coverage
         run: |
           echo RUN_PYTEST_CMD="coverage run -m pytest" >> "$GITHUB_ENV"
+      - name: verify native helper availability
+        if: matrix.enable_native
+        run: |
+          nix develop .#${{ matrix.shell }} --command bash -c '
+            python - <<'"'"'PY'"'"'
+            from bidict import _native
+
+            assert _native.build_bidict_maps is not None
+            assert _native.build_bidict_maps_from_mapping is not None
+            assert _native.update_bidict_maps is not None
+            assert _native.update_bidict_maps_from_mapping is not None
+            PY
+          '
       - name: run mypy and pytest
         run: |
           nix develop .#${{ matrix.shell }} --command bash -c "

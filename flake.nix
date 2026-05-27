@@ -15,6 +15,8 @@
       baseDevTools = with pkgs; [prek uv];
       rustDevTools = with pkgs; [cargo rustc rustfmt clippy maturin];
       allDevTools = baseDevTools ++ rustDevTools;
+      nativePackageName = "bidict-base-opt-native";
+      nativeReinstallArg = "--reinstall-package=${nativePackageName}";
       supportedPythons = with pkgs; [
         python314
         python313
@@ -63,11 +65,19 @@
           };
         };
 
-      mkTestShell = { python, projectEnv }:
+      mkTestShell = {
+        python,
+        projectEnv,
+        enableNative ? false,
+      }:
         mkUvShell {
           inherit python projectEnv;
-          syncArgs = "--only-group=test";
+          syncArgs =
+            if enableNative
+            then "--only-group=test --only-group=native ${nativeReinstallArg}"
+            else "--only-group=test";
           activate = true;
+          extraPackages = lib.optionals enableNative rustDevTools;
           extraShellHook = ''
             uv pip install --python "$UV_PROJECT_ENVIRONMENT/bin/python" --no-deps -e .
           '';
@@ -93,8 +103,9 @@
         benchmark = mkUvShell {
           python = latestPython;
           projectEnv = ".venv-benchmark";
-          syncArgs = "--only-group=test";
+          syncArgs = "--only-group=test --only-group=native ${nativeReinstallArg}";
           activate = true;
+          extraPackages = rustDevTools;
         };
         build = mkUvShell {
           python = pkgs.python313;
@@ -107,18 +118,22 @@
         test311 = mkTestShell {
           python = pkgs.python311;
           projectEnv = ".venv-test-3.11";
+          enableNative = true;
         };
         test312 = mkTestShell {
           python = pkgs.python312;
           projectEnv = ".venv-test-3.12";
+          enableNative = true;
         };
         test313 = mkTestShell {
           python = pkgs.python313;
           projectEnv = ".venv-test-3.13";
+          enableNative = true;
         };
         test314 = mkTestShell {
           python = pkgs.python314;
           projectEnv = ".venv-test-3.14";
+          enableNative = true;
         };
         testPyPy311 = mkTestShell {
           python = pkgs.pypy3;
