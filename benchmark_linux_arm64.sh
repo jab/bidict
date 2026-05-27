@@ -20,12 +20,16 @@ repo_root=$(
   pwd
 )
 
+# shellcheck disable=SC2016
 container run --rm --progress plain \
   -v "${repo_root}:/work" \
   -w /work \
   "${container_image}" \
   bash -c '
     set -euo pipefail
+    if [ -n "${1:-}" ]; then
+      export BIDICT_DISABLE_NATIVE="$1"
+    fi
     export DEBIAN_FRONTEND=noninteractive
     export PYTHONHASHSEED=42
     export UV_LINK_MODE=copy
@@ -50,11 +54,23 @@ container run --rm --progress plain \
     uv sync --all-groups --frozen >/dev/null
     . /tmp/bidict-bench-venv/bin/activate
 
-    python -c "import bidict._native as native; assert native.build_bidict_maps is not None; print(\"native helper:\", native.build_bidict_maps.__module__)"
+    python - <<"PY"
+import os
+
+import bidict._native as native
+
+disabled = os.getenv("BIDICT_DISABLE_NATIVE")
+if disabled:
+    assert native.build_bidict_maps is None and native.update_bidict_maps is None
+    print(f"native helper: disabled via BIDICT_DISABLE_NATIVE={disabled}")
+else:
+    assert native.build_bidict_maps is not None
+    print("native helper:", native.build_bidict_maps.__module__)
+PY
 
     ./cachegrind.py python -m pytest -c /dev/null -n0 \
       --benchmark-columns=min,rounds,iterations \
       --benchmark-disable-gc \
       --benchmark-group-by=name \
       microbenchmarks.py
-  '
+  ' bash "${BIDICT_DISABLE_NATIVE-}"

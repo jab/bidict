@@ -59,7 +59,7 @@ Unwrites: t.TypeAlias = list[tuple[t.Any, ...]]
 ReversedIter: t.TypeAlias = t.Callable[['BidictBase[KT, t.Any]'], Iterator[KT]]
 _MIN_NATIVE_UPDATE_ITEMS = 8192
 _MIN_NATIVE_FORCEUPDATE_ITEMS = 4096
-_MIN_NATIVE_DUPVAL_PRESCAN_ITEMS = 4096
+_MIN_NATIVE_DUPVAL_PRESCAN_ITEMS = 16384
 
 
 class BidictKeysView(KeysView[KT], ValuesView[KT]):
