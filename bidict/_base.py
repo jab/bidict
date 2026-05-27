@@ -42,6 +42,7 @@ from ._exc import ValueDuplicationError
 from ._iter import inverted
 from ._iter import iteritems
 from ._native import build_bidict_maps as _build_bidict_maps
+from ._native import update_bidict_maps as _update_bidict_maps
 from ._typing import KT
 from ._typing import MISSING
 from ._typing import OKT
@@ -211,6 +212,17 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         inv._fwdm = self._invm
         inv._invm = self._fwdm
         return inv
+
+    def _set_map_data(self, fwdm: MutableMapping[KT, VT], invm: MutableMapping[VT, KT]) -> None:
+        """Replace our backing maps, preserving any already-materialized inverse instance."""
+        if getattr(self, '_inv', None) is None and getattr(self, '_invweak', None) is None:
+            self._fwdm = fwdm
+            self._invm = invm
+            return
+        self._fwdm.clear()
+        self._invm.clear()
+        self._fwdm.update(fwdm)
+        self._invm.update(invm)
 
     @property
     def inv(self) -> BidictBase[VT, KT]:
@@ -444,6 +456,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
             on_dup = self.on_dup
         if rollback is None:
             rollback = RAISE in on_dup
+        incoming_len = len(arg) + len(kw) if isinstance(arg, t.Sized) else None
 
         # Fast path when we're empty and updating only from another bidict (i.e. no dup vals in new items).
         if not self and not kw and isinstance(arg, BidictBase):
@@ -451,12 +464,26 @@ class BidictBase(BidirectionalMapping[KT, VT]):
             return
 
         if not self and self._fwdm_cls is dict and self._invm_cls is dict and _build_bidict_maps is not None:
-            self._fwdm, self._invm = _build_bidict_maps(iteritems(arg, **kw), on_dup)
+            self._set_map_data(*_build_bidict_maps(iteritems(arg, **kw), on_dup))
+            return
+
+        if (
+            self
+            and rollback
+            and incoming_len is not None
+            and incoming_len >= len(self)
+            and self._fwdm_cls is dict
+            and self._invm_cls is dict
+            and _update_bidict_maps is not None
+        ):
+            fwdm = t.cast(dict[t.Any, t.Any], self._fwdm)
+            invm = t.cast(dict[t.Any, t.Any], self._invm)
+            self._set_map_data(*_update_bidict_maps(fwdm, invm, iteritems(arg, **kw), on_dup))
             return
 
         # Fast path when we're adding more items than we contain already and rollback is enabled:
         # Update a copy of self with rollback disabled. Fail if that fails, otherwise become the copy.
-        if rollback and isinstance(arg, t.Sized) and len(arg) + len(kw) > len(self):
+        if rollback and incoming_len is not None and incoming_len > len(self):
             tmp = self.copy()
             tmp._update(arg, kw, rollback=False, on_dup=on_dup)
             self._init_from(tmp)

@@ -37,6 +37,24 @@ def test_empty_update_uses_native_builder_when_available(monkeypatch: pytest.Mon
     assert dict(bi.inverse.items()) == {2: 1}
 
 
+def test_empty_update_preserves_materialized_inverse(monkeypatch: pytest.MonkeyPatch) -> None:
+    items_seen: list[tuple[int, int]] = []
+    bi = bidict[int, int]()
+    inv = bi.inverse
+
+    def fake_build(items: Iterable[tuple[int, int]], _on_dup: object) -> tuple[dict[int, int], dict[int, int]]:
+        items_seen.extend(items)
+        return {1: 2}, {2: 1}
+
+    monkeypatch.setattr(base_mod, '_build_bidict_maps', fake_build)
+
+    bi.update([(1, 2)])
+
+    assert items_seen == [(1, 2)]
+    assert dict(inv.items()) == {2: 1}
+    assert inv.inverse is bi
+
+
 def test_nonempty_update_skips_native_builder(monkeypatch: pytest.MonkeyPatch) -> None:
     bi = bidict({1: 2})
 
@@ -51,8 +69,69 @@ def test_nonempty_update_skips_native_builder(monkeypatch: pytest.MonkeyPatch) -
     assert dict(bi.items()) == {1: 2, 3: 4}
 
 
+def test_nonempty_bulk_update_uses_native_updater_when_available(monkeypatch: pytest.MonkeyPatch) -> None:
+    items_seen: list[tuple[int, int]] = []
+
+    def fake_update(
+        fwd: dict[int, int],
+        inv: dict[int, int],
+        items: Iterable[tuple[int, int]],
+        _on_dup: object,
+    ) -> tuple[dict[int, int], dict[int, int]]:
+        items_seen.extend(items)
+        assert fwd == {1: 2, 3: 4}
+        assert inv == {2: 1, 4: 3}
+        return {1: 2, 3: 4, 5: 6, 7: 8}, {2: 1, 4: 3, 6: 5, 8: 7}
+
+    monkeypatch.setattr(base_mod, '_update_bidict_maps', fake_update)
+    bi = bidict({1: 2, 3: 4})
+
+    bi.update([(5, 6), (7, 8)])
+
+    assert items_seen == [(5, 6), (7, 8)]
+    assert dict(bi.items()) == {1: 2, 3: 4, 5: 6, 7: 8}
+
+
+def test_nonempty_small_update_skips_native_updater(monkeypatch: pytest.MonkeyPatch) -> None:
+    bi = bidict({1: 2, 3: 4})
+
+    def fail_update(
+        _fwd: object, _inv: object, _items: object, _on_dup: object
+    ) -> tuple[dict[int, int], dict[int, int]]:
+        msg = 'native updater should not run for small updates'
+        raise AssertionError(msg)
+
+    monkeypatch.setattr(base_mod, '_update_bidict_maps', fail_update)
+
+    bi.update([(5, 6)])
+
+    assert dict(bi.items()) == {1: 2, 3: 4, 5: 6}
+
+
+def test_nonempty_native_update_preserves_materialized_inverse(monkeypatch: pytest.MonkeyPatch) -> None:
+    bi = bidict({1: 2, 3: 4})
+    inv = bi.inverse
+
+    def fake_update(
+        _fwd: dict[int, int],
+        _inv: dict[int, int],
+        items: Iterable[tuple[int, int]],
+        _on_dup: object,
+    ) -> tuple[dict[int, int], dict[int, int]]:
+        assert list(items) == [(3, 5), (6, 7)]
+        return {1: 2, 3: 5, 6: 7}, {2: 1, 5: 3, 7: 6}
+
+    monkeypatch.setattr(base_mod, '_update_bidict_maps', fake_update)
+
+    bi.update([(3, 5), (6, 7)])
+
+    assert dict(inv.items()) == {2: 1, 5: 3, 7: 6}
+    assert inv.inverse is bi
+
+
 native_build = native_mod.build_bidict_maps
-if native_build is not None:
+native_update = native_mod.update_bidict_maps
+if native_build is not None or native_update is not None:
     pytest.importorskip('bidict_base_opt_native')
 
 
@@ -87,3 +166,30 @@ def test_native_build_bidict_maps_raises_key_and_value_duplication_error() -> No
     assert native_build is not None
     with pytest.raises(KeyAndValueDuplicationError):
         native_build([(1, 2), (3, 4), (1, 4)], bidict.on_dup)
+
+
+@pytest.mark.skipif(native_update is None, reason='optional native helper is not installed')
+def test_native_update_bidict_maps_matches_drop_old_behavior() -> None:
+    assert native_update is not None
+    fwd = {1: 2, 3: 4}
+    inv = {2: 1, 4: 3}
+
+    new_fwd, new_inv = native_update(fwd, inv, [(3, 5), (6, 5)], ON_DUP_DROP_OLD)
+
+    assert new_fwd == {1: 2, 6: 5}
+    assert new_inv == {2: 1, 5: 6}
+    assert fwd == {1: 2, 3: 4}
+    assert inv == {2: 1, 4: 3}
+
+
+@pytest.mark.skipif(native_update is None, reason='optional native helper is not installed')
+def test_native_update_bidict_maps_raises_without_mutating_inputs() -> None:
+    assert native_update is not None
+    fwd = {1: 2, 3: 4}
+    inv = {2: 1, 4: 3}
+
+    with pytest.raises(ValueDuplicationError):
+        native_update(fwd, inv, [(5, 6), (7, 4)], bidict.on_dup)
+
+    assert fwd == {1: 2, 3: 4}
+    assert inv == {2: 1, 4: 3}

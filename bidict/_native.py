@@ -16,11 +16,17 @@ from ._dup import OnDup
 
 Items = Iterable[tuple[t.Any, t.Any]]
 BuildBidictMaps: t.TypeAlias = t.Callable[[Items, OnDup], tuple[dict[t.Any, t.Any], dict[t.Any, t.Any]]]
+UpdateBidictMaps: t.TypeAlias = t.Callable[
+    [dict[t.Any, t.Any], dict[t.Any, t.Any], Items, OnDup],
+    tuple[dict[t.Any, t.Any], dict[t.Any, t.Any]],
+]
 build_bidict_maps: BuildBidictMaps | None
+update_bidict_maps: UpdateBidictMaps | None
 
 
 if t.TYPE_CHECKING:
     build_bidict_maps = None
+    update_bidict_maps = None
 
     def _build_bidict_maps_impl(
         items: Items,
@@ -28,14 +34,37 @@ if t.TYPE_CHECKING:
         on_dup_val: str,
     ) -> tuple[dict[t.Any, t.Any], dict[t.Any, t.Any]]: ...
 
+    def _update_bidict_maps_impl(
+        fwd: dict[t.Any, t.Any],
+        inv: dict[t.Any, t.Any],
+        items: Items,
+        on_dup_key: str,
+        on_dup_val: str,
+    ) -> tuple[dict[t.Any, t.Any], dict[t.Any, t.Any]]: ...
+
 else:
     try:
-        from bidict_base_opt_native import build_bidict_maps as _build_bidict_maps_impl
+        from bidict_base_opt_native import bidict_base_opt_native as _native_ext
     except ModuleNotFoundError as exc:
         if exc.name != 'bidict_base_opt_native':
             raise
         build_bidict_maps: BuildBidictMaps | None = None
+        update_bidict_maps: UpdateBidictMaps | None = None
     else:
+        _build_bidict_maps_impl = _native_ext.build_bidict_maps
+        _update_bidict_maps_impl = getattr(_native_ext, 'update_bidict_maps', None)
 
         def build_bidict_maps(items: Items, on_dup: OnDup) -> tuple[dict[t.Any, t.Any], dict[t.Any, t.Any]]:
             return _build_bidict_maps_impl(items, on_dup.key.name, on_dup.val.name)
+
+        if _update_bidict_maps_impl is None:
+            update_bidict_maps = None
+        else:
+
+            def update_bidict_maps(
+                fwd: dict[t.Any, t.Any],
+                inv: dict[t.Any, t.Any],
+                items: Items,
+                on_dup: OnDup,
+            ) -> tuple[dict[t.Any, t.Any], dict[t.Any, t.Any]]:
+                return _update_bidict_maps_impl(fwd, inv, items, on_dup.key.name, on_dup.val.name)

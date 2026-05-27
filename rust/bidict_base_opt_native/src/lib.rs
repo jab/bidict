@@ -39,18 +39,14 @@ where
 }
 
 
-#[pyfunction]
-fn build_bidict_maps(
+fn apply_items(
     py: Python<'_>,
+    fwd: &Bound<'_, PyDict>,
+    inv: &Bound<'_, PyDict>,
     items: Bound<'_, PyAny>,
-    on_dup_key: &str,
-    on_dup_val: &str,
-) -> PyResult<(Py<PyDict>, Py<PyDict>)> {
-    let on_dup_key = OnDupAction::parse(on_dup_key)?;
-    let on_dup_val = OnDupAction::parse(on_dup_val)?;
-    let fwd = PyDict::new_bound(py);
-    let inv = PyDict::new_bound(py);
-
+    on_dup_key: OnDupAction,
+    on_dup_val: OnDupAction,
+) -> PyResult<()> {
     for item in items.iter()? {
         let item = item?;
         let (key, val): (Py<PyAny>, Py<PyAny>) = item.extract()?;
@@ -108,12 +104,51 @@ fn build_bidict_maps(
         }
     }
 
+    Ok(())
+}
+
+
+#[pyfunction]
+fn build_bidict_maps(
+    py: Python<'_>,
+    items: Bound<'_, PyAny>,
+    on_dup_key: &str,
+    on_dup_val: &str,
+) -> PyResult<(Py<PyDict>, Py<PyDict>)> {
+    let on_dup_key = OnDupAction::parse(on_dup_key)?;
+    let on_dup_val = OnDupAction::parse(on_dup_val)?;
+    let fwd = PyDict::new_bound(py);
+    let inv = PyDict::new_bound(py);
+
+    apply_items(py, &fwd, &inv, items, on_dup_key, on_dup_val)?;
+
     Ok((fwd.unbind(), inv.unbind()))
+}
+
+
+#[pyfunction]
+fn update_bidict_maps(
+    py: Python<'_>,
+    fwd: Bound<'_, PyDict>,
+    inv: Bound<'_, PyDict>,
+    items: Bound<'_, PyAny>,
+    on_dup_key: &str,
+    on_dup_val: &str,
+) -> PyResult<(Py<PyDict>, Py<PyDict>)> {
+    let on_dup_key = OnDupAction::parse(on_dup_key)?;
+    let on_dup_val = OnDupAction::parse(on_dup_val)?;
+    let new_fwd = fwd.copy()?;
+    let new_inv = inv.copy()?;
+
+    apply_items(py, &new_fwd, &new_inv, items, on_dup_key, on_dup_val)?;
+
+    Ok((new_fwd.unbind(), new_inv.unbind()))
 }
 
 
 #[pymodule]
 fn bidict_base_opt_native(_py: Python<'_>, module: &Bound<'_, PyModule>) -> PyResult<()> {
     module.add_function(wrap_pyfunction!(build_bidict_maps, module)?)?;
+    module.add_function(wrap_pyfunction!(update_bidict_maps, module)?)?;
     Ok(())
 }

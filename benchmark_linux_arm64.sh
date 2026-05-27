@@ -8,6 +8,8 @@
 
 set -euo pipefail
 
+declare -r container_image='rust:1.95-bookworm'
+
 if ! command -v container >/dev/null 2>&1; then
   >&2 echo "Error: No 'container' command on PATH."
   exit 1
@@ -21,8 +23,8 @@ repo_root=$(
 container run --rm --progress plain \
   -v "${repo_root}:/work" \
   -w /work \
-  ubuntu:24.04 \
-  bash -lc '
+  "${container_image}" \
+  bash -c '
     set -euo pipefail
     export DEBIAN_FRONTEND=noninteractive
     export PYTHONHASHSEED=42
@@ -30,11 +32,25 @@ container run --rm --progress plain \
     export UV_PROJECT_ENVIRONMENT=/tmp/bidict-bench-venv
 
     apt-get update >/dev/null
-    apt-get install -y ca-certificates git util-linux valgrind python3 python3-venv python3-pip >/dev/null
+    apt-get install -y \
+      build-essential \
+      ca-certificates \
+      python3 \
+      python3-dev \
+      python3-pip \
+      python3-venv \
+      util-linux \
+      valgrind \
+      >/dev/null
     python3 -m pip install --break-system-packages uv >/dev/null
 
-    uv sync --only-group test >/dev/null
+    rustc --version
+    cargo --version
+
+    uv sync --all-groups --frozen >/dev/null
     . /tmp/bidict-bench-venv/bin/activate
+
+    python -c "import bidict._native as native; assert native.build_bidict_maps is not None; print(\"native helper:\", native.build_bidict_maps.__module__)"
 
     ./cachegrind.py python -m pytest -c /dev/null -n0 \
       --benchmark-columns=min,rounds,iterations \
