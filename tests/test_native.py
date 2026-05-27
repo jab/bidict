@@ -6,6 +6,7 @@
 
 from __future__ import annotations
 
+import importlib
 from collections.abc import Iterable
 
 import pytest
@@ -18,6 +19,17 @@ from bidict import ValueDuplicationError
 from bidict import _base as base_mod
 from bidict import _native as native_mod
 from bidict import bidict
+
+
+def test_native_env_var_disables_helpers(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv('BIDICT_DISABLE_NATIVE', '1')
+    reloaded = importlib.reload(native_mod)
+    try:
+        assert reloaded.build_bidict_maps is None
+        assert reloaded.update_bidict_maps is None
+    finally:
+        monkeypatch.delenv('BIDICT_DISABLE_NATIVE', raising=False)
+        importlib.reload(reloaded)
 
 
 def test_empty_update_uses_native_builder_when_available(monkeypatch: pytest.MonkeyPatch) -> None:

@@ -8,12 +8,15 @@
 
 from __future__ import annotations
 
+import os
 import typing as t
 from collections.abc import Iterable
 
 from ._dup import OnDup
 
 
+_DISABLE_NATIVE_ENVVAR = 'BIDICT_DISABLE_NATIVE'
+_DISABLE_NATIVE_TRUE_VALUES = frozenset({'1', 'true', 'yes'})
 Items = Iterable[tuple[t.Any, t.Any]]
 BuildBidictMaps: t.TypeAlias = t.Callable[[Items, OnDup], tuple[dict[t.Any, t.Any], dict[t.Any, t.Any]]]
 UpdateBidictMaps: t.TypeAlias = t.Callable[
@@ -22,6 +25,11 @@ UpdateBidictMaps: t.TypeAlias = t.Callable[
 ]
 build_bidict_maps: BuildBidictMaps | None
 update_bidict_maps: UpdateBidictMaps | None
+
+
+def _native_disabled() -> bool:
+    value = os.getenv(_DISABLE_NATIVE_ENVVAR)
+    return value is not None and value.lower() in _DISABLE_NATIVE_TRUE_VALUES
 
 
 if t.TYPE_CHECKING:
@@ -43,28 +51,32 @@ if t.TYPE_CHECKING:
     ) -> tuple[dict[t.Any, t.Any], dict[t.Any, t.Any]]: ...
 
 else:
-    try:
-        from bidict_base_opt_native import bidict_base_opt_native as _native_ext
-    except ModuleNotFoundError as exc:
-        if exc.name != 'bidict_base_opt_native':
-            raise
+    if _native_disabled():
         build_bidict_maps: BuildBidictMaps | None = None
         update_bidict_maps: UpdateBidictMaps | None = None
     else:
-        _build_bidict_maps_impl = _native_ext.build_bidict_maps
-        _update_bidict_maps_impl = getattr(_native_ext, 'update_bidict_maps', None)
-
-        def build_bidict_maps(items: Items, on_dup: OnDup) -> tuple[dict[t.Any, t.Any], dict[t.Any, t.Any]]:
-            return _build_bidict_maps_impl(items, on_dup.key.name, on_dup.val.name)
-
-        if _update_bidict_maps_impl is None:
+        try:
+            from bidict_base_opt_native import bidict_base_opt_native as _native_ext
+        except ModuleNotFoundError as exc:
+            if exc.name != 'bidict_base_opt_native':
+                raise
+            build_bidict_maps = None
             update_bidict_maps = None
         else:
+            _build_bidict_maps_impl = _native_ext.build_bidict_maps
+            _update_bidict_maps_impl = getattr(_native_ext, 'update_bidict_maps', None)
 
-            def update_bidict_maps(
-                fwd: dict[t.Any, t.Any],
-                inv: dict[t.Any, t.Any],
-                items: Items,
-                on_dup: OnDup,
-            ) -> tuple[dict[t.Any, t.Any], dict[t.Any, t.Any]]:
-                return _update_bidict_maps_impl(fwd, inv, items, on_dup.key.name, on_dup.val.name)
+            def build_bidict_maps(items: Items, on_dup: OnDup) -> tuple[dict[t.Any, t.Any], dict[t.Any, t.Any]]:
+                return _build_bidict_maps_impl(items, on_dup.key.name, on_dup.val.name)
+
+            if _update_bidict_maps_impl is None:
+                update_bidict_maps = None
+            else:
+
+                def update_bidict_maps(
+                    fwd: dict[t.Any, t.Any],
+                    inv: dict[t.Any, t.Any],
+                    items: Items,
+                    on_dup: OnDup,
+                ) -> tuple[dict[t.Any, t.Any], dict[t.Any, t.Any]]:
+                    return _update_bidict_maps_impl(fwd, inv, items, on_dup.key.name, on_dup.val.name)
