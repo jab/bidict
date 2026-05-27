@@ -11,6 +11,7 @@ from __future__ import annotations
 import os
 import typing as t
 from collections.abc import Iterable
+from collections.abc import Mapping
 
 from ._dup import OnDup
 
@@ -23,8 +24,17 @@ UpdateBidictMaps: t.TypeAlias = t.Callable[
     [dict[t.Any, t.Any], dict[t.Any, t.Any], Items, OnDup],
     tuple[dict[t.Any, t.Any], dict[t.Any, t.Any]],
 ]
+BuildBidictMapsFromMapping: t.TypeAlias = t.Callable[
+    [Mapping[t.Any, t.Any], OnDup], tuple[dict[t.Any, t.Any], dict[t.Any, t.Any]]
+]
+UpdateBidictMapsFromMapping: t.TypeAlias = t.Callable[
+    [dict[t.Any, t.Any], dict[t.Any, t.Any], Mapping[t.Any, t.Any], OnDup],
+    tuple[dict[t.Any, t.Any], dict[t.Any, t.Any]],
+]
 build_bidict_maps: BuildBidictMaps | None
 update_bidict_maps: UpdateBidictMaps | None
+build_bidict_maps_from_mapping: BuildBidictMapsFromMapping | None
+update_bidict_maps_from_mapping: UpdateBidictMapsFromMapping | None
 
 
 def _native_disabled() -> bool:
@@ -35,6 +45,8 @@ def _native_disabled() -> bool:
 if t.TYPE_CHECKING:
     build_bidict_maps = None
     update_bidict_maps = None
+    build_bidict_maps_from_mapping = None
+    update_bidict_maps_from_mapping = None
 
     def _build_bidict_maps_impl(
         items: Items,
@@ -50,10 +62,26 @@ if t.TYPE_CHECKING:
         on_dup_val: str,
     ) -> tuple[dict[t.Any, t.Any], dict[t.Any, t.Any]]: ...
 
+    def _build_bidict_maps_from_mapping_impl(
+        mapping: Mapping[t.Any, t.Any],
+        on_dup_key: str,
+        on_dup_val: str,
+    ) -> tuple[dict[t.Any, t.Any], dict[t.Any, t.Any]]: ...
+
+    def _update_bidict_maps_from_mapping_impl(
+        fwd: dict[t.Any, t.Any],
+        inv: dict[t.Any, t.Any],
+        mapping: Mapping[t.Any, t.Any],
+        on_dup_key: str,
+        on_dup_val: str,
+    ) -> tuple[dict[t.Any, t.Any], dict[t.Any, t.Any]]: ...
+
 else:
     if _native_disabled():
         build_bidict_maps: BuildBidictMaps | None = None
         update_bidict_maps: UpdateBidictMaps | None = None
+        build_bidict_maps_from_mapping: BuildBidictMapsFromMapping | None = None
+        update_bidict_maps_from_mapping: UpdateBidictMapsFromMapping | None = None
     else:
         try:
             from bidict_base_opt_native import bidict_base_opt_native as _native_ext
@@ -62,12 +90,25 @@ else:
                 raise
             build_bidict_maps = None
             update_bidict_maps = None
+            build_bidict_maps_from_mapping = None
+            update_bidict_maps_from_mapping = None
         else:
             _build_bidict_maps_impl = _native_ext.build_bidict_maps
             _update_bidict_maps_impl = getattr(_native_ext, 'update_bidict_maps', None)
+            _build_bidict_maps_from_mapping_impl = getattr(_native_ext, 'build_bidict_maps_from_mapping', None)
+            _update_bidict_maps_from_mapping_impl = getattr(_native_ext, 'update_bidict_maps_from_mapping', None)
 
             def build_bidict_maps(items: Items, on_dup: OnDup) -> tuple[dict[t.Any, t.Any], dict[t.Any, t.Any]]:
                 return _build_bidict_maps_impl(items, on_dup.key.name, on_dup.val.name)
+
+            if _build_bidict_maps_from_mapping_impl is None:
+                build_bidict_maps_from_mapping = None
+            else:
+
+                def build_bidict_maps_from_mapping(
+                    mapping: Mapping[t.Any, t.Any], on_dup: OnDup
+                ) -> tuple[dict[t.Any, t.Any], dict[t.Any, t.Any]]:
+                    return _build_bidict_maps_from_mapping_impl(mapping, on_dup.key.name, on_dup.val.name)
 
             if _update_bidict_maps_impl is None:
                 update_bidict_maps = None
@@ -80,3 +121,15 @@ else:
                     on_dup: OnDup,
                 ) -> tuple[dict[t.Any, t.Any], dict[t.Any, t.Any]]:
                     return _update_bidict_maps_impl(fwd, inv, items, on_dup.key.name, on_dup.val.name)
+
+            if _update_bidict_maps_from_mapping_impl is None:
+                update_bidict_maps_from_mapping = None
+            else:
+
+                def update_bidict_maps_from_mapping(
+                    fwd: dict[t.Any, t.Any],
+                    inv: dict[t.Any, t.Any],
+                    mapping: Mapping[t.Any, t.Any],
+                    on_dup: OnDup,
+                ) -> tuple[dict[t.Any, t.Any], dict[t.Any, t.Any]]:
+                    return _update_bidict_maps_from_mapping_impl(fwd, inv, mapping, on_dup.key.name, on_dup.val.name)

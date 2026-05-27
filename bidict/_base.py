@@ -42,7 +42,9 @@ from ._exc import ValueDuplicationError
 from ._iter import inverted
 from ._iter import iteritems
 from ._native import build_bidict_maps as _build_bidict_maps
+from ._native import build_bidict_maps_from_mapping as _build_bidict_maps_from_mapping
 from ._native import update_bidict_maps as _update_bidict_maps
+from ._native import update_bidict_maps_from_mapping as _update_bidict_maps_from_mapping
 from ._typing import KT
 from ._typing import MISSING
 from ._typing import OKT
@@ -66,6 +68,10 @@ def _native_items(arg: MapOrItems[KT, VT], kw: Mapping[str, VT]) -> Iterable[tup
     if not kw and isinstance(arg, Mapping):
         return arg.items()
     return iteritems(arg, **kw)
+
+
+def _supports_native_mapping(arg: MapOrItems[KT, VT], kw: Mapping[str, VT]) -> bool:
+    return not kw and isinstance(arg, Mapping)
 
 
 class BidictKeysView(KeysView[KT], ValuesView[KT]):
@@ -241,7 +247,9 @@ class BidictBase(BidirectionalMapping[KT, VT]):
     def _should_use_native_update(self, incoming_len: int | None, on_dup: OnDup) -> bool:
         if incoming_len is None or not self:
             return False
-        if not self._supports_native_map_swap() or _update_bidict_maps is None:
+        if not self._supports_native_map_swap():
+            return False
+        if _update_bidict_maps is None and _update_bidict_maps_from_mapping is None:
             return False
         min_items = _MIN_NATIVE_FORCEUPDATE_ITEMS if on_dup.val is DROP_OLD else _MIN_NATIVE_UPDATE_ITEMS
         return incoming_len >= min(len(self), min_items)
@@ -505,14 +513,23 @@ class BidictBase(BidirectionalMapping[KT, VT]):
             self._init_from(arg)
             return
 
-        if not self and self._supports_native_map_swap() and _build_bidict_maps is not None:
-            self._set_map_data(*_build_bidict_maps(_native_items(arg, kw), on_dup))
-            return
+        if not self and self._supports_native_map_swap():
+            if _supports_native_mapping(arg, kw) and _build_bidict_maps_from_mapping is not None:
+                mapping_arg = t.cast(Mapping[t.Any, t.Any], arg)
+                self._set_map_data(*_build_bidict_maps_from_mapping(mapping_arg, on_dup))
+                return
+            if _build_bidict_maps is not None:
+                self._set_map_data(*_build_bidict_maps(_native_items(arg, kw), on_dup))
+                return
 
         if self._should_use_native_update(incoming_len, on_dup):
             self._maybe_prescan_native_update(arg, kw, on_dup, incoming_len)
             fwdm = t.cast(dict[t.Any, t.Any], self._fwdm)
             invm = t.cast(dict[t.Any, t.Any], self._invm)
+            if _supports_native_mapping(arg, kw) and _update_bidict_maps_from_mapping is not None:
+                mapping_arg = t.cast(Mapping[t.Any, t.Any], arg)
+                self._set_map_data(*_update_bidict_maps_from_mapping(fwdm, invm, mapping_arg, on_dup))
+                return
             native_update = _update_bidict_maps
             assert native_update is not None
             self._set_map_data(*native_update(fwdm, invm, _native_items(arg, kw), on_dup))
