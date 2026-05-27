@@ -2,7 +2,6 @@ use pyo3::prelude::*;
 use pyo3::types::PyDict;
 use pyo3::types::PyType;
 
-
 #[derive(Clone, Copy)]
 enum OnDupAction {
     Raise,
@@ -10,18 +9,18 @@ enum OnDupAction {
     DropNew,
 }
 
-
 impl OnDupAction {
     fn parse(value: &str) -> PyResult<Self> {
         match value {
             "RAISE" => Ok(Self::Raise),
             "DROP_OLD" => Ok(Self::DropOld),
             "DROP_NEW" => Ok(Self::DropNew),
-            _ => Err(pyo3::exceptions::PyValueError::new_err(format!("unknown OnDupAction: {value}"))),
+            _ => Err(pyo3::exceptions::PyValueError::new_err(format!(
+                "unknown OnDupAction: {value}"
+            ))),
         }
     }
 }
-
 
 fn bidict_err<A>(py: Python<'_>, name: &str, args: A) -> PyErr
 where
@@ -37,7 +36,6 @@ where
         .expect("bidict exception should be a Python type");
     PyErr::from_type_bound(err_type, args)
 }
-
 
 fn apply_items(
     py: Python<'_>,
@@ -64,7 +62,11 @@ fn apply_items(
             }
             match on_dup_val {
                 OnDupAction::Raise => {
-                    return Err(bidict_err(py, "KeyAndValueDuplicationError", (key.clone_ref(py), val.clone_ref(py))));
+                    return Err(bidict_err(
+                        py,
+                        "KeyAndValueDuplicationError",
+                        (key.clone_ref(py), val.clone_ref(py)),
+                    ));
                 }
                 OnDupAction::DropNew => continue,
                 OnDupAction::DropOld => {}
@@ -80,7 +82,11 @@ fn apply_items(
         } else if isdupval {
             match on_dup_val {
                 OnDupAction::Raise => {
-                    return Err(bidict_err(py, "ValueDuplicationError", (val.clone_ref(py),)));
+                    return Err(bidict_err(
+                        py,
+                        "ValueDuplicationError",
+                        (val.clone_ref(py),),
+                    ));
                 }
                 OnDupAction::DropNew => continue,
                 OnDupAction::DropOld => {}
@@ -107,7 +113,6 @@ fn apply_items(
     Ok(())
 }
 
-
 #[pyfunction]
 fn build_bidict_maps(
     py: Python<'_>,
@@ -124,7 +129,6 @@ fn build_bidict_maps(
 
     Ok((fwd.unbind(), inv.unbind()))
 }
-
 
 #[pyfunction]
 fn update_bidict_maps(
@@ -144,7 +148,6 @@ fn update_bidict_maps(
 
     Ok((new_fwd.unbind(), new_inv.unbind()))
 }
-
 
 #[pymodule]
 fn bidict_base_opt_native(_py: Python<'_>, module: &Bound<'_, PyModule>) -> PyResult<()> {

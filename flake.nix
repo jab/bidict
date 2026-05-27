@@ -13,7 +13,7 @@
       lib = pkgs.lib;
       latestPython = pkgs.python314;
       commonTools = with pkgs; [prek uv];
-      nativeTools = with pkgs; [cargo rustc maturin];
+      nativeTools = with pkgs; [cargo rustc rustfmt maturin];
       supportedPythons = with pkgs; [
         python314
         python313
@@ -100,8 +100,8 @@
           extraPackages = nativeTools;
         };
         lint = pkgs.mkShell {
-          packages = with pkgs; [prek];
-          shellHook = mkPathPrefix [pkgs.prek];
+          packages = commonTools ++ nativeTools;
+          shellHook = mkPathPrefix (commonTools ++ nativeTools);
         };
         test311 = mkTestShell {
           python = pkgs.python311;
