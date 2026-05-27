@@ -15,6 +15,7 @@ from bidict import DROP_NEW
 from bidict import ON_DUP_DROP_OLD
 from bidict import KeyAndValueDuplicationError
 from bidict import OnDup
+from bidict import OrderedBidict
 from bidict import ValueDuplicationError
 from bidict import _base as base_mod
 from bidict import _native as native_mod
@@ -81,6 +82,13 @@ def test_nonempty_update_skips_native_builder(monkeypatch: pytest.MonkeyPatch) -
     assert dict(bi.items()) == {1: 2, 3: 4}
 
 
+def test_orderedbidict_skips_native_builder() -> None:
+    bi = OrderedBidict([(1, 2), (3, 4)])
+
+    assert not bi._supports_native_map_swap()
+    assert tuple(bi.items()) == ((1, 2), (3, 4))
+
+
 def test_nonempty_bulk_update_uses_native_updater_when_available(monkeypatch: pytest.MonkeyPatch) -> None:
     items_seen: list[tuple[int, int]] = []
 
@@ -96,6 +104,7 @@ def test_nonempty_bulk_update_uses_native_updater_when_available(monkeypatch: py
         return {1: 2, 3: 4, 5: 6, 7: 8}, {2: 1, 4: 3, 6: 5, 8: 7}
 
     monkeypatch.setattr(base_mod, '_update_bidict_maps', fake_update)
+    monkeypatch.setattr(base_mod, '_MIN_NATIVE_FORCEUPDATE_ITEMS', 2)
     bi = bidict({1: 2, 3: 4})
 
     bi.update([(5, 6), (7, 8)])
@@ -120,6 +129,54 @@ def test_nonempty_small_update_skips_native_updater(monkeypatch: pytest.MonkeyPa
     assert dict(bi.items()) == {1: 2, 3: 4, 5: 6}
 
 
+def test_orderedbidict_skips_native_updater() -> None:
+    bi = OrderedBidict({1: 2, 3: 4})
+    assert not bi._supports_native_map_swap()
+
+
+def test_forceupdate_uses_native_updater_when_available(monkeypatch: pytest.MonkeyPatch) -> None:
+    items_seen: list[tuple[int, int]] = []
+
+    def fake_update(
+        fwd: dict[int, int],
+        inv: dict[int, int],
+        items: Iterable[tuple[int, int]],
+        on_dup: object,
+    ) -> tuple[dict[int, int], dict[int, int]]:
+        items_seen.extend(items)
+        assert fwd == {1: 2, 3: 4}
+        assert inv == {2: 1, 4: 3}
+        assert on_dup == ON_DUP_DROP_OLD
+        return {1: 2, 5: 4, 6: 7}, {2: 1, 4: 5, 7: 6}
+
+    monkeypatch.setattr(base_mod, '_update_bidict_maps', fake_update)
+    monkeypatch.setattr(base_mod, '_MIN_NATIVE_UPDATE_ITEMS', 2)
+    bi = bidict({1: 2, 3: 4})
+
+    bi.forceupdate([(5, 4), (6, 7)])
+
+    assert items_seen == [(5, 4), (6, 7)]
+    assert dict(bi.items()) == {1: 2, 5: 4, 6: 7}
+
+
+def test_large_mapping_dupval_failure_prescans_before_native_update(monkeypatch: pytest.MonkeyPatch) -> None:
+    def fail_update(
+        _fwd: object, _inv: object, _items: object, _on_dup: object
+    ) -> tuple[dict[int, int], dict[int, int]]:
+        msg = 'native updater should not run after duplicate-value prescan fails'
+        raise AssertionError(msg)
+
+    monkeypatch.setattr(base_mod, '_update_bidict_maps', fail_update)
+    monkeypatch.setattr(base_mod, '_MIN_NATIVE_UPDATE_ITEMS', 1)
+    monkeypatch.setattr(base_mod, '_MIN_NATIVE_DUPVAL_PRESCAN_ITEMS', 2)
+    bi = bidict({10: 10})
+
+    with pytest.raises(ValueDuplicationError):
+        bi.update({1: 0, 2: 0})
+
+    assert dict(bi.items()) == {10: 10}
+
+
 def test_nonempty_native_update_preserves_materialized_inverse(monkeypatch: pytest.MonkeyPatch) -> None:
     bi = bidict({1: 2, 3: 4})
     inv = bi.inverse
@@ -134,6 +191,7 @@ def test_nonempty_native_update_preserves_materialized_inverse(monkeypatch: pyte
         return {1: 2, 3: 5, 6: 7}, {2: 1, 5: 3, 7: 6}
 
     monkeypatch.setattr(base_mod, '_update_bidict_maps', fake_update)
+    monkeypatch.setattr(base_mod, '_MIN_NATIVE_UPDATE_ITEMS', 2)
 
     bi.update([(3, 5), (6, 7)])
 

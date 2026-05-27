@@ -57,6 +57,9 @@ OldKV: t.TypeAlias = tuple[OKT[KT], OVT[VT]]
 DedupResult: t.TypeAlias = OldKV[KT, VT] | None
 Unwrites: t.TypeAlias = list[tuple[t.Any, ...]]
 ReversedIter: t.TypeAlias = t.Callable[['BidictBase[KT, t.Any]'], Iterator[KT]]
+_MIN_NATIVE_UPDATE_ITEMS = 8192
+_MIN_NATIVE_FORCEUPDATE_ITEMS = 4096
+_MIN_NATIVE_DUPVAL_PRESCAN_ITEMS = 4096
 
 
 class BidictKeysView(KeysView[KT], ValuesView[KT]):
@@ -223,6 +226,39 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         self._invm.clear()
         self._fwdm.update(fwdm)
         self._invm.update(invm)
+
+    def _supports_native_map_swap(self) -> bool:
+        if type(self)._write is not BidictBase._write:
+            return False
+        return self._fwdm_cls is dict and self._invm_cls is dict
+
+    def _should_use_native_update(self, incoming_len: int | None, on_dup: OnDup) -> bool:
+        if incoming_len is None or not self:
+            return False
+        if not self._supports_native_map_swap() or _update_bidict_maps is None:
+            return False
+        min_items = _MIN_NATIVE_FORCEUPDATE_ITEMS if on_dup.val is DROP_OLD else _MIN_NATIVE_UPDATE_ITEMS
+        return incoming_len >= min(len(self), min_items)
+
+    def _maybe_prescan_native_update(
+        self, arg: MapOrItems[KT, VT], kw: Mapping[str, VT], on_dup: OnDup, incoming_len: int | None
+    ) -> None:
+        if (
+            kw
+            or incoming_len is None
+            or incoming_len < _MIN_NATIVE_DUPVAL_PRESCAN_ITEMS
+            or not isinstance(arg, Mapping)
+            or on_dup.val is not RAISE
+        ):
+            return
+        seen_by_val: dict[VT, KT] = {}
+        seen_get = seen_by_val.get
+        for key, val in arg.items():
+            prev_key = seen_get(val, MISSING)
+            if prev_key is MISSING:
+                seen_by_val[val] = key
+            elif prev_key != key:
+                raise ValueDuplicationError(val)
 
     @property
     def inv(self) -> BidictBase[VT, KT]:
@@ -463,22 +499,17 @@ class BidictBase(BidirectionalMapping[KT, VT]):
             self._init_from(arg)
             return
 
-        if not self and self._fwdm_cls is dict and self._invm_cls is dict and _build_bidict_maps is not None:
+        if not self and self._supports_native_map_swap() and _build_bidict_maps is not None:
             self._set_map_data(*_build_bidict_maps(iteritems(arg, **kw), on_dup))
             return
 
-        if (
-            self
-            and rollback
-            and incoming_len is not None
-            and incoming_len >= len(self)
-            and self._fwdm_cls is dict
-            and self._invm_cls is dict
-            and _update_bidict_maps is not None
-        ):
+        if self._should_use_native_update(incoming_len, on_dup):
+            self._maybe_prescan_native_update(arg, kw, on_dup, incoming_len)
             fwdm = t.cast(dict[t.Any, t.Any], self._fwdm)
             invm = t.cast(dict[t.Any, t.Any], self._invm)
-            self._set_map_data(*_update_bidict_maps(fwdm, invm, iteritems(arg, **kw), on_dup))
+            native_update = _update_bidict_maps
+            assert native_update is not None
+            self._set_map_data(*native_update(fwdm, invm, iteritems(arg, **kw), on_dup))
             return
 
         # Fast path when we're adding more items than we contain already and rollback is enabled:
