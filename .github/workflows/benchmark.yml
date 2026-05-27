@@ -74,14 +74,7 @@ jobs:
             git checkout ${{ github.sha }}
             # move aside the '"'"'bidict'"'"' subdirectory to make sure we always import the installed version
             mv -v bidict src
-            python - <<'"'"'PY'"'"'
-            from bidict import _native
-
-            assert _native.build_bidict_maps is not None
-            assert _native.build_bidict_maps_from_mapping is not None
-            assert _native.update_bidict_maps is not None
-            assert _native.update_bidict_maps_from_mapping is not None
-            PY
+            python -c "from bidict import _native; assert _native.build_bidict_maps is not None; assert _native.build_bidict_maps_from_mapping is not None; assert _native.update_bidict_maps is not None; assert _native.update_bidict_maps_from_mapping is not None"
             curl -L -s -o baseline.json "${{ steps.metadata.outputs.baseline_url }}"
             line1=$(head -n1 baseline.json)
             [ "$line1" = "{" ]

@@ -78,14 +78,7 @@ jobs:
         if: matrix.enable_native
         run: |
           nix develop .#${{ matrix.shell }} --command bash -c '
-            python - <<'"'"'PY'"'"'
-            from bidict import _native
-
-            assert _native.build_bidict_maps is not None
-            assert _native.build_bidict_maps_from_mapping is not None
-            assert _native.update_bidict_maps is not None
-            assert _native.update_bidict_maps_from_mapping is not None
-            PY
+            python -c "from bidict import _native; assert _native.build_bidict_maps is not None; assert _native.build_bidict_maps_from_mapping is not None; assert _native.update_bidict_maps is not None; assert _native.update_bidict_maps_from_mapping is not None"
           '
       - name: run mypy and pytest
         run: |
