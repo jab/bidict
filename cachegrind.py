@@ -48,7 +48,7 @@ ARCH = sp.check_output(['uname', '-m'], text=True).strip()
 DISABLE_ASLR_CMD = ['setarch', ARCH, '-R']
 
 
-def run_with_cachegrind(args_list: list[str]) -> dict[str, int]:
+def run_with_cachegrind(args_list: list[str]) -> tuple[dict[str, int], int]:
     """
     Run the the given program and arguments under Cachegrind, parse the
     Cachegrind specs.
@@ -57,21 +57,24 @@ def run_with_cachegrind(args_list: list[str]) -> dict[str, int]:
     """
     temp_file = NamedTemporaryFile('r+')  # noqa: SIM115
     # Don't fail if the program fails (to support e.g. `pytest --benchmark-compare-fail=...`)
-    sp.call([
-        *DISABLE_ASLR_CMD,
-        'valgrind',
-        '--tool=cachegrind',
-        '--cache-sim=yes',
-        # Set some reasonable L1 and LL values, based on Haswell.
-        # Feel free to update, important part is that they are consistent across runs,
-        # instead of the default of copying from the current machine.
-        '--I1=32768,8,64',
-        '--D1=32768,8,64',
-        '--LL=8388608,16,64',
-        '--cachegrind-out-file=' + temp_file.name,
-        *args_list,
-    ])
-    return parse_cachegrind_output(temp_file)
+    completed = sp.run(
+        [
+            *DISABLE_ASLR_CMD,
+            'valgrind',
+            '--tool=cachegrind',
+            '--cache-sim=yes',
+            # Set some reasonable L1 and LL values, based on Haswell.
+            # Feel free to update, important part is that they are consistent across runs,
+            # instead of the default of copying from the current machine.
+            '--I1=32768,8,64',
+            '--D1=32768,8,64',
+            '--LL=8388608,16,64',
+            '--cachegrind-out-file=' + temp_file.name,
+            *args_list,
+        ],
+        check=False,
+    )
+    return parse_cachegrind_output(temp_file), completed.returncode
 
 
 def parse_cachegrind_output(temp_file: t.IO[str]) -> dict[str, int]:
@@ -128,10 +131,11 @@ def combined_instruction_estimate(counts: dict[str, int]) -> int:
 
 
 def main() -> None:
-    results = run_with_cachegrind(sys.argv[1:])
+    results, exit_code = run_with_cachegrind(sys.argv[1:])
     counts = get_counts(results)
     estimate = combined_instruction_estimate(counts)
     print(f'{"*" * 80}\nCombined instruction estimate: {estimate:,}')  # noqa: T201
+    raise SystemExit(exit_code)
 
 
 if __name__ == '__main__':
