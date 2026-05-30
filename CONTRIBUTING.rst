@@ -44,14 +44,18 @@ Making Changes
 
   - If you have `Nix <https://nixos.org>`__, run ``nix develop``
     from within your clone to start a shell where all supported
-    Python versions as well as ``prek`` are installed and added
-    to your PATH. This also pins ``uv`` to the flake-provided
-    default Python when initializing ``.venv``.
+    Python versions as well as ``prek``, ``uv``, ``rustc``,
+    ``cargo``, ``rustfmt``, ``cargo-clippy``, and ``maturin``
+    are installed and added to your PATH.
+    This also pins ``uv`` to the flake-provided default Python
+    when initializing ``.venv``.
 
   - Otherwise, manually ensure you have `uv <https://docs.astral.sh/uv/>`__,
-    `prek <https://github.com/j178/prek>`__, and at least the latest
-    `stable Python version <https://python.org/downloads/>`__ installed
-    and on your PATH.
+    `prek <https://github.com/j178/prek>`__,
+    `Rust <https://www.rust-lang.org/tools/install>`__ (including
+    ``cargo`` and ``rustc``), `maturin <https://www.maturin.rs>`__,
+    and at least the latest `stable Python version <https://python.org/downloads/>`__
+    installed and on your PATH.
 
   - Run ``./init_dev_env``
 

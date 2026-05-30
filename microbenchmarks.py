@@ -77,6 +77,10 @@ PARTIAL_OVERLAP_UPDATES_BY_LEN: dict[int, dict[int, int]] = {
 PARTIAL_OVERLAP_RESULTS_BY_LEN: dict[int, dict[int, int]] = {
     n: (INT_DICTS_BY_LEN[n] | PARTIAL_OVERLAP_UPDATES_BY_LEN[n]) for n in LENS
 }
+FORCEUPDATE_EXISTING_VALUES_UPDATES_BY_LEN: dict[int, dict[int, int]] = {n: {n + i: i for i in range(n)} for n in LENS}
+FORCEUPDATE_EXISTING_VALUES_RESULTS_BY_LEN: dict[int, dict[int, int]] = {
+    n: FORCEUPDATE_EXISTING_VALUES_UPDATES_BY_LEN[n].copy() for n in LENS
+}
 
 BIDICT_AND_DICT_LAST_TWO_ITEMS_DIFFERENT_ORDER: dict[int, tuple[bidict.bidict[int, int], dict[int, int]]] = {}
 ORDERED_BIDICT_AND_DICT_LAST_TWO_ITEMS_DIFFERENT_ORDER: dict[
@@ -105,6 +109,10 @@ def _forceput(bi: bidict.bidict[int, int], key: int, val: int, _expected: dict[i
 
 def _update(bi: bidict.bidict[int, int], other: dict[int, int], _expected: dict[int, int]) -> None:
     bi.update(other)
+
+
+def _forceupdate(bi: bidict.bidict[int, int], other: dict[int, int], _expected: dict[int, int]) -> None:
+    bi.forceupdate(other)
 
 
 def _failing_update(bi: bidict.bidict[int, int], other: dict[int, int], _expected: dict[int, int]) -> None:
@@ -168,6 +176,28 @@ def _setup_update_partial_overlap(n: int) -> tuple[tuple[t.Any, ...], dict[str, 
             INT_BIDICTS_BY_LEN[n].copy(),
             PARTIAL_OVERLAP_UPDATES_BY_LEN[n],
             PARTIAL_OVERLAP_RESULTS_BY_LEN[n],
+        ),
+        {},
+    )
+
+
+def _setup_forceupdate_partial_overlap(n: int) -> tuple[tuple[t.Any, ...], dict[str, t.Any]]:
+    return (
+        (
+            INT_BIDICTS_BY_LEN[n].copy(),
+            PARTIAL_OVERLAP_UPDATES_BY_LEN[n],
+            PARTIAL_OVERLAP_RESULTS_BY_LEN[n],
+        ),
+        {},
+    )
+
+
+def _setup_forceupdate_existing_values(n: int) -> tuple[tuple[t.Any, ...], dict[str, t.Any]]:
+    return (
+        (
+            INT_BIDICTS_BY_LEN[n].copy(),
+            FORCEUPDATE_EXISTING_VALUES_UPDATES_BY_LEN[n],
+            FORCEUPDATE_EXISTING_VALUES_RESULTS_BY_LEN[n],
         ),
         {},
     )
@@ -301,6 +331,26 @@ def test_bi_update_partial_overlap(n: int, benchmark: t.Any) -> None:
     benchmark.pedantic(
         _update,
         setup=lambda n=n: _setup_update_partial_overlap(n),
+        teardown=_assert_mapping_matches,
+    )
+
+
+@pytest.mark.parametrize('n', LENS)
+def test_bi_forceupdate_partial_overlap(n: int, benchmark: t.Any) -> None:
+    """Benchmark forceupdating from a mapping with a mix of overlapping and new items."""
+    benchmark.pedantic(
+        _forceupdate,
+        setup=lambda n=n: _setup_forceupdate_partial_overlap(n),
+        teardown=_assert_mapping_matches,
+    )
+
+
+@pytest.mark.parametrize('n', LENS)
+def test_bi_forceupdate_existing_values(n: int, benchmark: t.Any) -> None:
+    """Benchmark forceupdating from a mapping whose values replace all existing ones."""
+    benchmark.pedantic(
+        _forceupdate,
+        setup=lambda n=n: _setup_forceupdate_existing_values(n),
         teardown=_assert_mapping_matches,
     )
 

@@ -1,0 +1,13 @@
+[package]
+name = "bidict-base-opt-native"
+version = "0.23.2-dev0"
+edition = "2021"
+license = "MPL-2.0"
+publish = false
+
+[lib]
+name = "bidict_base_opt_native"
+crate-type = ["cdylib"]
+
+[dependencies]
+pyo3 = { version = "0.22.6", features = ["abi3-py311", "extension-module"] }
