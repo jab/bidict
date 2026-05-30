@@ -62,6 +62,7 @@ ReversedIter: t.TypeAlias = t.Callable[['BidictBase[KT, t.Any]'], Iterator[KT]]
 _MIN_NATIVE_UPDATE_ITEMS = 8192
 _MIN_NATIVE_FORCEUPDATE_ITEMS = 4096
 _MIN_NATIVE_DUPVAL_PRESCAN_ITEMS = 16384
+_MAX_NATIVE_DUPVAL_FAST_FAIL_ITEMS = 64
 
 
 def _native_items(arg: MapOrItems[KT, VT], kw: Mapping[str, VT]) -> Iterable[tuple[KT, VT]]:
@@ -72,6 +73,19 @@ def _native_items(arg: MapOrItems[KT, VT], kw: Mapping[str, VT]) -> Iterable[tup
 
 def _supports_native_mapping(arg: MapOrItems[KT, VT], kw: Mapping[str, VT]) -> bool:
     return not kw and isinstance(arg, Mapping)
+
+
+def _prescan_mapping_dupvals(mapping: Mapping[KT, VT], max_items: int | None = None) -> None:
+    seen_by_val: dict[VT, KT] = {}
+    seen_get = seen_by_val.get
+    for index, (key, val) in enumerate(mapping.items()):
+        if max_items is not None and index >= max_items:
+            return
+        prev_key = seen_get(val, MISSING)
+        if prev_key is MISSING:
+            seen_by_val[val] = key
+        elif prev_key != key:
+            raise ValueDuplicationError(val)
 
 
 class BidictKeysView(KeysView[KT], ValuesView[KT]):
@@ -257,22 +271,10 @@ class BidictBase(BidirectionalMapping[KT, VT]):
     def _maybe_prescan_native_update(
         self, arg: MapOrItems[KT, VT], kw: Mapping[str, VT], on_dup: OnDup, incoming_len: int | None
     ) -> None:
-        if (
-            kw
-            or incoming_len is None
-            or incoming_len < _MIN_NATIVE_DUPVAL_PRESCAN_ITEMS
-            or not isinstance(arg, Mapping)
-            or on_dup.val is not RAISE
-        ):
+        if kw or incoming_len is None or not isinstance(arg, Mapping) or on_dup.val is not RAISE:
             return
-        seen_by_val: dict[VT, KT] = {}
-        seen_get = seen_by_val.get
-        for key, val in arg.items():
-            prev_key = seen_get(val, MISSING)
-            if prev_key is MISSING:
-                seen_by_val[val] = key
-            elif prev_key != key:
-                raise ValueDuplicationError(val)
+        max_items = None if incoming_len >= _MIN_NATIVE_DUPVAL_PRESCAN_ITEMS else _MAX_NATIVE_DUPVAL_FAST_FAIL_ITEMS
+        _prescan_mapping_dupvals(arg, max_items)
 
     @property
     def inv(self) -> BidictBase[VT, KT]:
@@ -516,6 +518,8 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         if not self and self._supports_native_map_swap():
             if _supports_native_mapping(arg, kw) and _build_bidict_maps_from_mapping is not None:
                 mapping_arg = t.cast(Mapping[t.Any, t.Any], arg)
+                if on_dup.val is RAISE:
+                    _prescan_mapping_dupvals(mapping_arg, _MAX_NATIVE_DUPVAL_FAST_FAIL_ITEMS)
                 self._set_map_data(*_build_bidict_maps_from_mapping(mapping_arg, on_dup))
                 return
             if _build_bidict_maps is not None:

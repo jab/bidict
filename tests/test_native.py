@@ -74,6 +74,21 @@ def test_empty_mapping_update_uses_mapping_native_builder_when_available(monkeyp
     assert seen_mapping is mapping
 
 
+def test_empty_mapping_update_prescans_early_dupvals_before_native_builder(monkeypatch: pytest.MonkeyPatch) -> None:
+    def fail_build_from_mapping(_mapping: object, _on_dup: object) -> tuple[dict[int, int], dict[int, int]]:
+        msg = 'native builder should not run after early duplicate-value prescan fails'
+        raise AssertionError(msg)
+
+    monkeypatch.setattr(base_mod, '_build_bidict_maps_from_mapping', fail_build_from_mapping)
+    monkeypatch.setattr(base_mod, '_MAX_NATIVE_DUPVAL_FAST_FAIL_ITEMS', 2)
+    bi = bidict[int, int]()
+
+    with pytest.raises(ValueDuplicationError):
+        bi.update({1: 0, 2: 0, 3: 3})
+
+    assert not bi
+
+
 def test_empty_update_preserves_materialized_inverse(monkeypatch: pytest.MonkeyPatch) -> None:
     items_seen: list[tuple[int, int]] = []
     bi = bidict[int, int]()
@@ -230,6 +245,25 @@ def test_large_mapping_dupval_failure_prescans_before_native_update(monkeypatch:
 
     with pytest.raises(ValueDuplicationError):
         bi.update({1: 0, 2: 0})
+
+    assert dict(bi.items()) == {10: 10}
+
+
+def test_mapping_dupval_failure_prescans_early_before_native_update(monkeypatch: pytest.MonkeyPatch) -> None:
+    def fail_update(
+        _fwd: object, _inv: object, _items: object, _on_dup: object
+    ) -> tuple[dict[int, int], dict[int, int]]:
+        msg = 'native updater should not run after early duplicate-value prescan fails'
+        raise AssertionError(msg)
+
+    monkeypatch.setattr(base_mod, '_update_bidict_maps_from_mapping', fail_update)
+    monkeypatch.setattr(base_mod, '_MIN_NATIVE_UPDATE_ITEMS', 1)
+    monkeypatch.setattr(base_mod, '_MIN_NATIVE_DUPVAL_PRESCAN_ITEMS', 999)
+    monkeypatch.setattr(base_mod, '_MAX_NATIVE_DUPVAL_FAST_FAIL_ITEMS', 2)
+    bi = bidict({10: 10})
+
+    with pytest.raises(ValueDuplicationError):
+        bi.update({1: 0, 2: 0, 3: 3})
 
     assert dict(bi.items()) == {10: 10}
 
