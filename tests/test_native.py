@@ -7,7 +7,9 @@
 from __future__ import annotations
 
 import importlib
+import sys
 from collections.abc import Iterable
+from types import SimpleNamespace
 
 import pytest
 
@@ -32,6 +34,22 @@ def test_native_env_var_disables_helpers(monkeypatch: pytest.MonkeyPatch) -> Non
         assert reloaded.update_bidict_maps_from_mapping is None
     finally:
         monkeypatch.delenv('BIDICT_DISABLE_NATIVE', raising=False)
+        importlib.reload(reloaded)
+
+
+def test_non_cpython_runtime_disables_helpers(monkeypatch: pytest.MonkeyPatch) -> None:
+    original_implementation = sys.implementation
+    implementation_attrs = vars(original_implementation).copy()
+    implementation_attrs['name'] = 'pypy'
+    monkeypatch.setattr(sys, 'implementation', SimpleNamespace(**implementation_attrs))
+    reloaded = importlib.reload(native_mod)
+    try:
+        assert reloaded.build_bidict_maps is None
+        assert reloaded.build_bidict_maps_from_mapping is None
+        assert reloaded.update_bidict_maps is None
+        assert reloaded.update_bidict_maps_from_mapping is None
+    finally:
+        monkeypatch.setattr(sys, 'implementation', original_implementation)
         importlib.reload(reloaded)
 
 

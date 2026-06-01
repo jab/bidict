@@ -9,6 +9,7 @@
 from __future__ import annotations
 
 import os
+import sys
 import typing as t
 from collections.abc import Iterable
 from collections.abc import Mapping
@@ -40,6 +41,10 @@ update_bidict_maps_from_mapping: UpdateBidictMapsFromMapping | None
 def _native_disabled() -> bool:
     value = os.getenv(_DISABLE_NATIVE_ENVVAR)
     return value is not None and value.lower() in _DISABLE_NATIVE_TRUE_VALUES
+
+
+def _native_supported_runtime() -> bool:
+    return sys.implementation.name == 'cpython'
 
 
 if t.TYPE_CHECKING:
@@ -77,7 +82,7 @@ if t.TYPE_CHECKING:
     ) -> tuple[dict[t.Any, t.Any], dict[t.Any, t.Any]]: ...
 
 else:
-    if _native_disabled():
+    if _native_disabled() or not _native_supported_runtime():
         build_bidict_maps: BuildBidictMaps | None = None
         update_bidict_maps: UpdateBidictMaps | None = None
         build_bidict_maps_from_mapping: BuildBidictMapsFromMapping | None = None
