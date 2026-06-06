@@ -15,7 +15,9 @@ import pytest
 
 from bidict import DROP_NEW
 from bidict import ON_DUP_DROP_OLD
+from bidict import RAISE
 from bidict import KeyAndValueDuplicationError
+from bidict import KeyDuplicationError
 from bidict import OnDup
 from bidict import OrderedBidict
 from bidict import ValueDuplicationError
@@ -249,41 +251,46 @@ def test_forceupdate_uses_native_updater_when_available(monkeypatch: pytest.Monk
     assert dict(bi.items()) == {1: 2, 5: 4, 6: 7}
 
 
-def test_large_mapping_dupval_failure_prescans_before_native_update(monkeypatch: pytest.MonkeyPatch) -> None:
-    def fail_update(
-        _fwd: object, _inv: object, _items: object, _on_dup: object
-    ) -> tuple[dict[int, int], dict[int, int]]:
-        msg = 'native updater should not run after duplicate-value prescan fails'
-        raise AssertionError(msg)
+def test_nonempty_mapping_dupval_failure_uses_native_updater(monkeypatch: pytest.MonkeyPatch) -> None:
+    called = False
 
-    monkeypatch.setattr(base_mod, '_update_bidict_maps', fail_update)
+    def fail_update(
+        _fwd: object, _inv: object, _mapping: object, _on_dup: object
+    ) -> tuple[dict[int, int], dict[int, int]]:
+        nonlocal called
+        called = True
+        raise ValueDuplicationError(0)
+
+    monkeypatch.setattr(base_mod, '_update_bidict_maps_from_mapping', fail_update)
     monkeypatch.setattr(base_mod, '_MIN_NATIVE_UPDATE_ITEMS', 1)
-    monkeypatch.setattr(base_mod, '_MIN_NATIVE_DUPVAL_PRESCAN_ITEMS', 2)
     bi = bidict({10: 10})
 
     with pytest.raises(ValueDuplicationError):
         bi.update({1: 0, 2: 0})
 
+    assert called
     assert dict(bi.items()) == {10: 10}
 
 
-def test_mapping_dupval_failure_prescans_early_before_native_update(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_nonempty_mapping_update_preserves_duplication_precedence(monkeypatch: pytest.MonkeyPatch) -> None:
+    called = False
+
     def fail_update(
-        _fwd: object, _inv: object, _items: object, _on_dup: object
+        _fwd: object, _inv: object, _mapping: object, _on_dup: object
     ) -> tuple[dict[int, int], dict[int, int]]:
-        msg = 'native updater should not run after early duplicate-value prescan fails'
-        raise AssertionError(msg)
+        nonlocal called
+        called = True
+        raise KeyDuplicationError(1)
 
     monkeypatch.setattr(base_mod, '_update_bidict_maps_from_mapping', fail_update)
     monkeypatch.setattr(base_mod, '_MIN_NATIVE_UPDATE_ITEMS', 1)
-    monkeypatch.setattr(base_mod, '_MIN_NATIVE_DUPVAL_PRESCAN_ITEMS', 999)
-    monkeypatch.setattr(base_mod, '_MAX_NATIVE_DUPVAL_FAST_FAIL_ITEMS', 2)
-    bi = bidict({10: 10})
+    bi = bidict({1: 10})
 
-    with pytest.raises(ValueDuplicationError):
-        bi.update({1: 0, 2: 0, 3: 3})
+    with pytest.raises(KeyDuplicationError):
+        bi.putall({1: 0, 2: 0, 3: 3}, OnDup(RAISE, RAISE))
 
-    assert dict(bi.items()) == {10: 10}
+    assert called
+    assert dict(bi.items()) == {1: 10}
 
 
 def test_nonempty_native_update_preserves_materialized_inverse(monkeypatch: pytest.MonkeyPatch) -> None:

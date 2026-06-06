@@ -61,7 +61,6 @@ Unwrites: t.TypeAlias = list[tuple[t.Any, ...]]
 ReversedIter: t.TypeAlias = t.Callable[['BidictBase[KT, t.Any]'], Iterator[KT]]
 _MIN_NATIVE_UPDATE_ITEMS = 8192
 _MIN_NATIVE_FORCEUPDATE_ITEMS = 4096
-_MIN_NATIVE_DUPVAL_PRESCAN_ITEMS = 16384
 _MAX_NATIVE_DUPVAL_FAST_FAIL_ITEMS = 64
 
 
@@ -267,14 +266,6 @@ class BidictBase(BidirectionalMapping[KT, VT]):
             return False
         min_items = _MIN_NATIVE_FORCEUPDATE_ITEMS if on_dup.val is DROP_OLD else _MIN_NATIVE_UPDATE_ITEMS
         return incoming_len >= min(len(self), min_items)
-
-    def _maybe_prescan_native_update(
-        self, arg: MapOrItems[KT, VT], kw: Mapping[str, VT], on_dup: OnDup, incoming_len: int | None
-    ) -> None:
-        if kw or incoming_len is None or not isinstance(arg, Mapping) or on_dup.val is not RAISE:
-            return
-        max_items = None if incoming_len >= _MIN_NATIVE_DUPVAL_PRESCAN_ITEMS else _MAX_NATIVE_DUPVAL_FAST_FAIL_ITEMS
-        _prescan_mapping_dupvals(arg, max_items)
 
     @property
     def inv(self) -> BidictBase[VT, KT]:
@@ -527,7 +518,6 @@ class BidictBase(BidirectionalMapping[KT, VT]):
                 return
 
         if self._should_use_native_update(incoming_len, on_dup):
-            self._maybe_prescan_native_update(arg, kw, on_dup, incoming_len)
             fwdm = t.cast(dict[t.Any, t.Any], self._fwdm)
             invm = t.cast(dict[t.Any, t.Any], self._invm)
             if _supports_native_mapping(arg, kw) and _update_bidict_maps_from_mapping is not None:
