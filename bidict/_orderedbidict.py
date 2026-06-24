@@ -116,6 +116,7 @@ class OrderedBidict(OrderedBidictBase[KT, VT], MutableBidict[KT, VT]):
 # provided by the collections.abc superclasses.
 class _OrderedBidictKeysView(BidictKeysView[KT]):
     _mapping: OrderedBidict[KT, t.Any]
+    _viewname: t.ClassVar[str] = 'keys'
 
     def __reversed__(self) -> Iterator[KT]:
         return reversed(self._mapping)
@@ -123,6 +124,7 @@ class _OrderedBidictKeysView(BidictKeysView[KT]):
 
 class _OrderedBidictItemsView(ItemsView[KT, VT]):
     _mapping: OrderedBidict[KT, VT]
+    _viewname: t.ClassVar[str] = 'items'
 
     def __reversed__(self) -> Iterator[tuple[KT, VT]]:
         ob = self._mapping
@@ -166,6 +168,18 @@ def _override_set_methods_to_use_backing_dict(cls: _OView[KT], viewname: str) ->
                 or not isinstance((arg := args[0]), self.__class__)
                 or not isinstance(arg._mapping._fwdm, dict)
             ):
+                # If arg is another ordered bidict view backed by a dict, extract its backing dict view.
+                # This avoids a TypeError when e.g. ob1.keys() < ob2.items(): C-level dict_keys only
+                # compares without error against dict_keys/dict_items, not against custom Set subclasses,
+                # so dict_keys.__lt__(_OrderedBidictItemsView) returns NotImplemented. By passing the
+                # arg's backing dict_items instead, the C-level comparison succeeds correctly.
+                if (
+                    len(args) == 1
+                    and isinstance(arg, (_OrderedBidictKeysView, _OrderedBidictItemsView))
+                    and isinstance(arg._mapping._fwdm, dict)
+                ):
+                    arg_dict_view = getattr(arg._mapping._fwdm, arg._viewname)()
+                    return fwdm_dict_view_method(arg_dict_view)
                 return fwdm_dict_view_method(*args)
             # self and arg are both _OrderedBidictKeysViews or _OrderedBidictItemsViews whose bidicts are backed by
             # a dict. Use arg's backing dict's corresponding view instead of arg. Otherwise, e.g. `ob1.keys()
