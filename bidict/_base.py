@@ -339,8 +339,8 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         oldkey: OKT[KT] = invm.get(val, MISSING)
         isdupkey, isdupval = oldval is not MISSING, oldkey is not MISSING
         if isdupkey and isdupval:
-            if key == oldkey:
-                assert val == oldval
+            if key is oldkey or key == oldkey:
+                assert val is oldval or val == oldval
                 # (key, val) duplicates an existing item -> no-op.
                 return None
             # key and val each duplicate a different existing item.

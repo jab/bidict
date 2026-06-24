@@ -563,6 +563,29 @@ def test_static_types() -> None:
     assert_type(fb.inv, frozenbidict[int, str])
 
 
+@pytest.mark.parametrize('bi_t', mutable_bidict_types)
+def test_setitem_existing_is_noop_with_nonreflexive_eq(bi_t: MBT[t.Any, t.Any]) -> None:
+    """Setting an existing (key, val) pair should be a no-op even when key == key is False.
+
+    Float NaN has non-reflexive equality (nan != nan), so it exercises
+    the identity-based fallback in _dedup that avoids a spurious
+    KeyAndValueDuplicationError or AssertionError.
+    """
+    nan = float('nan')
+    # NaN as key: b[nan] = 'a' again must not raise
+    b = bi_t()
+    b[nan] = 'a'
+    b[nan] = 'a'
+    assert len(b) == 1
+    assert b[nan] == 'a'
+    # NaN as value: b['x'] = nan again must not raise
+    b2 = bi_t()
+    b2['x'] = nan
+    b2['x'] = nan
+    assert len(b2) == 1
+    assert b2['x'] is nan
+
+
 def assert_calls_match(call1: Callable[..., t.Any], call2: Callable[..., t.Any]) -> None:
     results: dict[t.Any, t.Any] = {call1: None, call2: None}
     for call in results:
