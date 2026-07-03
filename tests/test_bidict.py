@@ -348,7 +348,7 @@ def test_eq_defers_to_other_eq(bi_t: BT[KT, VT]) -> None:
     assert bi_t() == ANY
 
 
-@pytest.mark.parametrize(('bi_t', 'non_mapping'), product(bidict_types, (None, 1, [], SupportsKeysAndGetItem({}))))
+@pytest.mark.parametrize(('bi_t', 'non_mapping'), list(product(bidict_types, (None, 1, [], SupportsKeysAndGetItem({})))))
 def test_eq_and_or_with_non_mapping(bi_t: BT[KT, VT], non_mapping: t.Any) -> None:
     bi = bi_t()
     assert bi != non_mapping
@@ -399,7 +399,7 @@ def test_frozenbidicts_hashable(items121: Items121) -> None:
 
 # These test cases ensure coverage of all branches in [Ordered]BidictBase._undo_write.
 # (Hypothesis doesn't always generate examples that cover all the branches otherwise.)
-@pytest.mark.parametrize(('bi_t', 'on_dup'), product(mutable_bidict_types, on_dups))
+@pytest.mark.parametrize(('bi_t', 'on_dup'), list(product(mutable_bidict_types, on_dups)))
 def test_putall_matches_bulk_put(bi_t: type[MutableBidict[int, int]], on_dup: OnDup) -> None:
     bi = bi_t({0: 0, 1: 1})
     for k1, v1, k2, v2 in product(range(4), repeat=4):
