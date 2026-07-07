@@ -52,6 +52,12 @@ jobs:
         uses: DeterminateSystems/nix-installer-action@ef8a148080ab6020fd15196c2084a2eea5ff2d25
       - name: cache the Nix store
         uses: DeterminateSystems/magic-nix-cache-action@908b263ff629f4cc17666315b7fd3ec127c6244d
+        with:
+          # Use only the GitHub Actions cache; we don't authenticate to FlakeHub, and leaving it
+          # enabled makes the action log a noisy (non-fatal) "Cannot find netrc credentials for
+          # https://api.flakehub.com/" error before falling back to the GHA cache.
+          use-flakehub: false
+          use-gha-cache: true
       - name: cache .mypy_cache dir
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
         with:
