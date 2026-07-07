@@ -51,6 +51,8 @@ jobs:
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
       - name: install Nix
         uses: DeterminateSystems/nix-installer-action@ef8a148080ab6020fd15196c2084a2eea5ff2d25
+      - name: cache the Nix store
+        uses: DeterminateSystems/magic-nix-cache-action@908b263ff629f4cc17666315b7fd3ec127c6244d
       - name: cache .mypy_cache dir
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
         with:
