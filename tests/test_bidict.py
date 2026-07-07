@@ -563,6 +563,83 @@ def test_static_types() -> None:
     assert_type(fb.inv, frozenbidict[int, str])
 
 
+@pytest.mark.parametrize('bi_t', mutable_bidict_types)
+def test_setitem_existing_is_noop_with_nonreflexive_eq(bi_t: MBT[t.Any, t.Any]) -> None:
+    """Setting an existing (key, val) pair should be a no-op even when key == key is False.
+
+    Float NaN has non-reflexive equality (nan != nan), so it exercises
+    the identity-based same-item check in _dedup that avoids a spurious
+    KeyAndValueDuplicationError or AssertionError.
+    """
+    nan = float('nan')
+    # NaN as key: b[nan] = 'a' again must not raise
+    b = bi_t()
+    b[nan] = 'a'
+    b[nan] = 'a'
+    assert len(b) == 1
+    assert b[nan] == 'a'
+    # NaN as value: b['x'] = nan again must not raise
+    b2 = bi_t()
+    b2['x'] = nan
+    b2['x'] = nan
+    assert len(b2) == 1
+    assert b2['x'] is nan
+    # A key or value that duplicates an existing item's key and an existing
+    # *different* item's value must still raise, even when it's the same NaN object:
+    b3 = bi_t()
+    b3[nan] = 'a'
+    b3['x'] = nan
+    with pytest.raises(KeyAndValueDuplicationError):
+        b3[nan] = nan
+
+
+class _AsymStored:
+    """Pathological type equal to _AsymLookup instances, but only when on the left-hand side."""
+
+    def __hash__(self) -> int:
+        return 1
+
+    def __eq__(self, other: object) -> bool:
+        return isinstance(other, _AsymLookup)
+
+
+class _AsymLookup:
+    """Pathological type that is never equal to anything, even when an _AsymStored equals it."""
+
+    def __hash__(self) -> int:
+        return 1
+
+    def __eq__(self, other: object) -> bool:
+        return False
+
+
+@pytest.mark.parametrize('bi_t', mutable_bidict_types)
+def test_setitem_existing_is_noop_with_asymmetric_eq(bi_t: MBT[t.Any, t.Any]) -> None:
+    """Setting an existing (key, val) pair should be a no-op even when __eq__ is asymmetric.
+
+    dict lookup compares stored == lookup (in CPython), so a lookup key that a stored key
+    compares equal to hits the stored key's item even when lookup == stored is False.
+    _dedup must agree with the dict lookups rather than re-checking equality itself
+    (with operands in the opposite order) and wrongly concluding the items differ.
+    """
+    stored, lookup = _AsymStored(), _AsymLookup()
+    probe: dict[t.Any, str] = {stored: 'hit'}
+    if probe.get(lookup) != 'hit':
+        pytest.skip('dict lookup on this runtime does not compare stored == lookup')
+    # Asymmetric key: dict considers *lookup* the same key as *stored* -> no-op
+    b1 = bi_t()
+    b1[stored] = 'v'
+    b1[lookup] = 'v'
+    assert len(b1) == 1
+    assert next(iter(b1)) is stored
+    # Asymmetric value -> no-op
+    b2 = bi_t()
+    b2['x'] = stored
+    b2['x'] = lookup
+    assert len(b2) == 1
+    assert b2['x'] is stored
+
+
 def assert_calls_match(call1: Callable[..., t.Any], call2: Callable[..., t.Any]) -> None:
     results: dict[t.Any, t.Any] = {call1: None, call2: None}
     for call in results:

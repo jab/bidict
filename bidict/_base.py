@@ -337,12 +337,11 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         fwdm, invm = self._fwdm, self._invm
         oldval: OVT[VT] = fwdm.get(key, MISSING)
         oldkey: OKT[KT] = invm.get(val, MISSING)
-        isdupkey, isdupval = oldval is not MISSING, oldkey is not MISSING
+        isdupkey = oldval is not MISSING
+        isdupval = oldkey is not MISSING
         if isdupkey and isdupval:
-            if key == oldkey:
-                assert val == oldval
-                # (key, val) duplicates an existing item -> no-op.
-                return None
+            if fwdm[oldkey] is oldval:  # type: ignore[index]  # mypy can't narrow oldkey to KT here (ty can)
+                return None  # (key, val) duplicates an existing item -> no-op
             # key and val each duplicate a different existing item.
             if on_dup.val is RAISE:
                 raise KeyAndValueDuplicationError(key, val)
@@ -364,7 +363,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
                 return None
             assert on_dup.val is DROP_OLD
             # Fall through to the return statement on the last line.
-        # else neither isdupkey nor isdupval.
+        # else no key or value duplication.
         return oldkey, oldval
 
     def _write(self, newkey: KT, newval: VT, oldkey: OKT[KT], oldval: OVT[VT], unwrites: Unwrites | None) -> None:

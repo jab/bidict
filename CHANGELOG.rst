@@ -31,6 +31,13 @@ please consider sponsoring bidict on GitHub.`
   Use e.g. :func:`importlib.metadata.metadata("bidict")["Version"]
   <importlib.metadata.metadata>` instead.
 
+- Fix a bug where setting an already-contained (key, value) pair
+  spuriously raised :class:`~bidict.KeyAndValueDuplicationError`
+  or ``AssertionError`` (rather than being a no-op, as documented)
+  when the key or value has non-reflexive equality (e.g. *nan*)
+  or asymmetric equality.
+  :issue:`377`
+
 
 0.23.1 (2024-02-18)
 -------------------

@@ -210,6 +210,20 @@ for dealing with *nan* as a key,
 so bidict's behavior will match :class:`dict`'s
 on whatever runtime you're using.
 
+Note that even though *nan* is not equal to itself,
+re-inserting an already-contained item using the same *nan* object
+is still construed as a no-op
+(see :ref:`basic-usage:Key and Value Duplication`):
+
+.. doctest::
+
+   >>> b = bidict()
+   >>> nan = float('nan')
+   >>> b[nan] = 'nan'
+   >>> b[nan] = 'nan'  # no-op, does not raise
+   >>> b
+   bidict({nan: 'nan'})
+
 See e.g. `these docs
 <https://doc.pypy.org/en/latest/cpython_differences.html>`__
 for more info (search the page for "nan").
