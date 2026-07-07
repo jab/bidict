@@ -568,16 +568,18 @@ def test_setitem_existing_is_noop_with_nonreflexive_eq(bi_t: MBT[t.Any, t.Any]) 
     """Setting an existing (key, val) pair should be a no-op even when key == key is False.
 
     Float NaN has non-reflexive equality (nan != nan), so it exercises
-    the identity-based same-item check in _dedup that avoids a spurious
-    KeyAndValueDuplicationError or AssertionError.
+    the identity-based same-item check in _dedup.
+
+    (Previously, _dedup used an equality-based same-item check that caused
+    spurious KeyAndValueDuplicationErrors and AssertionErrors. See #377.)
     """
     nan = float('nan')
     # NaN as key: b[nan] = 'a' again must not raise
-    b = bi_t()
-    b[nan] = 'a'
-    b[nan] = 'a'
-    assert len(b) == 1
-    assert b[nan] == 'a'
+    b1 = bi_t()
+    b1[nan] = 'a'
+    b1[nan] = 'a'
+    assert len(b1) == 1
+    assert b1[nan] == 'a'
     # NaN as value: b['x'] = nan again must not raise
     b2 = bi_t()
     b2['x'] = nan
@@ -617,10 +619,12 @@ class _AsymLookup:
 def test_setitem_existing_is_noop_with_asymmetric_eq(bi_t: MBT[t.Any, t.Any]) -> None:
     """Setting an existing (key, val) pair should be a no-op even when __eq__ is asymmetric.
 
-    dict lookup compares stored == lookup (in CPython), so a lookup key that a stored key
-    compares equal to hits the stored key's item even when lookup == stored is False.
+    dict lookup compares stored == lookup, so a lookup key that a stored key compares equal to
+    hits the stored key's item even when lookup == stored is False.
+
     _dedup must agree with the dict lookups rather than re-checking equality itself
     (with operands in the opposite order) and wrongly concluding the items differ.
+    See #382.
     """
     stored, lookup = _AsymStored(), _AsymLookup()
     probe: dict[t.Any, str] = {stored: 'hit'}

@@ -220,7 +220,7 @@ is still construed as a no-op
    >>> b = bidict()
    >>> nan = float('nan')
    >>> b[nan] = 'nan'
-   >>> b[nan] = 'nan'  # no-op, does not raise
+   >>> b[nan] = 'nan'  # no-op
    >>> b
    bidict({nan: 'nan'})
 
