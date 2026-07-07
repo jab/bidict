@@ -99,9 +99,17 @@ Making Changes
 Running Tests and Checks
 ------------------------
 
-The commands below assume you've run ``./init_dev_env`` and are using the
-resulting virtualenv, either by prefixing each command with ``uv run`` or
-after activating ``.venv``.
+The commands below assume you have an active development environment,
+set up per the steps above.
+Commands that run against the ``./init_dev_env`` virtualenv (such as ``pytest``)
+can be prefixed with ``uv run``
+or run after activating ``.venv``.
+Note, however, that ``prek`` — used by the lint, format, and style hooks,
+including via ``tox -e lint`` — is provided by the ``nix develop`` shell
+(or your own PATH, if you installed it manually per the setup steps above),
+not by the ``./init_dev_env`` virtualenv,
+so run those from within ``nix develop``
+(or otherwise ensure ``prek`` is on your PATH).
 
 - Run the test suite on your current Python: ``pytest``
 
@@ -142,7 +150,8 @@ over adding one-off, example-based tests.
 Documentation and Prose Style
 -----------------------------
 
-Prose in bidict's documentation, docstrings, comments, and commit messages
+Prose in bidict's Markdown and reStructuredText documents
+(this file, the ``*.rst`` files under ``docs/``, etc.)
 follows `Semantic Line Breaks <https://sembr.org>`__ (SemBr):
 start a new line after each sentence,
 and optionally at other natural boundaries between clauses or phrases,
@@ -152,6 +161,8 @@ Because both Markdown and reStructuredText collapse
 a single line break within a paragraph into a space,
 this keeps the rendered output unchanged
 while making diffs smaller and easier to review.
+This convention applies to these prose documents only,
+not to code, code comments, docstrings, or commit messages.
 
 
 Submitting Changes
