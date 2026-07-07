@@ -96,6 +96,64 @@ Making Changes
     the patch, why it's a problem, and how the patch fixes the problem.
 
 
+Running Tests and Checks
+------------------------
+
+The commands below assume you've run ``./init_dev_env`` and are using the
+resulting virtualenv, either by prefixing each command with ``uv run`` or
+after activating ``.venv``.
+
+- Run the test suite on your current Python: ``pytest``
+
+- Run a single test:
+  ``pytest tests/test_bidict.py::test_frozenbidicts_hashable``
+
+- Run the tests for every supported Python version: ``tox``
+  (see ``envlist`` in ``tox.ini`` for the list).
+
+- Type-check the code: ``mypy bidict tests`` (mypy runs in strict mode).
+
+- Run all the lint, format, and style hooks: ``prek run --all-files``
+  (equivalently, ``tox -e lint``).
+
+- Build the docs: ``tox -e docs``.
+
+Note that the test suite (configured under ``[tool.pytest]`` in
+``pyproject.toml``) executes the doctests in every module's docstrings
+**as well as** the code blocks in ``docs/*.rst`` files. In other words,
+example code in docstrings and docs is run as part of the tests, so be sure
+to keep it correct and up to date.
+
+
+Most of bidict's tests are property-based,
+written using `Hypothesis <https://hypothesis.works>`__.
+The bulk of the suite lives in ``tests/test_bidict.py``,
+centered on ``BidictStateMachine``
+(a `stateful <https://hypothesis.readthedocs.io/en/latest/stateful.html>`__
+``RuleBasedStateMachine``)
+that checks bidict's invariants against a simpler reference model,
+with user-defined bidict subclass fixtures in ``tests/bidict_test_fixtures.py``.
+When adding behavior,
+prefer extending these properties and invariants
+(and adding doctests where they help document usage)
+over adding one-off, example-based tests.
+
+
+Documentation and Prose Style
+-----------------------------
+
+Prose in bidict's documentation, docstrings, comments, and commit messages
+follows `Semantic Line Breaks <https://sembr.org>`__ (SemBr):
+start a new line after each sentence,
+and optionally at other natural boundaries between clauses or phrases,
+rather than hard-wrapping at a fixed column width
+or placing an entire paragraph on a single line.
+Because both Markdown and reStructuredText collapse
+a single line break within a paragraph into a space,
+this keeps the rendered output unchanged
+while making diffs smaller and easier to review.
+
+
 Submitting Changes
 ------------------
 
