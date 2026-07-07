@@ -537,21 +537,30 @@ def test_orderedbidict_weakattr_class_access() -> None:
     assert isinstance(descriptor, WeakAttr)
 
 
-def test_orderedbidict_cross_view_set_comparisons() -> None:
-    """Comparing an OrderedBidict keys view with an items view (or vice versa) should behave
-    like comparing the equivalent plain dict views — returning False rather than raising TypeError.
+def test_orderedbidict_cross_view_set_operations() -> None:
+    """Set operations between an OrderedBidict keys view and an items view (or vice versa) should
+    behave like the equivalent plain dict views rather than raising TypeError or giving a wrong result.
 
     Regression test: the set-operation proxy methods in _OrderedBidictKeysView and
     _OrderedBidictItemsView previously passed the opposing custom view type directly to the
     C-level dict_keys/dict_items methods, which returned NotImplemented (they only recognise
-    dict_keys and dict_items). With both sides returning NotImplemented, Python raised TypeError.
+    dict_keys and dict_items). With both sides returning NotImplemented, Python raised TypeError
+    (for the ordering comparisons) or fell back to the wrong answer (e.g. identity-based __eq__).
     The fix extracts the backing dict view from a cross-type _OView arg before forwarding.
     """
     ob1 = OrderedBidict({'a': 1, 'b': 2})
     ob2 = OrderedBidict({'a': 1})
     d1 = {'a': 1, 'b': 2}
     d2 = {'a': 1}
-    for op in ('__lt__', '__le__', '__gt__', '__ge__', '__eq__', '__ne__'):
+    # The comparison operators return bools; the set-algebra operators return sets/bools. In every
+    # case the OrderedBidict view result must match the equivalent plain dict view result exactly.
+    # fmt: off
+    ops = (
+        '__lt__', '__le__', '__gt__', '__ge__', '__eq__', '__ne__',  # comparisons
+        '__sub__', '__or__', '__xor__', '__and__', 'isdisjoint',  # set algebra
+    )
+    # fmt: on
+    for op in ops:
         assert getattr(ob1.keys(), op)(ob2.items()) == getattr(d1.keys(), op)(d2.items()), op
         assert getattr(ob1.items(), op)(ob2.keys()) == getattr(d1.items(), op)(d2.keys()), op
 
