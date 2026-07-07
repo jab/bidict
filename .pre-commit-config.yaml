@@ -33,7 +33,7 @@ repos:
         args: ["--uri-ignore-words-list", "*"]  # https://github.com/codespell-project/codespell/issues/2473
 
   - repo: https://github.com/adhtruong/mirrors-typos
-    rev: v1.46.2
+    rev: v1.48.0
     hooks:
       - id: typos
         args: [--write-changes]
@@ -47,7 +47,7 @@ repos:
           - pytest
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.15.13
+    rev: v0.15.20
     hooks:
       - id: ruff-check
         args: [--fix, --unsafe-fixes]
