@@ -1,5 +1,0 @@
-queries:
-  - exclude: py/missing-equals
-  - exclude: py/conflicting-attributes
-  - exclude: py/unused-import
-  - exclude: py/import-and-import-from
