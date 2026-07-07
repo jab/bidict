@@ -116,6 +116,7 @@ class OrderedBidict(OrderedBidictBase[KT, VT], MutableBidict[KT, VT]):
 # provided by the collections.abc superclasses.
 class _OrderedBidictKeysView(BidictKeysView[KT]):
     _mapping: OrderedBidict[KT, t.Any]
+    _viewname: t.ClassVar[str] = 'keys'
 
     def __reversed__(self) -> Iterator[KT]:
         return reversed(self._mapping)
@@ -123,6 +124,7 @@ class _OrderedBidictKeysView(BidictKeysView[KT]):
 
 class _OrderedBidictItemsView(ItemsView[KT, VT]):
     _mapping: OrderedBidict[KT, VT]
+    _viewname: t.ClassVar[str] = 'items'
 
     def __reversed__(self) -> Iterator[tuple[KT, VT]]:
         ob = self._mapping
@@ -153,28 +155,29 @@ _setmethodnames: Iterable[str] = (
 )
 
 
-def _override_set_methods_to_use_backing_dict(cls: _OView[KT], viewname: str) -> None:
+def _override_set_methods_to_use_backing_dict(cls: _OView[KT]) -> None:
     def make_proxy_method(methodname: str) -> t.Any:
         def method(self: _OrderedBidictKeysView[KT] | _OrderedBidictItemsView[KT, t.Any], *args: t.Any) -> t.Any:
             fwdm = self._mapping._fwdm
             if not isinstance(fwdm, dict):  # dict view speedup not available, fall back to Set's implementation.
                 return getattr(Set, methodname)(self, *args)
-            fwdm_dict_view = getattr(fwdm, viewname)()
+            fwdm_dict_view = getattr(fwdm, self._viewname)()
             fwdm_dict_view_method = getattr(fwdm_dict_view, methodname)
+            # When the (single) arg is another _OrderedBidict{Keys,Items}View backed by a dict, forward its
+            # backing dict_keys/dict_items to the C-level method rather than the arg itself. C-level dict views
+            # only interoperate with other C-level dict views, not with arbitrary Set subclasses, so e.g.
+            # `dict_keys(ob1).__lt__(ob2.keys())` returns NotImplemented. With both sides returning
+            # NotImplemented, Python either raises TypeError (for `<`, `<=`, `>`, `>=`) or falls back to the
+            # wrong answer (e.g. identity-based `==`). Note arg's view may differ from self's (keys vs items),
+            # so use arg._viewname; this also subsumes the same-type case, where it equals self._viewname.
             if (
-                len(args) != 1
-                or not isinstance((arg := args[0]), self.__class__)
-                or not isinstance(arg._mapping._fwdm, dict)
+                len(args) == 1
+                and isinstance((arg := args[0]), (_OrderedBidictKeysView, _OrderedBidictItemsView))
+                and isinstance(arg._mapping._fwdm, dict)
             ):
-                return fwdm_dict_view_method(*args)
-            # self and arg are both _OrderedBidictKeysViews or _OrderedBidictItemsViews whose bidicts are backed by
-            # a dict. Use arg's backing dict's corresponding view instead of arg. Otherwise, e.g. `ob1.keys()
-            # < ob2.keys()` would give "TypeError: '<' not supported between instances of '_OrderedBidictKeysView' and
-            # '_OrderedBidictKeysView'", because both `dict_keys(ob1).__lt__(ob2.keys()) is NotImplemented` and
-            # `dict_keys(ob2).__gt__(ob1.keys()) is NotImplemented`.
-            arg_dict = arg._mapping._fwdm
-            arg_dict_view = getattr(arg_dict, viewname)()
-            return fwdm_dict_view_method(arg_dict_view)
+                arg_dict_view = getattr(arg._mapping._fwdm, arg._viewname)()
+                return fwdm_dict_view_method(arg_dict_view)
+            return fwdm_dict_view_method(*args)
 
         method.__name__ = methodname
         method.__qualname__ = f'{cls.__qualname__}.{methodname}'
@@ -184,8 +187,8 @@ def _override_set_methods_to_use_backing_dict(cls: _OView[KT], viewname: str) ->
         setattr(cls, name, make_proxy_method(name))
 
 
-_override_set_methods_to_use_backing_dict(_OrderedBidictKeysView, 'keys')
-_override_set_methods_to_use_backing_dict(_OrderedBidictItemsView, 'items')
+_override_set_methods_to_use_backing_dict(_OrderedBidictKeysView)
+_override_set_methods_to_use_backing_dict(_OrderedBidictItemsView)
 
 
 #                             * Code review nav *

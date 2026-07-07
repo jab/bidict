@@ -38,6 +38,12 @@ please consider sponsoring bidict on GitHub.`
   or asymmetric equality.
   :issue:`377`
 
+- Fix a bug where set operations between an :class:`~bidict.OrderedBidict`'s
+  keys view and its items view (or vice versa) raised :class:`TypeError`
+  (or, for ``==``, returned the wrong result)
+  rather than behaving like the equivalent plain :class:`dict` views.
+  :issue:`376`
+
 
 0.23.1 (2024-02-18)
 -------------------
