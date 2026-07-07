@@ -23,7 +23,6 @@ name: tests
 
 env:
   FORCE_COLOR: "1"
-  PYTEST_ADDOPTS: "--benchmark-disable"
 
 jobs:
   test-all:

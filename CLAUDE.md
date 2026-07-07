@@ -35,10 +35,22 @@ update *them* rather than duplicating anything here:
 
 ## Working in this codebase (Claude-specific notes)
 
-- Prose here and in the docs follows
-  [Semantic Line Breaks](https://sembr.org) (see CONTRIBUTING.rst):
-  one sentence per line, breaking at clause boundaries —
+- Run dev tooling through the Nix dev shell, not the bare `.venv`:
+  prefix commands with `nix develop --command bash -c '...'`
+  (or work from within a `nix develop` shell).
+  `prek`, `tox`, and the docs build are provided only by the Nix shell,
+  so invoking them outside it fails with "command not found" —
+  even though `pytest` and `mypy` happen to also be in `.venv`,
+  which makes it easy to forget.
+  The committed `.envrc` (`use flake`) does not help here,
+  because direnv has no hook in the non-interactive subshells
+  spawned for these tool calls.
+- SemBr ([Semantic Line Breaks](https://sembr.org), see CONTRIBUTING.rst)
+  applies to prose in Markdown and reStructuredText documents only
+  (this file, `CONTRIBUTING.rst`, `docs/*.rst`):
+  one sentence per line, breaking at clause boundaries,
   don't reflow paragraphs to fill columns.
+  It does *not* apply to code, code comments, docstrings, or commit messages.
 - Follow the "Code review nav" banner comments
   at the top and bottom of each key file
   (start in `bidict/__init__.py`);
