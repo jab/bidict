@@ -140,6 +140,11 @@ addopts = [
   "--durations=5",
   "--hypothesis-profile=less-examples",
   "--numprocesses=auto",
+  # Benchmarks are run separately (see the benchmark tox env and workflow, which
+  # invoke pytest with `-c /dev/null` to bypass this config), so unload
+  # pytest-benchmark here. Otherwise, being installed, it loads on every run and
+  # warns under xdist (which addopts enables above) that it is auto-disabling itself.
+  "-p", "no:benchmark",
 ]
 doctest_optionflags = ["ELLIPSIS"]
 strict = true
