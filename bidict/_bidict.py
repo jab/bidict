@@ -39,9 +39,11 @@ class MutableBidict(BidictBase[KT, VT], MutableBidirectionalMapping[KT, VT]):
     if t.TYPE_CHECKING:
 
         @property
+        @override
         def inverse(self) -> MutableBidict[VT, KT]: ...
 
         @property
+        @override
         def inv(self) -> MutableBidict[VT, KT]: ...
 
     def _pop(self, key: KT) -> VT:
@@ -189,9 +191,11 @@ class bidict(MutableBidict[KT, VT]):
     if t.TYPE_CHECKING:
 
         @property
+        @override
         def inverse(self) -> bidict[VT, KT]: ...
 
         @property
+        @override
         def inv(self) -> bidict[VT, KT]: ...
 
 

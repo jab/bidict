@@ -40,7 +40,7 @@ update *them* rather than duplicating anything here:
   (or work from within a `nix develop` shell).
   `prek`, `tox`, and the docs build are provided only by the Nix shell,
   so invoking them outside it fails with "command not found" —
-  even though `pytest` and `mypy` happen to also be in `.venv`,
+  even though `pytest` and `ty` happen to also be in `.venv`,
   which makes it easy to forget.
   The committed `.envrc` (`use flake`) does not help here,
   because direnv has no hook in the non-interactive subshells

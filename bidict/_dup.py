@@ -12,6 +12,8 @@ from __future__ import annotations
 import typing as t
 from enum import Enum
 
+from ._typing import override
+
 
 class OnDupAction(Enum):
     """An action to take to prevent duplication from occurring."""
@@ -23,6 +25,7 @@ class OnDupAction(Enum):
     #: Keep existing items and drop new items.
     DROP_NEW = 'DROP_NEW'
 
+    @override
     def __repr__(self) -> str:
         return f'{self.__class__.__name__}.{self.name}'
 

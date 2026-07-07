@@ -83,8 +83,12 @@ class BidictBase(BidirectionalMapping[KT, VT]):
     _fwdm_cls: t.ClassVar[type[MutableMapping[t.Any, t.Any]]] = dict  #: class of the backing forward mapping
     _invm_cls: t.ClassVar[type[MutableMapping[t.Any, t.Any]]] = dict  #: class of the backing inverse mapping
 
-    #: The class of the inverse bidict instance.
-    _inv_cls: t.ClassVar[type[BidictBase[t.Any, t.Any]]]
+    # When a bidict's `.inverse` property is accessed for the first time, the inverse instance is computed on demand
+    # and stored for subsequent use. A reference back to itself is also stored on the inverse instance at the same time.
+    # A weakref is used in the inverse direction to avoid creating a reference cycle. See :meth:`inverse`
+    _inv: BidictBase[VT, KT] | None
+    _invweak: weakref.ReferenceType[BidictBase[VT, KT]] | None
+    _inv_cls: t.ClassVar[type[BidictBase[t.Any, t.Any]]]  # the inverse bidict's class, see :meth:`_ensure_inv_cls`
 
     def __init_subclass__(cls) -> None:
         super().__init_subclass__()
@@ -168,20 +172,10 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         self._invm = self._invm_cls()
         self._update(arg, kw, rollback=False)
 
-    # If Python ever adds support for higher-kinded types, `inverse` could use them, e.g.
-    #     def inverse(self: BT[KT, VT]) -> BT[VT, KT]:
-    # Ref: https://github.com/python/typing/issues/548#issuecomment-621571821
     @property
     @override
     def inverse(self) -> BidictBase[VT, KT]:
         """The inverse of this bidirectional mapping instance."""
-        # When `bi.inverse` is called for the first time, this method
-        # computes the inverse instance, stores it for subsequent use, and then
-        # returns it. It also stores a reference on `bi.inverse` back to `bi`,
-        # but uses a weakref to avoid creating a reference cycle. Strong references
-        # to inverse instances are stored in ._inv, and weak references are stored
-        # in ._invweak.
-
         # First check if a strong reference is already stored.
         inv: BidictBase[VT, KT] | None = getattr(self, '_inv', None)
         if inv is not None:
@@ -194,8 +188,8 @@ class BidictBase(BidirectionalMapping[KT, VT]):
                 return inv
         # No luck. Compute the inverse reference and store it for subsequent use.
         inv = self._make_inverse()
-        self._inv: BidictBase[VT, KT] | None = inv
-        self._invweak: weakref.ReferenceType[BidictBase[VT, KT]] | None = None
+        self._inv = inv
+        self._invweak = None
         # Also store a weak reference back to `instance` on its inverse instance, so that
         # the second `.inverse` access in `bi.inverse.inverse` hits the cached weakref.
         inv._inv = None
@@ -340,7 +334,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         isdupkey = oldval is not MISSING
         isdupval = oldkey is not MISSING
         if isdupkey and isdupval:
-            if fwdm[oldkey] is oldval:  # type: ignore[index]  # mypy can't narrow oldkey to KT here (ty can)
+            if fwdm[oldkey] is oldval:
                 return None  # (key, val) duplicates an existing item -> no-op
             # key and val each duplicate a different existing item.
             if on_dup.val is RAISE:
@@ -504,8 +498,13 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         self._fwdm.update(other)
         # If other is a bidict, use its existing backing inverse mapping, otherwise
         # other could be a generator that's now exhausted, so invert self._fwdm on the fly.
-        inv = other.inverse if isinstance(other, BidictBase) else inverted(self._fwdm)
-        self._invm.update(inv)
+        if isinstance(other, BidictBase):
+            # The cast works around https://github.com/astral-sh/ty/issues/3970: narrowing `other` to
+            # BidictBase erases KT/VT, so ty (>=0.0.57) no longer matches `other.inverse` against
+            # `_invm.update`'s overload. Recover the precise type we know `other` has here.
+            self._invm.update(t.cast('BidictBase[KT, VT]', other).inverse)
+        else:
+            self._invm.update(inverted(self._fwdm))
 
     # other's type is Mapping rather than Maplike since bidict() | SupportsKeysAndGetItem({})
     # raises a TypeError, just like dict() | SupportsKeysAndGetItem({}) does.
@@ -540,6 +539,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         """*x.__getitem__(key) ⟺ x[key]*"""
         return self._fwdm[key]
 
+    @override
     def __reduce__(self) -> tuple[t.Any, ...]:
         """Return state information for pickling."""
         cls = self.__class__
@@ -556,8 +556,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
 # See BidictBase._set_reversed() above.
 def _fwdm_reversed(self: BidictBase[KT, t.Any]) -> Iterator[KT]:
     """Iterator over the contained keys in reverse order."""
-    assert isinstance(self._fwdm, Reversible)
-    return reversed(self._fwdm)
+    return reversed(t.cast('Reversible[KT]', self._fwdm))
 
 
 BidictBase._init_class()

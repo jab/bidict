@@ -56,7 +56,7 @@ class WeakAttr(t.Generic[AT]):
     def __get__(self, instance: object | None, owner: type) -> t.Self | AT:
         if instance is None:
             return self
-        return t.cast(AT, getattr(instance, self.slot)())
+        return getattr(instance, self.slot)()  # deref the weakref stored in the slot; typed via the overloads above
 
 
 class Node:
@@ -69,9 +69,10 @@ class Node:
     """
 
     prv: WeakAttr[Node] = WeakAttr(slot='_prv_weak')
+    # nxt is a plain (strong-ref) slot on the base Node; SentinelNode overrides it
+    # below with a WeakAttr to break the otherwise-strong cycle around the circular list.
+    nxt: Node
     __slots__ = ('__weakref__', '_prv_weak', 'nxt')
-
-    nxt: Node | WeakAttr[Node]  # Allow subclasses to use a WeakAttr for nxt too (see SentinelNode)
 
     def __init__(self, prv: Node, nxt: Node) -> None:
         self.prv = prv
@@ -96,7 +97,7 @@ class SentinelNode(Node):
     it represents an empty list.
     """
 
-    nxt: WeakAttr[Node] = WeakAttr(slot='_nxt_weak')
+    nxt: WeakAttr[Node] = WeakAttr(slot='_nxt_weak')  # override base's plain slot with a weakref
     __slots__ = ('_nxt_weak',)
 
     def __init__(self) -> None:
@@ -142,9 +143,11 @@ class OrderedBidictBase(BidictBase[KT, VT]):
     if t.TYPE_CHECKING:
 
         @property
+        @override
         def inverse(self) -> OrderedBidictBase[VT, KT]: ...
 
         @property
+        @override
         def inv(self) -> OrderedBidictBase[VT, KT]: ...
 
     @override

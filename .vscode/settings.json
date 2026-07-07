@@ -6,6 +6,4 @@
     "files.trimTrailingWhitespace": true,
     "python.defaultInterpreterPath": ".venv/bin/python",
     "python.testing.pytestEnabled": true,
-    "mypy-type-checker.importStrategy": "fromEnvironment",
-    "mypy-type-checker.preferDaemon": true,
 }

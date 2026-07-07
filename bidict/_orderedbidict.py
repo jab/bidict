@@ -37,9 +37,11 @@ class OrderedBidict(OrderedBidictBase[KT, VT], MutableBidict[KT, VT]):
     if t.TYPE_CHECKING:
 
         @property
+        @override
         def inverse(self) -> OrderedBidict[VT, KT]: ...
 
         @property
+        @override
         def inv(self) -> OrderedBidict[VT, KT]: ...
 
     @override
@@ -49,6 +51,7 @@ class OrderedBidict(OrderedBidictBase[KT, VT], MutableBidict[KT, VT]):
         self._node_by_korv.clear()
         self._sntl.nxt = self._sntl.prv = self._sntl
 
+    @override
     def _pop(self, key: KT) -> VT:
         val = super()._pop(key)
         node = self._node_by_korv[key if self._bykey else val]
