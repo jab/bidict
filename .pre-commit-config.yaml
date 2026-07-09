@@ -58,3 +58,30 @@ repos:
     hooks:
       - id: shellcheck
         exclude: ^.envrc$
+
+  - repo: local
+    hooks:
+      - id: cargo-fmt
+        name: cargo fmt
+        entry: cargo fmt --manifest-path rust/bidict_base_opt_native/Cargo.toml --check
+        language: system
+        files: ^rust/bidict_base_opt_native/
+        pass_filenames: false
+
+      - id: cargo-check
+        name: cargo check
+        entry: cargo check --manifest-path rust/bidict_base_opt_native/Cargo.toml --locked
+        language: system
+        files: ^rust/bidict_base_opt_native/
+        pass_filenames: false
+
+      - id: cargo-clippy
+        name: cargo clippy
+        entry: >-
+          bash -c 'export RUSTC="$(command -v rustc)";
+          export RUSTC_WORKSPACE_WRAPPER="$(command -v clippy-driver)";
+          export RUSTFLAGS="-D warnings";
+          cargo check --manifest-path rust/bidict_base_opt_native/Cargo.toml --locked --all-targets'
+        language: system
+        files: ^rust/bidict_base_opt_native/
+        pass_filenames: false

@@ -60,9 +60,15 @@ docs = [
   "sphinx-copybutton",
   "furo",
 ]
+native = [
+  "bidict-base-opt-native",
+]
 
 [tool.uv]
-default-groups = ["test", "dev", "docs"]
+default-groups = ["test", "dev", "docs", "native"]
+
+[tool.uv.sources]
+bidict-base-opt-native = { path = "rust/bidict_base_opt_native", editable = true }
 
 [tool.uv.build-backend]
 module-root = ""
