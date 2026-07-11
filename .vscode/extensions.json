@@ -2,10 +2,9 @@
 {
     // See https://go.microsoft.com/fwlink/?LinkId=827846 to learn about workspace recommendations.
     "recommendations": [
-      "HarrisonGoldstein.tyche",
+      "astral-sh.ty",
       "charliermarsh.ruff",
       // "lextudio.restructuredtext",
-      "ms-python.mypy-type-checker",
       // "tamasfe.even-better-toml",
       // "trond-snekvik.simple-rst",
     ],

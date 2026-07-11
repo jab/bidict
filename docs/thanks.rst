@@ -67,6 +67,6 @@ Projects
 - `Codecov <https://codecov.io>`__
 - `Sphinx <https://www.sphinx-doc.org>`__
 - `Readthedocs <https://readthedocs.org>`__
-- `mypy <https://mypy.readthedocs.io>`__
+- `ty <https://docs.astral.sh/ty/>`__
 - `ruff <https://github.com/charliermarsh/ruff>`__
 - `prek <https://github.com/j178/prek>`__

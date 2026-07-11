@@ -119,7 +119,7 @@ so run those from within ``nix develop``
 - Run the tests for every supported Python version: ``tox``
   (see ``envlist`` in ``tox.ini`` for the list).
 
-- Type-check the code: ``mypy bidict tests`` (mypy runs in strict mode).
+- Type-check the code: ``ty check``
 
 - Run all the lint, format, and style hooks: ``prek run --all-files``
   (equivalently, ``tox -e lint``).

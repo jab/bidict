@@ -30,6 +30,7 @@ from bidict import OrderedBidict
 from bidict import ValueDuplicationError
 from bidict import bidict
 from bidict import frozenbidict
+from bidict._typing import Maplike
 from bidict._typing import MapOrItems
 
 
@@ -39,7 +40,8 @@ VT = t.TypeVar('VT')
 
 class SupportsKeysAndGetItem(t.Generic[KT, VT]):
     def __init__(self, *args: t.Any, **kw: t.Any) -> None:
-        self._mapping: Mapping[KT, VT] = dict(*args, **kw)
+        # This fixture trusts its *args/**kw (typed Any); dict(**kw) yields str keys, so cast to the declared type.
+        self._mapping = t.cast(Mapping[KT, VT], dict(*args, **kw))
 
     def keys(self) -> KeysView[KT]:
         return self._mapping.keys()
@@ -53,7 +55,11 @@ BT = type[BB[KT, VT]]
 user_bidict_types: list[BT[t.Any, t.Any]] = []
 
 
-def user_bidict(cls: BT[KT, VT]) -> BT[KT, VT]:
+_BT = t.TypeVar('_BT', bound=type[BidictBase[t.Any, t.Any]])
+
+
+def user_bidict(cls: _BT) -> _BT:
+    # Preserve the exact decorated class type (a plain `BT[KT, VT]` return would widen it to BidictBase).
     user_bidict_types.append(cls)
     return cls
 
@@ -181,7 +187,7 @@ class Oracle(t.Generic[KT, VT]):
             assert on_dup.val is DROP_OLD
         if not self.ordered:
             self.data[key] = val
-            self.data.pop(oldkey, None)  # type: ignore[arg-type]
+            self.data.pop(oldkey, None)
             return
         # Ensure insertion order is preserved in the case of a sequence of overwriting updates.
         updated = {}
@@ -198,12 +204,16 @@ class Oracle(t.Generic[KT, VT]):
     def putall(self, updates: MapOrItems[KT, VT], on_dup: OnDup = DEFAULT_ON_DUP) -> None:
         # https://bidict.readthedocs.io/en/main/basic-usage.html#order-matters
         tmp = self.data.copy()
+        items: Iterable[tuple[KT, VT]]
         if isinstance(updates, Mapping):
-            updates = updates.items()
+            items = t.cast(Mapping[KT, VT], updates).items()
         elif hasattr(updates, 'keys') and hasattr(updates, '__getitem__'):
-            updates = [(k, updates[k]) for k in updates.keys()]
+            maplike = t.cast(Maplike[KT, VT], updates)
+            items = [(key, maplike[key]) for key in maplike.keys()]
+        else:
+            items = updates
         try:
-            for key, val in updates:
+            for key, val in items:
                 self.put(key, val, on_dup)
         except DuplicationError:
             self.data = tmp  # fail clean (no partially-applied updates)

@@ -58,11 +58,6 @@ jobs:
           # https://api.flakehub.com/" error before falling back to the GHA cache.
           use-flakehub: false
           use-gha-cache: true
-      - name: cache .mypy_cache dir
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9
-        with:
-          path: .mypy_cache
-          key: mypy
       - name: set hypothesis profile
         run: |
           hypothesis_profile=${{ github.event.inputs.hypothesis_profile || (github.event_name == 'schedule' && 'more-examples' || 'default') }}
@@ -76,11 +71,11 @@ jobs:
         if: matrix.enable_coverage
         run: |
           echo RUN_PYTEST_CMD="coverage run -m pytest" >> "$GITHUB_ENV"
-      - name: run mypy and pytest
+      - name: run ty and pytest
         run: |
           nix develop .#${{ matrix.shell }} --command bash -c "
             set -euo pipefail
-            if python -m mypy -V; then mypy bidict tests; else echo 'Skipping mypy (not available)'; fi
+            ty check
             \${RUN_PYTEST_CMD:-pytest}
           "
       - name: combine and show any collected coverage

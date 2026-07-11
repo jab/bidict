@@ -32,9 +32,11 @@ class frozenbidict(BidictBase[KT, VT]):
     if t.TYPE_CHECKING:
 
         @property
+        @override
         def inverse(self) -> frozenbidict[VT, KT]: ...
 
         @property
+        @override
         def inv(self) -> frozenbidict[VT, KT]: ...
 
     @override

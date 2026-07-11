@@ -39,13 +39,13 @@ Repository = "https://github.com/jab/bidict"
 test = [
   "coverage",
   "hypothesis",
-  "mypy; implementation_name != 'pypy'",  # https://github.com/python/mypy/issues/20329
   "pytest",
   "pytest-benchmark",
   "pytest-sphinx",
   "pytest-xdist",
   "sortedcollections",
   "sortedcontainers",
+  "ty>=0.0.58",
   "typing_extensions",
 ]
 dev = [
@@ -72,12 +72,19 @@ source-exclude = [".mypy_cache"]
 requires = ["uv_build>=0.7.13,<0.8.0"]
 build-backend = "uv_build"
 
-[tool.mypy]
-strict = true
-show_error_codes = true
-show_error_context = true
-show_column_numbers = true
-pretty = true
+[tool.ty.src]
+include = ["bidict", "tests"]
+
+[tool.ty.terminal]
+error-on-warning = true
+
+[tool.ty.rules]
+# ty has no `strict`-mode bundle like mypy's; instead, ratchet up the rules that
+# default to `warn`/`ignore` but that we want enforced as errors. `error-on-warning`
+# above already makes the `warn`-level rules fatal; the following promote rules that
+# default to `ignore` (so are otherwise silent even under `error-on-warning`).
+missing-type-argument = "error"       # analogous to mypy's disallow_any_generics
+missing-override-decorator = "error"  # require @override on overriding methods
 
 [tool.ruff]
 preview = true

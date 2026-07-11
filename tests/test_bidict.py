@@ -74,6 +74,7 @@ from bidict import inverted
 from bidict._orderedbase import Node as OrderedBidictNode
 from bidict._orderedbase import WeakAttr
 from bidict._typing import MapOrItems
+from bidict._typing import override
 
 
 Items = Sequence[tuple[int, int]]
@@ -230,17 +231,17 @@ class BidictStateMachine(RuleBasedStateMachine):
         (k1, v1), (k2, v2) = random.sample(tuple(self.oracle.data.items()), 2)
         # Inserting (new_key, dup_val) should raise ValueDuplicationError.
         with pytest.raises(ValueDuplicationError):
-            self.bi.update([('foo', 'foo'), ('bar', v1)])  # type: ignore[list-item]
+            self.bi.update([('foo', 'foo'), ('bar', v1)])  # ty: ignore[invalid-argument-type]
         # Any partial update applied before the failure should have been rolled back (fails clean).
         assert len(self.bi) == len_before
-        assert 'foo' not in self.bi  # type: ignore[comparison-overlap]
-        assert self.bi.inv[v1] != 'bar'  # type: ignore[comparison-overlap]
+        assert 'foo' not in self.bi
+        assert self.bi.inv[v1] != 'bar'
         # key and value duplication across two different items should raise KeyAndValueDuplicationError.
         for key, val in ((k1, v2), (k2, v1)):
             with pytest.raises(KeyAndValueDuplicationError):
-                self.bi.update([('foo', 'foo'), (key, val)])  # type: ignore[list-item]
+                self.bi.update([('foo', 'foo'), (key, val)])  # ty: ignore[invalid-argument-type]
             assert len(self.bi) == len_before
-            assert 'foo' not in self.bi  # type: ignore[comparison-overlap]
+            assert 'foo' not in self.bi
             assert self.bi[key] != val
         # Inserting already-present items should be a no-op.
         self.bi.update([(k1, v1), (k2, v2)])
@@ -307,13 +308,15 @@ BidictStateMachineTest = BidictStateMachine.TestCase
 def test_init_and_update_with_bad_args(bi_t: BT[KT, VT]) -> None:
     bad_args: t.Any
     for bad_args in ((None,), (0,), (False,), (True,), ({}, {})):
+        # ty raises on unpacking an `Any`/unknown-length arg into a call; see
+        # https://github.com/astral-sh/ty/issues/3649
         with pytest.raises(TypeError):
-            bi_t(*bad_args)
+            bi_t(*bad_args)  # ty: ignore[invalid-argument-type, too-many-positional-arguments]
         if not issubclass(bi_t, MutableBidict):
             continue
         bi = bi_t()
         with pytest.raises(TypeError):
-            bi.update(*bad_args)
+            bi.update(*bad_args)  # ty: ignore[invalid-argument-type, too-many-positional-arguments]  # https://github.com/astral-sh/ty/issues/3649
 
 
 @pytest.mark.parametrize('bi_t', bidict_types)
@@ -338,7 +341,7 @@ def test_pop_missing_key(bi_t: MBT[t.Any, t.Any]) -> None:
 def test_move_to_end_missing_key(bi_t: type[OrderedBidict[KT, VT]]) -> None:
     bi = bi_t()
     with pytest.raises(KeyError):
-        bi.move_to_end('foo')  # type: ignore[arg-type]
+        bi.move_to_end('foo')  # ty: ignore[invalid-argument-type]
 
 
 @pytest.mark.parametrize('bi_t', bidict_types)
@@ -461,17 +464,18 @@ def test_abstract_bimap_init_fails() -> None:
 
     for bi_t in (BidirectionalMapping, MutableBidirectionalMapping, AbstractBimap):
         with pytest.raises(TypeError, match="Can't instantiate abstract class"):
-            bi_t()  # type: ignore[abstract]
+            bi_t()
 
 
 def test_bimap_bad_inverse() -> None:
     # Overrides `inverse`, but merely calls the abstract superclass implementation.
     class BimapBadInverse(BidirectionalMapping[t.Any, t.Any]):
-        __getitem__ = __iter__ = __len__ = ...  # type: ignore [assignment]
+        __getitem__ = __iter__ = __len__ = ...
 
         @property
+        @override
         def inverse(self) -> t.Any:
-            return super().inverse  # type: ignore [safe-super]
+            return super().inverse
 
     bi = BimapBadInverse()
     with pytest.raises(NotImplementedError):
@@ -626,9 +630,11 @@ def test_setitem_existing_is_noop_with_nonreflexive_eq(bi_t: MBT[t.Any, t.Any]) 
 class _AsymStored:
     """Pathological type equal to _AsymLookup instances, but only when on the left-hand side."""
 
+    @override
     def __hash__(self) -> int:
         return 1
 
+    @override
     def __eq__(self, other: object) -> bool:
         return isinstance(other, _AsymLookup)
 
@@ -636,9 +642,11 @@ class _AsymStored:
 class _AsymLookup:
     """Pathological type that is never equal to anything, even when an _AsymStored equals it."""
 
+    @override
     def __hash__(self) -> int:
         return 1
 
+    @override
     def __eq__(self, other: object) -> bool:
         return False
 
