@@ -499,9 +499,6 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         # If other is a bidict, use its existing backing inverse mapping, otherwise
         # other could be a generator that's now exhausted, so invert self._fwdm on the fly.
         if isinstance(other, BidictBase):
-            # The cast works around https://github.com/astral-sh/ty/issues/3970: narrowing `other` to
-            # BidictBase erases KT/VT, so ty (>=0.0.57) no longer matches `other.inverse` against
-            # `_invm.update`'s overload. Recover the precise type we know `other` has here.
             self._invm.update(t.cast('BidictBase[KT, VT]', other).inverse)
         else:
             self._invm.update(inverted(self._fwdm))
