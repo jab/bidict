@@ -517,7 +517,8 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         """Return other|self."""
         if not isinstance(other, Mapping):
             return NotImplemented
-        new = self.__class__(other)
+        # False positive in ty: https://github.com/astral-sh/ty/issues/4278
+        new = self.__class__(other)  # ty: ignore[invalid-argument-type]
         new._update(self, rollback=False)
         return new
 

@@ -207,9 +207,8 @@ class Oracle(t.Generic[KT, VT]):
         items: Iterable[tuple[KT, VT]]
         if isinstance(updates, Mapping):
             items = t.cast(Mapping[KT, VT], updates).items()
-        elif hasattr(updates, 'keys') and hasattr(updates, '__getitem__'):
-            maplike = t.cast(Maplike[KT, VT], updates)
-            items = [(key, maplike[key]) for key in maplike.keys()]
+        elif isinstance(updates, Maplike):
+            items = [(key, updates[key]) for key in updates.keys()]
         else:
             items = updates
         try:
