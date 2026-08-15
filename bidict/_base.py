@@ -517,8 +517,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         """Return other|self."""
         if not isinstance(other, Mapping):
             return NotImplemented
-        # TODO: File ty issue: after narrowing `other` to `Mapping[KT, VT]`,
-        # ty incorrectly infers the `MapOrItems[KT, VT]` constructor argument here.
+        # False positive in ty: https://github.com/astral-sh/ty/issues/4278
         new = self.__class__(other)  # ty: ignore[invalid-argument-type]
         new._update(self, rollback=False)
         return new
