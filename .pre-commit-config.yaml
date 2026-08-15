@@ -39,7 +39,7 @@ repos:
         args: [--write-changes]
 
   - repo: https://github.com/astral-sh/ty-pre-commit
-    rev: v0.0.58
+    rev: v0.0.72
     hooks:
       - id: ty
 

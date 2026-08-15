@@ -517,7 +517,9 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         """Return other|self."""
         if not isinstance(other, Mapping):
             return NotImplemented
-        new = self.__class__(other)
+        # TODO: File ty issue: after narrowing `other` to `Mapping[KT, VT]`,
+        # ty incorrectly infers the `MapOrItems[KT, VT]` constructor argument here.
+        new = self.__class__(other)  # ty: ignore[invalid-argument-type]
         new._update(self, rollback=False)
         return new
 
