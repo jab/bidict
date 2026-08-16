@@ -35,7 +35,6 @@ from ._dup import DROP_OLD
 from ._dup import ON_DUP_DEFAULT
 from ._dup import RAISE
 from ._dup import OnDup
-from ._exc import DuplicationError
 from ._exc import KeyAndValueDuplicationError
 from ._exc import KeyDuplicationError
 from ._exc import ValueDuplicationError
@@ -453,20 +452,20 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         # In all other cases, benchmarking has indicated that the update is best implemented as follows:
         # For each new item, perform a dup check (raising if necessary), and apply the associated writes we need to
         # perform on our backing _fwdm and _invm mappings. If rollback is enabled, also compute the associated unwrites
-        # as we go. If the update results in a DuplicationError and rollback is enabled, apply the accumulated unwrites
-        # before raising, to ensure that we fail clean.
+        # as we go. If item unpacking, duplication checking, or writing raises while rollback is enabled, apply the
+        # accumulated unwrites before re-raising, to ensure that we fail clean.
         write = self._write
         unwrites: Unwrites | None = [] if rollback else None
-        for key, val in iteritems(arg, **kw):
-            try:
+        try:
+            for key, val in iteritems(arg, **kw):
                 dedup_result = self._dedup(key, val, on_dup)
-            except DuplicationError:
-                if unwrites is not None:
-                    for fn, *args in reversed(unwrites):
-                        fn(*args)
-                raise
-            if dedup_result is not None:
-                write(key, val, *dedup_result, unwrites=unwrites)
+                if dedup_result is not None:
+                    write(key, val, *dedup_result, unwrites=unwrites)
+        except Exception:
+            if unwrites is not None:
+                for fn, *args in reversed(unwrites):
+                    fn(*args)
+            raise
 
     def __copy__(self) -> t.Self:
         """Used for the copy protocol. See the :mod:`copy` module."""

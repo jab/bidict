@@ -41,6 +41,7 @@ from bidict_test_fixtures import SupportsKeysAndGetItem
 from bidict_test_fixtures import UserBiNotOwnInv
 from bidict_test_fixtures import UserOrderedBi
 from bidict_test_fixtures import bidict_types
+from bidict_test_fixtures import bomb
 from bidict_test_fixtures import dedup
 from bidict_test_fixtures import mutable_bidict_types
 from bidict_test_fixtures import powerset
@@ -226,26 +227,18 @@ class BidictStateMachine(RuleBasedStateMachine):
     def update_with_dup(self, random: Random) -> None:
         # Covered nondeterministically by the more general "putall" rule above, but this ensures that basic duplication
         # scenarios are deterministically covered.
-        len_before = len(self.bi)
         # Choose two existing items at random.
         (k1, v1), (k2, v2) = random.sample(tuple(self.oracle.data.items()), 2)
         # Inserting (new_key, dup_val) should raise ValueDuplicationError.
-        with pytest.raises(ValueDuplicationError):
-            self.bi.update([('foo', 'foo'), ('bar', v1)])  # ty: ignore[invalid-argument-type]
-        # Any partial update applied before the failure should have been rolled back (fails clean).
-        assert len(self.bi) == len_before
-        assert 'foo' not in self.bi
-        assert self.bi.inv[v1] != 'bar'
+        assert_update_fails_clean(self.bi, [('foo', 'foo'), ('bar', v1)], ValueDuplicationError)
         # key and value duplication across two different items should raise KeyAndValueDuplicationError.
         for key, val in ((k1, v2), (k2, v1)):
-            with pytest.raises(KeyAndValueDuplicationError):
-                self.bi.update([('foo', 'foo'), (key, val)])  # ty: ignore[invalid-argument-type]
-            assert len(self.bi) == len_before
-            assert 'foo' not in self.bi
-            assert self.bi[key] != val
+            assert_update_fails_clean(self.bi, [('foo', 'foo'), (key, val)], KeyAndValueDuplicationError)
         # Inserting already-present items should be a no-op.
+        before = self.bi.copy()
         self.bi.update([(k1, v1), (k2, v2)])
-        assert len(self.bi) == len_before
+        assert self.bi.equals_order_sensitive(before)
+        assert self.bi.inv.equals_order_sensitive(before.inv)
 
     def is_empty(self) -> bool:
         return not self.bi
@@ -427,6 +420,34 @@ def assert_putall_matches_bulk_put(bi: MutableBidict[int, int], new_items: Items
     assert checkexc == expectexc
     assert bi == tmp
     assert bi.inv == tmp.inv
+
+
+def assert_update_fails_clean(bi: MutableBidict[t.Any, t.Any], updates: t.Any, exc_t: type[Exception]) -> None:
+    before = bi.copy()
+    with pytest.raises(exc_t):
+        bi.update(updates)
+    assert bi.equals_order_sensitive(before)
+    assert bi.inv.equals_order_sensitive(before.inv)
+
+
+@pytest.mark.parametrize('bi_t', mutable_bidict_types)
+def test_update_with_bad_last_item_fails_clean(bi_t: MBT[t.Any, t.Any]) -> None:
+    # Keep self at least as large as updates so this sized arg takes the
+    # in-place rollback path rather than the copy fast path.
+    bi = bi_t({
+        0: 0,
+        1: 1,
+        2: 2,
+    })
+    for b in (bi, bi.inv):
+        for exc, bad in (
+            (RuntimeError, (bomb, 0)),
+            (RuntimeError, (0, bomb)),
+            (TypeError, (['unhashable'], 0)),
+            (ValueError, (1, 2, 'bad len')),
+        ):
+            updates = [(3, 3), (4, 4), bad]
+            assert_update_fails_clean(b, updates, exc)
 
 
 def test_pickle_orderedbi_whose_order_disagrees_with_fwdm() -> None:

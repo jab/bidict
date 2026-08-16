@@ -44,6 +44,13 @@ please consider sponsoring bidict on GitHub.`
   rather than behaving like the equivalent plain :class:`dict` views.
   :issue:`376`
 
+- Fix a bug where :meth:`~bidict.MutableBidict.putall`
+  and :meth:`~bidict.MutableBidict.update`
+  could leave earlier items inserted when a later item in a bulk update
+  raised a non-duplication exception,
+  rather than failing clean.
+  :issue:`389`
+
 
 0.23.1 (2024-02-18)
 -------------------
