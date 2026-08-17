@@ -32,6 +32,7 @@ from bidict import bidict
 from bidict import frozenbidict
 from bidict._typing import Maplike
 from bidict._typing import MapOrItems
+from bidict._typing import override
 
 
 KT = t.TypeVar('KT')
@@ -260,3 +261,12 @@ def invdict(d: dict[KT, VT]) -> dict[VT, KT]:
 
 def dedup(x: MapOrItems[KT, VT]) -> dict[KT, VT]:
     return invdict(invdict(dict(x)))
+
+
+class HashRaises:
+    @override
+    def __hash__(self) -> int:
+        raise RuntimeError('boom!')
+
+
+bomb = HashRaises()
