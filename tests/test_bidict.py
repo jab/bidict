@@ -41,6 +41,7 @@ from bidict_test_fixtures import Oracle
 from bidict_test_fixtures import SupportsKeysAndGetItem
 from bidict_test_fixtures import UserBiNotOwnInv
 from bidict_test_fixtures import UserOrderedBi
+from bidict_test_fixtures import UserOrderedBiBase
 from bidict_test_fixtures import bidict_types
 from bidict_test_fixtures import bomb
 from bidict_test_fixtures import dedup
@@ -50,6 +51,7 @@ from bidict_test_fixtures import should_be_reversible
 from bidict_test_fixtures import update_arg_types
 from bidict_test_fixtures import zip_equal
 from hypothesis import assume
+from hypothesis import example
 from hypothesis import given
 from hypothesis import note
 from hypothesis.stateful import RuleBasedStateMachine
@@ -70,6 +72,7 @@ from bidict import MutableBidirectionalMapping
 from bidict import OnDup
 from bidict import OnDupAction
 from bidict import OrderedBidict
+from bidict import OrderedBidictBase
 from bidict import ValueDuplicationError
 from bidict import frozenbidict
 from bidict import inverted
@@ -392,6 +395,38 @@ def test_inverted(items: Items, bidict_t: BT[int, int]) -> None:
     assert_bidicts_equal(check_bi, expect_bi)
 
 
+@given(items=items, bidict_t=bidict_t)
+# Pin the case that actually exercises the divergence, rather than relying on it being
+# generated: (3, -1) overwrites (1, -1) in place, so an ordered bidict keeps the item's
+# original position while its backing mappings append the new key and drop the old one.
+@example(items=((1, -1), (2, -2), (3, -1)), bidict_t=UserOrderedBiBase)
+def test_views_agree_with_iteration_order(items: Items, bidict_t: BT[int, int]) -> None:
+    """Every order-sensitive API must agree with the bidict's own iteration order.
+
+    For ordered bidicts the order lives in the linked list, not in the backing mappings,
+    and the two diverge as soon as an item is overwritten -- including during __init__,
+    for a type whose on_dup permits it. So the views must not delegate to _fwdm.
+    """
+    try:
+        bi = bidict_t(items)
+    except DuplicationError:  # this type's on_dup rejects these items; settle for a 1:1 init
+        bi = bidict_t(dedup(items))
+    expect = [(k, bi[k]) for k in bi]  # the items in iteration order, without using items()
+    assert list(bi.keys()) == list(bi)
+    assert list(bi.items()) == expect
+    assert list(dict(bi)) == list(bi)  # dict(mapping) goes through keys()
+    assert bi.equals_order_sensitive(bidict_t(expect))
+    if isinstance(bi, OrderedBidictBase):  # a plain bidict's values() follow its inverse's order
+        assert list(bi.values()) == [v for (_, v) in expect]
+        assert list(bi.items()) == list(zip(bi.keys(), bi.values(), strict=True))
+    if should_be_reversible(bidict_t):
+        keysview, itemsview = bi.keys(), bi.items()
+        assert isinstance(keysview, Reversible)
+        assert isinstance(itemsview, Reversible)
+        assert list(reversed(keysview)) == list(bi)[::-1]
+        assert list(reversed(itemsview)) == expect[::-1]
+
+
 @given(items121=items121)
 def test_frozenbidicts_hashable(items121: Items121) -> None:
     """Frozen bidicts can be hashed (and therefore inserted into sets and mappings)."""
@@ -582,6 +617,23 @@ def test_orderedbidict_weakattr_class_access() -> None:
     """Accessing a WeakAttr descriptor from the Node class should return the descriptor itself."""
     descriptor = OrderedBidictNode.prv
     assert isinstance(descriptor, WeakAttr)
+
+
+def test_orderedbidictbase_order_diverges_from_backing_mappings() -> None:
+    """Spell out the scenario behind test_views_agree_with_iteration_order's @example.
+
+    That test checks the views against the bidict's own iteration order, so on its own it
+    could not tell you whether the two orders ever actually differ. This pins that they do,
+    with absolute expectations, and covers repr() (which goes through items()) besides.
+
+    Regression test: the keys()/items() overrides used to live on OrderedBidict, justified
+    by a *mutable* ordered bidict getting out of sync with its backing mappings after
+    mutation. But an overwrite during __init__ suffices, so OrderedBidictBase needs them too.
+    """
+    ob = UserOrderedBiBase([(1, 'a'), (2, 'b'), (3, 'a')])  # (3, 'a') overwrites (1, 'a') in place
+    assert list(ob) == [3, 2]  # the item formerly keyed 1 is now keyed 3, in its original position
+    assert list(ob._fwdm) == [2, 3]  # whereas the backing dict appended 3 and dropped 1
+    assert repr(ob) == "UserOrderedBiBase({3: 'a', 2: 'b'})"
 
 
 def test_orderedbidict_cross_view_set_operations() -> None:

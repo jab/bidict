@@ -64,6 +64,24 @@ please consider sponsoring bidict on GitHub.`
   hashing a key or value, or writing to a backing mapping.
   Rollback is now always enabled for these methods.
 
+- Fix a bug where an :class:`~bidict.OrderedBidictBase` that is not an
+  :class:`~bidict.OrderedBidict`
+  could yield its items in the wrong order from
+  :meth:`~bidict.OrderedBidictBase.keys`,
+  :meth:`~bidict.OrderedBidictBase.items`,
+  :meth:`~bidict.BidictBase.values`,
+  :func:`repr`, and
+  :meth:`~bidict.BidictBase.equals_order_sensitive` –
+  namely the order of its backing mapping
+  rather than its own (correct) iteration order.
+  These views are now overridden on :class:`~bidict.OrderedBidictBase`
+  rather than on :class:`~bidict.OrderedBidict`,
+  since the two orders can already disagree
+  by the time :meth:`~bidict.BidictBase.__init__` returns
+  (a value-duplication overwrite keeps the existing item's position,
+  while the backing mapping gets the new key appended),
+  and so mutability was never what made the override necessary.
+
 
 0.23.1 (2024-02-18)
 -------------------
@@ -223,9 +241,9 @@ It also contains several other improvements.
 
 - Optimize the
   :class:`~collections.abc.MappingView` objects returned by
-  :meth:`bidict.OrderedBidict.keys`,
+  :meth:`bidict.OrderedBidict.keys <bidict.OrderedBidictBase.keys>`,
   :meth:`bidict.OrderedBidict.values <bidict.BidictBase.values>`, and
-  :meth:`bidict.OrderedBidict.items`
+  :meth:`bidict.OrderedBidict.items <bidict.OrderedBidictBase.items>`
   to delegate to backing ``dict_keys`` and ``dict_items``
   objects if available, which are much faster in CPython.
   For example, in a microbenchmark on Python 3.10,
@@ -258,9 +276,9 @@ It also contains several other improvements.
 - The
   :class:`~collections.abc.MappingView` objects
   returned by
-  :meth:`bidict.OrderedBidict.keys`,
+  :meth:`bidict.OrderedBidict.keys <bidict.OrderedBidictBase.keys>`,
   :meth:`bidict.OrderedBidict.values <bidict.BidictBase.values>`, and
-  :meth:`bidict.OrderedBidict.items`
+  :meth:`bidict.OrderedBidict.items <bidict.OrderedBidictBase.items>`
   are now
   :class:`~collections.abc.Reversible`.
   (This was already the case for unordered bidicts

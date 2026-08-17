@@ -19,6 +19,7 @@ from itertools import combinations
 
 from bidict import DROP_NEW
 from bidict import DROP_OLD
+from bidict import ON_DUP_DROP_OLD
 from bidict import RAISE
 from bidict import BidictBase
 from bidict import DuplicationError
@@ -27,6 +28,7 @@ from bidict import KeyDuplicationError
 from bidict import MutableBidirectionalMapping
 from bidict import OnDup
 from bidict import OrderedBidict
+from bidict import OrderedBidictBase
 from bidict import ValueDuplicationError
 from bidict import bidict
 from bidict import frozenbidict
@@ -85,6 +87,18 @@ class UserBiNotOwnInv(bidict[KT, VT]):
     _invm_cls = UserDict
 
 
+@user_bidict
+class UserOrderedBiBase(OrderedBidictBase[KT, VT]):
+    """An immutable ordered bidict, i.e. an OrderedBidictBase that is not an OrderedBidict.
+
+    Uses a permissive on_dup so that even a bulk __init__ can overwrite an existing item.
+    That is what makes the backing mappings' order diverge from the bidict's own order,
+    which is otherwise only reachable by mutating an OrderedBidict.
+    """
+
+    on_dup = ON_DUP_DROP_OLD
+
+
 UserBiNotOwnInvInv = UserBiNotOwnInv._inv_cls
 assert UserBiNotOwnInvInv is not UserBiNotOwnInv
 
@@ -98,7 +112,9 @@ MBT = type[bidict[KT, VT]] | type[OrderedBidict[KT, VT]]
 
 
 def should_be_reversible(bi_t: BT[KT, VT]) -> bool:
-    return bi_t in builtin_bidict_types or issubclass(bi_t, OrderedBidict)
+    # Every ordered bidict is reversible regardless of its backing mappings, since it
+    # iterates its linked list rather than them.
+    return bi_t in builtin_bidict_types or issubclass(bi_t, OrderedBidictBase)
 
 
 assert all(not should_be_reversible(bi_t) or issubclass(bi_t, Reversible) for bi_t in bidict_types)
