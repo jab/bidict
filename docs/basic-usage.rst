@@ -342,6 +342,40 @@ before processing the update:
    >>> b  # ...but (3, 'three') was not added either:
    bidict({1: 'one', 2: 'two'})
 
+This holds no matter why the update failed –
+not just for a :class:`~bidict.DuplicationError`,
+but also for e.g. an unhashable key or a malformed item.
+
+What is restored is the bidict's *contents*.
+For an :class:`~bidict.OrderedBidict`,
+the order of its items is restored as well.
+For other bidict types, it may not be:
+rolling back an overwrite reinserts the overwritten item,
+which puts it back at the end of the backing mapping
+rather than in its original position.
+So a failed update can leave a non-ordered bidict
+holding exactly the items it held before,
+but iterating them in a different order:
+
+.. doctest::
+
+   >>> b = bidict({1: 'one', 2: 'two'})
+   >>> b.update({1: 'uno', 3: 'two'})  # (1, 'uno') is applied, then (3, 'two') fails
+   Traceback (most recent call last):
+       ...
+   bidict.ValueDuplicationError: two
+
+   >>> b  # the contents are restored...
+   bidict({1: 'one', 2: 'two'})
+   >>> b.inverse  # ...but the inverse is no longer in its original order:
+   bidict({'two': 2, 'one': 1})
+
+This is the same caveat described in
+:ref:`other-bidict-types:Order consistency between bidicts and their inverses`,
+applied to updates that fail rather than updates that succeed:
+if you need a bidict whose order is meaningful,
+use an :class:`~bidict.OrderedBidict`.
+
 
 Order Matters
 +++++++++++++

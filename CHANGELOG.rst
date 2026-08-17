@@ -64,6 +64,17 @@ please consider sponsoring bidict on GitHub.`
   hashing a key or value, or writing to a backing mapping.
   Rollback is now always enabled for these methods.
 
+- Clarify the scope of the
+  :ref:`fail-clean guarantee <basic-usage:Updates Fail Clean>`:
+  a failed update always restores a bidict's *contents*,
+  and restores the order of its items as well
+  if it is an :class:`~bidict.OrderedBidict`,
+  but a non-ordered bidict may be left iterating
+  the same items in a different order,
+  since rolling back an overwrite reinserts the overwritten item
+  at the end of the backing mapping
+  rather than in its original position.
+
 - Fix a bug where an :class:`~bidict.OrderedBidictBase` that is not an
   :class:`~bidict.OrderedBidict`
   could yield its items in the wrong order from

@@ -215,6 +215,20 @@ class BidictStateMachine(RuleBasedStateMachine):
         """
         assert_update_fails_clean(self.bi, iter([*new, (bomb, 0)]), RuntimeError, on_dup)
 
+    @precondition(is_ordered)
+    @rule(updates=items, on_dup=on_dup)
+    def putall_with_bad_item_after_overwrites(self, updates: Items, on_dup: OnDup) -> None:
+        """An ordered bidict must restore its *order* too, not just its contents.
+
+        Unlike the rule above this lets the preceding items overwrite existing ones, which
+        is what makes the linked list's order diverge from the backing mappings'. Only
+        ordered bidicts guarantee this: rolling back an overwrite reinserts the overwritten
+        item at the end of a backing mapping rather than in its original position, so a
+        non-ordered bidict is restored contents-only. See "Updates Fail Clean" in the docs.
+        """
+        arg = iter([*updates, (bomb, 0)])
+        assert_update_fails_clean(self.bi, arg, (RuntimeError, DuplicationError), on_dup)
+
     @rule(other=items121)
     def __ior__(self, other: Mapping[int, int]) -> None:
         assert_calls_match(
@@ -473,7 +487,7 @@ def assert_putall_matches_bulk_put(bi: MutableBidict[int, int], new_items: Items
 def assert_update_fails_clean(
     bi: MutableBidict[t.Any, t.Any],
     updates: t.Any,
-    exc_t: type[Exception],
+    exc_t: type[Exception] | tuple[type[Exception], ...],
     on_dup: OnDup | None = None,
 ) -> None:
     """Check that a bulk update that raises *exc_t* leaves *bi* exactly as it was.
