@@ -30,6 +30,7 @@ from typing import assert_type
 from unittest.mock import ANY
 
 import pytest
+from bidict_test_fixtures import BAD_ITEMS
 from bidict_test_fixtures import BB
 from bidict_test_fixtures import BT
 from bidict_test_fixtures import KT
@@ -87,6 +88,9 @@ keys = sampled_from(ks)
 vals = sampled_from(vs)
 items = sampled_from(list(powerset(product(ks, vs))))
 items121 = items.map(dedup)
+# Items that can never duplicate anything in a bidict under test: their keys and values are
+# disjoint from ks and vs, and they are 1:1 among themselves.
+fresh_items = sampled_from(list(powerset((k, -k) for k in range(5, 9))))
 bidict_t = sampled_from(bidict_types)
 mut_bidict_t = sampled_from(mutable_bidict_types)
 updates_t = sampled_from(update_arg_types)
@@ -198,6 +202,15 @@ class BidictStateMachine(RuleBasedStateMachine):
             partial(self.bi.putall, updates_t(updates), on_dup),
             partial(self.oracle.putall, updates_t(updates), on_dup),
         )
+
+    @rule(new=fresh_items, on_dup=on_dup)
+    def putall_with_bad_item(self, new: Items, on_dup: OnDup) -> None:
+        """A bulk update whose last item raises must apply none of it, whatever the on_dup.
+
+        The preceding items are fresh, so the only thing that can fail is the bad item.
+        Pass an iterator so this always takes the incremental rollback path.
+        """
+        assert_update_fails_clean(self.bi, iter([*new, (bomb, 0)]), RuntimeError, on_dup)
 
     @rule(other=items121)
     def __ior__(self, other: Mapping[int, int]) -> None:
@@ -422,16 +435,28 @@ def assert_putall_matches_bulk_put(bi: MutableBidict[int, int], new_items: Items
     assert bi.inv == tmp.inv
 
 
-def assert_update_fails_clean(bi: MutableBidict[t.Any, t.Any], updates: t.Any, exc_t: type[Exception]) -> None:
+def assert_update_fails_clean(
+    bi: MutableBidict[t.Any, t.Any],
+    updates: t.Any,
+    exc_t: type[Exception],
+    on_dup: OnDup | None = None,
+) -> None:
+    """Check that a bulk update that raises *exc_t* leaves *bi* exactly as it was.
+
+    Exercises update() (i.e. bi's own on_dup) when *on_dup* is None, else putall().
+    """
     before = bi.copy()
+    do_update = partial(bi.update, updates) if on_dup is None else partial(bi.putall, updates, on_dup)
     with pytest.raises(exc_t):
-        bi.update(updates)
+        do_update()
     assert bi.equals_order_sensitive(before)
     assert bi.inv.equals_order_sensitive(before.inv)
 
 
-@pytest.mark.parametrize('bi_t', mutable_bidict_types)
-def test_update_with_bad_last_item_fails_clean(bi_t: MBT[t.Any, t.Any]) -> None:
+# A RAISE-free on_dup must fail clean too: a bulk update can raise for reasons that have
+# nothing to do with duplication, so rollback cannot be conditioned on on_dup.
+@pytest.mark.parametrize(('bi_t', 'on_dup'), list(product(mutable_bidict_types, (None, *on_dups))))
+def test_update_with_bad_last_item_fails_clean(bi_t: MBT[t.Any, t.Any], on_dup: OnDup | None) -> None:
     # Keep self at least as large as updates so this sized arg takes the
     # in-place rollback path rather than the copy fast path.
     bi = bi_t({
@@ -440,14 +465,11 @@ def test_update_with_bad_last_item_fails_clean(bi_t: MBT[t.Any, t.Any]) -> None:
         2: 2,
     })
     for b in (bi, bi.inv):
-        for exc, bad in (
-            (RuntimeError, (bomb, 0)),
-            (RuntimeError, (0, bomb)),
-            (TypeError, (['unhashable'], 0)),
-            (ValueError, (1, 2, 'bad len')),
-        ):
+        for exc, bad in BAD_ITEMS:
+            # The items before the bad one are all new, so the update fails for the
+            # bad item's reason regardless of the on_dup.
             updates = [(3, 3), (4, 4), bad]
-            assert_update_fails_clean(b, updates, exc)
+            assert_update_fails_clean(b, updates, exc, on_dup)
 
 
 def test_pickle_orderedbi_whose_order_disagrees_with_fwdm() -> None:

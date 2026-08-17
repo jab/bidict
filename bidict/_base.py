@@ -422,10 +422,17 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         arg: MapOrItems[KT, VT],
         kw: Mapping[str, VT] = MappingProxyType({}),
         *,
-        rollback: bool | None = None,
+        rollback: bool = True,
         on_dup: OnDup | None = None,
     ) -> None:
-        """Update with the items from *arg* and *kw*, maybe failing and rolling back as per *on_dup* and *rollback*."""
+        """Update with the items from *arg* and *kw*, failing clean as per *rollback*.
+
+        When *rollback* is true (the default), a failure part-way through leaves self
+        exactly as it was before the update was attempted.
+
+        Callers pass rollback=False only when self is a throwaway instance that is
+        discarded if the update fails, and so has nothing to roll back to.
+        """
         # Note: We must process input in a single pass, since arg may be a generator.
         if not isinstance(arg, (Iterable, Maplike)):
             raise TypeError(f"'{arg.__class__.__name__}' object is not iterable")
@@ -433,8 +440,6 @@ class BidictBase(BidirectionalMapping[KT, VT]):
             return
         if on_dup is None:
             on_dup = self.on_dup
-        if rollback is None:
-            rollback = RAISE in on_dup
 
         # Fast path when we're empty and updating only from another bidict (i.e. no dup vals in new items).
         if not self and not kw and isinstance(arg, BidictBase):

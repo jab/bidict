@@ -51,6 +51,19 @@ please consider sponsoring bidict on GitHub.`
   rather than failing clean.
   :issue:`389`
 
+- Fix a bug where a bulk update did not fail clean at all
+  when the :class:`~bidict.OnDup` in effect contained no
+  :attr:`~bidict.RAISE` action –
+  as with :meth:`~bidict.MutableBidict.forceupdate`,
+  :meth:`~bidict.MutableBidict.putall` passed :attr:`~bidict.ON_DUP_DROP_OLD`,
+  or :meth:`~bidict.MutableBidict.update` on a subclass
+  that overrides :attr:`~bidict.BidictBase.on_dup`
+  (e.g. the ``YoloBidict`` recipe in :doc:`extending`).
+  Rollback was previously enabled only when a duplication error was possible,
+  but a bulk update can also fail while unpacking an item,
+  hashing a key or value, or writing to a backing mapping.
+  Rollback is now always enabled for these methods.
+
 
 0.23.1 (2024-02-18)
 -------------------
