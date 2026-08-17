@@ -270,3 +270,10 @@ class HashRaises:
 
 
 bomb = HashRaises()
+
+BAD_ITEMS = (
+    (RuntimeError, (bomb, 0)),  # hashing the key raises
+    (RuntimeError, (0, bomb)),  # hashing the value raises
+    (TypeError, (['unhashable'], 0)),
+    (ValueError, (1, 2, 'bad len')),
+)
