@@ -16,6 +16,7 @@ import pickle
 import sys
 import typing as t
 import weakref
+from collections import UserDict
 from collections.abc import Callable
 from collections.abc import Mapping
 from collections.abc import Reversible
@@ -39,6 +40,8 @@ from bidict_test_fixtures import SET_OPS
 from bidict_test_fixtures import VT
 from bidict_test_fixtures import Oracle
 from bidict_test_fixtures import SupportsKeysAndGetItem
+from bidict_test_fixtures import UserBi
+from bidict_test_fixtures import UserBiBackedByDictSub
 from bidict_test_fixtures import UserBiNotOwnInv
 from bidict_test_fixtures import UserOrderedBi
 from bidict_test_fixtures import UserOrderedBiBase
@@ -64,6 +67,7 @@ from hypothesis.strategies import randoms
 from hypothesis.strategies import sampled_from
 from typing_extensions import TypeIs
 
+from bidict import BidictKeysView
 from bidict import BidirectionalMapping
 from bidict import DuplicationError
 from bidict import KeyAndValueDuplicationError
@@ -73,6 +77,7 @@ from bidict import OnDup
 from bidict import OnDupAction
 from bidict import OrderedBidict
 from bidict import ValueDuplicationError
+from bidict import bidict
 from bidict import frozenbidict
 from bidict import inverted
 from bidict._orderedbase import Node as OrderedBidictNode
@@ -636,6 +641,130 @@ def test_orderedbidict_nodes_consistent(items121: Items121) -> None:
     assert mapnodes == linkedlistnodes
 
 
+def test_dict_subclass_backing_gets_native_views() -> None:
+    """A backing mapping that is a dict subclass should get the same views a dict would.
+
+    keys()/items() dispatch on isinstance(fwdm, dict) rather than `fwdm_cls is dict`, so a
+    dict subclass -- which is what every backing in the docs' recipes actually is, e.g.
+    sortedcontainers.SortedDict -- gets its own native views. Those are reversible, carry a
+    .mapping attribute, and implement their set operations in C, none of which a generic
+    view over the bidict provides.
+    """
+    b = UserBiBackedByDictSub({1: 'one', 2: 'two'})  # backed by OrderedDict
+    keysview, itemsview = b.keys(), b.items()
+    assert not isinstance(keysview, BidictKeysView)  # the backing's own view, not a fallback
+    assert isinstance(keysview, Reversible)
+    assert isinstance(itemsview, Reversible)
+    assert hasattr(keysview, 'mapping')
+    assert hasattr(itemsview, 'mapping')
+    assert list(reversed(keysview)) == [2, 1]
+    assert list(reversed(itemsview)) == [(2, 'two'), (1, 'one')]
+    # ...and the views still agree with the bidict itself.
+    assert list(keysview) == list(b) == [1, 2]
+    assert list(itemsview) == [(1, 'one'), (2, 'two')]
+    assert keysview == {1, 2}
+    assert list(b.values()) == ['one', 'two']
+
+
+def test_non_dict_backing_falls_back_to_generic_views() -> None:
+    """A backing mapping that is not a dict at all still gets a view over the bidict."""
+    b = UserBi({1: 'one', 2: 'two'})  # backed by UserDict
+    assert isinstance(b.keys(), BidictKeysView)
+    assert list(b.keys()) == [1, 2]
+    assert b.keys() == {1, 2}
+    assert list(b.items()) == [(1, 'one'), (2, 'two')]
+
+
+def test_subclass_can_regain_reversibility() -> None:
+    """A subclass whose backing mappings are reversible must be reversible.
+
+    Regression test: _set_reversed() decided whether __reversed__ had been overridden by
+    comparing the resolved value to BidictBase's. A class whose backing mappings are not
+    reversible has __reversed__ set to None by _set_reversed() itself, and a subclass of
+    it inherits that None, which compared unequal to BidictBase's and so was misread as a
+    deliberate override -- leaving the subclass non-reversible no matter its own backings.
+    """
+
+    class NotReversible(bidict[t.Any, t.Any]):
+        _fwdm_cls = UserDict
+        _invm_cls = UserDict
+
+    class ReversibleAgain(NotReversible):
+        _fwdm_cls = dict
+        _invm_cls = dict
+
+    assert not issubclass(NotReversible, Reversible)  # UserDict is not reversible
+    assert issubclass(ReversibleAgain, Reversible)  # but dict is
+    bi = ReversibleAgain({1: 'one', 2: 'two'})
+    assert list(reversed(bi)) == [2, 1]
+    assert list(reversed(bi.keys())) == [2, 1]
+    assert list(reversed(bi.values())) == ['two', 'one']
+
+
+def test_user_provided_reversed_is_honored_and_inherited() -> None:
+    """_set_reversed() must never clobber a __reversed__ that a user provided.
+
+    This is what keeps OrderedBidict, which does not define __reversed__ itself, from
+    computing one from its backing mappings and losing OrderedBidictBase's.
+    """
+
+    class CustomReversed(bidict[t.Any, t.Any]):
+        @override
+        def __reversed__(self) -> t.Any:
+            return iter(['custom'])
+
+    class SubCustom(CustomReversed):  # even with backings that are not reversible
+        _fwdm_cls = UserDict
+        _invm_cls = UserDict
+
+    for bi_t in (CustomReversed, SubCustom):
+        assert issubclass(bi_t, Reversible)
+        assert list(reversed(bi_t())) == ['custom'], bi_t
+
+
+def test_set_reversed_is_idempotent() -> None:
+    """Running _set_reversed() again must not make a computed __reversed__ look user-provided.
+
+    It only runs once per class today, but were a repeat ever to mark the class as having a
+    user-provided __reversed__, subclasses would inherit that and stop computing their own,
+    which is exactly the bug that test_subclass_can_regain_reversibility covers.
+    """
+
+    class Computed(bidict[t.Any, t.Any]):
+        pass
+
+    Computed._set_reversed()
+    assert not Computed._reversed_is_user_provided
+
+    class SubComputed(Computed):
+        _fwdm_cls = UserDict
+        _invm_cls = UserDict
+
+    assert not issubclass(SubComputed, Reversible)  # still free to compute its own answer
+
+
+def test_reversed_opt_out_is_honored_and_inherited() -> None:
+    """Setting __reversed__ to None opts out of reversed(), for subclasses too.
+
+    Unnecessary as of v0.22 for the usual case of non-reversible backing mappings, which
+    _set_reversed() now detects, but still the way to opt out deliberately.
+    """
+
+    class OptedOut(bidict[t.Any, t.Any]):
+        __reversed__ = None
+
+    class SubOptedOut(OptedOut):
+        pass
+
+    for bi_t in (OptedOut, SubOptedOut):
+        bi: t.Any = bi_t({1: 'one'})
+        assert not isinstance(bi, Reversible), bi_t
+        with pytest.raises(TypeError):
+            reversed(bi)
+        # The values view must not offer what the bidict itself declines to.
+        assert not isinstance(bi.values(), Reversible), bi_t
+
+
 def test_orderedbidict_weakattr_class_access() -> None:
     """Accessing a WeakAttr descriptor from the Node class should return the descriptor itself."""
     descriptor = OrderedBidictNode.prv
@@ -665,7 +794,7 @@ def test_orderedbidict_cross_view_set_operations() -> None:
 
     Regression test: the set-operation proxy methods in _OrderedBidictKeysView and
     _OrderedBidictItemsView previously passed the opposing custom view type directly to the
-    C-level dict_keys/dict_items methods, which returned NotImplemented (they only recognise
+    C-level dict_keys/dict_items methods, which returned NotImplemented (they only recognize
     dict_keys and dict_items). With both sides returning NotImplemented, Python raised TypeError
     (for the ordering comparisons) or fell back to the wrong answer (e.g. identity-based __eq__).
     The fix extracts the backing dict view from a cross-type _OView arg before forwarding.

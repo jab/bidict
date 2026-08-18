@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import operator
 import typing as t
+from collections import OrderedDict
 from collections import UserDict
 from collections.abc import Iterable
 from collections.abc import KeysView
@@ -88,6 +89,14 @@ class UserBiNotOwnInv(bidict[KT, VT]):
 
 
 @user_bidict
+class UserBiBackedByDictSub(bidict[KT, VT]):
+    """A bidict backed by a dict *subclass*, which gets the same native views as a dict."""
+
+    _fwdm_cls = OrderedDict
+    _invm_cls = OrderedDict
+
+
+@user_bidict
 class UserOrderedBiBase(OrderedBidictBase[KT, VT]):
     """An immutable ordered bidict, i.e. an OrderedBidictBase that is not an OrderedBidict.
 
@@ -113,8 +122,11 @@ MBT = type[bidict[KT, VT]] | type[OrderedBidict[KT, VT]]
 
 def should_be_reversible(bi_t: BT[KT, VT]) -> bool:
     # Every ordered bidict is reversible regardless of its backing mappings, since it
-    # iterates its linked list rather than them.
-    return bi_t in builtin_bidict_types or issubclass(bi_t, OrderedBidictBase)
+    # iterates its linked list rather than them. Any other bidict is reversible exactly
+    # when both its backing mappings are.
+    if bi_t in builtin_bidict_types or issubclass(bi_t, OrderedBidictBase):
+        return True
+    return all(issubclass(i, Reversible) for i in (bi_t._fwdm_cls, bi_t._invm_cls))
 
 
 assert all(not should_be_reversible(bi_t) or issubclass(bi_t, Reversible) for bi_t in bidict_types)

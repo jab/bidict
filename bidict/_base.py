@@ -128,10 +128,9 @@ class BidictBase(BidirectionalMapping[KT, VT]):
 
     _fwdm: MutableMapping[KT, VT]  #: the backing forward mapping (*key* → *val*)
     _invm: MutableMapping[VT, KT]  #: the backing inverse mapping (*val* → *key*)
-
-    # Use Any rather than KT/VT in the following to avoid "ClassVar cannot contain type variables" errors:
     _fwdm_cls: t.ClassVar[type[MutableMapping[t.Any, t.Any]]] = dict  #: class of the backing forward mapping
     _invm_cls: t.ClassVar[type[MutableMapping[t.Any, t.Any]]] = dict  #: class of the backing inverse mapping
+    _fwdm_is_dict: t.ClassVar[bool] = True
 
     # When a bidict's `.inverse` property is accessed for the first time, the inverse instance is computed on demand
     # and stored for subsequent use. A reference back to itself is also stored on the inverse instance at the same time.
@@ -147,26 +146,45 @@ class BidictBase(BidirectionalMapping[KT, VT]):
 
     @classmethod
     def _init_class(cls) -> None:
+        cls._fwdm_is_dict = issubclass(cls._fwdm_cls, dict)
         cls._ensure_inv_cls()
         cls._set_reversed()
 
     __reversed__: t.ClassVar[ReversedIter[t.Any] | None]
+    #: Whether __reversed__ was provided by a user rather than by :meth:`_set_reversed`.
+    #: Inherited, so that a subclass of e.g. :class:`~bidict.OrderedBidictBase` keeps
+    #: the implementation it inherits rather than computing one of its own.
+    _reversed_is_user_provided: t.ClassVar[bool] = False
 
     @classmethod
     def _set_reversed(cls) -> None:
         """Set __reversed__ for subclasses that do not set it explicitly
         according to whether backing mappings are reversible.
         """
-        if cls is not BidictBase:
-            resolved = cls.__reversed__
-            overridden = resolved is not BidictBase.__reversed__
-            if overridden:  # E.g. OrderedBidictBase, OrderedBidict
-                return
         backing_reversible = all(issubclass(i, Reversible) for i in (cls._fwdm_cls, cls._invm_cls))
-        cls.__reversed__ = _fwdm_reversed if backing_reversible else None
-        # values() iterates the backing forward mapping, so its view is reversible
-        # exactly when the bidict itself is. See :meth:`values`.
-        cls._values_view_cls = BidictValuesView if backing_reversible else _NonReversibleBidictValuesView
+        # Leave a user-provided __reversed__ alone, whether it is defined in this class's own
+        # body (e.g. OrderedBidictBase's) or inherited from a base class that defined one
+        # (e.g. OrderedBidict's). Crucially, a value *this* method assigned must not count as
+        # user-provided: a subclass of a bidict whose backing mappings were not reversible
+        # inherits the None assigned below, and must stay free to compute its own answer from
+        # its own backing types, which may well be reversible.
+        resolved = getattr(cls, '__reversed__', None)
+        # Note Mapping.__reversed__ is None, which is what resolves here for BidictBase itself.
+        user_impl = resolved is not None and resolved is not _fwdm_reversed
+        # A user's explicit `__reversed__ = None` opt-out is indistinguishable by value from
+        # the None assigned below, so look for it in the class's own namespace instead. Match
+        # only that exact value: a bare membership test would also match a value assigned by a
+        # previous call of this method, which would then be inherited as if a user had provided it.
+        opted_out = getattr(cls, '__dict__', {}).get('__reversed__', MISSING) is None
+        if user_impl or opted_out:
+            cls._reversed_is_user_provided = True
+        if not cls._reversed_is_user_provided:
+            cls.__reversed__ = _fwdm_reversed if backing_reversible else None
+        # values() iterates a backing mapping (see :meth:`values`), so its view can only
+        # support reversed() if that mapping does, and should not offer it if this bidict
+        # declines to offer reversed() itself.
+        values_reversible = backing_reversible and cls.__reversed__ is not None
+        cls._values_view_cls = BidictValuesView if values_reversible else _NonReversibleBidictValuesView
 
     @classmethod
     def _ensure_inv_cls(cls) -> None:
@@ -190,7 +208,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         #      (inv_cls deliberately does not override this), so we're back where we started.
         # But since the _make_inv_cls() call will have set inv_cls.__dict__._inv_cls,
         # just check if it's already set before calling _make_inv_cls() to prevent infinite recursion.
-        if getattr(cls, '__dict__', {}).get('_inv_cls'):  # Don't assume cls.__dict__ (e.g. mypyc native class)
+        if getattr(cls, '__dict__', {}).get('_inv_cls'):  # Don't assume cls.__dict__
             return
         cls._inv_cls = cls._make_inv_cls()
 
@@ -295,36 +313,39 @@ class BidictBase(BidirectionalMapping[KT, VT]):
     def keys(self) -> KeysView[KT]:
         """A set-like object providing a view on the contained keys.
 
-        When *b._fwdm* is a :class:`dict`, *b.keys()* returns a
-        *dict_keys* object that behaves exactly the same as
-        *collections.abc.KeysView(b)*, except for
+        When *b._fwdm* is a :class:`dict`, *b.keys()* returns its *dict_keys*,
+        which behaves exactly the same as *collections.abc.KeysView(b)*, except for
 
           - offering better performance
 
-          - being reversible on Python 3.8+
+          - being reversible
 
           - having a .mapping attribute in Python 3.10+
             that exposes a mappingproxy to *b._fwdm*.
+
+        A :class:`dict` subclass gets the same treatment, via whatever view its own
+        *keys()* returns. Only a backing mapping that is not a :class:`dict` at all
+        falls back to a generic view over this bidict.
         """
-        fwdm, fwdm_cls = self._fwdm, self._fwdm_cls
-        return fwdm.keys() if fwdm_cls is dict else BidictKeysView(self)
+        return self._fwdm.keys() if self._fwdm_is_dict else BidictKeysView(self)
 
     @override
     def items(self) -> ItemsView[KT, VT]:
         """A set-like object providing a view on the contained items.
 
-        When *b._fwdm* is a :class:`dict`, *b.items()* returns a
-        *dict_items* object that behaves exactly the same as
-        *collections.abc.ItemsView(b)*, except for:
+        When *b._fwdm* is a :class:`dict`, *b.items()* returns its *dict_items*,
+        which behaves exactly the same as *collections.abc.ItemsView(b)*, except for:
 
           - offering better performance
 
-          - being reversible on Python 3.8+
+          - being reversible
 
           - having a .mapping attribute in Python 3.10+
             that exposes a mappingproxy to *b._fwdm*.
+
+        See :meth:`keys` for how backing mappings that are not exactly dicts are handled.
         """
-        return self._fwdm.items() if self._fwdm_cls is dict else super().items()
+        return self._fwdm.items() if self._fwdm_is_dict else super().items()
 
     # The inherited collections.abc.Mapping.__contains__() method is implemented by doing a `try`
     # `except KeyError` around `self[key]`. The following implementation is much faster,
@@ -627,22 +648,9 @@ BidictBase._init_class()
 # methods they inherit from collections.abc.Set. (Cannot delegate for __iter__ and
 # __reversed__ since they are order-sensitive.) See also: https://bugs.python.org/issue46713
 _setmethodnames: Iterable[str] = (
-    '__lt__',
-    '__le__',
-    '__gt__',
-    '__ge__',
-    '__eq__',
-    '__ne__',
-    '__sub__',
-    '__rsub__',
-    '__or__',
-    '__ror__',
-    '__xor__',
-    '__rxor__',
-    '__and__',
-    '__rand__',
-    'isdisjoint',
-)
+    '__lt__', '__le__', '__gt__', '__ge__', '__eq__', '__ne__', '__sub__', '__rsub__',
+    '__or__', '__ror__', '__xor__', '__rxor__', '__and__', '__rand__', 'isdisjoint',
+)  # fmt: skip
 
 
 def _override_set_methods_to_use_backing_dict(cls: type[ProxiedSetView]) -> None:

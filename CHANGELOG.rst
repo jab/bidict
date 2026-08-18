@@ -64,6 +64,30 @@ please consider sponsoring bidict on GitHub.`
   hashing a key or value, or writing to a backing mapping.
   Rollback is now always enabled for these methods.
 
+- A bidict backed by a :class:`dict` *subclass*
+  now gets that mapping's own views from
+  :meth:`~bidict.BidictBase.keys` and :meth:`~bidict.BidictBase.items`,
+  as a bidict backed by an exact :class:`dict` already did.
+  Previously only an exact :class:`dict` qualified,
+  so such a bidict got generic views instead,
+  which were not :class:`~collections.abc.Reversible`
+  (even when the bidict itself was),
+  had no ``.mapping`` attribute,
+  and performed their set operations in Python rather than in C.
+  This affects every backing mapping used in the recipes in :doc:`extending`,
+  since :class:`collections.OrderedDict`,
+  :class:`collections.defaultdict`,
+  and ``sortedcontainers.SortedDict``
+  are all :class:`dict` subclasses.
+
+- Fix a bug where a subclass of a bidict class
+  whose backing mappings are not :class:`~collections.abc.Reversible`
+  could not itself be reversible,
+  even when it specified backing mappings that are.
+  The machinery that sets ``__reversed__`` automatically
+  misread the value it had assigned to the base class
+  as a deliberate override on the subclass.
+
 - Fix a bug where a non-ordered bidict's
   :meth:`~bidict.BidictBase.values` view
   could yield its values in a different order than
