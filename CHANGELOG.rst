@@ -64,6 +64,21 @@ please consider sponsoring bidict on GitHub.`
   hashing a key or value, or writing to a backing mapping.
   Rollback is now always enabled for these methods.
 
+- Fix a bug where a non-ordered bidict's
+  :meth:`~bidict.BidictBase.values` view
+  could yield its values in a different order than
+  :meth:`~bidict.BidictBase.keys` yields the corresponding keys,
+  so that e.g. ``zip(b.keys(), b.values())``
+  silently paired up the wrong keys and values,
+  unlike the equivalent :class:`dict` views.
+  Overwriting a single item was enough to trigger this,
+  since ``values()`` was the inverse's ``keys()``,
+  whose order is the backing inverse mapping's
+  rather than this bidict's.
+  ``values()`` now yields values in the same order as ``keys()``
+  while remaining just as set-like,
+  and is reversible exactly when the bidict itself is.
+
 - Clarify the scope of the
   :ref:`fail-clean guarantee <basic-usage:Updates Fail Clean>`:
   a failed update always restores a bidict's *contents*,

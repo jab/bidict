@@ -72,7 +72,6 @@ from bidict import MutableBidirectionalMapping
 from bidict import OnDup
 from bidict import OnDupAction
 from bidict import OrderedBidict
-from bidict import OrderedBidictBase
 from bidict import ValueDuplicationError
 from bidict import frozenbidict
 from bidict import inverted
@@ -155,6 +154,17 @@ class BidictStateMachine(RuleBasedStateMachine):
     @invariant()
     def assert_bi_and_inv_are_inverse(self) -> None:
         assert_bi_and_inv_are_inverse(self.bi)
+
+    @invariant()
+    def assert_values_correspond_to_keys(self) -> None:
+        """values() must correspond elementwise to keys(), as a plain dict's does.
+
+        Overwriting an item reorders a non-ordered bidict's backing _invm relative to its
+        _fwdm, so a values() view sourced from _invm's keys would silently mispair here.
+        Only reachable by mutating: a bulk __init__ that would cause it raises instead.
+        """
+        for b in (self.bi, self.bi.inv):
+            assert list(b.values()) == [b[k] for k in b]
 
     @precondition(lambda self: should_be_reversible(self.bi.__class__))
     @invariant()
@@ -430,9 +440,8 @@ def test_views_agree_with_iteration_order(items: Items, bidict_t: BT[int, int]) 
     assert list(bi.items()) == expect
     assert list(dict(bi)) == list(bi)  # dict(mapping) goes through keys()
     assert bi.equals_order_sensitive(bidict_t(expect))
-    if isinstance(bi, OrderedBidictBase):  # a plain bidict's values() follow its inverse's order
-        assert list(bi.values()) == [v for (_, v) in expect]
-        assert list(bi.items()) == list(zip(bi.keys(), bi.values(), strict=True))
+    assert list(bi.values()) == [v for (_, v) in expect]
+    assert list(bi.items()) == list(zip(bi.keys(), bi.values(), strict=True))
     if should_be_reversible(bidict_t):
         keysview, itemsview = bi.keys(), bi.items()
         assert isinstance(keysview, Reversible)
@@ -687,6 +696,22 @@ def test_abc_slots() -> None:
     """
     assert BidirectionalMapping.__dict__['__slots__'] == ()
     assert MutableBidirectionalMapping.__dict__['__slots__'] == ()
+
+
+@pytest.mark.parametrize('bi_t', bidict_types)
+def test_values_view_reversibility_matches_bidict(bi_t: BT[t.Any, t.Any]) -> None:
+    """values() iterates the backing forward mapping, so it must be reversible
+    exactly when the bidict itself is -- never advertising a reversed() that raises.
+    """
+    bi = bi_t({1: -1, 2: -2})
+    values = bi.values()
+    if isinstance(bi, Reversible):
+        assert isinstance(values, Reversible)
+        assert list(reversed(values)) == list(bi.values())[::-1]
+    else:
+        assert not isinstance(values, Reversible)
+        with pytest.raises(TypeError):  # and the claim is not a lie
+            reversed(t.cast(t.Any, values))
 
 
 @pytest.mark.parametrize('bi_t', bidict_types)

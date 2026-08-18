@@ -25,6 +25,7 @@ from collections.abc import KeysView
 from collections.abc import Mapping
 from collections.abc import MutableMapping
 from collections.abc import Reversible
+from collections.abc import Set
 from collections.abc import ValuesView
 from operator import eq
 from types import MappingProxyType
@@ -63,6 +64,56 @@ class BidictKeysView(KeysView[KT], ValuesView[KT]):
     """
 
 
+class ProxiedSetView:
+    """Mixin for bidict views whose :class:`~collections.abc.Set` methods
+    delegate to a backing dict view. See :func:`_override_set_methods_to_use_backing_dict`.
+
+    *_viewname* names the view of *_mapping._fwdm* with the same elements as this view.
+    """
+
+    _mapping: BidictBase[t.Any, t.Any]
+    _viewname: t.ClassVar[str]
+    __slots__ = ()
+
+
+class BidictValuesView(ProxiedSetView, BidictKeysView[VT]):
+    """The set-like view returned by *bi.values()* for a non-ordered bidict.
+
+    A bidict's values are the keys of its inverse, so the fast, set-like operations are
+    all provided by viewing the inverse's keys, which this does by taking the *inverse*
+    as its *_mapping*: the inherited __contains__ and __len__ then already do the right
+    thing, and _mapping._fwdm is the backing mapping whose keys are our elements, so the
+    set-method proxy below works unmodified.
+
+    Iteration is the exception. The inverse's key order is its own backing mapping's,
+    which diverges from this bidict's key order as soon as an item is overwritten. So
+    iterate *this* bidict's backing mapping instead (i.e. the inverse's _invm), to keep
+    b.values() corresponding elementwise to b.keys(), as it does for a plain dict.
+    """
+
+    _viewname: t.ClassVar[str] = 'keys'
+    __slots__ = ()
+
+    @override
+    def __iter__(self) -> Iterator[VT]:
+        return iter(self._mapping._invm.values())
+
+    def __reversed__(self) -> Iterator[VT]:
+        return reversed(t.cast('Reversible[VT]', self._mapping._invm.values()))
+
+
+class _NonReversibleBidictValuesView(BidictValuesView[VT]):
+    """The values view of a bidict whose backing mappings are not reversible.
+
+    Setting __reversed__ to None keeps issubclass(cls, Reversible) false, the same way
+    BidictBase._set_reversed() does for the bidict itself, so that this view does not
+    advertise support for reversed() that the backing mappings cannot deliver.
+    """
+
+    __reversed__: t.ClassVar[None] = None  # type: ignore[assignment]
+    __slots__ = ()
+
+
 class BidictBase(BidirectionalMapping[KT, VT]):
     """Base class implementing :class:`BidirectionalMapping`."""
 
@@ -88,6 +139,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
     _inv: BidictBase[VT, KT] | None
     _invweak: weakref.ReferenceType[BidictBase[VT, KT]] | None
     _inv_cls: t.ClassVar[type[BidictBase[t.Any, t.Any]]]  # the inverse bidict's class, see :meth:`_ensure_inv_cls`
+    _values_view_cls: t.ClassVar[type[BidictValuesView[t.Any]]]  # see :meth:`_set_reversed`
 
     def __init_subclass__(cls) -> None:
         super().__init_subclass__()
@@ -112,6 +164,9 @@ class BidictBase(BidirectionalMapping[KT, VT]):
                 return
         backing_reversible = all(issubclass(i, Reversible) for i in (cls._fwdm_cls, cls._invm_cls))
         cls.__reversed__ = _fwdm_reversed if backing_reversible else None
+        # values() iterates the backing forward mapping, so its view is reversible
+        # exactly when the bidict itself is. See :meth:`values`.
+        cls._values_view_cls = BidictValuesView if backing_reversible else _NonReversibleBidictValuesView
 
     @classmethod
     def _ensure_inv_cls(cls) -> None:
@@ -228,9 +283,13 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         and is no more expensive to provide than the less capable
         collections.abc.ValuesView would be.
 
+        Like :class:`dict`, and unlike the inverse's :meth:`keys` view,
+        it also yields this bidict's values in the same order as its keys,
+        so that *zip(b.keys(), b.values())* corresponds elementwise to *b.items()*.
+
         See :meth:`keys` for more information.
         """
-        return t.cast(BidictKeysView[VT], self.inverse.keys())
+        return self._values_view_cls(self.inverse)
 
     @override
     def keys(self) -> KeysView[KT]:
@@ -562,6 +621,59 @@ def _fwdm_reversed(self: BidictBase[KT, t.Any]) -> Iterator[KT]:
 
 
 BidictBase._init_class()
+
+
+# For better performance, make ProxiedSetView subclasses delegate to backing dicts for the
+# methods they inherit from collections.abc.Set. (Cannot delegate for __iter__ and
+# __reversed__ since they are order-sensitive.) See also: https://bugs.python.org/issue46713
+_setmethodnames: Iterable[str] = (
+    '__lt__',
+    '__le__',
+    '__gt__',
+    '__ge__',
+    '__eq__',
+    '__ne__',
+    '__sub__',
+    '__rsub__',
+    '__or__',
+    '__ror__',
+    '__xor__',
+    '__rxor__',
+    '__and__',
+    '__rand__',
+    'isdisjoint',
+)
+
+
+def _override_set_methods_to_use_backing_dict(cls: type[ProxiedSetView]) -> None:
+    def make_proxy_method(methodname: str) -> t.Any:
+        def method(self: ProxiedSetView, *args: t.Any) -> t.Any:
+            fwdm = self._mapping._fwdm
+            if not isinstance(fwdm, dict):  # dict view speedup not available, fall back to Set's implementation.
+                return getattr(Set, methodname)(self, *args)
+            fwdm_dict_view = getattr(fwdm, self._viewname)()
+            fwdm_dict_view_method = getattr(fwdm_dict_view, methodname)
+            # When the (single) arg is another ProxiedSetView backed by a dict, forward its
+            # backing dict_keys/dict_items to the C-level method rather than the arg itself. C-level dict views
+            # only interoperate with other C-level dict views, not with arbitrary Set subclasses, so e.g.
+            # `dict_keys(ob1).__lt__(ob2.keys())` returns NotImplemented. With both sides returning
+            # NotImplemented, Python either raises TypeError (for `<`, `<=`, `>`, `>=`) or falls back to the
+            # wrong answer (e.g. identity-based `==`). Note arg's view may differ from self's (keys vs items),
+            # so use arg._viewname; this also subsumes the same-type case, where it equals self._viewname.
+            if len(args) == 1 and isinstance((arg := args[0]), ProxiedSetView) and isinstance(arg._mapping._fwdm, dict):
+                arg_dict_view = getattr(arg._mapping._fwdm, arg._viewname)()
+                return fwdm_dict_view_method(arg_dict_view)
+            return fwdm_dict_view_method(*args)
+
+        method.__name__ = methodname
+        method.__qualname__ = f'{cls.__qualname__}.{methodname}'
+        return method
+
+    for name in _setmethodnames:
+        setattr(cls, name, make_proxy_method(name))
+
+
+_override_set_methods_to_use_backing_dict(BidictValuesView)
 
 
 class GeneratedBidictInverse:
