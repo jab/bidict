@@ -1,3 +1,6 @@
+[default]
+locale = "en-us"
+
 [default.extend-words]
 bimap = "bimap"
 slicings = "slicings"
