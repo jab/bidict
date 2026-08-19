@@ -765,6 +765,92 @@ def test_reversed_opt_out_is_honored_and_inherited() -> None:
         assert not isinstance(bi.values(), Reversible), bi_t
 
 
+#: Ways to mutate an ordered bidict, keyed by name. Each takes the bidict and the key
+#: just yielded by the iteration in progress.
+_MUTATIONS_DURING_ITERATION: t.Any = {
+    'insert': lambda ob, key: ob.__setitem__(f'new{key}', f'new{key}'),
+    'delete': lambda ob, key: ob.pop(next(k for k in ob if k != key), None),
+    'clear': lambda ob, _key: ob.clear(),
+    'move_to_end': lambda ob, key: ob.move_to_end(key),
+    'collapse_to_fewer_items': lambda ob, key: ob.forceput(key, next(iter(ob.inv))),
+    'insert_via_the_inverse': lambda ob, key: ob.inv.__setitem__(f'new{key}', f'new{key}'),
+}
+
+
+def _iterate_while_mutating(ob: OrderedBidict[t.Any, t.Any], iterate: t.Any, mutate: t.Any) -> None:
+    """Iterate *ob* via *iterate*, applying *mutate* to it on each step.
+
+    Bounded, so that a failure to detect the mutation fails the test rather than hanging it:
+    inserting during iteration used to grow the linked list ahead of the iterator forever.
+    """
+    for i, key in enumerate(iterate(ob)):
+        assert i < 100, 'iteration did not terminate after mutation'
+        mutate(ob, key)
+
+
+@pytest.mark.parametrize('mutate', _MUTATIONS_DURING_ITERATION.values(), ids=list(_MUTATIONS_DURING_ITERATION))
+@pytest.mark.parametrize('iterate', [iter, reversed], ids=['forward', 'reverse'])
+def test_orderedbidict_mutation_during_iteration_raises(mutate: t.Any, iterate: t.Any) -> None:
+    """Mutating an ordered bidict while iterating it must raise RuntimeError.
+
+    dict and OrderedDict both do this. Without it, inserting during iteration looped forever,
+    clear() raised a KeyError naming an internal Node, and deleting silently skipped items.
+    Note the last mutation goes through the inverse, which shares the linked list, so it must
+    invalidate this iterator too.
+    """
+    ob: OrderedBidict[t.Any, t.Any] = OrderedBidict({1: 'one', 2: 'two', 3: 'three'})
+    with pytest.raises(RuntimeError):
+        _iterate_while_mutating(ob, iterate, mutate)
+
+
+def test_orderedbidict_mutation_on_final_item_raises() -> None:
+    """Mutating while the last item is being visited raises, unlike OrderedDict.
+
+    dict raises here and OrderedDict does not, so the two disagree and we cannot match both.
+    Raising is the safer of the two, keeps OrderedBidict consistent with plain bidict (which
+    is backed by a dict and so already raises), and avoids code that works or not depending
+    on which iteration the mutating branch happens to be taken on.
+    """
+    ob = OrderedBidict({1: 'one', 2: 'two'})
+    with pytest.raises(RuntimeError):
+        _iterate_while_mutating(ob, iter, lambda o, key: o.__setitem__(3, 'three') if key == 2 else None)
+
+
+def test_orderedbidict_iteration_allows_value_only_update() -> None:
+    """Updating an existing key's value does not restructure the list, so it must not raise.
+
+    dict and OrderedDict both permit this, and an ordered bidict's iteration order is
+    unaffected by it: the item keeps its node, and so its position.
+    """
+    ob = OrderedBidict({1: 'one', 2: 'two'})
+    for key in ob:
+        ob[key] = f'updated{key}'
+    assert list(ob.items()) == [(1, 'updated1'), (2, 'updated2')]
+
+
+def test_orderedbidict_iterator_created_before_mutation_raises() -> None:
+    """The check must catch a mutation made after the iterator was created but before it ran.
+
+    OrderedDict does this too, which is why iternodes() captures the version eagerly rather
+    than on the first next() call.
+    """
+    ob = OrderedBidict({1: 'one', 2: 'two'})
+    it = iter(ob)
+    ob[3] = 'three'
+    with pytest.raises(RuntimeError):
+        list(it)
+
+
+def test_orderedbidict_iteration_unaffected_by_unrelated_bidict() -> None:
+    """Only mutations to *this* bidict's linked list invalidate its iterators."""
+    ob, other = OrderedBidict({1: 'one', 2: 'two'}), OrderedBidict({3: 'three'})
+    keys = []
+    for key in ob:
+        other[key] = f'x{key}'  # a different bidict, so a different linked list
+        keys.append(key)
+    assert keys == [1, 2]
+
+
 def test_orderedbidict_weakattr_class_access() -> None:
     """Accessing a WeakAttr descriptor from the Node class should return the descriptor itself."""
     descriptor = OrderedBidictNode.prv

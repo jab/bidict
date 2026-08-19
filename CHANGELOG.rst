@@ -64,6 +64,20 @@ please consider sponsoring bidict on GitHub.`
   hashing a key or value, or writing to a backing mapping.
   Rollback is now always enabled for these methods.
 
+- Fix a bug where mutating an :class:`~bidict.OrderedBidict`
+  while iterating over it did not raise :class:`RuntimeError`,
+  as mutating a :class:`dict` or :class:`collections.OrderedDict` during iteration does.
+  Inserting an item looped forever,
+  since the backing linked list grew ahead of the iterator;
+  :meth:`~bidict.OrderedBidict.clear` raised a :class:`KeyError`
+  naming an internal node object;
+  and deleting an item silently skipped others.
+  Mutating a bidict now also invalidates iterators over its inverse,
+  and vice versa, since the two share a linked list.
+  Note :class:`~bidict.OrderedBidict` raises in one case where
+  :class:`collections.OrderedDict` does not, namely a mutation made
+  while the final item is being visited, which :class:`dict` also raises for.
+
 - A bidict backed by a :class:`dict` *subclass*
   now gets that mapping's own views from
   :meth:`~bidict.BidictBase.keys` and :meth:`~bidict.BidictBase.items`,

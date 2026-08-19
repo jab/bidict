@@ -40,6 +40,8 @@ from ._typing import override
 
 AT = t.TypeVar('AT')  # attr type
 
+_MUTATED_DURING_ITERATION: t.Final = 'ordered bidict mutated during iteration'
+
 
 class WeakAttr(t.Generic[AT]):
     """Descriptor to automatically manage (de)referencing the given slot as a weakref.
@@ -103,24 +105,60 @@ class SentinelNode(Node):
     """
 
     nxt: WeakAttr[Node] = WeakAttr(slot='_nxt_weak')  # override base's plain slot with a weakref
-    __slots__ = ('_nxt_weak',)
+    #: Snapshot token, bumped by :meth:`mutated` on every structural change to the list, so
+    #: that iterators can detect one. Compared for equality only; its magnitude means nothing.
+    #: Lives here rather than on the owning bidict because a bidict and its inverse share this
+    #: sentinel, and so must invalidate each other's iterators.
+    version: int
+    __slots__ = ('_nxt_weak', 'version')
 
     def __init__(self) -> None:
+        self.version = 0
         super().__init__(self, self)
 
+    def mutated(self) -> None:
+        """Record a structural change to the list, invalidating any iterators over it."""
+        self.version += 1
+
+    def reset(self) -> None:
+        """Empty the list."""
+        self.nxt = self.prv = self
+        self.mutated()
+
     def iternodes(self, *, reverse: bool = False) -> Iterator[Node]:
-        """Iterator yielding nodes in the requested order."""
-        attr = 'prv' if reverse else 'nxt'
-        node = getattr(self, attr)
+        """Iterator yielding nodes in the requested order.
+
+        Raises :class:`RuntimeError` if the list is structurally modified while iterating,
+        as :class:`dict` and :class:`collections.OrderedDict` do. Note this is not a generator:
+        the version is captured when the iterator is created rather than when it is first
+        advanced, so that mutating in between is detected too, as :class:`collections.OrderedDict`
+        also does.
+        """
+        return self._iternodes(self.version, reverse=reverse)
+
+    def _iternodes(self, version: int, *, reverse: bool) -> Iterator[Node]:
+        # Advance via a literal attribute name rather than getattr(node, 'prv' if reverse else
+        # 'nxt'): the dynamic lookup the latter needs costs more per node than everything else in
+        # this loop put together, the version check included, since only a literal gets CPython's
+        # specialized LOAD_ATTR. (operator.attrgetter does not help: it is a call, not a load.)
+        node = self.prv if reverse else self.nxt
         while node is not self:
+            if self.version != version:
+                raise RuntimeError(_MUTATED_DURING_ITERATION)
             yield node
-            node = getattr(node, attr)
+            node = node.prv if reverse else node.nxt
+        # Check on the step that finds the end too, so that a mutation which happens to leave the
+        # iterator pointing at the sentinel is caught as well -- e.g. move_to_end() of the item
+        # just yielded, which relinks it to exactly where iteration is about to stop.
+        if self.version != version:
+            raise RuntimeError(_MUTATED_DURING_ITERATION)
 
     def new_last_node(self) -> Node:
         """Create and return a new terminal node."""
         old_last = self.prv
         new_last = Node(old_last, self)
         old_last.nxt = self.prv = new_last
+        self.mutated()
         return new_last
 
 
@@ -170,6 +208,12 @@ class OrderedBidictBase(BidictBase[KT, VT]):
     def _dissoc_node(self, node: Node) -> None:
         del self._node_by_korv.inverse[node]
         node.unlink()
+        self._sntl.mutated()
+
+    def _relink_node(self, node: Node) -> None:
+        """Undo a :meth:`_dissoc_node` (the linked list half of it). See :meth:`_write`."""
+        node.relink()
+        self._sntl.mutated()
 
     @override
     def _init_from(self, other: MapOrItems[KT, VT]) -> None:
@@ -179,7 +223,7 @@ class OrderedBidictBase(BidictBase[KT, VT]):
         korv_by_node = self._node_by_korv.inverse
         korv_by_node.clear()
         korv_by_node_set = korv_by_node.__setitem__
-        self._sntl.nxt = self._sntl.prv = self._sntl
+        self._sntl.reset()
         new_node = self._sntl.new_last_node
         for k, v in iteritems(other):
             korv_by_node_set(new_node(), k if bykey else v)
@@ -211,7 +255,7 @@ class OrderedBidictBase(BidictBase[KT, VT]):
                 unwrites.extend((
                     (assoc, newnode, newkey, oldval),
                     (assoc, oldnode, oldkey, newval),
-                    (oldnode.relink,),
+                    (self._relink_node, oldnode),
                 ))
         elif oldval is not MISSING:  # just key duplication
             # {0: 1, 2: 3} | {2: 4} => {0: 1, 2: 4}
@@ -240,16 +284,16 @@ class OrderedBidictBase(BidictBase[KT, VT]):
         return self._iter(reverse=True)
 
     def _iter(self, *, reverse: bool = False) -> Iterator[KT]:
-        nodes = self._sntl.iternodes(reverse=reverse)
+        # Not a generator, so that the version is captured now rather than on the first
+        # next() call, and an iterator created before a mutation still detects it. Calls
+        # _iternodes() directly rather than iternodes(), to skip a call on this hot path.
+        sntl = self._sntl
+        nodes = sntl._iternodes(sntl.version, reverse=reverse)
         korv_by_node = self._node_by_korv.inverse
         if self._bykey:
-            for node in nodes:
-                yield korv_by_node[node]
-        else:
-            key_by_val = self._invm
-            for node in nodes:
-                val = korv_by_node[node]
-                yield key_by_val[val]
+            return (korv_by_node[node] for node in nodes)
+        key_by_val = self._invm
+        return (key_by_val[korv_by_node[node]] for node in nodes)
 
     # Override the keys() and items() implementations inherited from BidictBase, which may
     # delegate to the backing _fwdm dict: an ordered bidict's order is encoded in its linked
