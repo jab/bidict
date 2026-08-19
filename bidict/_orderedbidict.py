@@ -43,7 +43,7 @@ class OrderedBidict(OrderedBidictBase[KT, VT], MutableBidict[KT, VT]):
         """Remove all items."""
         super().clear()
         self._node_by_korv.clear()
-        self._sntl.nxt = self._sntl.prv = self._sntl
+        self._sntl.reset()
 
     @override
     def _pop(self, key: KT) -> VT:
@@ -80,6 +80,7 @@ class OrderedBidict(OrderedBidictBase[KT, VT], MutableBidict[KT, VT]):
         node.prv.nxt = node.nxt
         node.nxt.prv = node.prv
         sntl = self._sntl
+        sntl.mutated()
         if last:
             lastnode = sntl.prv
             node.prv = lastnode

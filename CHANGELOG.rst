@@ -64,6 +64,10 @@ please consider sponsoring bidict on GitHub.`
   hashing a key or value, or writing to a backing mapping.
   Rollback is now always enabled for these methods.
 
+- Fix a bug where mutating an :class:`~bidict.OrderedBidict`
+  while iterating over it produced incorrect behavior
+  rather than raising an error.
+
 - A bidict backed by a :class:`dict` *subclass*
   now gets that mapping's own views from
   :meth:`~bidict.BidictBase.keys` and :meth:`~bidict.BidictBase.items`,
