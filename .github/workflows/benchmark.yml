@@ -18,7 +18,13 @@ env:
   FORCE_COLOR: "1"
   PYTHONHASHSEED: "42"
   BASELINE_RELEASE_TAG: microbenchmarks
-  PR_BENCHMARK_COMPARE_FAIL: min:5%
+  # pytest-benchmark compares wall-clock timings, which even under Cachegrind vary by about
+  # +-5% between runs on shared CI machines, so this is set above that to avoid crying wolf.
+  # The instruction-count check below is the sensitive one; this is a backstop.
+  PR_BENCHMARK_COMPARE_FAIL: min:10%
+  # Cachegrind counts instructions rather than measuring time, so this comparison is
+  # reproducible and can be held to a far tighter bound.
+  PR_INSTRUCTION_REGRESSION_PCT: "1.0"
 
 jobs:
   benchmark:
@@ -48,11 +54,15 @@ jobs:
           arch=$(uname -m)
           baseline_asset_name="GHA-linux-cachegrind-${arch}-${python_impl}-${python_series}-baseline.json"
           baseline_url="https://github.com/${GITHUB_REPOSITORY}/releases/download/${BASELINE_RELEASE_TAG}/${baseline_asset_name}"
+          instr_asset_name="GHA-linux-cachegrind-${arch}-${python_impl}-${python_series}-instructions.txt"
+          instr_url="https://github.com/${GITHUB_REPOSITORY}/releases/download/${BASELINE_RELEASE_TAG}/${instr_asset_name}"
           {
             echo "python_version=$python_version"
             echo "python_series=$python_series"
             echo "baseline_asset_name=$baseline_asset_name"
             echo "baseline_url=$baseline_url"
+            echo "instr_asset_name=$instr_asset_name"
+            echo "instr_url=$instr_url"
           } >> "$GITHUB_OUTPUT"
       - name: benchmark and compare to baseline
         id: benchmark
@@ -109,6 +119,52 @@ jobs:
           exit "$benchmark_status"
         env:
           COMPARE_FAIL_EXPR: ${{ github.event_name == 'pull_request' && env.PR_BENCHMARK_COMPARE_FAIL || '' }}
+          CACHEGRIND_ESTIMATE_OUT: ${{ github.workspace }}/instructions.txt
+      - name: compare instruction estimate to baseline
+        id: instructions
+        if: always()
+        env:
+          INSTR_URL: ${{ steps.metadata.outputs.instr_url }}
+        run: |
+          # Cachegrind counts instructions rather than measuring time, so this comparison is
+          # reproducible where the wall-clock one is not: two runs of the same revision have
+          # been measured 0.13% apart, against roughly +-5% for the per-benchmark timings.
+          state=unavailable
+          delta=
+          now=
+          baseline=
+          if [ ! -s instructions.txt ]; then
+            # Distinct from a missing baseline: this means cachegrind.py did not honor
+            # CACHEGRIND_ESTIMATE_OUT, i.e. something here is broken rather than unpublished.
+            summary='cachegrind.py recorded no instruction estimate'
+          elif ! curl -fL -s -o instructions-baseline.txt "$INSTR_URL" || [ ! -s instructions-baseline.txt ]; then
+            summary="no instruction baseline published yet (${INSTR_URL##*/})"
+          else
+            now=$(cat instructions.txt)
+            baseline=$(cat instructions-baseline.txt)
+            delta=$(python -c "print(f'{($now - $baseline) / $baseline * 100:+.2f}')")
+            over=$(python -c "print(int($delta > $PR_INSTRUCTION_REGRESSION_PCT))")
+            if [ "$over" = "1" ]; then
+              state=regression
+              summary="instruction count ${delta}% vs baseline, over the ${PR_INSTRUCTION_REGRESSION_PCT}% threshold"
+            else
+              state=ok
+              summary="instruction count ${delta}% vs baseline"
+            fi
+          fi
+          {
+            echo "state=$state"
+            echo "summary=$summary"
+            echo "delta=$delta"
+            echo "now=$now"
+            echo "baseline=$baseline"
+          } >> "$GITHUB_OUTPUT"
+          # Warn only on pull requests, matching the timing check: on a push the baseline is
+          # whatever was last published, so drift since then is expected rather than notable.
+          if [ "$state" = regression ] && [ "${{ github.event_name }}" = "pull_request" ]; then
+            echo "::warning::Instruction count regressed by ${delta}% vs the baseline (threshold ${PR_INSTRUCTION_REGRESSION_PCT}%)."
+          fi
+
       - name: summarize benchmark result
         if: always()
         run: |
@@ -125,6 +181,7 @@ jobs:
               echo "- Warning threshold: not applied"
             fi
             echo "- Result: ${{ steps.benchmark.outputs.result_message }}"
+            echo "- Instruction count: ${{ steps.instructions.outputs.summary }}"
           } >> "$GITHUB_STEP_SUMMARY"
       - name: prepare PR benchmark comment
         if: always() && github.event_name == 'pull_request'
@@ -133,9 +190,17 @@ jobs:
           PR_NUMBER: ${{ github.event.pull_request.number }}
           RESULT_MESSAGE: ${{ steps.benchmark.outputs.result_message }}
           RESULT_STATE: ${{ steps.benchmark.outputs.result_state }}
+          INSTR_STATE: ${{ steps.instructions.outputs.state }}
+          INSTR_SUMMARY: ${{ steps.instructions.outputs.summary }}
+          INSTR_DELTA: ${{ steps.instructions.outputs.delta }}
         run: |
           mkdir -p benchmark-pr-comment
           run_url="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
+          case "$INSTR_STATE" in
+            regression) instr_line=":warning: Instruction count regressed: ${INSTR_SUMMARY}." ;;
+            ok)         instr_line=":white_check_mark: Instruction count within threshold: ${INSTR_SUMMARY}." ;;
+            *)          instr_line=":grey_question: Instruction count: ${INSTR_SUMMARY}." ;;
+          esac
           case "$RESULT_STATE" in
             ok)
               status_line=':white_check_mark: No threshold-triggering regressions detected.'
@@ -151,10 +216,13 @@ jobs:
           <!-- bidict-benchmark-comment -->
           ## Benchmark report
 
+          ${instr_line}
+
           ${status_line}
 
           - Baseline asset: \`${BASELINE_ASSET_NAME}\`
-          - Threshold: \`${PR_BENCHMARK_COMPARE_FAIL}\`
+          - Instruction threshold: \`${PR_INSTRUCTION_REGRESSION_PCT}%\` (reproducible; the sensitive check)
+          - Timing threshold: \`${PR_BENCHMARK_COMPARE_FAIL}\` (wall clock, ~+-5% run-to-run noise)
           - Result: ${RESULT_MESSAGE}
           - Run: [benchmark workflow run](${run_url})
 
@@ -171,6 +239,9 @@ jobs:
               'result_message': os.environ['RESULT_MESSAGE'],
               'baseline_asset_name': os.environ['BASELINE_ASSET_NAME'],
               'threshold': os.environ['PR_BENCHMARK_COMPARE_FAIL'],
+              'instruction_state': os.environ['INSTR_STATE'],
+              'instruction_summary': os.environ['INSTR_SUMMARY'],
+              'instruction_delta_pct': os.environ['INSTR_DELTA'],
               'run_url': f"{os.environ['GITHUB_SERVER_URL']}/{os.environ['GITHUB_REPOSITORY']}/actions/runs/{os.environ['GITHUB_RUN_ID']}",
           }
           Path('benchmark-pr-comment/result.json').write_text(json.dumps(payload, indent=2) + '\n')
@@ -190,6 +261,7 @@ jobs:
           path: |
             .benchmarks
             benchmark-output.txt
+            instructions.txt
           include-hidden-files: true
           if-no-files-found: error
 

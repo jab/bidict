@@ -32,9 +32,11 @@ Copyright © 2020, Hyphenated Enterprises LLC.
 
 from __future__ import annotations
 
+import os
 import subprocess as sp
 import sys
 import typing as t
+from pathlib import Path
 from tempfile import NamedTemporaryFile
 
 
@@ -136,6 +138,12 @@ def main() -> None:
     counts = get_counts(results)
     estimate = combined_instruction_estimate(counts)
     print(f'{"*" * 80}\nCombined instruction estimate: {estimate:,}')  # noqa: T201
+    # Unlike the wall-clock figures pytest-benchmark records, which vary with whatever else is
+    # running on the machine, this estimate counts instructions and so is reproducible. Write it
+    # out when asked, so a caller can compare it between revisions without a noise allowance.
+    estimate_out = os.environ.get('CACHEGRIND_ESTIMATE_OUT')
+    if estimate_out:
+        Path(estimate_out).write_text(f'{estimate}\n')
     sys.exit(returncode)
 
 
