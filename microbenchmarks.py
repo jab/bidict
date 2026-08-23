@@ -23,6 +23,32 @@ import bidict
 
 
 consume: t.Any = partial(deque, maxlen=0)
+
+#: Rounds per benchmark. The reported figure is the min over these, so that one unlucky
+#: sample cannot dominate a result. pedantic() defaults to a single round, i.e. no filtering.
+ROUNDS = 5
+
+#: Iterations per round for an operation too cheap to time on its own. Running this suite
+#: under Cachegrind puts a fixed floor of roughly 25us on a single timed call -- three orders
+#: of magnitude more than e.g. a lookup costs -- so unless the operation is repeated within
+#: the round, the result is nearly all floor and carries no signal. Only valid for operations
+#: that can be repeated without fresh setup.
+CHEAP_ITERATIONS = 1000
+
+#: Roughly how many items a single round should process, for operations whose cost scales
+#: with the number of items. See :func:`scaled_iterations`.
+TARGET_ITEMS_PER_ROUND = 20_000
+
+
+def scaled_iterations(n: int) -> int:
+    """Iterations per round for an operation whose cost scales with *n*.
+
+    Keeps the work done per round roughly constant across sizes, so that the smallest sizes
+    clear the measurement floor described above without making the largest ones slow.
+    """
+    return max(1, TARGET_ITEMS_PER_ROUND // n)
+
+
 LENS = (100, 1_000, 10_000)
 DATASET_NAMES = ('int', 'str')
 
@@ -200,14 +226,14 @@ def _setup_failing_update_late(n: int) -> tuple[tuple[t.Any, ...], dict[str, t.A
 def test_bi_init_from_dict(kind: str, n: int, benchmark: t.Any) -> None:
     """Benchmark initializing a new bidict from a dict."""
     other = DICTS_BY_KIND_AND_LEN[kind][n]
-    benchmark.pedantic(bidict.bidict, args=(other,))
+    benchmark.pedantic(bidict.bidict, args=(other,), rounds=ROUNDS, iterations=scaled_iterations(n))
 
 
 @pytest.mark.parametrize('n', LENS)
 def test_bi_init_from_bi(n: int, benchmark: t.Any) -> None:
     """Benchmark initializing a bidict from another bidict."""
     other = INT_BIDICTS_BY_LEN[n]
-    benchmark.pedantic(bidict.bidict, args=(other,))
+    benchmark.pedantic(bidict.bidict, args=(other,), rounds=ROUNDS, iterations=scaled_iterations(n))
 
 
 @pytest.mark.parametrize('n', LENS)
@@ -219,7 +245,7 @@ def test_bi_init_fail_early_dupval(n: int, benchmark: t.Any) -> None:
         with pytest.raises(bidict.DuplicationError):
             bidict.bidict(other)
 
-    benchmark.pedantic(failing_init)
+    benchmark.pedantic(failing_init, rounds=ROUNDS, iterations=scaled_iterations(n))
 
 
 @pytest.mark.parametrize('n', LENS)
@@ -231,7 +257,7 @@ def test_bi_init_fail_late_dupval(n: int, benchmark: t.Any) -> None:
         with pytest.raises(bidict.DuplicationError):
             bidict.bidict(other)
 
-    benchmark.pedantic(failing_init)
+    benchmark.pedantic(failing_init, rounds=ROUNDS, iterations=scaled_iterations(n))
 
 
 @pytest.mark.parametrize('kind', DATASET_NAMES)
@@ -240,7 +266,7 @@ def test_bi_getitem_present(kind: str, n: int, benchmark: t.Any) -> None:
     """Benchmark forward lookup of an existing key."""
     bi = BIDICTS_BY_KIND_AND_LEN[kind][n]
     key, val = LOOKUP_ITEMS_BY_KIND_AND_LEN[kind][n]
-    result = benchmark.pedantic(bi.__getitem__, args=(key,))
+    result = benchmark.pedantic(bi.__getitem__, args=(key,), rounds=ROUNDS, iterations=CHEAP_ITERATIONS)
     assert result == val
 
 
@@ -250,7 +276,7 @@ def test_bi_inverse_getitem_present(kind: str, n: int, benchmark: t.Any) -> None
     """Benchmark inverse lookup of an existing value."""
     bi = BIDICTS_BY_KIND_AND_LEN[kind][n]
     key, val = LOOKUP_ITEMS_BY_KIND_AND_LEN[kind][n]
-    result = benchmark.pedantic(bi.inverse.__getitem__, args=(val,))
+    result = benchmark.pedantic(bi.inverse.__getitem__, args=(val,), rounds=ROUNDS, iterations=CHEAP_ITERATIONS)
     assert result == key
 
 
@@ -261,6 +287,7 @@ def test_bi_setitem_new_item(n: int, benchmark: t.Any) -> None:
         _setitem,
         setup=lambda n=n: _setup_setitem_new(n),
         teardown=_assert_mapping_matches,
+        rounds=ROUNDS,
     )
 
 
@@ -271,6 +298,7 @@ def test_bi_setitem_replace_existing_key(n: int, benchmark: t.Any) -> None:
         _setitem,
         setup=lambda n=n: _setup_setitem_replace_existing_key(n),
         teardown=_assert_mapping_matches,
+        rounds=ROUNDS,
     )
 
 
@@ -281,6 +309,7 @@ def test_bi_forceput_existing_value(n: int, benchmark: t.Any) -> None:
         _forceput,
         setup=lambda n=n: _setup_forceput_existing_value(n),
         teardown=_assert_mapping_matches,
+        rounds=ROUNDS,
     )
 
 
@@ -291,6 +320,7 @@ def test_bi_pop_existing_key(n: int, benchmark: t.Any) -> None:
         _pop,
         setup=lambda n=n: _setup_pop(n),
         teardown=_assert_mapping_matches,
+        rounds=ROUNDS,
     )
     assert result == POP_ARGS_BY_LEN[n][1]
 
@@ -302,6 +332,7 @@ def test_bi_update_partial_overlap(n: int, benchmark: t.Any) -> None:
         _update,
         setup=lambda n=n: _setup_update_partial_overlap(n),
         teardown=_assert_mapping_matches,
+        rounds=ROUNDS,
     )
 
 
@@ -312,6 +343,7 @@ def test_bi_update_fail_early_dupval(n: int, benchmark: t.Any) -> None:
         _failing_update,
         setup=lambda n=n: _setup_failing_update_early(n),
         teardown=_assert_mapping_matches,
+        rounds=ROUNDS,
     )
 
 
@@ -322,6 +354,7 @@ def test_bi_update_fail_late_dupval(n: int, benchmark: t.Any) -> None:
         _failing_update,
         setup=lambda n=n: _setup_failing_update_late(n),
         teardown=_assert_mapping_matches,
+        rounds=ROUNDS,
     )
 
 
@@ -329,21 +362,25 @@ def test_bi_update_fail_late_dupval(n: int, benchmark: t.Any) -> None:
 def test_bi_iter(n: int, benchmark: t.Any) -> None:
     """Benchmark iterating over a bidict."""
     bi = INT_BIDICTS_BY_LEN[n]
-    benchmark.pedantic(consume, args=(iter(bi),))
+    # Build the iterator inside the timed callable: one pre-built and passed via args
+    # would already be exhausted by the second of the repeated calls below.
+    benchmark.pedantic(lambda: consume(iter(bi)), rounds=ROUNDS, iterations=scaled_iterations(n))
 
 
 @pytest.mark.parametrize('n', LENS)
 def test_orderedbi_iter(n: int, benchmark: t.Any) -> None:
     """Benchmark iterating over an OrderedBidict."""
     ob = ORDERED_BIDICTS_BY_LEN[n]
-    benchmark.pedantic(consume, args=(iter(ob),))
+    # Build the iterator inside the timed callable: one pre-built and passed via args
+    # would already be exhausted by the second of the repeated calls below.
+    benchmark.pedantic(lambda: consume(iter(ob)), rounds=ROUNDS, iterations=scaled_iterations(n))
 
 
 @pytest.mark.parametrize('n', LENS)
 def test_bi_equals_with_equal_dict(n: int, benchmark: t.Any) -> None:
     """Benchmark bidict.__eq__ with an equivalent dict."""
     bi, d = BIDICT_AND_DICT_LAST_TWO_ITEMS_DIFFERENT_ORDER[n]
-    result = benchmark.pedantic(bi.__eq__, args=(d,))
+    result = benchmark.pedantic(bi.__eq__, args=(d,), rounds=ROUNDS, iterations=scaled_iterations(n))
     assert result
 
 
@@ -351,7 +388,7 @@ def test_bi_equals_with_equal_dict(n: int, benchmark: t.Any) -> None:
 def test_orderedbi_items_equals_with_equal_dict_items(n: int, benchmark: t.Any) -> None:
     """Benchmark OrderedBidict.items().__eq__ with equivalent dict_items."""
     ob, d = ORDERED_BIDICT_AND_DICT_LAST_TWO_ITEMS_DIFFERENT_ORDER[n]
-    result = benchmark.pedantic(ob.items().__eq__, args=(d.items(),))
+    result = benchmark.pedantic(ob.items().__eq__, args=(d.items(),), rounds=ROUNDS, iterations=scaled_iterations(n))
     assert result
 
 
@@ -359,18 +396,18 @@ def test_orderedbi_items_equals_with_equal_dict_items(n: int, benchmark: t.Any) 
 def test_copy(n: int, benchmark: t.Any) -> None:
     """Benchmark creating a copy of a bidict."""
     bi = INT_BIDICTS_BY_LEN[n]
-    benchmark.pedantic(bi.copy)
+    benchmark.pedantic(bi.copy, rounds=ROUNDS, iterations=scaled_iterations(n))
 
 
 @pytest.mark.parametrize('n', LENS)
 def test_pickle(n: int, benchmark: t.Any) -> None:
     """Benchmark pickling a bidict."""
     bi = INT_BIDICTS_BY_LEN[n]
-    benchmark.pedantic(pickle.dumps, args=(bi,))
+    benchmark.pedantic(pickle.dumps, args=(bi,), rounds=ROUNDS, iterations=scaled_iterations(n))
 
 
 @pytest.mark.parametrize('n', LENS)
 def test_unpickle(n: int, benchmark: t.Any) -> None:
     """Benchmark unpickling a bidict."""
     bp = pickle.dumps(INT_BIDICTS_BY_LEN[n])
-    benchmark.pedantic(pickle.loads, args=(bp,))
+    benchmark.pedantic(pickle.loads, args=(bp,), rounds=ROUNDS, iterations=scaled_iterations(n))
