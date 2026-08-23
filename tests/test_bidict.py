@@ -40,6 +40,7 @@ from bidict_test_fixtures import SET_OPS
 from bidict_test_fixtures import VT
 from bidict_test_fixtures import Oracle
 from bidict_test_fixtures import SupportsKeysAndGetItem
+from bidict_test_fixtures import Tagged
 from bidict_test_fixtures import UserBi
 from bidict_test_fixtures import UserBiBackedByDictSub
 from bidict_test_fixtures import UserBiNotOwnInv
@@ -849,6 +850,57 @@ def test_orderedbidict_iteration_unaffected_by_unrelated_bidict() -> None:
         other[key] = f'x{key}'  # a different bidict, so a different linked list
         keys.append(key)
     assert keys == [1, 2]
+
+
+#: (label, mutation) pairs, each writing an item that duplicates a contained key, a contained
+#: value, or both, using an object that is equal to the contained one but not identical to it.
+_DUPLICATING_WRITES: t.Any = {
+    'key_duplication': lambda b: b.__setitem__(Tagged(1, 'new'), 'other'),
+    'value_duplication': lambda b: b.forceput(Tagged(9, 'new'), Tagged(2, 'new')),
+    'collapse': lambda b: b.forceput(Tagged(1, 'new'), Tagged(2, 'new')),
+}
+
+
+@pytest.mark.parametrize('mutate', _DUPLICATING_WRITES.values(), ids=list(_DUPLICATING_WRITES))
+@pytest.mark.parametrize('bi_t', mutable_bidict_types)
+def test_one_object_per_item_in_both_directions(bi_t: MBT[t.Any, t.Any], mutate: t.Any) -> None:
+    """A bidict and its inverse must hold the same object for each item, not equal copies.
+
+    dict keeps the key object it already has when a key is overwritten, but takes the new
+    value object. In a bidict a value is also a key of the inverse, so those two conventions
+    conflict; applying each to its own backing mapping left the two holding equal but distinct
+    objects for one item, and so left b.inverse[b[key]] not identical to key.
+    """
+    bi = bi_t({Tagged(1, 'orig'): Tagged(2, 'orig')})
+    mutate(bi)
+    for key in bi:
+        val = bi[key]
+        assert bi.inverse[val] is key, 'key differs between a bidict and its inverse'
+        inv_key = next(k for k in bi.inverse if k == val)
+        assert inv_key is val, 'value differs between a bidict and its inverse'
+
+
+@pytest.mark.parametrize('bi_t', mutable_bidict_types)
+def test_duplicating_write_keeps_the_contained_object(bi_t: MBT[t.Any, t.Any]) -> None:
+    """Of two equal objects, the one already contained is the one kept.
+
+    That is what a dict does for keys, and it is the only self-consistent choice here:
+    adopting the incoming key object instead would mean deleting and reinserting it, which
+    would move the item to the end and so silently reorder the bidict.
+    """
+    bi = bi_t({Tagged(1, 'orig'): Tagged(2, 'orig')})
+    bi[Tagged(1, 'new')] = Tagged(3, 'new')  # key duplicates the contained Tagged(1)
+    (key,) = bi
+    assert key.tag == 'orig'
+    assert bi.inverse[bi[key]].tag == 'orig'
+
+
+@pytest.mark.parametrize('bi_t', mutable_bidict_types)
+def test_duplicating_write_does_not_reorder(bi_t: MBT[t.Any, t.Any]) -> None:
+    """Keeping the contained key object also keeps the item in place."""
+    bi = bi_t({Tagged(1): 'one', Tagged(2): 'two'})
+    bi[Tagged(1, 'new')] = 'uno'
+    assert [k.n for k in bi] == [1, 2]
 
 
 def test_orderedbidict_weakattr_class_access() -> None:

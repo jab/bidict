@@ -291,6 +291,26 @@ def dedup(x: MapOrItems[KT, VT]) -> dict[KT, VT]:
     return invdict(invdict(dict(x)))
 
 
+@dataclass(frozen=True)
+class Tagged:
+    """Equal whenever *n* is equal, but each instance is distinguishable by its *tag*.
+
+    Stands in for the realistic case of value-equal objects that carry distinct state,
+    e.g. a dataclass whose __eq__ covers only some of its fields.
+    """
+
+    n: int
+    tag: str = ''
+
+    @override
+    def __eq__(self, other: object) -> bool:
+        return isinstance(other, Tagged) and self.n == other.n
+
+    @override
+    def __hash__(self) -> int:
+        return hash(self.n)
+
+
 class HashRaises:
     @override
     def __hash__(self) -> int:

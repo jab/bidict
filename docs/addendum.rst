@@ -168,19 +168,27 @@ even if it is distinct.
 
 With a :class:`~bidict.bidict`,
 since values function as keys in the inverse mapping,
-this behavior occurs in the inverse direction too,
-and means that a :class:`~bidict.bidict` can end up with a different
-but equivalent key from the corresponding value
-in its own inverse:
+this behavior occurs in the inverse direction too.
+
+That puts a :class:`~bidict.bidict` between two of :class:`dict`'s conventions,
+which conflict once a value is also a key:
+overwriting a :class:`dict` key keeps the key object already contained,
+but replaces the value object with the one passed in.
+A :class:`~bidict.bidict` resolves this
+by keeping the object already contained in both directions,
+so that a single item is never represented by
+two equivalent but distinct objects:
 
 .. doctest::
 
    >>> b = bidict({'false': 0})
    >>> b.forceput('FALSE', False)
-   >>> b
-   bidict({'FALSE': False})
+   >>> b  # the contained 0 is kept, rather than the equivalent False passed in
+   bidict({'FALSE': 0})
    >>> b.inverse
    bidict({0: 'FALSE'})
+   >>> b.inverse[b['FALSE']] is next(iter(b))  # one object per item, in both directions
+   True
 
 
 *nan* as a Key

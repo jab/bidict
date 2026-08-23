@@ -64,6 +64,16 @@ please consider sponsoring bidict on GitHub.`
   hashing a key or value, or writing to a backing mapping.
   Rollback is now always enabled for these methods.
 
+- A bidict and its inverse now always refer to the same object
+  for each contained key and value,
+  rather than possibly to equivalent but distinct ones,
+  so that e.g. ``b.inverse[b[key]] is key`` always holds.
+  Writing an item whose key or value is equal to a contained one
+  now keeps the object already contained,
+  as :class:`dict` does when a key is overwritten,
+  instead of keeping one object in each direction.
+  *See also* :ref:`addendum:Equivalent but distinct \:class\:\`~collections.abc.Hashable\`\\s`
+
 - Fix a bug where mutating an :class:`~bidict.OrderedBidict`
   while iterating over it produced incorrect behavior
   rather than raising an error.

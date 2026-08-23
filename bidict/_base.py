@@ -456,6 +456,16 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         fwdm, invm = self._fwdm, self._invm
         fwdm_set, invm_set = fwdm.__setitem__, invm.__setitem__
         fwdm_del, invm_del = fwdm.__delitem__, invm.__delitem__
+        # When newkey or newval duplicates one already contained, adopt the object already
+        # contained rather than the one passed in. Otherwise the two backing mappings would end
+        # up referring to equal but distinct objects for the same item, since a dict keeps the
+        # key object it already has when a key is overwritten but takes the new value object.
+        # invm[oldval] is the contained key equal to newkey; fwdm[oldkey] the contained value
+        # equal to newval. This also matches what a plain dict does on overwrite.
+        if oldval is not MISSING:  # newkey duplicates a contained key
+            newkey = invm[oldval]
+        if oldkey is not MISSING:  # newval duplicates a contained value
+            newval = fwdm[oldkey]
         # Always perform the following writes regardless of duplication.
         fwdm_set(newkey, newval)
         invm_set(newval, newkey)
