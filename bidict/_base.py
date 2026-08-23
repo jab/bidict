@@ -223,6 +223,11 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         diff['_inv_cls'] = cls
         inv_cls = type(f'{cls.__name__}Inv', (cls, GeneratedBidictInverse), diff)
         inv_cls.__module__ = cls.__module__
+        # Point __qualname__ at where this class actually lives, namely cls's _inv_cls attribute,
+        # so that pickle can find it by reference like any other class. Without this it could not
+        # be pickled at all, since nothing else refers to it by name. __name__ is left alone, so
+        # repr() is unaffected.
+        inv_cls.__qualname__ = f'{cls.__qualname__}._inv_cls'
         return t.cast(type[t.Self], inv_cls)
 
     @classmethod
@@ -575,15 +580,11 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         return self._from_other(self)
 
     @classmethod
-    def _from_other(cls, other: MapOrItems[KT, VT], inv: bool = False) -> t.Self:
-        """Fast, private constructor based on :meth:`_init_from`.
-
-        If *inv* is true, return the inverse of the instance instead of the instance itself.
-        (Useful for pickling with dynamically-generated inverse classes -- see :meth:`__reduce__`.)
-        """
+    def _from_other(cls, other: MapOrItems[KT, VT]) -> t.Self:
+        """Fast, private constructor based on :meth:`_init_from`."""
         inst = cls()
         inst._init_from(other)
-        return t.cast(t.Self, inst.inverse) if inv else inst
+        return inst
 
     def _init_from(self, other: MapOrItems[KT, VT]) -> None:
         """Fast init from *other*, bypassing item-by-item duplication checking."""
@@ -634,15 +635,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
     @override
     def __reduce__(self) -> tuple[t.Any, ...]:
         """Return state information for pickling."""
-        cls = self.__class__
-        inst: Mapping[t.Any, t.Any] = self
-        # If this bidict's class is dynamically generated, pickle the inverse instead, whose (presumably not
-        # dynamically generated) class the caller is more likely to have a reference to somewhere in sys.modules
-        # that pickle can discover.
-        if should_invert := isinstance(self, GeneratedBidictInverse):
-            cls = self._inv_cls
-            inst = self.inverse
-        return cls._from_other, (dict(inst), should_invert)
+        return self.__class__._from_other, (dict(self),)
 
 
 # See BidictBase._set_reversed() above.

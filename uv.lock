@@ -52,7 +52,7 @@ wheels = [
 
 [[package]]
 name = "bidict"
-version = "0.23.2.dev0"
+version = "0.24.0.dev0"
 source = { editable = "." }
 dependencies = [
     { name = "typing-extensions", marker = "python_full_version < '3.12'" },

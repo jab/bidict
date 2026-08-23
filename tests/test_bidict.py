@@ -24,6 +24,7 @@ from collections.abc import Sequence
 from copy import copy
 from copy import deepcopy
 from functools import partial
+from functools import reduce
 from itertools import product
 from itertools import starmap
 from random import Random
@@ -50,6 +51,7 @@ from bidict_test_fixtures import bidict_types
 from bidict_test_fixtures import bomb
 from bidict_test_fixtures import dedup
 from bidict_test_fixtures import mutable_bidict_types
+from bidict_test_fixtures import pickle_copy
 from bidict_test_fixtures import powerset
 from bidict_test_fixtures import should_be_reversible
 from bidict_test_fixtures import update_arg_types
@@ -77,6 +79,7 @@ from bidict import MutableBidirectionalMapping
 from bidict import OnDup
 from bidict import OnDupAction
 from bidict import OrderedBidict
+from bidict import OrderedBidictBase
 from bidict import ValueDuplicationError
 from bidict import bidict
 from bidict import frozenbidict
@@ -195,7 +198,7 @@ class BidictStateMachine(RuleBasedStateMachine):
     @rule()
     def pickle(self) -> None:
         for b in (self.bi, self.bi.inv):
-            roundtripped = pickle.loads(pickle.dumps(b))
+            roundtripped = pickle_copy(b)
             assert_bi_and_inv_are_inverse(roundtripped)
             assert_bidicts_equal(roundtripped, b)
 
@@ -536,6 +539,52 @@ def test_update_with_bad_last_item_fails_clean(bi_t: MBT[t.Any, t.Any], on_dup: 
             assert_update_fails_clean(b, updates, exc, on_dup)
 
 
+@pytest.mark.parametrize('bi_t', mutable_bidict_types)
+@pytest.mark.parametrize('roundtrip', [copy, deepcopy, pickle_copy], ids=['copy', 'deepcopy', 'pickle'])
+def test_roundtrip_preserves_iteration_order(bi_t: MBT[t.Any, t.Any], roundtrip: t.Any) -> None:
+    """Duplicating a bidict must preserve its own iteration order.
+
+    An ordered bidict preserves its inverse's order too, since both read the same linked list.
+    A non-ordered one does not: its inverse gets rebuilt by inverting the forward mapping, which
+    leaves it in the forward mapping's order -- the same thing that happens whenever a bidict is
+    built from items, and the reason to reach for an OrderedBidict when order matters.
+    """
+    bi = bi_t({1: -1, 2: -2, 3: -3})
+    bi.forceput(4, -2)  # a value-duplicating overwrite, which skews the inverse's order
+    cp = roundtrip(bi)
+    assert cp.equals_order_sensitive(bi)
+    if isinstance(bi, OrderedBidictBase):
+        assert cp.inv.equals_order_sensitive(bi.inv)
+
+
+def test_pickle_preserves_order_of_generated_inverse_class() -> None:
+    """An instance of a dynamically-generated inverse class keeps its own order.
+
+    Such a class used to have no name pickle could reference it by, so __reduce__ pickled an
+    instance of the class it was generated from and reconstructed this one by inverting, which
+    left the order of the object being pickled derived rather than recorded. It is now pickled
+    by reference like any other class (see _make_inv_cls), so the items are this object's own.
+    """
+    b: MutableBidict[t.Any, t.Any] = UserBiNotOwnInv()
+    b.forceupdate([(1, 'a'), (2, 'b'), (3, 'a')])  # the last item skews the inverse's order
+    inv = b.inverse
+    assert list(inv.items()) == [('a', 3), ('b', 2)]
+    roundtripped = pickle_copy(inv)
+    assert type(roundtripped) is type(inv)
+    assert roundtripped.equals_order_sensitive(inv)
+
+
+def test_pickling_costs_no_extra_space() -> None:
+    """Preserving the order must not have made pickles bigger.
+
+    Recording the inverse's key order alongside the forward mapping would: measured at up to 150%
+    more space, or ~10% more time once conditioned on actually being needed. Making the generated
+    class referenceable instead costs neither, since only the forward items are ever written.
+    """
+    bi = bidict({i: -i for i in range(1000)})
+    assert len(pickle.dumps(bi)) < len(pickle.dumps(dict(bi))) * 1.1
+
+
 def test_pickle_orderedbi_whose_order_disagrees_with_fwdm() -> None:
     """An OrderedBidict whose order does not match its _fwdm's should pickle with the correct order."""
     ob = OrderedBidict({0: 1, 2: 3})
@@ -544,7 +593,7 @@ def test_pickle_orderedbi_whose_order_disagrees_with_fwdm() -> None:
     assert list(ob.items()) == [(4, 1), (2, 3)]
     assert list(ob._fwdm.items()) == [(2, 3), (4, 1)]
     # Now check that its order is preserved after pickling and unpickling:
-    roundtripped = pickle.loads(pickle.dumps(ob))
+    roundtripped = pickle_copy(ob)
     assert list(roundtripped.items()) == [(4, 1), (2, 3)]
     assert roundtripped.equals_order_sensitive(ob)
 
@@ -552,17 +601,23 @@ def test_pickle_orderedbi_whose_order_disagrees_with_fwdm() -> None:
 def test_pickle_dynamically_generated_inverse_bidict() -> None:
     """Instances of dynamically-generated inverse bidict classes should be pickleable."""
     ub: MutableBidict[str, int] = UserBiNotOwnInv(one=1, two=2)
-    roundtripped = pickle.loads(pickle.dumps(ub))
+    roundtripped = pickle_copy(ub)
     assert roundtripped == ub == UserBiNotOwnInv({'one': 1, 'two': 2})
     assert dict(roundtripped) == dict(ub)
     # Now for the inverse:
     assert repr(ub.inverse) == "UserBiNotOwnInvInv({1: 'one', 2: 'two'})"
-    # We can still pickle the inverse, even though its class, _UserBidictInv, was
-    # dynamically generated, and we didn't save a reference to it named "_UserBidictInv"
+    # We can still pickle the inverse, even though its class, UserBiNotOwnInvInv, was
+    # dynamically generated, and we didn't save a reference to it named "UserBiNotOwnInvInv"
     # anywhere that pickle could find it in sys.modules:
-    ubinv = pickle.loads(pickle.dumps(ub.inverse))
-    assert repr(ubinv) == "UserBiNotOwnInvInv({1: 'one', 2: 'two'})"
+    for protocol in range(2, pickle.HIGHEST_PROTOCOL + 1):
+        ubinv = pickle_copy(ub.inverse, protocol)
+        assert repr(ubinv) == "UserBiNotOwnInvInv({1: 'one', 2: 'two'})"
     assert ub._inv_cls.__name__ not in (name for m in sys.modules for name in dir(m))
+    # What pickle finds it by instead is its __qualname__, which spells out the attribute of
+    # UserBiNotOwnInv that it is reachable through. Check that that lookup resolves back to it.
+    assert ub._inv_cls.__qualname__ == 'UserBiNotOwnInv._inv_cls'
+    module = sys.modules[ub._inv_cls.__module__]
+    assert reduce(getattr, ub._inv_cls.__qualname__.split('.'), module) is ub._inv_cls
 
 
 def test_abstract_bimap_init_fails() -> None:

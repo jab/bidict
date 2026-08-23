@@ -23,7 +23,7 @@ please consider sponsoring bidict on GitHub.`
    Click the "Watch" dropdown, choose "Custom", and then choose "Releases".
 
 
-0.23.2 (not yet released)
+0.24.0 (not yet released)
 -------------------------
 
 - Remove ``bidict.metadata`` and associated metadata from the
@@ -63,6 +63,23 @@ please consider sponsoring bidict on GitHub.`
   but a bulk update can also fail while unpacking an item,
   hashing a key or value, or writing to a backing mapping.
   Rollback is now always enabled for these methods.
+  :issue:`392`
+
+- Fix a bug where pickling or :func:`~copy.deepcopy`\ing an instance of a
+  dynamically-generated inverse class
+  (see :ref:`extending:Dynamic Inverse Class Generation`)
+  could change the order of its items.
+  :issue:`398`
+
+  Pickles written by bidict 0.23.1 and earlier can no longer be read.
+  They call the private ``BidictBase._from_other()``
+  with an argument it no longer accepts,
+  which was retained for no other purpose.
+  Pickle compatibility across versions
+  `has never been guaranteed
+  <https://docs.python.org/3/library/pickle.html#comparison-with-json>`__,
+  and dropping it here keeps
+  :meth:`~bidict.BidictBase.__reduce__` free of special cases.
 
 - A bidict and its inverse now always refer to the same object
   for each contained key and value,
@@ -73,10 +90,12 @@ please consider sponsoring bidict on GitHub.`
   as :class:`dict` does when a key is overwritten,
   instead of keeping one object in each direction.
   *See also* :ref:`addendum:Equivalent but distinct \:class\:\`~collections.abc.Hashable\`\\s`
+  :issue:`396`
 
 - Fix a bug where mutating an :class:`~bidict.OrderedBidict`
   while iterating over it produced incorrect behavior
   rather than raising an error.
+  :issue:`393`
 
 - A bidict backed by a :class:`dict` *subclass*
   now gets that mapping's own views from

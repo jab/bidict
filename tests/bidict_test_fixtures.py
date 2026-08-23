@@ -7,6 +7,7 @@
 from __future__ import annotations
 
 import operator
+import pickle
 import typing as t
 from collections import OrderedDict
 from collections import UserDict
@@ -55,11 +56,15 @@ class SupportsKeysAndGetItem(t.Generic[KT, VT]):
 
 
 BB = BidictBase[KT, VT]
-BT = type[BB[KT, VT]]
+BT = type[BidictBase[KT, VT]]
 user_bidict_types: list[BT[t.Any, t.Any]] = []
 
-
+_B = t.TypeVar('_B', bound=BidictBase[t.Any, t.Any])
 _BT = t.TypeVar('_BT', bound=type[BidictBase[t.Any, t.Any]])
+
+
+def pickle_copy(b: _B, protocol: int | None = None) -> _B:
+    return pickle.loads(pickle.dumps(b, protocol))
 
 
 def user_bidict(cls: _BT) -> _BT:
