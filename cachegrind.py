@@ -48,16 +48,20 @@ ARCH = sp.check_output(['uname', '-m'], text=True).strip()
 DISABLE_ASLR_CMD = ['setarch', ARCH, '-R']
 
 
-def run_with_cachegrind(args_list: list[str]) -> dict[str, int]:
+def run_with_cachegrind(args_list: list[str]) -> tuple[int, dict[str, int]]:
     """
     Run the the given program and arguments under Cachegrind, parse the
     Cachegrind specs.
 
+    Return the program's exit status along with the parsed results.
+
     For now we just ignore program output, and in general this is not robust.
     """
     temp_file = NamedTemporaryFile('r+')  # noqa: SIM115
-    # Don't fail if the program fails (to support e.g. `pytest --benchmark-compare-fail=...`)
-    sp.call([
+    # Don't raise if the program fails (to support e.g. `pytest --benchmark-compare-fail=...`),
+    # but do return its status so that main() can exit with it. Callers such as the benchmark
+    # workflow rely on it to tell a benchmark regression from a clean run.
+    returncode = sp.call([
         *DISABLE_ASLR_CMD,
         'valgrind',
         '--tool=cachegrind',
@@ -71,7 +75,7 @@ def run_with_cachegrind(args_list: list[str]) -> dict[str, int]:
         '--cachegrind-out-file=' + temp_file.name,
         *args_list,
     ])
-    return parse_cachegrind_output(temp_file)
+    return returncode, parse_cachegrind_output(temp_file)
 
 
 def parse_cachegrind_output(temp_file: t.IO[str]) -> dict[str, int]:
@@ -128,10 +132,11 @@ def combined_instruction_estimate(counts: dict[str, int]) -> int:
 
 
 def main() -> None:
-    results = run_with_cachegrind(sys.argv[1:])
+    returncode, results = run_with_cachegrind(sys.argv[1:])
     counts = get_counts(results)
     estimate = combined_instruction_estimate(counts)
     print(f'{"*" * 80}\nCombined instruction estimate: {estimate:,}')  # noqa: T201
+    sys.exit(returncode)
 
 
 if __name__ == '__main__':
