@@ -49,6 +49,30 @@ def scaled_iterations(n: int) -> int:
     return max(1, TARGET_ITEMS_PER_ROUND // n)
 
 
+#: Writes performed per timed call by the single-item write benchmarks below.
+#:
+#: Those benchmarks cannot use `iterations`: each needs a bidict in a known state, setup runs
+#: once per round rather than once per iteration, and repeating a write would not exercise the
+#: same path the second time. That left one write per timed call, which at roughly a microsecond
+#: is far under the floor above, so the reported figure was nearly all floor. Batching this many
+#: writes into a single timed call lifts them clear of it, at a fraction of what raising `rounds`
+#: to the same effect would cost, since the per-round setup copies the whole bidict.
+#:
+#: They therefore measure the cost of a run of writes rather than of one in isolation. For the
+#: smaller sizes the batch consumes most of the contained items, so the bidict grows or shrinks
+#: appreciably during it -- which is representative, and identical across the revisions being
+#: compared, so it does not affect what the comparison means.
+WRITES_PER_ROUND = 1_000
+
+
+def scaled_writes(n: int) -> int:
+    """How many writes the single-item write benchmarks perform per timed call, for size *n*.
+
+    Capped by *n*, since some of them consume a distinct contained item per write.
+    """
+    return min(n, WRITES_PER_ROUND)
+
+
 LENS = (100, 1_000, 10_000)
 DATASET_NAMES = ('int', 'str')
 
@@ -81,20 +105,37 @@ INT_DICTS_BY_LEN_DUPVAL_EARLY: dict[int, dict[int, int]] = {
 }
 INT_DICTS_BY_LEN_DUPVAL_LATE: dict[int, dict[int, int]] = {n: {**INT_DICTS_BY_LEN[n], n - 1: 0} for n in LENS}
 
-SETITEM_NEW_ARGS_BY_LEN: dict[int, tuple[int, int]] = {n: (-1, -1) for n in LENS}
-SETITEM_NEW_RESULTS_BY_LEN: dict[int, dict[int, int]] = {n: (INT_DICTS_BY_LEN[n] | {-1: -1}) for n in LENS}
+# One batch of items per single-item write benchmark, sized by scaled_writes(). Every item in
+# a batch takes the same path through the code as the others, so the batch measures that path.
 
-SETITEM_REPLACE_ARGS_BY_LEN: dict[int, tuple[int, int]] = {n: (n - 1, -1) for n in LENS}
-SETITEM_REPLACE_RESULTS_BY_LEN: dict[int, dict[int, int]] = {n: (INT_DICTS_BY_LEN[n] | {n - 1: -1}) for n in LENS}
-
-FORCEPUT_ARGS_BY_LEN: dict[int, tuple[int, int]] = {n: (-1, 0) for n in LENS}
-FORCEPUT_RESULTS_BY_LEN: dict[int, dict[int, int]] = {
-    n: ({k: v for k, v in INT_DICTS_BY_LEN[n].items() if k != 0} | {-1: 0}) for n in LENS
+#: New keys and new values: no duplication.
+SETITEM_NEW_ITEMS_BY_LEN: dict[int, list[tuple[int, int]]] = {
+    n: [(-i, -i) for i in range(1, scaled_writes(n) + 1)] for n in LENS
+}
+SETITEM_NEW_RESULTS_BY_LEN: dict[int, dict[int, int]] = {
+    n: INT_DICTS_BY_LEN[n] | dict(SETITEM_NEW_ITEMS_BY_LEN[n]) for n in LENS
 }
 
-POP_ARGS_BY_LEN: dict[int, tuple[int, int]] = {n: (n - 1, n - 1) for n in LENS}
+#: Contained keys paired with new values: key duplication.
+SETITEM_REPLACE_ITEMS_BY_LEN: dict[int, list[tuple[int, int]]] = {
+    n: [(n - i, -i) for i in range(1, scaled_writes(n) + 1)] for n in LENS
+}
+SETITEM_REPLACE_RESULTS_BY_LEN: dict[int, dict[int, int]] = {
+    n: INT_DICTS_BY_LEN[n] | dict(SETITEM_REPLACE_ITEMS_BY_LEN[n]) for n in LENS
+}
+
+#: New keys paired with contained values: value duplication, collapsing an item each time.
+FORCEPUT_ITEMS_BY_LEN: dict[int, list[tuple[int, int]]] = {
+    n: [(-i, i - 1) for i in range(1, scaled_writes(n) + 1)] for n in LENS
+}
+FORCEPUT_RESULTS_BY_LEN: dict[int, dict[int, int]] = {
+    n: {k: v for k, v in INT_DICTS_BY_LEN[n].items() if k >= scaled_writes(n)} | dict(FORCEPUT_ITEMS_BY_LEN[n])
+    for n in LENS
+}
+
+POP_KEYS_BY_LEN: dict[int, list[int]] = {n: [n - i for i in range(1, scaled_writes(n) + 1)] for n in LENS}
 POP_RESULTS_BY_LEN: dict[int, dict[int, int]] = {
-    n: {k: v for k, v in INT_DICTS_BY_LEN[n].items() if k != n - 1} for n in LENS
+    n: {k: v for k, v in INT_DICTS_BY_LEN[n].items() if k not in set(POP_KEYS_BY_LEN[n])} for n in LENS
 }
 
 PARTIAL_OVERLAP_UPDATES_BY_LEN: dict[int, dict[int, int]] = {
@@ -121,12 +162,14 @@ for _i in LENS:
     )
 
 
-def _setitem(bi: bidict.bidict[int, int], key: int, val: int, _expected: dict[int, int]) -> None:
-    bi[key] = val
+def _setitem(bi: bidict.bidict[int, int], items: list[tuple[int, int]], _expected: dict[int, int]) -> None:
+    for key, val in items:
+        bi[key] = val
 
 
-def _forceput(bi: bidict.bidict[int, int], key: int, val: int, _expected: dict[int, int]) -> None:
-    bi.forceput(key, val)
+def _forceput(bi: bidict.bidict[int, int], items: list[tuple[int, int]], _expected: dict[int, int]) -> None:
+    for key, val in items:
+        bi.forceput(key, val)
 
 
 def _update(bi: bidict.bidict[int, int], other: dict[int, int], _expected: dict[int, int]) -> None:
@@ -138,8 +181,9 @@ def _failing_update(bi: bidict.bidict[int, int], other: dict[int, int], _expecte
         bi.update(other)
 
 
-def _pop(bi: bidict.bidict[int, int], key: int, _expected_val: int, _expected: dict[int, int]) -> int:
-    return bi.pop(key)
+def _pop(bi: bidict.bidict[int, int], keys: list[int], _expected: dict[int, int]) -> None:
+    for key in keys:
+        bi.pop(key)
 
 
 def _assert_mapping_matches(*args: t.Any) -> None:
@@ -147,45 +191,19 @@ def _assert_mapping_matches(*args: t.Any) -> None:
 
 
 def _setup_setitem_new(n: int) -> tuple[tuple[t.Any, ...], dict[str, t.Any]]:
-    key, val = SETITEM_NEW_ARGS_BY_LEN[n]
-    return (
-        (INT_BIDICTS_BY_LEN[n].copy(), key, val, SETITEM_NEW_RESULTS_BY_LEN[n]),
-        {},
-    )
+    return ((INT_BIDICTS_BY_LEN[n].copy(), SETITEM_NEW_ITEMS_BY_LEN[n], SETITEM_NEW_RESULTS_BY_LEN[n]), {})
 
 
 def _setup_setitem_replace_existing_key(n: int) -> tuple[tuple[t.Any, ...], dict[str, t.Any]]:
-    key, val = SETITEM_REPLACE_ARGS_BY_LEN[n]
-    return (
-        (
-            INT_BIDICTS_BY_LEN[n].copy(),
-            key,
-            val,
-            SETITEM_REPLACE_RESULTS_BY_LEN[n],
-        ),
-        {},
-    )
+    return ((INT_BIDICTS_BY_LEN[n].copy(), SETITEM_REPLACE_ITEMS_BY_LEN[n], SETITEM_REPLACE_RESULTS_BY_LEN[n]), {})
 
 
 def _setup_forceput_existing_value(n: int) -> tuple[tuple[t.Any, ...], dict[str, t.Any]]:
-    key, val = FORCEPUT_ARGS_BY_LEN[n]
-    return (
-        (INT_BIDICTS_BY_LEN[n].copy(), key, val, FORCEPUT_RESULTS_BY_LEN[n]),
-        {},
-    )
+    return ((INT_BIDICTS_BY_LEN[n].copy(), FORCEPUT_ITEMS_BY_LEN[n], FORCEPUT_RESULTS_BY_LEN[n]), {})
 
 
 def _setup_pop(n: int) -> tuple[tuple[t.Any, ...], dict[str, t.Any]]:
-    key, expected_val = POP_ARGS_BY_LEN[n]
-    return (
-        (
-            INT_BIDICTS_BY_LEN[n].copy(),
-            key,
-            expected_val,
-            POP_RESULTS_BY_LEN[n],
-        ),
-        {},
-    )
+    return ((INT_BIDICTS_BY_LEN[n].copy(), POP_KEYS_BY_LEN[n], POP_RESULTS_BY_LEN[n]), {})
 
 
 def _setup_update_partial_overlap(n: int) -> tuple[tuple[t.Any, ...], dict[str, t.Any]]:
@@ -282,7 +300,7 @@ def test_bi_inverse_getitem_present(kind: str, n: int, benchmark: t.Any) -> None
 
 @pytest.mark.parametrize('n', LENS)
 def test_bi_setitem_new_item(n: int, benchmark: t.Any) -> None:
-    """Benchmark inserting one new item into an existing bidict."""
+    """Benchmark inserting new items into an existing bidict."""
     benchmark.pedantic(
         _setitem,
         setup=lambda n=n: _setup_setitem_new(n),
@@ -293,7 +311,7 @@ def test_bi_setitem_new_item(n: int, benchmark: t.Any) -> None:
 
 @pytest.mark.parametrize('n', LENS)
 def test_bi_setitem_replace_existing_key(n: int, benchmark: t.Any) -> None:
-    """Benchmark replacing the value for an existing key with a new unique value."""
+    """Benchmark replacing the values of existing keys with new unique values."""
     benchmark.pedantic(
         _setitem,
         setup=lambda n=n: _setup_setitem_replace_existing_key(n),
@@ -304,7 +322,7 @@ def test_bi_setitem_replace_existing_key(n: int, benchmark: t.Any) -> None:
 
 @pytest.mark.parametrize('n', LENS)
 def test_bi_forceput_existing_value(n: int, benchmark: t.Any) -> None:
-    """Benchmark forceput when the provided value is already associated with another key."""
+    """Benchmark forceput when each provided value is already associated with another key."""
     benchmark.pedantic(
         _forceput,
         setup=lambda n=n: _setup_forceput_existing_value(n),
@@ -315,14 +333,13 @@ def test_bi_forceput_existing_value(n: int, benchmark: t.Any) -> None:
 
 @pytest.mark.parametrize('n', LENS)
 def test_bi_pop_existing_key(n: int, benchmark: t.Any) -> None:
-    """Benchmark popping an existing key."""
-    result = benchmark.pedantic(
+    """Benchmark popping existing keys."""
+    benchmark.pedantic(
         _pop,
         setup=lambda n=n: _setup_pop(n),
         teardown=_assert_mapping_matches,
         rounds=ROUNDS,
     )
-    assert result == POP_ARGS_BY_LEN[n][1]
 
 
 @pytest.mark.parametrize('n', LENS)
