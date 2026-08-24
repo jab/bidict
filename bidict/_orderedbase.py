@@ -194,7 +194,7 @@ class OrderedBidictBase(BidictBase[KT, VT]):
 
     @override
     def _make_inverse(self) -> OrderedBidictBase[VT, KT]:
-        inv = t.cast(OrderedBidictBase[VT, KT], super()._make_inverse())
+        inv = t.cast('OrderedBidictBase[VT, KT]', super()._make_inverse())
         inv._sntl = self._sntl
         inv._node_by_korv = self._node_by_korv
         inv._bykey = not self._bykey
@@ -318,7 +318,7 @@ class OrderedBidictBase(BidictBase[KT, VT]):
         # _fwdm to yield values in key order (see BidictBase.values()), an ordered bidict
         # gets that for free: the inverse shares this bidict's linked list, so its keys
         # view already yields the values in this bidict's order.
-        return t.cast(BidictKeysView[VT], self.inverse.keys())
+        return t.cast('BidictKeysView[VT]', self.inverse.keys())
 
 
 # The following MappingView implementations use the __iter__ implementations

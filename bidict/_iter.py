@@ -23,12 +23,12 @@ from ._typing import MapOrItems
 def iteritems(arg: MapOrItems[KT, VT] = (), /, **kw: VT) -> ItemsIter[KT, VT]:
     """Yield the items from *arg* and *kw* in the order given."""
     if isinstance(arg, Mapping):
-        yield from t.cast(Mapping[KT, VT], arg).items()
+        yield from t.cast('Mapping[KT, VT]', arg).items()
     elif isinstance(arg, Maplike):
         yield from ((key, arg[key]) for key in arg.keys())
     else:
         yield from arg
-    yield from t.cast(ItemsIter[KT, VT], kw.items())
+    yield from t.cast('ItemsIter[KT, VT]', kw.items())
 
 
 swap: t.Final = itemgetter(1, 0)

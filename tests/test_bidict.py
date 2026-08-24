@@ -1033,7 +1033,7 @@ def test_values_view_reversibility_matches_bidict(bi_t: BT[t.Any, t.Any]) -> Non
     else:
         assert not isinstance(values, Reversible)
         with pytest.raises(TypeError):  # and the claim is not a lie
-            reversed(t.cast(t.Any, values))
+            reversed(t.cast('t.Any', values))
 
 
 @pytest.mark.parametrize('bi_t', bidict_types)

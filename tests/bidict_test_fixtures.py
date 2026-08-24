@@ -46,7 +46,7 @@ VT = t.TypeVar('VT')
 class SupportsKeysAndGetItem(t.Generic[KT, VT]):
     def __init__(self, *args: t.Any, **kw: t.Any) -> None:
         # This fixture trusts its *args/**kw (typed Any); dict(**kw) yields str keys, so cast to the declared type.
-        self._mapping = t.cast(Mapping[KT, VT], dict(*args, **kw))
+        self._mapping = t.cast('Mapping[KT, VT]', dict(*args, **kw))
 
     def keys(self) -> KeysView[KT]:
         return self._mapping.keys()
@@ -240,7 +240,7 @@ class Oracle(t.Generic[KT, VT]):
         tmp = self.data.copy()
         items: Iterable[tuple[KT, VT]]
         if isinstance(updates, Mapping):
-            items = t.cast(Mapping[KT, VT], updates).items()
+            items = t.cast('Mapping[KT, VT]', updates).items()
         elif isinstance(updates, Maplike):
             items = [(key, updates[key]) for key in updates.keys()]
         else:
