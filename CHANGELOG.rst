@@ -110,15 +110,15 @@ please consider sponsoring bidict on GitHub.`
   rather than behaving like the equivalent plain :class:`dict` views.
   :issue:`376`
 
-- Speed up every bidict update.
-  Single-item writes such as
+- Single-item writes such as
   :meth:`~bidict.MutableBidict.__setitem__`,
   :meth:`~bidict.MutableBidict.put`, and
   :meth:`~bidict.MutableBidict.forceput`
-  are now ~6x faster,
-  and bulk updates are faster too.
-  Most of what they cost was never the write itself,
+  are now ~6x faster:
+  most of what they cost was never the write itself,
   but typing machinery being re-evaluated on every call.
+  Iterating an :class:`~bidict.OrderedBidict` is also ~1.2x faster.
+  Everything else is within a couple of percent of 0.23.1.
 
 - A bidict backed by a :class:`dict` *subclass*
   now gets that mapping's own views from
