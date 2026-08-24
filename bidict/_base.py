@@ -26,6 +26,7 @@ from collections.abc import Mapping
 from collections.abc import MutableMapping
 from collections.abc import Reversible
 from collections.abc import Set
+from collections.abc import Sized
 from collections.abc import ValuesView
 from operator import eq
 from types import MappingProxyType
@@ -543,7 +544,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
 
         # Fast path when we're adding more items than we contain already and rollback is enabled:
         # Update a copy of self with rollback disabled. Fail if that fails, otherwise become the copy.
-        if rollback and isinstance(arg, t.Sized) and len(arg) + len(kw) > len(self):
+        if rollback and isinstance(arg, Sized) and len(arg) + len(kw) > len(self):
             tmp = self.copy()
             tmp._update(arg, kw, rollback=False, on_dup=on_dup)
             self._init_from(tmp)
