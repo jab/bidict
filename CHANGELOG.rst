@@ -31,18 +31,28 @@ please consider sponsoring bidict on GitHub.`
   Use e.g. :func:`importlib.metadata.metadata("bidict")["Version"]
   <importlib.metadata.metadata>` instead.
 
-- Fix a bug where setting an already-contained (key, value) pair
-  spuriously raised :class:`~bidict.KeyAndValueDuplicationError`
-  or ``AssertionError`` (rather than being a no-op, as documented)
-  when the key or value has non-reflexive equality (e.g. *nan*)
-  or asymmetric equality.
-  :issue:`377`
+- Fix a bug where pickling or :func:`~copy.deepcopy`\ing an instance of a
+  dynamically-generated inverse class
+  (see :ref:`extending:Dynamic Inverse Class Generation`)
+  could change the order of its items.
+  :issue:`398`
 
-- Fix a bug where set operations between an :class:`~bidict.OrderedBidict`'s
-  keys view and its items view (or vice versa) raised :class:`TypeError`
-  (or, for ``==``, returned the wrong result)
-  rather than behaving like the equivalent plain :class:`dict` views.
-  :issue:`376`
+  Pickles written by bidict 0.23.1 and earlier can no longer be read.
+  They call the private ``BidictBase._from_other()``
+  with an argument it no longer accepts,
+  which was retained for no other purpose.
+  Pickle compatibility across versions
+  `has never been guaranteed
+  <https://docs.python.org/3/library/pickle.html#comparison-with-json>`__,
+  and dropping it here keeps
+  :meth:`~bidict.BidictBase.__reduce__` free of special cases.
+
+- Fix a bug where a non-ordered bidict's
+  :meth:`~bidict.BidictBase.values` view
+  could yield its values in a different order than
+  :meth:`~bidict.BidictBase.keys` yields the corresponding keys,
+  so that e.g. ``zip(b.keys(), b.values())``
+  silently paired up the wrong keys and values.
 
 - Fix a bug where :meth:`~bidict.MutableBidict.putall`
   and :meth:`~bidict.MutableBidict.update`
@@ -65,21 +75,10 @@ please consider sponsoring bidict on GitHub.`
   Rollback is now always enabled for these methods.
   :issue:`392`
 
-- Fix a bug where pickling or :func:`~copy.deepcopy`\ing an instance of a
-  dynamically-generated inverse class
-  (see :ref:`extending:Dynamic Inverse Class Generation`)
-  could change the order of its items.
-  :issue:`398`
-
-  Pickles written by bidict 0.23.1 and earlier can no longer be read.
-  They call the private ``BidictBase._from_other()``
-  with an argument it no longer accepts,
-  which was retained for no other purpose.
-  Pickle compatibility across versions
-  `has never been guaranteed
-  <https://docs.python.org/3/library/pickle.html#comparison-with-json>`__,
-  and dropping it here keeps
-  :meth:`~bidict.BidictBase.__reduce__` free of special cases.
+- Fix a bug where mutating an :class:`~bidict.OrderedBidict`
+  while iterating over it produced incorrect behavior
+  rather than raising an error.
+  :issue:`393`
 
 - A bidict and its inverse now always refer to the same object
   for each contained key and value,
@@ -92,10 +91,18 @@ please consider sponsoring bidict on GitHub.`
   *See also* :ref:`addendum:Equivalent but distinct \:class\:\`~collections.abc.Hashable\`\\s`
   :issue:`396`
 
-- Fix a bug where mutating an :class:`~bidict.OrderedBidict`
-  while iterating over it produced incorrect behavior
-  rather than raising an error.
-  :issue:`393`
+- Fix a bug where setting an already-contained (key, value) pair
+  spuriously raised :class:`~bidict.KeyAndValueDuplicationError`
+  or ``AssertionError`` (rather than being a no-op, as documented)
+  when the key or value has non-reflexive equality (e.g. *nan*)
+  or asymmetric equality.
+  :issue:`377`
+
+- Fix a bug where set operations between an :class:`~bidict.OrderedBidict`'s
+  keys view and its items view (or vice versa) raised :class:`TypeError`
+  (or, for ``==``, returned the wrong result)
+  rather than behaving like the equivalent plain :class:`dict` views.
+  :issue:`376`
 
 - A bidict backed by a :class:`dict` *subclass*
   now gets that mapping's own views from
@@ -117,35 +124,6 @@ please consider sponsoring bidict on GitHub.`
   whose backing mappings are not :class:`~collections.abc.Reversible`
   could not itself be reversible,
   even when it specified backing mappings that are.
-  The machinery that sets ``__reversed__`` automatically
-  misread the value it had assigned to the base class
-  as a deliberate override on the subclass.
-
-- Fix a bug where a non-ordered bidict's
-  :meth:`~bidict.BidictBase.values` view
-  could yield its values in a different order than
-  :meth:`~bidict.BidictBase.keys` yields the corresponding keys,
-  so that e.g. ``zip(b.keys(), b.values())``
-  silently paired up the wrong keys and values,
-  unlike the equivalent :class:`dict` views.
-  Overwriting a single item was enough to trigger this,
-  since ``values()`` was the inverse's ``keys()``,
-  whose order is the backing inverse mapping's
-  rather than this bidict's.
-  ``values()`` now yields values in the same order as ``keys()``
-  while remaining just as set-like,
-  and is reversible exactly when the bidict itself is.
-
-- Clarify the scope of the
-  :ref:`fail-clean guarantee <basic-usage:Updates Fail Clean>`:
-  a failed update always restores a bidict's *contents*,
-  and restores the order of its items as well
-  if it is an :class:`~bidict.OrderedBidict`,
-  but a non-ordered bidict may be left iterating
-  the same items in a different order,
-  since rolling back an overwrite reinserts the overwritten item
-  at the end of the backing mapping
-  rather than in its original position.
 
 - Fix a bug where an :class:`~bidict.OrderedBidictBase` that is not an
   :class:`~bidict.OrderedBidict`
@@ -154,16 +132,7 @@ please consider sponsoring bidict on GitHub.`
   :meth:`~bidict.OrderedBidictBase.items`,
   :meth:`~bidict.BidictBase.values`,
   :func:`repr`, and
-  :meth:`~bidict.BidictBase.equals_order_sensitive` –
-  namely the order of its backing mapping
-  rather than its own (correct) iteration order.
-  These views are now overridden on :class:`~bidict.OrderedBidictBase`
-  rather than on :class:`~bidict.OrderedBidict`,
-  since the two orders can already disagree
-  by the time :meth:`~bidict.BidictBase.__init__` returns
-  (a value-duplication overwrite keeps the existing item's position,
-  while the backing mapping gets the new key appended),
-  and so mutability was never what made the override necessary.
+  :meth:`~bidict.BidictBase.equals_order_sensitive`.
 
 
 0.23.1 (2024-02-18)
