@@ -109,19 +109,23 @@ please consider sponsoring bidict on GitHub.`
   :meth:`~bidict.MutableBidict.__setitem__`,
   :meth:`~bidict.MutableBidict.put`, and
   :meth:`~bidict.MutableBidict.forceput`
-  are now ~3.6x faster,
+  are now ~8x faster,
   and bulk updates are faster too.
-  Two sources of per-call overhead were removed
-  from the item iteration that every update goes through:
-  a :func:`typing.cast` whose type expression
+  Most of what a single-item write cost
+  was never the write:
+  it was a :func:`typing.cast` whose type expression
   Python was evaluating on every call
   (casts now pass their type expressions as strings,
   which type checkers still understand
   but Python never evaluates),
-  and an :func:`isinstance` check against a
+  an :func:`isinstance` check against a
   :func:`~typing.runtime_checkable` :class:`~typing.Protocol`,
   which is expensive when it fails
-  and was failing for the most common case.
+  and was failing for the most common case,
+  and the argument handling and bulk fast paths
+  of the general update machinery,
+  which a single item was being routed through
+  but could never benefit from.
 
 - A bidict backed by a :class:`dict` *subclass*
   now gets that mapping's own views from
