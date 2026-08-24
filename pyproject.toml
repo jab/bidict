@@ -92,6 +92,8 @@ line-length = 121
 
 [tool.ruff.lint]
 # https://docs.astral.sh/ruff/rules/
+# Whole linters, selected by prefix. Individual rules are selected by name below, since
+# a name says what it checks where a code does not.
 extend-select = [
   "A",
   "ARG",
@@ -115,18 +117,19 @@ extend-select = [
   "RUF",
   "SLOT",
   "T20",
-  "T100",
-  "TC006",
   "TID",
   "UP",
   "W",
   "YTT",
+  # Individual rules:
+  "debugger",
+  "runtime-cast-value",  # keeps cast()'s type expression from being evaluated at runtime
 ]
 ignore = [
-  "PLC0414", # Allow explicit re-exports (import X as X)
-  "PYI025",  # Prefer `Set` over `AbstractSet` for readability
-  "RUF067",  # Allow __init__.py to set __module__ on re-exported classes
-  "SIM118",  # https://github.com/astral-sh/ruff/issues/4481
+  "in-dict-keys",                          # https://github.com/astral-sh/ruff/issues/4481
+  "non-empty-init-module",                 # Allow __init__.py to set __module__ on re-exported classes
+  "unaliased-collections-abc-set-import",  # Prefer `Set` over `AbstractSet` for readability
+  "useless-import-alias",                  # Allow explicit re-exports (import X as X)
 ]
 typing-modules = ["bidict._typing"]
 

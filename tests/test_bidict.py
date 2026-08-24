@@ -715,7 +715,7 @@ def test_bimap_bad_inverse() -> None:
 
     bi = BimapBadInverse()
     with pytest.raises(NotImplementedError):
-        bi.inverse  # noqa: B018
+        bi.inverse  # ruff: ignore[useless-expression]
 
 
 skip_if_pypy = pytest.mark.skipif(
@@ -1215,7 +1215,7 @@ def assert_calls_match(call1: Callable[..., t.Any], call2: Callable[..., t.Any])
     for call in results:
         try:
             results[call] = call()
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:  # ruff: ignore[blind-except]
             results[call] = exc.__class__
     assert results[call1] == results[call2]
 

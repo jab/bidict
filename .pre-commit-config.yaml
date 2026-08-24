@@ -27,31 +27,31 @@ repos:
       - id: remove-tabs
 
   - repo: https://github.com/codespell-project/codespell
-    rev: v2.4.2
+    rev: v2.4.3
     hooks:
       - id: codespell
         args: ["--uri-ignore-words-list", "*"]  # https://github.com/codespell-project/codespell/issues/2473
 
   - repo: https://github.com/adhtruong/mirrors-typos
-    rev: v1.48.0
+    rev: v1.49.0
     hooks:
       - id: typos
         args: [--write-changes]
 
   - repo: https://github.com/astral-sh/ty-pre-commit
-    rev: v0.0.72
+    rev: v0.0.74
     hooks:
       - id: ty
 
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.15.20
+    rev: v0.16.4
     hooks:
       - id: ruff-check
         args: [--fix, --unsafe-fixes]
       - id: ruff-format
 
   - repo: https://github.com/shellcheck-py/shellcheck-py
-    rev: v0.11.0.1
+    rev: v0.11.0.1-1
     hooks:
       - id: shellcheck
         exclude: ^.envrc$

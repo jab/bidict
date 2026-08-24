@@ -41,7 +41,7 @@ extensions = [
     'sphinx.ext.viewcode',
 ]
 try:
-    import sphinx_copybutton  # noqa: F401
+    import sphinx_copybutton  # ruff: ignore[unused-import]
 except ImportError:
     pass
 else:
@@ -66,7 +66,7 @@ project = bidict_metadata['Name']
 # Extract author name from "Name <email>" format
 author_email = bidict_metadata['Author-email']
 author = author_email.split('<')[0].strip() if author_email else 'Joshua Bronson'
-copyright = f'2009-2026 {author}'  # noqa: A001
+copyright = f'2009-2026 {author}'  # ruff: ignore[builtin-variable-shadowing]
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
