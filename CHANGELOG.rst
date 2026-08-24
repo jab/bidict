@@ -104,6 +104,17 @@ please consider sponsoring bidict on GitHub.`
   rather than behaving like the equivalent plain :class:`dict` views.
   :issue:`376`
 
+- Speed up every bidict update.
+  :func:`typing.cast` has no effect at runtime,
+  but Python still evaluates the type expression passed to it,
+  and subscripting a :mod:`typing` alias is expensive.
+  Casts now pass their type expressions as strings,
+  which type checkers still understand
+  but Python never evaluates.
+  Single-item writes such as
+  :meth:`~bidict.MutableBidict.__setitem__`
+  are ~1.6x faster as a result.
+
 - A bidict backed by a :class:`dict` *subclass*
   now gets that mapping's own views from
   :meth:`~bidict.BidictBase.keys` and :meth:`~bidict.BidictBase.items`,

@@ -228,7 +228,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         # be pickled at all, since nothing else refers to it by name. __name__ is left alone, so
         # repr() is unaffected.
         inv_cls.__qualname__ = f'{cls.__qualname__}._inv_cls'
-        return t.cast(type[t.Self], inv_cls)
+        return t.cast('type[t.Self]', inv_cls)
 
     @classmethod
     def _inv_cls_dict_diff(cls) -> dict[str, t.Any]:

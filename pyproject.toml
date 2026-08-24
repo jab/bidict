@@ -116,6 +116,7 @@ extend-select = [
   "SLOT",
   "T20",
   "T100",
+  "TC006",
   "TID",
   "UP",
   "W",
