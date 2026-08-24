@@ -48,8 +48,20 @@ class MutableBidict(BidictBase[KT, VT], MutableBidirectionalMapping[KT, VT]):
         def inv(self) -> MutableBidict[VT, KT]: ...
 
     def _pop(self, key: KT) -> VT:
-        val = self._fwdm.pop(key)
-        del self._invm[val]
+        return self._pop_invm(key, self._fwdm.pop(key))
+
+    def _pop_invm(self, key: KT, val: VT) -> VT:
+        """Remove *val* from _invm, *key* having already been removed from _fwdm.
+
+        Puts (key, val) back if _invm refuses the removal, so that a backing mapping
+        rejecting one half of a removal cannot leave the two disagreeing. This is the
+        removing counterpart of the unwrites that :meth:`BidictBase._write` records.
+        """
+        try:
+            del self._invm[val]
+        except Exception:
+            self._fwdm[key] = val
+            raise
         return val
 
     @override
@@ -167,8 +179,7 @@ class MutableBidict(BidictBase[KT, VT], MutableBidirectionalMapping[KT, VT]):
         :raises KeyError: if *x* is empty.
         """
         key, val = self._fwdm.popitem()
-        del self._invm[val]
-        return key, val
+        return key, self._pop_invm(key, val)
 
     @override
     def update(self, arg: MapOrItems[KT, VT] = (), /, **kw: VT) -> None:

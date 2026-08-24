@@ -75,11 +75,12 @@ please consider sponsoring bidict on GitHub.`
   Rollback is now always enabled for these methods.
   :issue:`392`
 
-- Fix a bug where a write that a custom backing mapping refused
+- Fix a bug where a write or removal that a custom backing mapping refused
   could leave a custom bidict's two backing mappings out of sync,
   breaking the bidirectional invariant,
   rather than failing clean.
   :issue:`401`
+  :issue:`403`
 
 - Fix a bug where mutating an :class:`~bidict.OrderedBidict`
   while iterating over it produced incorrect behavior

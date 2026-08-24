@@ -579,6 +579,40 @@ def test_write_fails_clean_when_a_backing_mapping_refuses(
     assert refused == nwrites
 
 
+@pytest.mark.parametrize('bi_t', [bidict, OrderedBidict])
+@pytest.mark.parametrize(
+    ('remove', 'nwrites'),
+    [
+        # Removing an item takes two writes whichever way it is asked for: one to each
+        # backing mapping.
+        (lambda b: b.__delitem__(1), 2),
+        (lambda b: b.pop(1), 2),
+        (lambda b: b.popitem(), 2),
+    ],
+    ids=['delitem', 'pop', 'popitem'],
+)
+def test_remove_fails_clean_when_a_backing_mapping_refuses(bi_t: MBT[t.Any, t.Any], remove: t.Any, nwrites: int) -> None:
+    """Removing an item must fail clean when a backing mapping refuses part-way through.
+
+    The removing counterpart of test_write_fails_clean_when_a_backing_mapping_refuses:
+    removing from one backing mapping and then being refused by the other must not leave
+    the two disagreeing.
+    """
+    init = {1: 'a', 2: 'b'}
+    unchanged = dict(init), invdict(init)
+    refused = 0
+    for n in range(1, nwrites + 2):  # one past the last, which must find nothing left to refuse
+        bi = bidict_refusing_nth_write(bi_t, init, n)
+        try:
+            remove(bi)
+        except WriteRefused:
+            refused += 1
+            assert (dict(bi._fwdm), dict(bi._invm)) == unchanged, f'refusing write #{n} left bi changed'
+        else:
+            break
+    assert refused == nwrites
+
+
 @pytest.mark.parametrize('bi_t', mutable_bidict_types)
 @pytest.mark.parametrize('roundtrip', [copy, deepcopy, pickle_copy], ids=['copy', 'deepcopy', 'pickle'])
 def test_roundtrip_preserves_iteration_order(bi_t: MBT[t.Any, t.Any], roundtrip: t.Any) -> None:
