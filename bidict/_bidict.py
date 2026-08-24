@@ -21,6 +21,7 @@ from collections.abc import Mapping
 
 from ._abc import MutableBidirectionalMapping
 from ._base import BidictBase
+from ._base import Unwrites
 from ._dup import ON_DUP_DROP_OLD
 from ._dup import ON_DUP_RAISE
 from ._dup import OnDup
@@ -109,7 +110,20 @@ class MutableBidict(BidictBase[KT, VT], MutableBidirectionalMapping[KT, VT]):
             duplicates another existing item's, and *on_dup.val* is
             :attr:`~bidict.RAISE`.
         """
-        self._update(((key, val),), on_dup=on_dup)
+        # Rather than self._update(((key, val),), on_dup=on_dup): a single item needs none of
+        # the argument-type dispatch, iteration, or bulk fast paths that _update() provides, and
+        # they cost several times what writing the item does. Rollback is still required, since
+        # OrderedBidictBase._write() can fail after the write it delegates to has succeeded.
+        dedup_result = self._dedup(key, val, on_dup)
+        if dedup_result is None:
+            return
+        unwrites: Unwrites = []
+        try:
+            self._write(key, val, *dedup_result, unwrites=unwrites)
+        except Exception:
+            for fn, *args in reversed(unwrites):
+                fn(*args)
+            raise
 
     def forceput(self, key: KT, val: VT) -> None:
         """Associate *key* with *val* unconditionally.
