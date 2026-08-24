@@ -109,7 +109,7 @@ please consider sponsoring bidict on GitHub.`
   :meth:`~bidict.MutableBidict.__setitem__`,
   :meth:`~bidict.MutableBidict.put`, and
   :meth:`~bidict.MutableBidict.forceput`
-  are now ~8x faster,
+  are now ~6x faster,
   and bulk updates are faster too.
   Most of what they cost was never the write itself,
   but typing machinery being re-evaluated on every call.
