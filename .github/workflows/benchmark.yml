@@ -18,13 +18,16 @@ env:
   FORCE_COLOR: "1"
   PYTHONHASHSEED: "42"
   BASELINE_RELEASE_TAG: microbenchmarks
-  # pytest-benchmark compares wall-clock timings, which even under Cachegrind vary by about
-  # +-5% between runs on shared CI machines, so this is set above that to avoid crying wolf.
-  # The instruction-count check below is the sensitive one; this is a backstop.
-  PR_BENCHMARK_COMPARE_FAIL: min:10%
-  # Cachegrind counts instructions rather than measuring time, so this comparison is
-  # reproducible and can be held to a far tighter bound.
-  PR_INSTRUCTION_REGRESSION_PCT: "1.0"
+  # Cachegrind counts instructions rather than measuring time, so comparing them is
+  # reproducible and can be held to a tight bound. A change of more than this much in
+  # either direction is called out.
+  #
+  # There is deliberately no wall-clock threshold. The timings pytest-benchmark reports
+  # here are measured *under* Cachegrind, and vary far more between runs of identical code
+  # than any change worth catching: revisions whose bidict/ was byte-identical have been
+  # seen to differ by tens of percent, in both directions. They are still compared in the
+  # run output, which is archived below for eyeballing, but nothing keys off them.
+  INSTRUCTION_CHANGE_PCT: "1.0"
 
 jobs:
   benchmark:
@@ -67,11 +70,6 @@ jobs:
       - name: benchmark and compare to baseline
         id: benchmark
         run: |
-          compare_fail_expr=
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
-            compare_fail_expr="${PR_BENCHMARK_COMPARE_FAIL}"
-          fi
-
           set +e
           nix develop .#benchmark --command bash -c '
             set -euo pipefail
@@ -85,40 +83,31 @@ jobs:
             curl -L -s -o baseline.json "${{ steps.metadata.outputs.baseline_url }}"
             line1=$(head -n1 baseline.json)
             [ "$line1" = "{" ]
-            compare_fail_args=()
-            if [ -n "${COMPARE_FAIL_EXPR:-}" ]; then
-              compare_fail_args+=(--benchmark-compare-fail="$COMPARE_FAIL_EXPR")
-            fi
             ./cachegrind.py pytest -c /dev/null -n0 \
                 --benchmark-autosave \
                 --benchmark-columns=min,rounds,iterations \
                 --benchmark-disable-gc \
                 --benchmark-group-by=name \
                 --benchmark-compare=baseline.json \
-                "${compare_fail_args[@]}" \
                 microbenchmarks.py
           ' 2>&1 | tee benchmark-output.txt
           benchmark_status=${PIPESTATUS[0]}
-          echo "exit_code=$benchmark_status" >> "$GITHUB_OUTPUT"
+          # Nothing here is allowed to fail the job except the run itself failing, which
+          # means pytest could not benchmark the revision at all.
           if [ "$benchmark_status" -eq 0 ]; then
             result_state=ok
-            result_message='no threshold-triggering regressions detected'
-          elif grep -Fq 'Performance has regressed:' benchmark-output.txt; then
-            result_state=regression
-            result_message="one or more benchmarks slowed down by at least ${PR_BENCHMARK_COMPARE_FAIL}; workflow kept green because PR benchmarking is informational"
+            result_message='benchmarks ran'
           else
             result_state=failed
             result_message='benchmark execution failed'
           fi
-          echo "result_state=$result_state" >> "$GITHUB_OUTPUT"
-          echo "result_message=$result_message" >> "$GITHUB_OUTPUT"
-          if [ "$benchmark_status" -ne 0 ] && [ "${{ github.event_name }}" = "pull_request" ]; then
-            echo "::warning::Benchmark comparison exceeded the informational PR threshold (${PR_BENCHMARK_COMPARE_FAIL}) or the benchmark run failed; see the job summary and artifact for details."
-            exit 0
-          fi
+          {
+            echo "exit_code=$benchmark_status"
+            echo "result_state=$result_state"
+            echo "result_message=$result_message"
+          } >> "$GITHUB_OUTPUT"
           exit "$benchmark_status"
         env:
-          COMPARE_FAIL_EXPR: ${{ github.event_name == 'pull_request' && env.PR_BENCHMARK_COMPARE_FAIL || '' }}
           CACHEGRIND_ESTIMATE_OUT: ${{ github.workspace }}/instructions.txt
       - name: compare instruction estimate to baseline
         id: instructions
@@ -126,9 +115,9 @@ jobs:
         env:
           INSTR_URL: ${{ steps.metadata.outputs.instr_url }}
         run: |
-          # Cachegrind counts instructions rather than measuring time, so this comparison is
-          # reproducible where the wall-clock one is not: two runs of the same revision have
-          # been measured 0.13% apart, against roughly +-5% for the per-benchmark timings.
+          # This comparison is reproducible where a wall-clock one is not: two runs of the
+          # same revision have been measured 0.13% apart, against swings of tens of percent
+          # for the per-benchmark timings.
           state=unavailable
           delta=
           now=
@@ -143,13 +132,11 @@ jobs:
             now=$(cat instructions.txt)
             baseline=$(cat instructions-baseline.txt)
             delta=$(python -c "print(f'{($now - $baseline) / $baseline * 100:+.2f}')")
-            over=$(python -c "print(int($delta > $PR_INSTRUCTION_REGRESSION_PCT))")
-            if [ "$over" = "1" ]; then
-              state=regression
-              summary="instruction count ${delta}% vs baseline, over the ${PR_INSTRUCTION_REGRESSION_PCT}% threshold"
+            state=$(python -c "d = $delta; p = $INSTRUCTION_CHANGE_PCT; print('regression' if d > p else 'improved' if d < -p else 'ok')")
+            if [ "$state" = regression ]; then
+              summary="${delta}% vs baseline, over the ${INSTRUCTION_CHANGE_PCT}% threshold"
             else
-              state=ok
-              summary="instruction count ${delta}% vs baseline"
+              summary="${delta}% vs baseline"
             fi
           fi
           {
@@ -162,7 +149,7 @@ jobs:
           # Warn only on pull requests, matching the timing check: on a push the baseline is
           # whatever was last published, so drift since then is expected rather than notable.
           if [ "$state" = regression ] && [ "${{ github.event_name }}" = "pull_request" ]; then
-            echo "::warning::Instruction count regressed by ${delta}% vs the baseline (threshold ${PR_INSTRUCTION_REGRESSION_PCT}%)."
+            echo "::warning::Instruction count regressed by ${delta}% vs the baseline (threshold ${INSTRUCTION_CHANGE_PCT}%)."
           fi
 
       - name: summarize benchmark result
@@ -173,13 +160,7 @@ jobs:
             echo
             echo "- Baseline asset: \`${{ steps.metadata.outputs.baseline_asset_name }}\`"
             echo "- Benchmark run: [${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID})"
-            if [ "${{ github.event_name }}" = "pull_request" ]; then
-              echo "- PR mode: informational only"
-              echo "- Warning threshold: \`${PR_BENCHMARK_COMPARE_FAIL}\`"
-            else
-              echo "- PR mode: n/a"
-              echo "- Warning threshold: not applied"
-            fi
+            echo "- Instruction threshold: \`${INSTRUCTION_CHANGE_PCT}%\`"
             echo "- Result: ${{ steps.benchmark.outputs.result_message }}"
             echo "- Instruction count: ${{ steps.instructions.outputs.summary }}"
           } >> "$GITHUB_STEP_SUMMARY"
@@ -197,36 +178,27 @@ jobs:
           mkdir -p benchmark-pr-comment
           run_url="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
           case "$INSTR_STATE" in
-            regression) instr_line=":warning: Instruction count regressed: ${INSTR_SUMMARY}." ;;
-            ok)         instr_line=":white_check_mark: Instruction count within threshold: ${INSTR_SUMMARY}." ;;
-            *)          instr_line=":grey_question: Instruction count: ${INSTR_SUMMARY}." ;;
+            improved)   headline=":zap: Instruction count improved: ${INSTR_SUMMARY}." ;;
+            regression) headline=":warning: Instruction count regressed: ${INSTR_SUMMARY}." ;;
+            ok)         headline=":white_check_mark: Instruction count within threshold: ${INSTR_SUMMARY}." ;;
+            *)          headline=":grey_question: Instruction count: ${INSTR_SUMMARY}." ;;
           esac
-          case "$RESULT_STATE" in
-            ok)
-              status_line=':white_check_mark: No threshold-triggering regressions detected.'
-              ;;
-            regression)
-              status_line=':warning: Informational benchmark regression detected.'
-              ;;
-            *)
-              status_line=':warning: Benchmark execution failed.'
-              ;;
-          esac
+          if [ "$RESULT_STATE" != ok ]; then
+            headline=":x: Benchmark execution failed, so there is nothing to compare."
+          fi
           cat > benchmark-pr-comment/comment.md <<EOF
           <!-- bidict-benchmark-comment -->
           ## Benchmark report
 
-          ${instr_line}
-
-          ${status_line}
+          ${headline}
 
           - Baseline asset: \`${BASELINE_ASSET_NAME}\`
-          - Instruction threshold: \`${PR_INSTRUCTION_REGRESSION_PCT}%\` (reproducible; the sensitive check)
-          - Timing threshold: \`${PR_BENCHMARK_COMPARE_FAIL}\` (wall clock, ~+-5% run-to-run noise)
-          - Result: ${RESULT_MESSAGE}
+          - Instruction threshold: \`${INSTRUCTION_CHANGE_PCT}%\`
           - Run: [benchmark workflow run](${run_url})
 
-          _This benchmark check is informational and does not block merging._
+          _Instruction counts are reported for information and do not block merging. Wall-clock
+          timings are compared in the run output too, but they are measured under Cachegrind and
+          vary too much between runs to report on._
           EOF
           python - <<'PY'
           import json
@@ -238,7 +210,7 @@ jobs:
               'result_state': os.environ['RESULT_STATE'],
               'result_message': os.environ['RESULT_MESSAGE'],
               'baseline_asset_name': os.environ['BASELINE_ASSET_NAME'],
-              'threshold': os.environ['PR_BENCHMARK_COMPARE_FAIL'],
+              'instruction_threshold_pct': os.environ['INSTRUCTION_CHANGE_PCT'],
               'instruction_state': os.environ['INSTR_STATE'],
               'instruction_summary': os.environ['INSTR_SUMMARY'],
               'instruction_delta_pct': os.environ['INSTR_DELTA'],
