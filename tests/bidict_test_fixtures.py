@@ -330,3 +330,40 @@ BAD_ITEMS = (
     (TypeError, (['unhashable'], 0)),
     (ValueError, (1, 2, 'bad len')),
 )
+
+
+class WriteRefused(Exception):
+    """Raised by the backing mappings that :func:`bidict_refusing_nth_write` provides."""
+
+
+def bidict_refusing_nth_write(bi_t: BT[t.Any, t.Any], init: Mapping[t.Any, t.Any], n: int) -> BB[t.Any, t.Any]:
+    """Return a *bi_t* containing *init* whose nth write from now on raises :class:`WriteRefused`.
+
+    Stands in for a custom bidict's backing mapping that may raise on a write it will not accept,
+    e.g. SortedDict's TypeError when a key is not orderable with the keys already contained.
+
+    Both backing mappings are given the same class, so the count spans them
+    the way a single _write() does.
+    """
+    counting = False
+    counter = iter(range(1, 1000))
+
+    def tick() -> None:
+        if counting and next(counter) == n:
+            raise WriteRefused
+
+    class RefusingDict(UserDict[t.Any, t.Any]):
+        @override
+        def __setitem__(self, key: t.Any, item: t.Any) -> None:
+            tick()
+            super().__setitem__(key, item)
+
+        @override
+        def __delitem__(self, key: t.Any) -> None:
+            tick()
+            super().__delitem__(key)
+
+    bi_t_refusing = type(f'Refusing{bi_t.__name__}', (bi_t,), {'_fwdm_cls': RefusingDict, '_invm_cls': RefusingDict})
+    bi = bi_t_refusing(init)
+    counting = True  # writing init above must not count
+    return bi

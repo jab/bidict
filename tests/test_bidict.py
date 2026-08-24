@@ -47,9 +47,12 @@ from bidict_test_fixtures import UserBiBackedByDictSub
 from bidict_test_fixtures import UserBiNotOwnInv
 from bidict_test_fixtures import UserOrderedBi
 from bidict_test_fixtures import UserOrderedBiBase
+from bidict_test_fixtures import WriteRefused
+from bidict_test_fixtures import bidict_refusing_nth_write
 from bidict_test_fixtures import bidict_types
 from bidict_test_fixtures import bomb
 from bidict_test_fixtures import dedup
+from bidict_test_fixtures import invdict
 from bidict_test_fixtures import mutable_bidict_types
 from bidict_test_fixtures import pickle_copy
 from bidict_test_fixtures import powerset
@@ -537,6 +540,43 @@ def test_update_with_bad_last_item_fails_clean(bi_t: MBT[t.Any, t.Any], on_dup: 
             # bad item's reason regardless of the on_dup.
             updates = [(3, 3), (4, 4), bad]
             assert_update_fails_clean(b, updates, exc, on_dup)
+
+
+@pytest.mark.parametrize('bi_t', [bidict, OrderedBidict])
+@pytest.mark.parametrize(
+    ('init', 'write', 'nwrites'),
+    [
+        # One case per kind of duplication BidictBase._write() handles, with the number of writes
+        # to the backing mappings it performs: two to insert the new item, plus one to remove each
+        # item that the new one displaces.
+        ({1: 'a'}, lambda b: b.__setitem__(2, 'b'), 2),
+        ({1: 'a'}, lambda b: b.__setitem__(1, 'z'), 3),
+        ({1: 'a'}, lambda b: b.forceput(9, 'a'), 3),
+        ({1: 'a', 2: 'b'}, lambda b: b.forceput(1, 'b'), 4),
+    ],
+    ids=['no-dup', 'dup-key', 'dup-val', 'dup-key-and-val'],
+)
+def test_write_fails_clean_when_a_backing_mapping_refuses(
+    bi_t: MBT[t.Any, t.Any], init: dict[t.Any, t.Any], write: t.Any, nwrites: int
+) -> None:
+    """Writing one item must fail clean when a backing mapping refuses part-way through.
+
+    _write() sets both backing mappings, and for some kinds of duplication deletes from them too.
+    Backing mappings are user-supplied (see _fwdm_cls and _invm_cls), so any one of those writes
+    can be refused, and everything already written must then be undone.
+    """
+    unchanged = dict(init), invdict(init)
+    refused = 0
+    for n in range(1, nwrites + 2):  # one past the last, which must find nothing left to refuse
+        bi = bidict_refusing_nth_write(bi_t, init, n)
+        try:
+            write(bi)
+        except WriteRefused:
+            refused += 1
+            assert (dict(bi._fwdm), dict(bi._invm)) == unchanged, f'refusing write #{n} left bi changed'
+        else:
+            break
+    assert refused == nwrites
 
 
 @pytest.mark.parametrize('bi_t', mutable_bidict_types)
