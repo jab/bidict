@@ -13,6 +13,27 @@ log() {
 }
 
 
+# prek auto-update moves the ruff pin in .pre-commit-config.yaml but knows nothing about
+# pyproject.toml's required-version, which exists to reject a local ruff older than that pin.
+# Left to drift, the floor keeps passing versions that lint with fewer rules than CI uses.
+check_ruff_required_version() {
+  local pinned required
+  pinned=$(grep -A1 'astral-sh/ruff-pre-commit' .pre-commit-config.yaml | sed -n 's/^ *rev: v//p')
+  required=$(sed -n 's/^required-version = ">=\(.*\)"$/\1/p' pyproject.toml)
+  if [[ -z $pinned || -z $required ]]; then
+    log "Warning: could not compare ruff's pinned version to pyproject.toml's required-version."
+    log "         Check by hand that they agree, and fix this check if its parsing has gone stale."
+    return
+  fi
+  if [[ $pinned != "$required" ]]; then
+    log "Action needed: ruff is pinned to v$pinned, but required-version says >=$required."
+    log "               Set required-version = \">=$pinned\" in pyproject.toml, so that a ruff"
+    log "               older than the pinned one fails instead of linting with fewer rules."
+    log
+  fi
+}
+
+
 main() {
   declare -r hint="Hint: Use 'nix develop' to bootstrap a development environment"
 
@@ -31,6 +52,7 @@ main() {
   prek auto-update
   log "Upgrading pre-commit hooks: Done"
   log
+  check_ruff_required_version
   log "Reminders:"
   log " - Check release notes of upgraded packages for anything that affects bidict."
   log " - Ensure tests pass for all supported Python versions."

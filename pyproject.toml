@@ -89,6 +89,10 @@ missing-override-decorator = "error"  # require @override on overriding methods
 [tool.ruff]
 preview = true
 line-length = 121
+# Ruff's default rule set grows between minor versions, so an older ruff than the one pinned in
+# .pre-commit-config.yaml lints with fewer rules and passes code that CI rejects. Fail on that
+# rather than let it be discovered in CI. ./update_dev_dependencies checks these two stay in step.
+required-version = ">=0.16.4"
 
 [tool.ruff.lint]
 # https://docs.astral.sh/ruff/rules/
@@ -136,8 +140,7 @@ typing-modules = ["bidict._typing"]
 
 # Suppressions that are properties of a whole file rather than of one line in it.
 [tool.ruff.lint.per-file-ignores]
-"cachegrind.py" = ["print"]                      # printing its results is what this script is for
-"docs/conf.py" = ["builtin-variable-shadowing"]  # Sphinx requires the copyright variable be named that
+"cachegrind.py" = ["print"]  # printing its results is what this script is for
 
 [tool.ruff.lint.isort]
 force-single-line = true
