@@ -23,8 +23,8 @@ please consider sponsoring bidict on GitHub.`
    Click the "Watch" dropdown, choose "Custom", and then choose "Releases".
 
 
-0.24.0 (not yet released)
--------------------------
+0.24.0 (2026-08-24)
+-------------------
 
 - Remove ``bidict.metadata`` and associated metadata from the
   :mod:`bidict` module (e.g. ``bidict.__version__``).
