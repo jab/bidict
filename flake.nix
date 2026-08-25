@@ -11,9 +11,11 @@
     let
       pkgs = import nixpkgs { inherit system; };
       lib = pkgs.lib;
+      # TODO: Change to pkgs.python315 once we pick up a stable release:
       latestPython = pkgs.python314;
       commonTools = with pkgs; [prek uv];
       supportedPythons = with pkgs; [
+        python315
         python314
         python313
         python312
@@ -116,6 +118,10 @@
         test314 = mkTestShell {
           python = pkgs.python314;
           projectEnv = ".venv-test-3.14";
+        };
+        test315 = mkTestShell {
+          python = pkgs.python315;
+          projectEnv = ".venv-test-3.15";
         };
         testPyPy311 = mkTestShell {
           python = pkgs.pypy3;

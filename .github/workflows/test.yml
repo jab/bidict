@@ -28,10 +28,15 @@ jobs:
   test-all:
     name: ${{ matrix.python }}
     runs-on: ubuntu-24.04
+    continue-on-error: ${{ matrix.allow_failure || false }}
     strategy:
       fail-fast: false
       matrix:
         include:
+          - python: "3.15"
+            shell: test315
+            # TODO: Drop allow_failure once 3.15 is stable:
+            allow_failure: true
           - python: "3.14"
             shell: test314
             enable_coverage: true
