@@ -30,6 +30,10 @@ please consider sponsoring bidict on GitHub.`
   by upgrading to a fixed version of ``uv_build``.
   :issue:`406`
 
+- Fix a test failure on Python 3.15
+  caused by changes to :class:`~collections.UserDict`.
+  :issue:`407`
+
 
 0.24.0 (2026-08-24)
 -------------------

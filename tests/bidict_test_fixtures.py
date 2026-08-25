@@ -14,6 +14,7 @@ from collections import UserDict
 from collections.abc import Iterable
 from collections.abc import KeysView
 from collections.abc import Mapping
+from collections.abc import MutableMapping
 from collections.abc import Reversible
 from dataclasses import dataclass
 from itertools import chain
@@ -362,6 +363,13 @@ def bidict_refusing_nth_write(bi_t: BT[t.Any, t.Any], init: Mapping[t.Any, t.Any
         def __delitem__(self, key: t.Any) -> None:
             tick()
             super().__delitem__(key)
+
+        @override
+        def popitem(self) -> tuple[t.Any, t.Any]:
+            # Python 3.15 gave UserDict a popitem() of its own that goes straight to self.data,
+            # bypassing __delitem__ and so escaping the count above. Take MutableMapping's
+            # implementation, which removes via __delitem__ on every supported Python.
+            return MutableMapping.popitem(self)
 
     bi_t_refusing = type(f'Refusing{bi_t.__name__}', (bi_t,), {'_fwdm_cls': RefusingDict, '_invm_cls': RefusingDict})
     bi = bi_t_refusing(init)
