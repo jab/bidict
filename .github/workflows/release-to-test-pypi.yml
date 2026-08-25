@@ -29,6 +29,8 @@ jobs:
         # requires, and only fetches uv_build from PyPI otherwise. Either way, that floor
         # is what keeps a too-old backend from writing the wheel's RECORD (#406).
         run: nix develop .#build --command uv build
+      - name: check distributions
+        run: nix develop .#build --command ./check_dist
       - name: Publish
         uses: pypa/gh-action-pypi-publish@cef221092ed1bacb1cc03d23a2d87d1d172e277b
         with:

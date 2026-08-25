@@ -1,0 +1,71 @@
+#!/usr/bin/env bash
+#
+# Copyright 2009-2026 Joshua Bronson. All rights reserved.
+#
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
+#
+# Inspect built distributions before they are published. Nothing else does: the tests import
+# from a wheel but never look inside one, and the release workflows went straight from `uv build`
+# to publishing. That is how 0.24.0 shipped a wheel whose RECORD listed hex-encoded hashes
+# instead of the urlsafe-base64 the spec requires (#406) with every check still green.
+#
+# Usage: ./check_dist [dist_dir]   (dist_dir defaults to ./dist, where `uv build` writes)
+
+set -euo pipefail
+
+log() {
+  >&2 printf "> %s\n" "$@"
+}
+
+
+main() {
+  local dist_dir=${1:-dist}
+  declare -r hint="Hint: Use 'nix develop' to bootstrap a development environment"
+
+  if ! command -v uv >/dev/null 2>&1; then
+    log "Error: No 'uv' on PATH. $hint"
+    exit 1
+  fi
+
+  shopt -s nullglob
+  local -a wheels=("$dist_dir"/*.whl)
+  local -a sdists=("$dist_dir"/*.tar.gz)
+  # Guard against a false pass: with no artifacts to check, everything below trivially succeeds.
+  if [[ ${#wheels[@]} -eq 0 || ${#sdists[@]} -eq 0 ]]; then
+    log "Error: expected at least one wheel and one sdist in '$dist_dir'," \
+        "       but found ${#wheels[@]} and ${#sdists[@]}. Run 'uv build' first?"
+    exit 1
+  fi
+
+  # The check that #406 needed. installer recomputes the hash and size of every file in the
+  # wheel and compares them to what RECORD claims, so a RECORD that is malformed (not just
+  # stale) fails here on every entry.
+  log "Validating each wheel's RECORD..."
+  uv run --no-project --with installer python - "${wheels[@]}" <<'PY'
+import sys
+
+from installer.sources import WheelFile
+
+for path in sys.argv[1:]:
+    try:
+        with WheelFile.open(path) as wheel:
+            wheel.validate_record()
+    except Exception as exc:  # noqa: BLE001  (report the issues, not a traceback)
+        print(f'RECORD INVALID: {path}', file=sys.stderr)
+        for issue in getattr(exc, 'issues', None) or [exc]:
+            print(f'  {issue}', file=sys.stderr)
+        sys.exit(1)
+    print(f'RECORD ok: {path}')
+PY
+
+  # Orthogonal to the above: catches metadata that PyPI would reject or render wrong, e.g. a
+  # README that no longer parses as reStructuredText.
+  log "Checking metadata renders..."
+  uv run --no-project --with twine twine check "${wheels[@]}" "${sdists[@]}"
+
+  log "Distributions OK: ${#wheels[@]} wheel(s), ${#sdists[@]} sdist(s) in '$dist_dir'"
+}
+
+main "$@"
