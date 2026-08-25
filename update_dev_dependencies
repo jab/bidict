@@ -34,6 +34,46 @@ check_ruff_required_version() {
 }
 
 
+# Zero-pad a version into a fixed-width string, so that two of them compare correctly with the
+# lexicographic [[ < ]], which is available everywhere `sort -V` is not (e.g. BSD/macOS sort).
+version_key() {
+  local major minor patch
+  IFS=. read -r major minor patch <<<"$1"
+  printf '%05d%05d%05d' "${major:-0}" "${minor:-0}" "${patch:-0}"
+}
+
+
+# The wheel's RECORD is written by uv_build, whose version comes from pyproject.toml's
+# [build-system] requires -- not from the uv on PATH, and not from uv.lock. Nothing else here
+# touches that pin, and left to drift it is what shipped 0.24.0 with hex RECORD hashes (#406).
+# The pin's floor guards correctness on its own; what needs watching is its ceiling, which
+# should keep covering the uv in uv.lock, so that building a release goes on using that uv's
+# built-in uv_build rather than quietly downloading a different version to build with.
+check_uv_build_pin() {
+  local locked floor ceiling
+  locked=$(sed -n '/^name = "uv"$/{n;s/^version = "\(.*\)"$/\1/p;}' uv.lock)
+  floor=$(sed -n 's/^requires = \["uv_build>=\([^,"]*\),.*$/\1/p' pyproject.toml)
+  ceiling=$(sed -n 's/^requires = \["uv_build>=[^,]*,<\([^"]*\)"\].*$/\1/p' pyproject.toml)
+  if [[ -z $locked || -z $floor || -z $ceiling ]]; then
+    log "Warning: could not compare uv.lock's uv version to pyproject.toml's uv_build pin."
+    log "         Check by hand that they agree, and fix this check if its parsing has gone stale."
+    return
+  fi
+  if [[ ! $(version_key "$locked") < $(version_key "$ceiling") ]]; then
+    log "Action needed: uv.lock has uv $locked, past uv_build>=$floor,<$ceiling's ceiling."
+    log "               Raise that ceiling in pyproject.toml to cover $locked, so that building a"
+    log "               release keeps using uv's own uv_build instead of downloading another."
+    log "               Leave the floor alone: it is what keeps #406 from recurring."
+    log
+  elif [[ $(version_key "$locked") < $(version_key "$floor") ]]; then
+    log "Action needed: uv.lock has uv $locked, below uv_build>=$floor,<$ceiling's floor, so a"
+    log "               release would be built by a downloaded uv_build rather than this uv's own."
+    log "               Upgrade uv rather than lowering the floor, which guards against #406."
+    log
+  fi
+}
+
+
 main() {
   declare -r hint="Hint: Use 'nix develop' to bootstrap a development environment"
 
@@ -53,6 +93,7 @@ main() {
   log "Upgrading pre-commit hooks: Done"
   log
   check_ruff_required_version
+  check_uv_build_pin
   log "Reminders:"
   log " - Check release notes of upgraded packages for anything that affects bidict."
   log " - Ensure tests pass for all supported Python versions."

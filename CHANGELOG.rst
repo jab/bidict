@@ -23,6 +23,14 @@ please consider sponsoring bidict on GitHub.`
    Click the "Watch" dropdown, choose "Custom", and then choose "Releases".
 
 
+0.24.1 (not yet released)
+-------------------------
+
+- Fix the ``RECORD`` file in the published 0.24.0 wheel
+  by upgrading to a fixed version of ``uv_build``.
+  :issue:`406`
+
+
 0.24.0 (2026-08-24)
 -------------------
 

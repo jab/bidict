@@ -69,7 +69,17 @@ module-root = ""
 source-exclude = [".mypy_cache"]
 
 [build-system]
-requires = ["uv_build>=0.7.13,<0.8.0"]
+# uv_build, not the uv on PATH, is what writes the wheel's RECORD, and it comes from this pin.
+# The floor is load-bearing: 0.24.0 shipped hex-encoded RECORD hashes (#406) because the pin
+# read >=0.7.13,<0.8.0, so it kept resolving uv_build to 0.7.22 long after 0.8.13 fixed them to
+# be urlsafe-base64 as the spec requires, and 0.7.x got no backport. Keeping the floor at that
+# fix, rather than raising it in lockstep with the ceiling, means every version this admits
+# writes a valid RECORD even if the ceiling goes stale again, and leaves distro packagers a
+# wide range to build the sdist against whatever uv_build they ship.
+# The ceiling is only change control, and is what uv recommends (it warns without one). Keep it
+# covering the uv in uv.lock, so `uv build` keeps using that uv's built-in uv_build rather than
+# downloading one; update_dev_dependencies checks this.
+requires = ["uv_build>=0.8.13,<0.12"]
 build-backend = "uv_build"
 
 [tool.ty.src]
