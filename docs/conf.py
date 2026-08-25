@@ -18,6 +18,7 @@
 
 """Sphinx configuration."""
 
+import importlib.util
 from importlib.metadata import metadata
 
 
@@ -40,11 +41,7 @@ extensions = [
     'sphinx.ext.intersphinx',
     'sphinx.ext.viewcode',
 ]
-try:
-    import sphinx_copybutton  # ruff: ignore[unused-import]
-except ImportError:
-    pass
-else:
+if importlib.util.find_spec('sphinx_copybutton'):
     extensions.append('sphinx_copybutton')
 
 intersphinx_mapping = {'python': ('https://docs.python.org/3', None)}
@@ -66,7 +63,7 @@ project = bidict_metadata['Name']
 # Extract author name from "Name <email>" format
 author_email = bidict_metadata['Author-email']
 author = author_email.split('<')[0].strip() if author_email else 'Joshua Bronson'
-copyright = f'2009-2026 {author}'  # ruff: ignore[builtin-variable-shadowing]
+copyright = f'2009-2026 {author}'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the

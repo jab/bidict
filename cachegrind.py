@@ -59,7 +59,7 @@ def run_with_cachegrind(args_list: list[str]) -> tuple[int, dict[str, int]]:
 
     For now we just ignore program output, and in general this is not robust.
     """
-    temp_file = NamedTemporaryFile('r+')  # ruff: ignore[open-file-with-context-handler]
+    temp_file = NamedTemporaryFile('r+', encoding='utf-8')  # ruff: ignore[open-file-with-context-handler]
     # Don't raise if the program fails (to support e.g. `pytest --benchmark-compare-fail=...`),
     # but do return its status so that main() can exit with it. Callers such as the benchmark
     # workflow rely on it to tell a benchmark regression from a clean run.
@@ -137,13 +137,13 @@ def main() -> None:
     returncode, results = run_with_cachegrind(sys.argv[1:])
     counts = get_counts(results)
     estimate = combined_instruction_estimate(counts)
-    print(f'{"*" * 80}\nCombined instruction estimate: {estimate:,}')  # ruff: ignore[print]
+    print(f'{"*" * 80}\nCombined instruction estimate: {estimate:,}')
     # Unlike the wall-clock figures pytest-benchmark records, which vary with whatever else is
     # running on the machine, this estimate counts instructions and so is reproducible. Write it
     # out when asked, so a caller can compare it between revisions without a noise allowance.
     estimate_out = os.environ.get('CACHEGRIND_ESTIMATE_OUT')
     if estimate_out:
-        Path(estimate_out).write_text(f'{estimate}\n')
+        Path(estimate_out).write_text(f'{estimate}\n', encoding='utf-8')
     sys.exit(returncode)
 
 

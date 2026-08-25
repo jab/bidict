@@ -121,9 +121,10 @@ extend-select = [
   "UP",
   "W",
   "YTT",
-  # Individual rules:
+  # Individual rules, from linters whose other rules do not suit this codebase:
   "debugger",
-  "runtime-cast-value",  # keeps cast()'s type expression from being evaluated at runtime
+  "runtime-cast-value",   # keeps cast()'s type expression from being evaluated at runtime
+  "unspecified-encoding",  # text I/O should not depend on the machine's locale
 ]
 ignore = [
   "in-dict-keys",                          # https://github.com/astral-sh/ruff/issues/4481
@@ -132,6 +133,11 @@ ignore = [
   "useless-import-alias",                  # Allow explicit re-exports (import X as X)
 ]
 typing-modules = ["bidict._typing"]
+
+# Suppressions that are properties of a whole file rather than of one line in it.
+[tool.ruff.lint.per-file-ignores]
+"cachegrind.py" = ["print"]                      # printing its results is what this script is for
+"docs/conf.py" = ["builtin-variable-shadowing"]  # Sphinx requires the copyright variable be named that
 
 [tool.ruff.lint.isort]
 force-single-line = true
