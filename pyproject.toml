@@ -1,6 +1,6 @@
 [project]
 name = "bidict"
-version = "0.24.1.dev0"
+version = "0.24.1"
 description = "The bidirectional mapping library for Python."
 authors = [{ name = "Joshua Bronson", email = "jabronson@gmail.com" }]
 license = "MPL-2.0"
