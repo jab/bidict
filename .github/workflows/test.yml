@@ -8,7 +8,7 @@ name: tests
         type: choice
         description: (optional)
         options:
-        - default
+        - less-examples
         - more-examples
   schedule:
     - cron: "15 16 * * *"
@@ -59,8 +59,12 @@ jobs:
           use-flakehub: false
           use-gha-cache: true
       - name: set hypothesis profile
+        # Both choices are profiles bidict registers in tests/conftest.py, so no run lands on
+        # hypothesis's built-in `default`, whose wall-clock deadline fails tests for being slow
+        # on their first call. Using less-examples here also stops CI, which gates merges, from
+        # generating fewer examples than a plain local `pytest` does.
         run: |
-          hypothesis_profile=${{ github.event.inputs.hypothesis_profile || (github.event_name == 'schedule' && 'more-examples' || 'default') }}
+          hypothesis_profile=${{ github.event.inputs.hypothesis_profile || (github.event_name == 'schedule' && 'more-examples' || 'less-examples') }}
           echo PYTEST_ADDOPTS="$PYTEST_ADDOPTS --hypothesis-profile=$hypothesis_profile" >> "$GITHUB_ENV"
       - name: cache .hypothesis dir
         uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9

@@ -7,5 +7,8 @@
 from hypothesis import settings
 
 
-settings.register_profile('less-examples', max_examples=200, stateful_step_count=100)
+# deadline=None because hypothesis times each call in wall-clock, and the first call of any test
+# can spend a few hundred ms on warm-up that later calls do not, which can trip the 200ms default
+# when the machine is loaded.
+settings.register_profile('less-examples', deadline=None, max_examples=200, stateful_step_count=100)
 settings.register_profile('more-examples', deadline=None, max_examples=500, stateful_step_count=200)
