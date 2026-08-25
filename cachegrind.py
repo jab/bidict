@@ -59,6 +59,8 @@ def run_with_cachegrind(args_list: list[str]) -> tuple[int, dict[str, int]]:
 
     For now we just ignore program output, and in general this is not robust.
     """
+    # Deliberately not a context manager: this stays open across the run below, which writes to
+    # it, and is read afterwards.
     temp_file = NamedTemporaryFile('r+', encoding='utf-8')  # ruff: ignore[open-file-with-context-handler]
     # Don't raise if the program fails (to support e.g. `pytest --benchmark-compare-fail=...`),
     # but do return its status so that main() can exit with it. Callers such as the benchmark

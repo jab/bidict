@@ -136,9 +136,9 @@ ignore = [
   "unaliased-collections-abc-set-import",  # Prefer `Set` over `AbstractSet` for readability
   "useless-import-alias",                  # Allow explicit re-exports (import X as X)
 ]
+# Rules that know about typing should treat what bidict._typing re-exports the same way.
 typing-modules = ["bidict._typing"]
 
-# Suppressions that are properties of a whole file rather than of one line in it.
 [tool.ruff.lint.per-file-ignores]
 "cachegrind.py" = ["print"]  # printing its results is what this script is for
 
@@ -150,7 +150,7 @@ lines-after-imports = 2
 docstring-code-format = true
 docstring-code-line-length = "dynamic"
 preview = true
-quote-style = "single"
+quote-style = "single"  # Keep the code (especially in the docs' doctests) matching Python's output
 
 [tool.pytest]
 addopts = [

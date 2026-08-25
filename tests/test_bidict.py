@@ -715,7 +715,7 @@ def test_bimap_bad_inverse() -> None:
 
     bi = BimapBadInverse()
     with pytest.raises(NotImplementedError):
-        bi.inverse  # ruff: ignore[useless-expression]
+        bi.inverse  # ruff: ignore[useless-expression]  # evaluating it is the point: it must raise
 
 
 skip_if_pypy = pytest.mark.skipif(
