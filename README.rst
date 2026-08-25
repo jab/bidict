@@ -97,7 +97,7 @@ Enterprise-level support for bidict can be obtained via the
 or by `contacting me directly <mailto:jabronson@gmail.com>`__.
 
 I have a US-based LLC set up for invoicing,
-and I have 15+ years of professional experience
+and I have over 20 years of professional experience
 delivering software and support to companies successfully.
 
 You can also sponsor my work through several platforms, including GitHub Sponsors.

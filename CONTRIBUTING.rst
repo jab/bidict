@@ -199,7 +199,7 @@ Sponsoring
   :alt: Sponsor through PayPal
 
 Bidict is the product of thousands of hours of my unpaid work
-over the 15+ years that I've been the sole maintainer.
+over the 20 years that I've been the sole maintainer.
 
 If bidict has helped you or your company accomplish your work,
 please sponsor my work through one of the following,
