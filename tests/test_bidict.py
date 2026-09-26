@@ -958,14 +958,19 @@ def test_orderedbidict_iteration_allows_value_only_update() -> None:
     assert list(ob.items()) == [(1, 'updated1'), (2, 'updated2')]
 
 
-def test_orderedbidict_iterator_created_before_mutation_raises() -> None:
+@pytest.mark.parametrize('bi_t', [OrderedBidict, UserOrderedBi])
+@pytest.mark.parametrize('view', [None, 'keys', 'items', 'values'])
+@pytest.mark.parametrize('iterate', [iter, reversed], ids=['forward', 'reverse'])
+def test_orderedbidict_iterator_created_before_mutation_raises(
+    bi_t: type[OrderedBidict[int, str]], view: str | None, iterate: t.Any
+) -> None:
     """The check must catch a mutation made after the iterator was created but before it ran.
 
-    OrderedDict does this too, which is why iternodes() captures the version eagerly rather
-    than on the first next() call.
+    OrderedDict does this too, which is why iteration, including via the keys(), values(), and
+    items() views, captures the version eagerly rather than on the first next() call.
     """
-    ob = OrderedBidict({1: 'one', 2: 'two'})
-    it = iter(ob)
+    ob = bi_t({1: 'one', 2: 'two'})
+    it = iterate(ob if view is None else getattr(ob, view)())
     ob[3] = 'three'
     with pytest.raises(RuntimeError):
         list(it)

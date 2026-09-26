@@ -23,6 +23,18 @@ please consider sponsoring bidict on GitHub.`
    Click the "Watch" dropdown, choose "Custom", and then choose "Releases".
 
 
+0.24.2 (not yet released)
+-------------------------
+
+- Iterators over an ordered bidict's
+  ``keys()``, ``values()``, and ``items()`` views
+  now raise :class:`RuntimeError`
+  when the bidict is changed after the iterator is created,
+  even before it is first advanced,
+  as :class:`~collections.OrderedDict`'s do.
+  :issue:`408`
+
+
 0.24.1 (2026-08-25)
 -------------------
 

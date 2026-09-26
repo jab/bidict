@@ -321,15 +321,18 @@ class OrderedBidictBase(BidictBase[KT, VT]):
         return t.cast('BidictKeysView[VT]', self.inverse.keys())
 
 
-# The following MappingView implementations use the __iter__ implementations
-# inherited from their superclass counterparts in collections.abc, so they
-# continue to yield items in the correct order even after an ordered bidict
-# is mutated. They also provide a __reversed__ implementation, which is not
-# provided by the collections.abc superclasses.
+# These views iterate the owning bidict to preserve its linked-list order. Create
+# that iterator eagerly, rather than inside the collections.abc generator methods,
+# so mutations before the first next() call are detected too. They also provide a
+# __reversed__ implementation, which is not provided by the collections.abc superclasses.
 class _OrderedBidictKeysView(ProxiedSetView, BidictKeysView[KT]):
     _mapping: OrderedBidictBase[KT, t.Any]
     _viewname: t.ClassVar[str] = 'keys'
     __slots__ = ()
+
+    @override
+    def __iter__(self) -> Iterator[KT]:
+        return iter(self._mapping)
 
     def __reversed__(self) -> Iterator[KT]:
         return reversed(self._mapping)
@@ -340,10 +343,14 @@ class _OrderedBidictItemsView(ProxiedSetView, ItemsView[KT, VT]):
     _viewname: t.ClassVar[str] = 'items'
     __slots__ = ()
 
+    @override
+    def __iter__(self) -> Iterator[tuple[KT, VT]]:
+        ob = self._mapping
+        return ((key, ob[key]) for key in ob)
+
     def __reversed__(self) -> Iterator[tuple[KT, VT]]:
         ob = self._mapping
-        for key in reversed(ob):
-            yield key, ob[key]
+        return ((key, ob[key]) for key in reversed(ob))
 
 
 _override_set_methods_to_use_backing_dict(_OrderedBidictKeysView)
