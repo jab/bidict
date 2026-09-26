@@ -1,6 +1,6 @@
-# CLAUDE.md
+# AGENTS.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to coding agents when working with this repository.
 
 ## Orientation
 
@@ -23,7 +23,6 @@ update *them* rather than duplicating anything here:
   dev environment, running tests and checks, single-test invocation,
   the property-based (Hypothesis) testing approach,
   code style and lint, commit conventions,
-  the Semantic Line Breaks prose convention,
   and the fact that doctests in modules and `docs/*.rst` run as tests:
   @CONTRIBUTING.rst
 - Architecture, code structure,
@@ -33,7 +32,7 @@ update *them* rather than duplicating anything here:
   custom subclasses, `on_dup` policies, dynamic inverse-class generation:
   @docs/extending.rst
 
-## Working in this codebase (Claude-specific notes)
+## Working in this codebase (agent-specific notes)
 
 - Run dev tooling through the Nix dev shell, not the bare `.venv`:
   prefix commands with `nix develop --command bash -c '...'`
