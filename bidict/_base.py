@@ -240,7 +240,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
     def __init__(self, arg: MapOrItems[KT, VT] = (), /, **kw: VT) -> None:
         """Make a new bidirectional mapping.
         The signature behaves like that of :class:`dict`.
-        ktems passed via positional arg are processed first,
+        Items passed via positional arg are processed first,
         followed by any items passed via keyword argument.
         Any duplication encountered along the way
         is handled as per :attr:`on_dup`.
