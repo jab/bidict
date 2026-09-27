@@ -244,6 +244,8 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         followed by any items passed via keyword argument.
         Any duplication encountered along the way
         is handled as per :attr:`on_dup`.
+        A falsy positional arg is treated as empty, without being iterated,
+        so as is usual for containers, it must be falsy only when it is empty.
         """
         self._fwdm = self._fwdm_cls()
         self._invm = self._invm_cls()
