@@ -80,15 +80,21 @@ jobs:
             git checkout ${{ github.sha }}
             # move aside the '"'"'bidict'"'"' subdirectory to make sure we always import the installed version
             mv -v bidict src
-            curl -L -s -o baseline.json "${{ steps.metadata.outputs.baseline_url }}"
-            line1=$(head -n1 baseline.json)
-            [ "$line1" = "{" ]
+            # The timing comparison is only for eyeballing, so a missing baseline (e.g. for
+            # a Python series none has been published for yet) skips it rather than failing.
+            compare_args=()
+            if curl -fL -s -o baseline.json "${{ steps.metadata.outputs.baseline_url }}" \
+                && [ "$(head -n1 baseline.json)" = "{" ]; then
+              compare_args+=(--benchmark-compare=baseline.json)
+            else
+              echo "::notice::No timing baseline published yet (${{ steps.metadata.outputs.baseline_asset_name }}), so timings are not compared."
+            fi
             ./cachegrind.py pytest -c /dev/null -n0 \
                 --benchmark-autosave \
                 --benchmark-columns=min,rounds,iterations \
                 --benchmark-disable-gc \
                 --benchmark-group-by=name \
-                --benchmark-compare=baseline.json \
+                "${compare_args[@]}" \
                 microbenchmarks.py
           ' 2>&1 | tee benchmark-output.txt
           benchmark_status=${PIPESTATUS[0]}

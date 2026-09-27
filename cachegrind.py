@@ -62,9 +62,10 @@ def run_with_cachegrind(args_list: list[str]) -> tuple[int, dict[str, int]]:
     # Deliberately not a context manager: this stays open across the run below, which writes to
     # it, and is read afterwards.
     temp_file = NamedTemporaryFile('r+', encoding='utf-8')  # ruff: ignore[open-file-with-context-handler]
-    # Don't raise if the program fails (to support e.g. `pytest --benchmark-compare-fail=...`),
-    # but do return its status so that main() can exit with it. Callers such as the benchmark
-    # workflow rely on it to tell a benchmark regression from a clean run.
+    # Don't raise if the program fails, but do return its status so that main() can exit with it.
+    # Callers such as the benchmark workflow rely on it to tell a failed benchmark run from a
+    # successful one. (Regressions are judged from the instruction estimate that main() writes
+    # out, not from this status.)
     returncode = sp.call([
         *DISABLE_ASLR_CMD,
         'valgrind',

@@ -192,6 +192,13 @@ class BidictStateMachine(RuleBasedStateMachine):
             assert isinstance(values, Reversible)
             assert zip_equal(reversed(values), reversed(self.oracle.data.values()))
 
+    @precondition(is_ordered)
+    @invariant()
+    def assert_nodes_consistent(self) -> None:
+        assert is_ordered(self.bi)
+        for b in (self.bi, self.bi.inv):
+            assert_orderedbidict_nodes_consistent(b)
+
     @rule()
     def copy(self) -> None:
         for cp in (copy(self.bi), deepcopy(self.bi)):
@@ -476,17 +483,20 @@ def test_frozenbidicts_hashable(items121: Items121) -> None:
     assert hash(bi2) == h1
 
 
-# These test cases ensure coverage of all branches in [Ordered]BidictBase._undo_write.
+# These test cases ensure coverage of all the unwrite branches in [Ordered]BidictBase._write.
 # (Hypothesis doesn't always generate examples that cover all the branches otherwise.)
 @pytest.mark.parametrize(('bi_t', 'on_dup'), list(product(mutable_bidict_types, on_dups)))
 def test_putall_matches_bulk_put(bi_t: type[MutableBidict[int, int]], on_dup: OnDup) -> None:
-    bi = bi_t({0: 0, 1: 1})
     for k1, v1, k2, v2 in product(range(4), repeat=4):
-        for b in bi, bi.inv:
-            assert_putall_matches_bulk_put(b, [(k1, v1), (k2, v2)], on_dup)
+        for inv in False, True:
+            # Start each case from the same state, so that each case reaches the branch it targets
+            # (e.g. overwriting one key with a new value), rather than whatever earlier cases left behind.
+            bi = bi_t({0: 0, 1: 1})
+            assert_putall_matches_bulk_put(bi.inv if inv else bi, [(k1, v1), (k2, v2)], on_dup)
 
 
 def assert_putall_matches_bulk_put(bi: MutableBidict[int, int], new_items: Items, on_dup: OnDup) -> None:
+    before = bi.copy()
     tmp = bi.copy()
     checkexc = None
     expectexc = None
@@ -495,7 +505,7 @@ def assert_putall_matches_bulk_put(bi: MutableBidict[int, int], new_items: Items
             tmp.put(key, val, on_dup)
     except DuplicationError as exc:
         expectexc = type(exc)
-        tmp = bi  # Since bulk updates fail clean, expect no changes (i.e. revert to bi).
+        tmp = before  # Since bulk updates fail clean, expect no changes (i.e. revert to before).
     try:
         bi.putall(new_items, on_dup)
     except DuplicationError as exc:
@@ -503,6 +513,11 @@ def assert_putall_matches_bulk_put(bi: MutableBidict[int, int], new_items: Items
     assert checkexc == expectexc
     assert bi == tmp
     assert bi.inv == tmp.inv
+    # == is order-insensitive, so it never walks an ordered bidict's linked list or node map.
+    # (Only ordered bidicts promise to restore their order after a failed update.)
+    if is_ordered(bi):
+        assert bi.equals_order_sensitive(tmp)
+        assert bi.inv.equals_order_sensitive(tmp.inv)
 
 
 def assert_update_fails_clean(
@@ -735,10 +750,14 @@ def test_bidicts_freed_on_zero_refcount(bidict_t: BT[KT, VT]) -> None:
     gc.disable()
     try:
         bi = bidict_t()
-        weak = weakref.ref(bi)
+        inv = bi.inverse  # The inverse is created lazily, so access it to give a cycle a chance to form.
+        assert inv.inverse is bi
+        weak, weakinv = weakref.ref(bi), weakref.ref(inv)
         assert weak() is not None
-        del bi
+        assert weakinv() is not None
+        del bi, inv
         assert weak() is None
+        assert weakinv() is None
     finally:
         gc.enable()
 
@@ -762,13 +781,10 @@ def test_orderedbidict_nodes_freed_on_zero_refcount(items121: Items121) -> None:
         gc.enable()
 
 
-@given(items121=items121)
-def test_orderedbidict_nodes_consistent(items121: Items121) -> None:
-    """The nodes in an ordered bidict's backing linked list should be the same as those in its backing mapping."""
-    ob = OrderedBidict(items121)
-    mapnodes = set(ob._node_by_korv.inverse)
-    linkedlistnodes = set(ob._sntl.iternodes())
-    assert mapnodes == linkedlistnodes
+@given(items=items)
+def test_orderedbidictbase_nodes_consistent(items: Items) -> None:
+    """Complements the state machine's invariant for an immutable ordered bidict, which it doesn't cover."""
+    assert_orderedbidict_nodes_consistent(UserOrderedBiBase(items))
 
 
 def test_dict_subclass_backing_gets_native_views() -> None:
@@ -1236,6 +1252,15 @@ def assert_bi_and_inv_are_inverse(bi: BB[KT, VT]) -> None:
     assert_mappings_are_inverse(bi, bi.inv)
     assert bi is bi.inv.inv
     assert bi.inv is bi.inv.inv.inv
+
+
+def assert_orderedbidict_nodes_consistent(ob: OrderedBidictBase[KT, VT]) -> None:
+    """The nodes in an ordered bidict's backing linked list should be the same as those in its backing mapping,
+    which should map exactly the contained keys (or values, for an inverse) to them, so removed items aren't leaked.
+    """
+    assert set(ob._node_by_korv.inverse) == set(ob._sntl.iternodes())
+    assert set(ob._node_by_korv) == set(ob if ob._bykey else ob.values())
+    assert len(ob._node_by_korv) == len(ob)
 
 
 def assert_bidicts_equal(b1: BB[KT, VT], b2: BB[KT, VT]) -> None:
