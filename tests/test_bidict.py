@@ -192,6 +192,13 @@ class BidictStateMachine(RuleBasedStateMachine):
             assert isinstance(values, Reversible)
             assert zip_equal(reversed(values), reversed(self.oracle.data.values()))
 
+    @precondition(is_ordered)
+    @invariant()
+    def assert_nodes_consistent(self) -> None:
+        assert is_ordered(self.bi)
+        for b in (self.bi, self.bi.inv):
+            assert_orderedbidict_nodes_consistent(b)
+
     @rule()
     def copy(self) -> None:
         for cp in (copy(self.bi), deepcopy(self.bi)):
@@ -774,13 +781,10 @@ def test_orderedbidict_nodes_freed_on_zero_refcount(items121: Items121) -> None:
         gc.enable()
 
 
-@given(items121=items121)
-def test_orderedbidict_nodes_consistent(items121: Items121) -> None:
-    """The nodes in an ordered bidict's backing linked list should be the same as those in its backing mapping."""
-    ob = OrderedBidict(items121)
-    mapnodes = set(ob._node_by_korv.inverse)
-    linkedlistnodes = set(ob._sntl.iternodes())
-    assert mapnodes == linkedlistnodes
+@given(items=items)
+def test_orderedbidictbase_nodes_consistent(items: Items) -> None:
+    """Complements the state machine's invariant for an immutable ordered bidict, which it doesn't cover."""
+    assert_orderedbidict_nodes_consistent(UserOrderedBiBase(items))
 
 
 def test_dict_subclass_backing_gets_native_views() -> None:
@@ -1248,6 +1252,15 @@ def assert_bi_and_inv_are_inverse(bi: BB[KT, VT]) -> None:
     assert_mappings_are_inverse(bi, bi.inv)
     assert bi is bi.inv.inv
     assert bi.inv is bi.inv.inv.inv
+
+
+def assert_orderedbidict_nodes_consistent(ob: OrderedBidictBase[KT, VT]) -> None:
+    """The nodes in an ordered bidict's backing linked list should be the same as those in its backing mapping,
+    which should map exactly the contained keys (or values, for an inverse) to them, so removed items aren't leaked.
+    """
+    assert set(ob._node_by_korv.inverse) == set(ob._sntl.iternodes())
+    assert set(ob._node_by_korv) == set(ob if ob._bykey else ob.values())
+    assert len(ob._node_by_korv) == len(ob)
 
 
 def assert_bidicts_equal(b1: BB[KT, VT], b2: BB[KT, VT]) -> None:
