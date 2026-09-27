@@ -349,25 +349,74 @@ class Tagged:
         return hash(self.n)
 
 
-class HashRaises:
+class AsymStored:
+    """Pathological type equal to AsymLookup instances, but only when on the left-hand side."""
+
     @override
     def __hash__(self) -> int:
-        raise RuntimeError('boom!')
+        return 1
+
+    @override
+    def __eq__(self, other: object) -> bool:
+        return isinstance(other, AsymLookup)
 
 
-bomb = HashRaises()
+class AsymLookup:
+    """Pathological type that is never equal to anything, even when an AsymStored equals it."""
 
-
-class HashInterrupted:
     @override
     def __hash__(self) -> int:
-        raise KeyboardInterrupt
+        return 1
+
+    @override
+    def __eq__(self, other: object) -> bool:
+        return False
+
+
+class HashFailed(Exception):
+    """The exception that :class:`HashFails` raises by default."""
+
+
+class HashFails:
+    """Hashes by identity, except for the calls that fail_after() or fail_on() select, which raise *exc*.
+
+    Stands in for a key or value whose hash can fail at any one of the several times
+    a write or removal hashes it, e.g. with a MemoryError or RecursionError.
+    """
+
+    def __init__(self, exc: type[BaseException] = HashFailed) -> None:
+        self._exc = exc
+        self.stop()
+
+    def fail_after(self, n: int = 0) -> t.Self:
+        """From now on, every __hash__ call after the next *n* raises."""
+        self._calls, self._fails = 0, lambda call: call > n
+        return self
+
+    def fail_on(self, n: int) -> t.Self:
+        """Only the *n*th __hash__ call from now raises."""
+        self._calls, self._fails = 0, lambda call: call == n
+        return self
+
+    def stop(self) -> None:
+        """Hash normally again."""
+        self._calls, self._fails = 0, lambda _: False
+
+    @override
+    def __hash__(self) -> int:
+        self._calls += 1
+        if self._fails(self._calls):
+            raise self._exc
+        return object.__hash__(self)
+
+
+bomb = HashFails().fail_after()
 
 
 BAD_ITEMS = (
-    (RuntimeError, (bomb, 0)),  # hashing the key raises
-    (RuntimeError, (0, bomb)),  # hashing the value raises
-    (KeyboardInterrupt, (HashInterrupted(), 0)),  # not an Exception, so must not escape rollback
+    (HashFailed, (bomb, 0)),  # hashing the key raises
+    (HashFailed, (0, bomb)),  # hashing the value raises
+    (KeyboardInterrupt, (HashFails(KeyboardInterrupt).fail_after(), 0)),  # not an Exception, so must not escape rollback
     (TypeError, (['unhashable'], 0)),
     (ValueError, (1, 2, 'bad len')),
 )
@@ -419,3 +468,27 @@ def bidict_refusing_nth_write(bi_t: BT[t.Any, t.Any], init: Mapping[t.Any, t.Any
     bi = bi_t_refusing(init)
     counting = True  # writing init above must not count
     return bi
+
+
+class CaseFoldingDict(UserDict[t.Any, t.Any]):
+    """A backing mapping that judges str keys equal ignoring case, unlike the dicts backing a plain bidict."""
+
+    @staticmethod
+    def _fold(key: t.Any) -> t.Any:
+        return key.casefold() if isinstance(key, str) else key
+
+    @override
+    def __setitem__(self, key: t.Any, item: t.Any) -> None:
+        super().__setitem__(self._fold(key), item)
+
+    @override
+    def __getitem__(self, key: t.Any) -> t.Any:
+        return super().__getitem__(self._fold(key))
+
+    @override
+    def __delitem__(self, key: t.Any) -> None:
+        super().__delitem__(self._fold(key))
+
+    @override
+    def __contains__(self, key: object) -> bool:
+        return super().__contains__(self._fold(key))

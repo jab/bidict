@@ -71,6 +71,31 @@ please consider sponsoring bidict on GitHub.`
   It now gives the same result as ``b | b.inverse``.
   :issue:`413`
 
+- Fix a bug where a write through an ordered bidict's inverse
+  that collapsed two items into one,
+  given an object equal to but distinct from a contained one,
+  left the ordered bidict yielding the given object rather than the contained one,
+  so that e.g. ``b.inverse[b[key]] is key`` no longer held.
+  An update that failed after such a write did not fail clean either.
+  :issue:`414`
+
+- Fix a bug where replacing a contained key or value
+  with one that has asymmetric equality with it
+  (i.e. that compares equal to it, but not vice versa)
+  could leave a bidict and its inverse out of sync,
+  whether the write succeeded
+  or was rolled back because the rest of an update failed.
+  :issue:`414`
+
+- Fix a bug where a write to or removal from an :class:`~bidict.OrderedBidict`
+  that failed part-way through because one hash of a key or value raised
+  (e.g. with a :class:`RecursionError` or :class:`MemoryError`)
+  did not fail clean.
+  The bidict could be left yielding an item it did not contain,
+  omitting one it did,
+  or raising :class:`KeyError` when iterated.
+  :issue:`414`
+
 - Fix a bug where a custom bidict whose backing mapping
   judges distinct keys or values equal
   (e.g. a case-insensitive mapping)
@@ -78,10 +103,28 @@ please consider sponsoring bidict on GitHub.`
   leaving its two backing mappings out of sync.
   :issue:`413`
 
+- Fix a bug where a custom :class:`~bidict.OrderedBidict`
+  whose forward backing mapping judges distinct keys equal
+  (e.g. a case-insensitive mapping)
+  raised :class:`KeyError`
+  when filled with such keys,
+  or when setting, popping, deleting, or moving an item
+  by a key other than the contained one
+  (e.g. ``'a'`` for a contained ``'A'``).
+  A pop or deletion that raised this way also left the bidict corrupted.
+  :issue:`414`
+
 - Fix a bug where filling an empty custom bidict from another bidict
   did not fail clean
   if one of its backing mappings refused a write.
   :issue:`413`
+
+- Fix a bug where a custom bidict whose backing mapping refused a removal
+  requested by a key equal to but distinct from the contained one
+  (e.g. ``del b[1.0]`` with ``1`` contained)
+  put back the given key rather than the contained one,
+  so that e.g. ``b.inverse[b[key]] is key`` no longer held.
+  :issue:`414`
 
 - Fix a regression in 0.23.0 where an object
   that is iterable only via the legacy sequence protocol
@@ -90,6 +133,13 @@ please consider sponsoring bidict on GitHub.`
   As with :class:`dict`, such objects are accepted again.
   :issue:`413`
 
+- Fix a performance regression in 0.24.0
+  where removing an item from a :class:`~bidict.bidict` (or its inverse)
+  was ~15% slower than in 0.23.1
+  (~30% for :meth:`~bidict.MutableBidict.popitem`).
+  Removal is as fast as in 0.23.1 again.
+  :issue:`414`
+
 - :meth:`~bidict.MutableBidict.update`,
   :meth:`~bidict.MutableBidict.putall`, and
   :meth:`~bidict.MutableBidict.forceupdate`
@@ -97,6 +147,10 @@ please consider sponsoring bidict on GitHub.`
   ~1.4-1.9x faster than in 0.24.1 for :class:`~bidict.bidict`,
   and ~3.1-4.8x for :class:`~bidict.OrderedBidict`.
   :issue:`413`
+
+- Changing the value of an existing key in an :class:`~bidict.OrderedBidict`
+  is ~1.3x faster than in 0.24.1.
+  :issue:`414`
 
 0.24.1 (2026-08-25)
 -------------------

@@ -19,6 +19,7 @@ from __future__ import annotations
 import typing as t
 
 from ._bidict import MutableBidict
+from ._orderedbase import Node
 from ._orderedbase import OrderedBidictBase
 from ._typing import KT
 from ._typing import VT
@@ -45,12 +46,30 @@ class OrderedBidict(OrderedBidictBase[KT, VT], MutableBidict[KT, VT]):
         self._node_by_korv.clear()
         self._sntl.reset()
 
+    def _node(self, key: KT) -> Node:
+        """Return the node of the item with the given key."""
+        # Find the node by the contained key (for an inverse, the contained value), not by *key*:
+        # _node_by_korv need not resolve an equal but distinct *key* to the same item as a
+        # user-supplied _fwdm does (e.g. one that ignores case).
+        val = self._fwdm[key]
+        return self._node_by_korv[self._invm[val] if self._bykey else val]
+
     @override
     def _pop(self, key: KT) -> VT:
-        val = super()._pop(key)
-        node = self._node_by_korv[key if self._bykey else val]
+        # Find the node as _node() does, before removing the item, so that a failed lookup leaves it in place.
+        val = self._fwdm[key]
+        korv = self._invm[val] if self._bykey else val
+        node = self._node_by_korv[korv]
+        # Dissociate first, while the item is still contained, since dissociating hashes and may fail.
+        # If the removal then fails, restore the node from korv rather than by looking the item up again,
+        # which would also hash the other half of the item (whose hash may be what failed).
         self._dissoc_node(node)
-        return val
+        try:
+            return super()._pop(key)
+        except BaseException:
+            self._node_by_korv.forceput(korv, node)
+            self._relink_node(node)
+            raise
 
     @override
     def popitem(self, last: bool = True) -> tuple[KT, VT]:
@@ -75,8 +94,7 @@ class OrderedBidict(OrderedBidictBase[KT, VT], MutableBidict[KT, VT]):
 
         :raises KeyError: if *key* is missing
         """
-        korv = key if self._bykey else self._fwdm[key]
-        node = self._node_by_korv[korv]
+        node = self._node(key)
         node.prv.nxt = node.nxt
         node.nxt.prv = node.prv
         sntl = self._sntl

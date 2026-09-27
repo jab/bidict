@@ -209,6 +209,14 @@ class OrderedBidictBase(BidictBase[KT, VT]):
         node.unlink()
         self._sntl.mutated()
 
+    def _reassoc_node(self, node: Node, key: KT, val: VT) -> None:
+        """Undo an :meth:`_assoc_node` that changed what *node* was associated with. See :meth:`_write`."""
+        # Dissociate node first. If the key or value it is now associated with compares equal to the one
+        # it is being reassociated with (e.g. under asymmetric __eq__), forceput would find that pair
+        # already present, and do nothing.
+        del self._node_by_korv.inverse[node]
+        self._assoc_node(node, key, val)
+
     def _relink_node(self, node: Node) -> None:
         """Undo a :meth:`_dissoc_node` (the linked list half of it). See :meth:`_write`."""
         node.relink()
@@ -229,13 +237,25 @@ class OrderedBidictBase(BidictBase[KT, VT]):
 
     @override
     def _write(self, newkey: KT, newval: VT, oldkey: OKT[KT], oldval: OVT[VT], unwrites: Unwrites | None) -> None:
+        # Use the contained key and value rather than the given ones, so that nodes are looked up by,
+        # and associated with, the objects the backing mappings hold. A user-supplied backing mapping
+        # may match a given object to a contained one that _node_by_korv would not (e.g. ignoring case).
+        if oldval is not MISSING:  # newkey duplicates a contained key
+            newkey = self._invm[oldval]
+        if oldkey is not MISSING:  # newval duplicates a contained value
+            newval = self._fwdm[oldkey]
         super()._write(newkey, newval, oldkey, oldval, unwrites)
         assoc, dissoc, relink = self._assoc_node, self._dissoc_node, self._relink_node
         node_by_korv, bykey = self._node_by_korv, self._bykey
         if oldval is MISSING and oldkey is MISSING:  # no key or value duplication
             # {0: 1, 2: 3} | {4: 5} => {0: 1, 2: 3, 4: 5}
             newnode = self._sntl.new_last_node()
-            assoc(newnode, newkey, newval)
+            # assoc() hashes newkey or newval, which can fail. It fails clean, but newnode is already linked in.
+            try:
+                assoc(newnode, newkey, newval)
+            except BaseException:
+                newnode.unlink()
+                raise
             if unwrites is not None:
                 unwrites.append((dissoc, newnode))
         elif oldval is not MISSING and oldkey is not MISSING:  # key and value duplication across two different items
@@ -248,29 +268,35 @@ class OrderedBidictBase(BidictBase[KT, VT]):
             else:
                 oldnode = node_by_korv[newval]
                 newnode = node_by_korv[oldval]
+            # As in BidictBase._write, record each unwrite as soon as its write succeeds:
+            # assoc() hashes newkey or newval, and can fail after dissoc() has succeeded.
             dissoc(oldnode)
+            if unwrites is not None:
+                unwrites.extend(((assoc, oldnode, oldkey, newval), (relink, oldnode)))
             assoc(newnode, newkey, newval)
             if unwrites is not None:
-                unwrites.extend((
-                    (assoc, newnode, newkey, oldval),
-                    (assoc, oldnode, oldkey, newval),
-                    (relink, oldnode),
-                ))
+                unwrites.append((assoc, newnode, newkey, oldval))
         elif oldval is not MISSING:  # just key duplication
             # {0: 1, 2: 3} | {2: 4} => {0: 1, 2: 4}
             # oldkey: MISSING, oldval: 3, newkey: 2, newval: 4
-            node = node_by_korv[newkey if bykey else oldval]
-            assoc(node, newkey, newval)
-            if unwrites is not None:
-                unwrites.append((assoc, node, newkey, oldval))
+            # A node keyed by the kept key stays as is (re-adding that key could land on an asymmetrically
+            # equal contained key's entry); only one keyed by the replaced value changes.
+            if not bykey:
+                node = node_by_korv[oldval]
+                assoc(node, newkey, newval)
+                if unwrites is not None:
+                    unwrites.append((self._reassoc_node, node, newkey, oldval))
         else:
             assert oldkey is not MISSING  # just value duplication
             # {0: 1, 2: 3} | {4: 3} => {0: 1, 4: 3}
             # oldkey: 2, oldval: MISSING, newkey: 4, newval: 3
-            node = node_by_korv[oldkey if bykey else newval]
-            assoc(node, newkey, newval)
-            if unwrites is not None:
-                unwrites.append((assoc, node, oldkey, newval))
+            # A node keyed by the kept value stays as is (re-adding that value could land on an asymmetrically
+            # equal contained value's entry); only one keyed by the replaced key changes.
+            if bykey:
+                node = node_by_korv[oldkey]
+                assoc(node, newkey, newval)
+                if unwrites is not None:
+                    unwrites.append((self._reassoc_node, node, oldkey, newval))
 
     @override
     def __iter__(self) -> Iterator[KT]:

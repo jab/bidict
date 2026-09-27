@@ -25,6 +25,7 @@ from copy import copy
 from copy import deepcopy
 from functools import partial
 from functools import reduce
+from itertools import count
 from itertools import product
 from itertools import starmap
 from random import Random
@@ -39,6 +40,11 @@ from bidict_test_fixtures import KT
 from bidict_test_fixtures import MBT
 from bidict_test_fixtures import SET_OPS
 from bidict_test_fixtures import VT
+from bidict_test_fixtures import AsymLookup
+from bidict_test_fixtures import AsymStored
+from bidict_test_fixtures import CaseFoldingDict
+from bidict_test_fixtures import HashFailed
+from bidict_test_fixtures import HashFails
 from bidict_test_fixtures import KeysViaGetattr
 from bidict_test_fixtures import LegacySequence
 from bidict_test_fixtures import Oracle
@@ -244,7 +250,7 @@ class BidictStateMachine(RuleBasedStateMachine):
         The preceding items are fresh, so the only thing that can fail is the bad item.
         Pass an iterator so this always takes the incremental rollback path.
         """
-        assert_update_fails_clean(self.bi, iter([*new, (bomb, 0)]), RuntimeError, on_dup)
+        assert_update_fails_clean(self.bi, iter([*new, (bomb, 0)]), HashFailed, on_dup)
 
     @precondition(is_ordered)
     @rule(updates=items, on_dup=on_dup)
@@ -258,7 +264,7 @@ class BidictStateMachine(RuleBasedStateMachine):
         non-ordered bidict is restored contents-only. See "Updates Fail Clean" in the docs.
         """
         arg = iter([*updates, (bomb, 0)])
-        assert_update_fails_clean(self.bi, arg, (RuntimeError, DuplicationError), on_dup)
+        assert_update_fails_clean(self.bi, arg, (HashFailed, DuplicationError), on_dup)
 
     @rule(on_dup=on_dup)
     def putall_own_inverse(self, on_dup: OnDup) -> None:
@@ -681,15 +687,20 @@ def test_write_fails_clean_when_a_backing_mapping_refuses(
         (lambda b: b.__delitem__(1), 2),
         (lambda b: b.pop(1), 2),
         (lambda b: b.popitem(), 2),
+        # By a key equal to but distinct from the contained 1:
+        (lambda b: b.__delitem__(1.0), 2),
+        (lambda b: b.pop(True), 2),
     ],
-    ids=['delitem', 'pop', 'popitem'],
+    ids=['delitem', 'pop', 'popitem', 'delitem-equal-key', 'pop-equal-key'],
 )
 def test_remove_fails_clean_when_a_backing_mapping_refuses(bi_t: MBT[t.Any, t.Any], remove: t.Any, nwrites: int) -> None:
     """Removing an item must fail clean when a backing mapping refuses part-way through.
 
     The removing counterpart of test_write_fails_clean_when_a_backing_mapping_refuses:
     removing from one backing mapping and then being refused by the other must not leave
-    the two disagreeing.
+    the two disagreeing, nor holding a different key object than before, even when the
+    removal was asked for by an equal but distinct key. An ordered bidict must also keep
+    its order.
     """
     init = {1: 'a', 2: 'b'}
     unchanged = dict(init), invdict(init)
@@ -701,9 +712,39 @@ def test_remove_fails_clean_when_a_backing_mapping_refuses(bi_t: MBT[t.Any, t.An
         except WriteRefused:
             refused += 1
             assert (dict(bi._fwdm), dict(bi._invm)) == unchanged, f'refusing write #{n} left bi changed'
+            assert all(bi._invm[v] is k for (k, v) in bi._fwdm.items()), f'refusing write #{n} replaced a key object'
+            if bi_t is OrderedBidict:
+                assert list(bi.items()) == list(init.items()), f'refusing write #{n} reordered bi'
         else:
             break
     assert refused == nwrites
+
+
+@pytest.mark.parametrize('bi_t', [bidict, OrderedBidict])
+@pytest.mark.parametrize('use_inv', [False, True], ids=['fwd', 'inv'])
+@pytest.mark.parametrize(
+    'remove',
+    [lambda b: b.__delitem__(1), lambda b: b.pop(1), lambda b: b.popitem()],
+    ids=['delitem', 'pop', 'popitem'],
+)
+def test_remove_fails_clean_when_the_value_stops_hashing(bi_t: MBT[t.Any, t.Any], use_inv: bool, remove: t.Any) -> None:
+    """Removing an item whose value can no longer be hashed must fail clean.
+
+    The value's hash is needed both to remove it from the backing mapping it is a key of, and to
+    look up the contained key to put back when that removal fails, so the put-back must still
+    restore the item when the lookup fails too. The item is inserted last so popitem() removes it.
+    """
+    val = HashFails()
+    items = [('z', 'zz'), (1, val)]
+    b = bi_t((v, k) for (k, v) in items) if use_inv else bi_t(items)
+    bi = b.inverse if use_inv else b
+    val.fail_after()
+    with pytest.raises(HashFailed):
+        remove(bi)
+    val.stop()
+    assert list(bi.items()) == items
+    assert dict(bi._invm) == invdict(dict(bi._fwdm))
+    assert all(bi.inverse[bi[k]] is k for k in bi)
 
 
 @pytest.mark.parametrize('bi_t', [bidict, OrderedBidict])
@@ -752,28 +793,111 @@ def test_bulk_update_fails_clean_when_a_backing_mapping_refuses(
     assert (dict(bi._fwdm), dict(bi._invm), list(bi)) == (expected, invdict(expected), list(expected))
 
 
-class CaseFoldingDict(UserDict[t.Any, t.Any]):
-    """A backing mapping that judges str keys equal ignoring case, unlike the dicts backing a plain bidict."""
+@pytest.mark.parametrize('bi_t', [bi_t for bi_t in mutable_bidict_types if issubclass(bi_t, OrderedBidictBase)])
+@pytest.mark.parametrize(
+    ('init', 'op'),
+    [
+        # k is the object whose hashing fails. The inv cases go through the inverse, whose nodes
+        # are associated with its values rather than its keys.
+        (lambda _: {0: 'a'}, lambda b, k: b.__setitem__(k, 'b')),
+        (lambda _: {0: 'a'}, lambda b, k: b.putall([(k, 'b')])),
+        (lambda _: {0: 'a'}, lambda b, k: b.inv.__setitem__('b', k)),
+        (lambda k: {k: 'a', 0: 'b'}, lambda b, k: b.__setitem__(k, 'z')),
+        (lambda k: {k: 'a', 0: 'b'}, lambda b, _: b.forceput(1, 'a')),
+        (lambda k: {k: 'a', 0: 'b'}, lambda b, k: b.forceput(k, 'b')),
+        (lambda k: {k: 'a', 0: 'b'}, lambda b, k: b.forceupdate({k: 'b'})),
+        (lambda k: {k: 0, 'b': 1}, lambda b, k: b.inv.forceput(1, k)),
+        (lambda k: {k: 'a', 0: 'b'}, lambda b, k: b.pop(k)),
+        (lambda k: {k: 'a', 0: 'b'}, lambda b, k: b.__delitem__(k)),
+        (lambda k: {k: 'a', 0: 'b'}, lambda b, _: b.inv.pop('a')),
+        (lambda k: {0: 'b', k: 'a'}, lambda b, _: b.popitem()),
+        (lambda k: {0: 'b', k: 'a'}, lambda b, _: b.inv.popitem()),
+    ],
+    ids=[
+        'no-dup',
+        'no-dup-putall',
+        'no-dup-inv',
+        'dup-key',
+        'dup-val',
+        'dup-key-and-val',
+        'dup-key-and-val-forceupdate',
+        'dup-key-and-val-inv',
+        'pop',
+        'delitem',
+        'pop-inv',
+        'popitem',
+        'popitem-inv',
+    ],
+)
+def test_ordered_write_and_remove_fail_clean_when_hashing_fails(
+    bi_t: type[OrderedBidict[t.Any, t.Any]], init: t.Any, op: t.Any
+) -> None:
+    """An ordered bidict's write or removal must fail clean whichever of the times it hashes a key or value raises.
 
-    @staticmethod
-    def _fold(key: t.Any) -> t.Any:
-        return key.casefold() if isinstance(key, str) else key
+    Besides the backing mappings, an ordered bidict's linked list of nodes and its mapping from
+    each contained key (or value) to its node must be left exactly as they were. Fails the nth
+    hash of k for each n in turn, until the operation gets through.
+    """
+    k = HashFails()
+    for n in count(1):
+        bi = bi_t(init(k))
+        before = list(bi.items()), dict(bi._fwdm), dict(bi._invm)
+        k.fail_on(n)
+        try:
+            op(bi, k)
+        except HashFailed:
+            succeeded = False
+        else:
+            succeeded = True
+        k.stop()
+        if not succeeded:
+            # items() walks the nodes, so this also catches orphaned or missing nodes.
+            assert (list(bi.items()), dict(bi._fwdm), dict(bi._invm)) == before, f'failing hash #{n} left bi changed'
+            assert all(bi._invm[v] is k_ for (k_, v) in before[0]), f'failing hash #{n} replaced a key object'
+        assert list(bi.inv.items()) == [(v, k_) for (k_, v) in bi.items()]
+        assert len(bi) == len(bi.inv) == len(list(bi))
+        assert_orderedbidict_nodes_consistent(bi)
+        assert_orderedbidict_nodes_consistent(bi.inv)
+        if succeeded:
+            break
+    assert n > 1
 
-    @override
-    def __setitem__(self, key: t.Any, item: t.Any) -> None:
-        super().__setitem__(self._fold(key), item)
 
-    @override
-    def __getitem__(self, key: t.Any) -> t.Any:
-        return super().__getitem__(self._fold(key))
+@pytest.mark.parametrize('bi_t', [OrderedBidict, UserOrderedBi])
+@pytest.mark.parametrize('use_inv', [False, True], ids=['fwd', 'inv'])
+@pytest.mark.parametrize('method', ['pop', '__delitem__'])
+def test_ordered_remove_fails_clean_when_hashing_the_value_keeps_failing(
+    bi_t: type[OrderedBidict[t.Any, t.Any]], use_inv: bool, method: str
+) -> None:
+    """An ordered bidict's removal must fail clean when hashing the value being removed starts failing part-way through.
 
-    @override
-    def __delitem__(self, key: t.Any) -> None:
-        super().__delitem__(self._fold(key))
-
-    @override
-    def __contains__(self, key: object) -> bool:
-        return super().__contains__(self._fold(key))
+    Lets the first n hashes of the value succeed and fails every one after that, for each n in
+    turn, until the removal gets through.
+    """
+    v = HashFails()
+    for n in count():
+        bi = bi_t({0: 'a', 1: v, 2: 'c'})
+        before = list(bi.items())
+        v.fail_after(n)
+        try:
+            if use_inv:
+                getattr(bi.inv, method)(v)
+            else:
+                getattr(bi, method)(1)
+        except HashFailed:
+            succeeded = False
+        else:
+            succeeded = True
+        v.stop()
+        if not succeeded:
+            assert list(bi.items()) == before, f'failing hash #{n + 1} left bi changed'
+        assert len(bi) == len(list(bi)) == len(bi.inv) == len(list(bi.inv))
+        assert_orderedbidict_nodes_consistent(bi)
+        assert_orderedbidict_nodes_consistent(bi.inv)
+        if succeeded:
+            break
+    assert n > 0
+    assert list(bi.items()) == [(0, 'a'), (2, 'c')]
 
 
 def _fill_empty(method: str, bi_t: MBT[t.Any, t.Any], items: t.Any, **kw: t.Any) -> t.Any:
@@ -794,14 +918,15 @@ _FILLS_OF_EMPTY: t.Any = {
 
 @pytest.mark.parametrize('fill', _FILLS_OF_EMPTY.values(), ids=list(_FILLS_OF_EMPTY))
 @pytest.mark.parametrize('side', ['_fwdm_cls', '_invm_cls'])
-def test_fill_from_bidict_checks_dups_by_own_backing_mappings(side: str, fill: t.Any) -> None:
+@pytest.mark.parametrize('base', [bidict, OrderedBidict])
+def test_fill_from_bidict_checks_dups_by_own_backing_mappings(base: t.Any, side: str, fill: t.Any) -> None:
     """Filling an empty bidict from another bidict must match filling it from a dict of the same items.
 
     The other bidict has no dups as judged by its own backing mappings, but backing mappings are
     user-supplied (see _fwdm_cls and _invm_cls), so ours may judge some of its items equal.
     Skipping the dup check for them would collapse those items in only one of our backing mappings.
     """
-    bi_t = type('CaseFoldingBidict', (bidict,), {side: CaseFoldingDict})
+    bi_t = type(f'CaseFolding{base.__name__}', (base,), {side: CaseFoldingDict})
     items = {'K': 'V', 'k': 'v'}  # one dup (of a key or a value, per side) once case is ignored
 
     def outcome(src: t.Any) -> t.Any:
@@ -809,10 +934,38 @@ def test_fill_from_bidict_checks_dups_by_own_backing_mappings(side: str, fill: t
             bi = fill(bi_t, src)
         except DuplicationError as exc:
             return type(exc)
-        assert len(bi._fwdm) == len(bi._invm)
-        return dict(bi._fwdm), dict(bi._invm)
+        assert len(bi._fwdm) == len(bi._invm) == len(list(bi))
+        return dict(bi._fwdm), dict(bi._invm), list(bi.items())
 
     assert outcome(bidict(items)) == outcome(dict(items))
+
+
+#: (label, (mutation, expected items)) pairs, each acting on {'A': 1, 'B': 2} via the key 'a',
+#: which only a case-insensitive backing mapping resolves to the contained key 'A'.
+_CASE_FOLDING_KEY_OPS: t.Any = {
+    'setitem': (lambda b: b.__setitem__('a', 3), [('A', 3), ('B', 2)]),
+    'pop': (lambda b: b.pop('a'), [('B', 2)]),
+    'delitem': (lambda b: b.__delitem__('a'), [('B', 2)]),
+    'move_to_end': (lambda b: b.move_to_end('a'), [('B', 2), ('A', 1)]),
+}
+
+
+@pytest.mark.parametrize(('mutate', 'expected'), _CASE_FOLDING_KEY_OPS.values(), ids=list(_CASE_FOLDING_KEY_OPS))
+@pytest.mark.parametrize('side', ['_fwdm_cls', '_invm_cls'])
+def test_orderedbidict_acts_on_the_item_its_backing_mapping_resolves_to(
+    side: str, mutate: t.Any, expected: list[tuple[str, int]]
+) -> None:
+    """An ordered bidict must act on the item that its (user-supplied) backing mapping resolves a key to.
+
+    Its linked-list nodes are found via a plain dict, which may not resolve the key the same way.
+    Both sides are covered, since through the inverse, the mapping resolving the key is _invm_cls.
+    """
+    bi_t = type('CaseFoldingOrderedBidict', (OrderedBidict,), {side: CaseFoldingDict})
+    bi = bi_t({'A': 1, 'B': 2}) if side == '_fwdm_cls' else bi_t({1: 'A', 2: 'B'}).inverse
+    mutate(bi)
+    assert list(bi.items()) == expected
+    assert list(bi.inverse.items()) == [(v, k) for (k, v) in expected]
+    assert len(bi) == len(bi.inverse) == len(expected)
 
 
 @pytest.mark.parametrize('bi_t', mutable_bidict_types)
@@ -1225,12 +1378,25 @@ def test_orderedbidict_iteration_unaffected_by_unrelated_bidict() -> None:
     assert keys == [1, 2]
 
 
+def _failed_inverse_collapse(b: t.Any) -> None:
+    """Collapse two items through the inverse in an update that then fails, and so is rolled back."""
+    with pytest.raises(TypeError):
+        b.inverse.forceupdate([(Tagged(2, 'new'), Tagged(3, 'new')), ('x', [])])  # [] is unhashable
+    assert all(x.tag == 'orig' for item in b.items() for x in item), 'rollback did not restore the contained objects'
+
+
 #: (label, mutation) pairs, each writing an item that duplicates a contained key, a contained
 #: value, or both, using an object that is equal to the contained one but not identical to it.
+#: Some write through the inverse, since an ordered bidict's inverse finds nodes by value.
 _DUPLICATING_WRITES: t.Any = {
     'key_duplication': lambda b: b.__setitem__(Tagged(1, 'new'), 'other'),
     'value_duplication': lambda b: b.forceput(Tagged(9, 'new'), Tagged(2, 'new')),
-    'collapse': lambda b: b.forceput(Tagged(1, 'new'), Tagged(2, 'new')),
+    'collapse': lambda b: b.forceput(Tagged(1, 'new'), Tagged(4, 'new')),
+    'inverse_key_duplication': lambda b: b.inverse.__setitem__(Tagged(2, 'new'), 'other'),
+    'inverse_value_duplication': lambda b: b.inverse.forceput(Tagged(9, 'new'), Tagged(1, 'new')),
+    'inverse_collapse': lambda b: b.inverse.forceput(Tagged(2, 'new'), Tagged(3, 'new')),
+    'inverse_collapse_forceupdate': lambda b: b.inverse.forceupdate([(Tagged(2, 'new'), Tagged(3, 'new'))]),
+    'inverse_collapse_rolled_back': _failed_inverse_collapse,
 }
 
 
@@ -1241,10 +1407,11 @@ def test_one_object_per_item_in_both_directions(bi_t: MBT[t.Any, t.Any], mutate:
 
     dict keeps the key object it already has when a key is overwritten, but takes the new
     value object. In a bidict a value is also a key of the inverse, so those two conventions
-    conflict; applying each to its own backing mapping left the two holding equal but distinct
-    objects for one item, and so left b.inverse[b[key]] not identical to key.
+    conflict; a write given an object equal to but distinct from a contained key or value keeps
+    the contained object in both backing mappings, so that b.inverse[b[key]] is key still holds.
+    The bidict starts with two items so that a write can also collapse them into one.
     """
-    bi = bi_t({Tagged(1, 'orig'): Tagged(2, 'orig')})
+    bi = bi_t({Tagged(1, 'orig'): Tagged(2, 'orig'), Tagged(3, 'orig'): Tagged(4, 'orig')})
     mutate(bi)
     for key in bi:
         val = bi[key]
@@ -1401,28 +1568,10 @@ def test_setitem_existing_is_noop_with_nonreflexive_eq(bi_t: MBT[t.Any, t.Any]) 
         b3[nan] = nan
 
 
-class _AsymStored:
-    """Pathological type equal to _AsymLookup instances, but only when on the left-hand side."""
-
-    @override
-    def __hash__(self) -> int:
-        return 1
-
-    @override
-    def __eq__(self, other: object) -> bool:
-        return isinstance(other, _AsymLookup)
-
-
-class _AsymLookup:
-    """Pathological type that is never equal to anything, even when an _AsymStored equals it."""
-
-    @override
-    def __hash__(self) -> int:
-        return 1
-
-    @override
-    def __eq__(self, other: object) -> bool:
-        return False
+def _skip_unless_dict_compares_stored_eq_lookup() -> None:
+    probe: dict[t.Any, str] = {AsymStored(): 'hit'}
+    if probe.get(AsymLookup()) != 'hit':
+        pytest.skip('dict lookup on this runtime does not compare stored == lookup')
 
 
 @pytest.mark.parametrize('bi_t', mutable_bidict_types)
@@ -1436,10 +1585,8 @@ def test_setitem_existing_is_noop_with_asymmetric_eq(bi_t: MBT[t.Any, t.Any]) ->
     (with operands in the opposite order) and wrongly concluding the items differ.
     See #382.
     """
-    stored, lookup = _AsymStored(), _AsymLookup()
-    probe: dict[t.Any, str] = {stored: 'hit'}
-    if probe.get(lookup) != 'hit':
-        pytest.skip('dict lookup on this runtime does not compare stored == lookup')
+    _skip_unless_dict_compares_stored_eq_lookup()
+    stored, lookup = AsymStored(), AsymLookup()
     # Asymmetric key: dict considers *lookup* the same key as *stored* -> no-op
     b1 = bi_t()
     b1[stored] = 'v'
@@ -1452,6 +1599,96 @@ def test_setitem_existing_is_noop_with_asymmetric_eq(bi_t: MBT[t.Any, t.Any]) ->
     b2['x'] = lookup
     assert len(b2) == 1
     assert b2['x'] is stored
+
+
+@pytest.mark.parametrize('bi_t', mutable_bidict_types)
+@pytest.mark.parametrize('use_inv', [False, True], ids=['fwd', 'inv'])
+@pytest.mark.parametrize('replace', ['value', 'key'])
+@pytest.mark.parametrize('free_slot', [False, True], ids=['no-free-slot', 'free-slot'])
+@pytest.mark.parametrize('fail', [False, True], ids=['write', 'rollback'])
+def test_replacing_with_asymmetric_equal_object(
+    bi_t: MBT[t.Any, t.Any], use_inv: bool, replace: str, free_slot: bool, fail: bool
+) -> None:
+    """Replacing a contained object with an asymmetrically equal one keeps a bidict and its inverse in sync.
+
+    The contained *lookup* is replaced with *stored* (stored == lookup, but not lookup == stored), and the write
+    either succeeds or is rolled back because the rest of the update fails. A dict lookup compares
+    stored == lookup, so while both are in a backing mapping, operating on *lookup* can land on *stored*'s entry.
+    *lookup*, *stored*, and 1 all hash to 1, so with *free_slot*, deleting the item containing 1 lets *stored*
+    take the slot ahead of *lookup*'s; otherwise *stored* goes after it.
+    """
+    _skip_unless_dict_compares_stored_eq_lookup()
+    stored, lookup = AsymStored(), AsymLookup()
+    bi = bi_t()
+    b = bi.inverse if use_inv else bi
+    if replace == 'value':
+        b.putall({'x': 1, 'k': lookup})
+        if free_slot:
+            del b['x']
+        write = ('k', stored)
+    else:
+        b.putall({1: 'x', lookup: 'v'})
+        if free_slot:
+            del b[1]
+        write = (stored, 'v')
+    before = list(b.items())
+    if fail:
+        with pytest.raises(TypeError):
+            b.forceupdate([write, (['unhashable'], 0)])
+        after = list(b.items())
+        if not isinstance(b, OrderedBidictBase):  # rolling back may reorder a non-ordered bidict's items
+            before.sort(key=repr)
+            after.sort(key=repr)
+        assert len(after) == len(before)
+        assert all(k1 is k2 and v1 is v2 for ((k1, v1), (k2, v2)) in zip(after, before, strict=True))
+    else:
+        b.forceput(*write)
+        if replace == 'value':
+            assert b['k'] is stored
+        else:
+            assert b.inverse['v'] is stored
+            assert any(k is stored for k in b)
+        assert len(b) == len(before)
+    assert len(b.inverse) == len(b)
+    assert all(b.inverse[v] is k for (k, v) in b.items())
+    assert all(b[k] is v for (v, k) in b.inverse.items())
+
+
+@pytest.mark.parametrize('bi_t', mutable_bidict_types)
+@pytest.mark.parametrize('use_inv', [False, True], ids=['fwd', 'inv'])
+@pytest.mark.parametrize('keep', ['key', 'value'])
+def test_rolling_back_write_that_keeps_asymmetric_equal_object(
+    bi_t: MBT[t.Any, t.Any], use_inv: bool, keep: str
+) -> None:
+    """Rolling back a write that keeps a contained object leaves another asymmetrically equal one in place.
+
+    *lookup* and *stored* (stored == lookup, but not lookup == stored) are both contained, *lookup* first,
+    so it takes the first slot for their shared hash. The write keeps *lookup* and replaces the other half
+    of its item; then the update fails. While *lookup* is absent from a dict that holds *stored*, re-adding it
+    lands on *stored*'s entry, so the rollback must not remove and re-add *lookup* in any backing dict,
+    including an ordered bidict's node map (keyed by the keys, or through .inverse, by the values).
+    """
+    _skip_unless_dict_compares_stored_eq_lookup()
+    stored, lookup = AsymStored(), AsymLookup()
+    bi = bi_t()
+    b = bi.inverse if use_inv else bi
+    if keep == 'key':
+        b.putall([(lookup, 'a'), (stored, 'b')])
+        write = (lookup, 'c')
+    else:
+        b.putall([('a', lookup), ('b', stored)])
+        write = ('c', lookup)
+    before = list(b.items())
+    with pytest.raises(TypeError):
+        b.forceupdate([write, (['unhashable'], 0)])
+    after = list(b.items())
+    if not isinstance(b, OrderedBidictBase):  # rolling back may reorder a non-ordered bidict's items
+        before.sort(key=repr)
+        after.sort(key=repr)
+    assert len(after) == len(before)
+    assert all(k1 is k2 and v1 is v2 for ((k1, v1), (k2, v2)) in zip(after, before, strict=True))
+    assert len(b.inverse) == len(b)
+    assert all(b.inverse[v] is k for (k, v) in b.items())
 
 
 def assert_calls_match(call1: Callable[..., t.Any], call2: Callable[..., t.Any]) -> None:

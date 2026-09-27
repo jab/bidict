@@ -125,6 +125,12 @@ use a
 `synchronization primitive <https://docs.python.org/3/library/threading.html#lock-objects>`__
 to coordinate access. [#]_
 
+Mutating a :class:`~bidict.bidict` from within
+the ``__hash__()`` or ``__eq__()`` of a key or value
+that is being written to that same bidict
+is not supported,
+and can leave the bidict in an inconsistent state.
+
 .. [#] *See also:*
        [`2 <https://twitter.com/teozaurus/status/518071391959388160>`__],
        [`3 <https://twitter.com/ph1/status/943240854419922945>`__]
