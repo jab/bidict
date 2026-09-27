@@ -518,7 +518,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         if on_dup is None:
             on_dup = self.on_dup
 
-        # Fast path when we're empty and updating only from another bidict (i.e. no dup vals in new items).
+        # Fast path when we're empty and updating only from another bidict.
         if not self and not kw and isinstance(arg, BidictBase):
             try:
                 self._init_from(arg)
@@ -526,7 +526,11 @@ class BidictBase(BidirectionalMapping[KT, VT]):
                 if rollback:  # _init_from() records no unwrites, so go back to empty to fail clean.
                     self._init_from(())
                 raise
-            return
+            # arg has no dups by its own backing mappings' equality, but ours may judge some of its items equal
+            # (e.g. case-insensitively), collapsing them in one mapping only. If so, start over on the path below.
+            if len(self._fwdm) == len(self._invm) == len(arg):
+                return
+            self._init_from(())
 
         # In all other cases, for each new item, perform a dup check (raising if necessary), and apply the associated
         # writes we need to perform on our backing _fwdm and _invm mappings. If rollback is enabled, also compute the

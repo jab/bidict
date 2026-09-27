@@ -46,6 +46,13 @@ please consider sponsoring bidict on GitHub.`
   as :class:`~collections.OrderedDict`'s do.
   :issue:`408`
 
+- Fix a bug where a custom bidict whose backing mapping
+  judges distinct keys or values equal
+  (e.g. a case-insensitive mapping)
+  skipped duplication checking when filled from another bidict,
+  leaving its two backing mappings out of sync.
+  :issue:`413`
+
 - Fix a bug where filling an empty custom bidict from another bidict
   did not fail clean
   if one of its backing mappings refused a write.

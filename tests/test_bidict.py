@@ -672,6 +672,69 @@ def test_bulk_update_fails_clean_when_a_backing_mapping_refuses(
     assert (dict(bi._fwdm), dict(bi._invm), list(bi)) == (expected, invdict(expected), list(expected))
 
 
+class CaseFoldingDict(UserDict[t.Any, t.Any]):
+    """A backing mapping that judges str keys equal ignoring case, unlike the dicts backing a plain bidict."""
+
+    @staticmethod
+    def _fold(key: t.Any) -> t.Any:
+        return key.casefold() if isinstance(key, str) else key
+
+    @override
+    def __setitem__(self, key: t.Any, item: t.Any) -> None:
+        super().__setitem__(self._fold(key), item)
+
+    @override
+    def __getitem__(self, key: t.Any) -> t.Any:
+        return super().__getitem__(self._fold(key))
+
+    @override
+    def __delitem__(self, key: t.Any) -> None:
+        super().__delitem__(self._fold(key))
+
+    @override
+    def __contains__(self, key: object) -> bool:
+        return super().__contains__(self._fold(key))
+
+
+def _fill_empty(method: str, bi_t: MBT[t.Any, t.Any], items: t.Any, **kw: t.Any) -> t.Any:
+    bi = bi_t()
+    getattr(bi, method)(items, **kw)
+    return bi
+
+
+_FILLS_OF_EMPTY: t.Any = {
+    'init': lambda bi_t, items: bi_t(items),
+    'or': lambda bi_t, items: bi_t() | items,
+    'ior': partial(_fill_empty, '__ior__'),
+    'update': partial(_fill_empty, 'update'),
+    'forceupdate': partial(_fill_empty, 'forceupdate'),
+    **{f'putall-{od.key.name}-{od.val.name}': partial(_fill_empty, 'putall', on_dup=od) for od in on_dups},
+}
+
+
+@pytest.mark.parametrize('fill', _FILLS_OF_EMPTY.values(), ids=list(_FILLS_OF_EMPTY))
+@pytest.mark.parametrize('side', ['_fwdm_cls', '_invm_cls'])
+def test_fill_from_bidict_checks_dups_by_own_backing_mappings(side: str, fill: t.Any) -> None:
+    """Filling an empty bidict from another bidict must match filling it from a dict of the same items.
+
+    The other bidict has no dups as judged by its own backing mappings, but backing mappings are
+    user-supplied (see _fwdm_cls and _invm_cls), so ours may judge some of its items equal.
+    Skipping the dup check for them would collapse those items in only one of our backing mappings.
+    """
+    bi_t = type('CaseFoldingBidict', (bidict,), {side: CaseFoldingDict})
+    items = {'K': 'V', 'k': 'v'}  # one dup (of a key or a value, per side) once case is ignored
+
+    def outcome(src: t.Any) -> t.Any:
+        try:
+            bi = fill(bi_t, src)
+        except DuplicationError as exc:
+            return type(exc)
+        assert len(bi._fwdm) == len(bi._invm)
+        return dict(bi._fwdm), dict(bi._invm)
+
+    assert outcome(bidict(items)) == outcome(dict(items))
+
+
 @pytest.mark.parametrize('bi_t', mutable_bidict_types)
 @pytest.mark.parametrize('roundtrip', [copy, deepcopy, pickle_copy], ids=['copy', 'deepcopy', 'pickle'])
 def test_roundtrip_preserves_iteration_order(bi_t: MBT[t.Any, t.Any], roundtrip: t.Any) -> None:
