@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import typing as t
 from collections.abc import Mapping
+from contextlib import suppress
 
 from ._abc import MutableBidirectionalMapping
 from ._base import BidictBase
@@ -53,13 +54,18 @@ class MutableBidict(BidictBase[KT, VT], MutableBidirectionalMapping[KT, VT]):
     def _pop_invm(self, key: KT, val: VT) -> VT:
         """Remove *val* from _invm, *key* having already been removed from _fwdm.
 
-        Puts (key, val) back if _invm refuses the removal, so that a backing mapping
+        Puts the item back if _invm refuses the removal, so that a backing mapping
         rejecting one half of a removal cannot leave the two disagreeing. This is the
         removing counterpart of the unwrites that :meth:`BidictBase._write` records.
         """
         try:
             del self._invm[val]
         except BaseException:
+            # Put back the contained key, which _invm still refers to, rather than the given one, which
+            # may be an equal but distinct object. If that lookup fails too (e.g. val can no longer be
+            # hashed), put back the given key, which _fwdm found equal to the contained one.
+            with suppress(BaseException):
+                key = self._invm[val]
             self._fwdm[key] = val
             raise
         return val

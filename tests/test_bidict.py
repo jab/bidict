@@ -43,6 +43,7 @@ from bidict_test_fixtures import AsymLookup
 from bidict_test_fixtures import AsymStored
 from bidict_test_fixtures import CaseFoldingDict
 from bidict_test_fixtures import HashFailed
+from bidict_test_fixtures import HashFails
 from bidict_test_fixtures import KeysViaGetattr
 from bidict_test_fixtures import LegacySequence
 from bidict_test_fixtures import Oracle
@@ -685,15 +686,20 @@ def test_write_fails_clean_when_a_backing_mapping_refuses(
         (lambda b: b.__delitem__(1), 2),
         (lambda b: b.pop(1), 2),
         (lambda b: b.popitem(), 2),
+        # By a key equal to but distinct from the contained 1:
+        (lambda b: b.__delitem__(1.0), 2),
+        (lambda b: b.pop(True), 2),
     ],
-    ids=['delitem', 'pop', 'popitem'],
+    ids=['delitem', 'pop', 'popitem', 'delitem-equal-key', 'pop-equal-key'],
 )
 def test_remove_fails_clean_when_a_backing_mapping_refuses(bi_t: MBT[t.Any, t.Any], remove: t.Any, nwrites: int) -> None:
     """Removing an item must fail clean when a backing mapping refuses part-way through.
 
     The removing counterpart of test_write_fails_clean_when_a_backing_mapping_refuses:
     removing from one backing mapping and then being refused by the other must not leave
-    the two disagreeing.
+    the two disagreeing, nor holding a different key object than before, even when the
+    removal was asked for by an equal but distinct key. An ordered bidict must also keep
+    its order.
     """
     init = {1: 'a', 2: 'b'}
     unchanged = dict(init), invdict(init)
@@ -705,9 +711,39 @@ def test_remove_fails_clean_when_a_backing_mapping_refuses(bi_t: MBT[t.Any, t.An
         except WriteRefused:
             refused += 1
             assert (dict(bi._fwdm), dict(bi._invm)) == unchanged, f'refusing write #{n} left bi changed'
+            assert all(bi._invm[v] is k for (k, v) in bi._fwdm.items()), f'refusing write #{n} replaced a key object'
+            if bi_t is OrderedBidict:
+                assert list(bi.items()) == list(init.items()), f'refusing write #{n} reordered bi'
         else:
             break
     assert refused == nwrites
+
+
+@pytest.mark.parametrize('bi_t', [bidict, OrderedBidict])
+@pytest.mark.parametrize('use_inv', [False, True], ids=['fwd', 'inv'])
+@pytest.mark.parametrize(
+    'remove',
+    [lambda b: b.__delitem__(1), lambda b: b.pop(1), lambda b: b.popitem()],
+    ids=['delitem', 'pop', 'popitem'],
+)
+def test_remove_fails_clean_when_the_value_stops_hashing(bi_t: MBT[t.Any, t.Any], use_inv: bool, remove: t.Any) -> None:
+    """Removing an item whose value can no longer be hashed must fail clean.
+
+    The value's hash is needed both to remove it from the backing mapping it is a key of, and to
+    look up the contained key to put back when that removal fails, so the put-back must still
+    restore the item when the lookup fails too. The item is inserted last so popitem() removes it.
+    """
+    val = HashFails()
+    items = [('z', 'zz'), (1, val)]
+    b = bi_t((v, k) for (k, v) in items) if use_inv else bi_t(items)
+    bi = b.inverse if use_inv else b
+    val.fail_after()
+    with pytest.raises(HashFailed):
+        remove(bi)
+    val.stop()
+    assert list(bi.items()) == items
+    assert dict(bi._invm) == invdict(dict(bi._fwdm))
+    assert all(bi.inverse[bi[k]] is k for k in bi)
 
 
 @pytest.mark.parametrize('bi_t', [bidict, OrderedBidict])

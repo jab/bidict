@@ -102,6 +102,13 @@ please consider sponsoring bidict on GitHub.`
   if one of its backing mappings refused a write.
   :issue:`413`
 
+- Fix a bug where a custom bidict whose backing mapping refused a removal
+  requested by a key equal to but distinct from the contained one
+  (e.g. ``del b[1.0]`` with ``1`` contained)
+  put back the given key rather than the contained one,
+  so that e.g. ``b.inverse[b[key]] is key`` no longer held.
+  :issue:`414`
+
 - Fix a regression in 0.23.0 where an object
   that is iterable only via the legacy sequence protocol
   (i.e. that implements ``__getitem__`` but not ``__iter__``)
