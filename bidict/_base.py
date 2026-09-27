@@ -347,7 +347,11 @@ class BidictBase(BidirectionalMapping[KT, VT]):
           - being reversible
 
           - having a .mapping attribute in Python 3.10+
-            that exposes a mappingproxy to *b._fwdm*.
+            that exposes a mappingproxy to *b._fwdm*
+
+          - returning False from membership tests of anything but a 2-tuple,
+            for which *collections.abc.ItemsView(b)* may raise,
+            or return True (e.g. for a list *[key, value]*).
 
         See :meth:`keys` for how backing mappings that are not exactly dicts are handled.
         """

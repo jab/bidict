@@ -12,12 +12,15 @@ Mainly these are property-based tests implemented via https://hypothesis.works.
 from __future__ import annotations
 
 import gc
+import operator
 import pickle
 import sys
 import typing as t
 import weakref
 from collections import UserDict
 from collections.abc import Callable
+from collections.abc import ItemsView
+from collections.abc import KeysView
 from collections.abc import Mapping
 from collections.abc import Reversible
 from collections.abc import Sequence
@@ -1571,6 +1574,28 @@ def test_orderedbidict_cross_view_set_operations() -> None:
     for op in ops:
         assert getattr(ob1.keys(), op)(ob2.items()) == getattr(d1.keys(), op)(d2.items()), op
         assert getattr(ob1.items(), op)(ob2.keys()) == getattr(d1.items(), op)(d2.keys()), op
+
+
+@pytest.mark.parametrize('bi_t', bidict_types)
+def test_items_view_membership_matches_dict_items(bi_t: BT[t.Any, t.Any]) -> None:
+    """`x in b.items()` must agree with a dict's items view for any x, not just for (key, value) pairs.
+
+    For anything but a 2-tuple, e.g. 'kv', [key, value], 1, or (1, 2, 3), that means False, not a
+    match against its elements or an unpacking error, including when a Set comparison checks it.
+    A bidict not backed by a dict has a generic ItemsView instead (see BidictBase.items()), and
+    must agree with that.
+    """
+    d = {'k': 'v', 1: 2}
+    bi = bi_t(d)
+    probes = ('kv', 'vk', [1, 2], [2, 1], 1, None, (), (1,), (1, 2, 3), ('k', 'v'), (1, 2), (2, 1), ([1], 2))
+    non_pairs = KeysView(UserDict({1: 1}))  # a Set that is not a dict view, whose elements are not pairs
+    for b, items in ((bi, d), (bi.inverse, invdict(d))):
+        view = b.items()
+        expect = items.items() if b._fwdm_is_dict else ItemsView(items)
+        for probe in probes:
+            assert_calls_match(partial(operator.contains, view, probe), partial(operator.contains, expect, probe))
+        assert_calls_match(partial(operator.le, non_pairs, view), partial(operator.le, non_pairs, expect))
+        assert_calls_match(partial(operator.ge, view, non_pairs), partial(operator.ge, expect, non_pairs))
 
 
 def test_abc_slots() -> None:

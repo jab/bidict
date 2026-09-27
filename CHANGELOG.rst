@@ -148,6 +148,14 @@ please consider sponsoring bidict on GitHub.`
   As with :class:`dict`, such objects are accepted again.
   :issue:`413`
 
+- Fix a bug where ``x in b.items()``,
+  for an ordered bidict *b* backed by :class:`dict`\s (the default),
+  could raise :class:`TypeError` or :class:`ValueError`,
+  or return ``True`` for e.g. a list ``[key, value]``,
+  when *x* was not a 2-tuple,
+  rather than return ``False``, as for a :class:`dict`.
+  :issue:`416`
+
 - Fix a performance regression in 0.24.0
   where removing an item from a :class:`~bidict.bidict` (or its inverse)
   was ~15% slower than in 0.23.1

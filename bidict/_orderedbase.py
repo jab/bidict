@@ -415,6 +415,15 @@ class _OrderedBidictItemsView(ProxiedSetView, ItemsView[KT, VT]):
         ob = self._mapping
         return ((key, ob[key]) for key in reversed(ob))
 
+    @override
+    def __contains__(self, item: tuple[object, object]) -> bool:
+        # Like the Set methods proxied below, defer to the backing dict_items when there is one.
+        # The inherited ItemsView.__contains__ unpacks item, so it raises for anything but a pair,
+        # and matches e.g. [key, value] too. (It can't join them: their fallback, Set's own method,
+        # would be the abstract Container.__contains__.)
+        ob = self._mapping
+        return item in ob._fwdm.items() if ob._fwdm_is_dict else super().__contains__(item)
+
 
 class _OrderedBidictValuesView(BidictValuesView[VT]):
     """The values view of an ordered bidict.
