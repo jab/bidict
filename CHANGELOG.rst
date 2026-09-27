@@ -46,6 +46,14 @@ please consider sponsoring bidict on GitHub.`
   as :class:`~collections.OrderedDict`'s do.
   :issue:`408`
 
+- Fix a bug where updating a mutable bidict from its own inverse,
+  e.g. ``b |= b.inverse``,
+  could raise :class:`RuntimeError`
+  or silently give a different result than ``b | b.inverse``
+  (e.g. skipping a :class:`~bidict.DuplicationError` it should have raised).
+  It now gives the same result as ``b | b.inverse``.
+  :issue:`413`
+
 - Fix a bug where a custom bidict whose backing mapping
   judges distinct keys or values equal
   (e.g. a case-insensitive mapping)

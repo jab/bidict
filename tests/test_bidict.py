@@ -258,6 +258,18 @@ class BidictStateMachine(RuleBasedStateMachine):
         arg = iter([*updates, (bomb, 0)])
         assert_update_fails_clean(self.bi, arg, (RuntimeError, DuplicationError), on_dup)
 
+    @rule(on_dup=on_dup)
+    def putall_own_inverse(self, on_dup: OnDup) -> None:
+        """Updating from our own inverse must behave like updating from a snapshot of it, as b | b.inv does.
+
+        The inverse shares our backing mappings, so this must not iterate over them while writing to them.
+        """
+        snapshot = list(self.bi.inv.items())
+        assert_calls_match(
+            partial(self.bi.putall, self.bi.inv, on_dup),
+            partial(self.oracle.putall, snapshot, on_dup),
+        )
+
     @rule(other=items121)
     def __ior__(self, other: Mapping[int, int]) -> None:
         assert_calls_match(
@@ -494,6 +506,34 @@ def test_putall_matches_bulk_put(bi_t: type[MutableBidict[int, int]], on_dup: On
             # (e.g. overwriting one key with a new value), rather than whatever earlier cases left behind.
             bi = bi_t({0: 0, 1: 1})
             assert_putall_matches_bulk_put(bi.inv if inv else bi, [(k1, v1), (k2, v2)], on_dup)
+
+
+@pytest.mark.parametrize(('bi_t', 'on_dup'), list(product(mutable_bidict_types, on_dups)))
+def test_putall_own_inverse(bi_t: type[MutableBidict[int, int]], on_dup: OnDup) -> None:
+    """Updating from our own inverse must behave like updating from a snapshot of it, as b | b.inv does.
+
+    The inverse shares our backing mappings, so this must not iterate over them while writing to them.
+    """
+    for init, inv in product(({0: 1, 2: 3}, {0: 1, 1: 2}), (False, True)):
+        bi = bi_t(init)
+        b = bi.inv if inv else bi
+        expect = b.copy()
+        assert_calls_match(
+            partial(expect.putall, list(b.inv.items()), on_dup),
+            partial(b.putall, b.inv, on_dup),
+        )
+        assert b.equals_order_sensitive(expect)
+        assert b.inv.equals_order_sensitive(expect.inv)
+        # b |= b.inv must agree with b = b | b.inv, as x |= y and x = x | y always do for a dict.
+        bi = bi_t(init)
+        b = bi.inv if inv else bi
+        try:
+            expect = b | b.inv
+        except DuplicationError:
+            expect = b.copy()
+        assert_calls_match(partial(b.__or__, b.inv), partial(b.__ior__, b.inv))
+        assert b.equals_order_sensitive(expect)
+        assert b.inv.equals_order_sensitive(expect.inv)
 
 
 def assert_putall_matches_bulk_put(bi: MutableBidict[int, int], new_items: Items, on_dup: OnDup) -> None:

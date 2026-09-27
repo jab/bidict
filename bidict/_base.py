@@ -536,6 +536,10 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         # writes we need to perform on our backing _fwdm and _invm mappings. If rollback is enabled, also compute the
         # associated unwrites as we go. If item unpacking, duplication checking, or writing raises while rollback is
         # enabled, apply the accumulated unwrites before re-raising, to ensure that we fail clean.
+        # arg may be our own inverse (e.g. b.update(b.inverse)), which shares the backing mappings written to below,
+        # so snapshot its items first. (ty doesn't narrow on the type() check, hence the cast.)
+        if type(arg) is self._inv_cls and t.cast('BidictBase[KT, VT]', arg)._fwdm is self._invm:
+            arg = [*iteritems(arg)]
         write = self._write
         unwrites: Unwrites | None = [] if rollback else None
         try:
