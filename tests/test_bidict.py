@@ -25,6 +25,7 @@ from copy import copy
 from copy import deepcopy
 from functools import partial
 from functools import reduce
+from itertools import count
 from itertools import product
 from itertools import starmap
 from random import Random
@@ -790,6 +791,113 @@ def test_bulk_update_fails_clean_when_a_backing_mapping_refuses(
     assert refused
     expected = init | dict(arg)
     assert (dict(bi._fwdm), dict(bi._invm), list(bi)) == (expected, invdict(expected), list(expected))
+
+
+@pytest.mark.parametrize('bi_t', [bi_t for bi_t in mutable_bidict_types if issubclass(bi_t, OrderedBidictBase)])
+@pytest.mark.parametrize(
+    ('init', 'op'),
+    [
+        # k is the object whose hashing fails. The inv cases go through the inverse, whose nodes
+        # are associated with its values rather than its keys.
+        (lambda _: {0: 'a'}, lambda b, k: b.__setitem__(k, 'b')),
+        (lambda _: {0: 'a'}, lambda b, k: b.putall([(k, 'b')])),
+        (lambda _: {0: 'a'}, lambda b, k: b.inv.__setitem__('b', k)),
+        (lambda k: {k: 'a', 0: 'b'}, lambda b, k: b.__setitem__(k, 'z')),
+        (lambda k: {k: 'a', 0: 'b'}, lambda b, _: b.forceput(1, 'a')),
+        (lambda k: {k: 'a', 0: 'b'}, lambda b, k: b.forceput(k, 'b')),
+        (lambda k: {k: 'a', 0: 'b'}, lambda b, k: b.forceupdate({k: 'b'})),
+        (lambda k: {k: 0, 'b': 1}, lambda b, k: b.inv.forceput(1, k)),
+        (lambda k: {k: 'a', 0: 'b'}, lambda b, k: b.pop(k)),
+        (lambda k: {k: 'a', 0: 'b'}, lambda b, k: b.__delitem__(k)),
+        (lambda k: {k: 'a', 0: 'b'}, lambda b, _: b.inv.pop('a')),
+        (lambda k: {0: 'b', k: 'a'}, lambda b, _: b.popitem()),
+        (lambda k: {0: 'b', k: 'a'}, lambda b, _: b.inv.popitem()),
+    ],
+    ids=[
+        'no-dup',
+        'no-dup-putall',
+        'no-dup-inv',
+        'dup-key',
+        'dup-val',
+        'dup-key-and-val',
+        'dup-key-and-val-forceupdate',
+        'dup-key-and-val-inv',
+        'pop',
+        'delitem',
+        'pop-inv',
+        'popitem',
+        'popitem-inv',
+    ],
+)
+def test_ordered_write_and_remove_fail_clean_when_hashing_fails(
+    bi_t: type[OrderedBidict[t.Any, t.Any]], init: t.Any, op: t.Any
+) -> None:
+    """An ordered bidict's write or removal must fail clean whichever of the times it hashes a key or value raises.
+
+    Besides the backing mappings, an ordered bidict's linked list of nodes and its mapping from
+    each contained key (or value) to its node must be left exactly as they were. Fails the nth
+    hash of k for each n in turn, until the operation gets through.
+    """
+    k = HashFails()
+    for n in count(1):
+        bi = bi_t(init(k))
+        before = list(bi.items()), dict(bi._fwdm), dict(bi._invm)
+        k.fail_on(n)
+        try:
+            op(bi, k)
+        except HashFailed:
+            succeeded = False
+        else:
+            succeeded = True
+        k.stop()
+        if not succeeded:
+            # items() walks the nodes, so this also catches orphaned or missing nodes.
+            assert (list(bi.items()), dict(bi._fwdm), dict(bi._invm)) == before, f'failing hash #{n} left bi changed'
+            assert all(bi._invm[v] is k_ for (k_, v) in before[0]), f'failing hash #{n} replaced a key object'
+        assert list(bi.inv.items()) == [(v, k_) for (k_, v) in bi.items()]
+        assert len(bi) == len(bi.inv) == len(list(bi))
+        assert_orderedbidict_nodes_consistent(bi)
+        assert_orderedbidict_nodes_consistent(bi.inv)
+        if succeeded:
+            break
+    assert n > 1
+
+
+@pytest.mark.parametrize('bi_t', [OrderedBidict, UserOrderedBi])
+@pytest.mark.parametrize('use_inv', [False, True], ids=['fwd', 'inv'])
+@pytest.mark.parametrize('method', ['pop', '__delitem__'])
+def test_ordered_remove_fails_clean_when_hashing_the_value_keeps_failing(
+    bi_t: type[OrderedBidict[t.Any, t.Any]], use_inv: bool, method: str
+) -> None:
+    """An ordered bidict's removal must fail clean when hashing the value being removed starts failing part-way through.
+
+    Lets the first n hashes of the value succeed and fails every one after that, for each n in
+    turn, until the removal gets through.
+    """
+    v = HashFails()
+    for n in count():
+        bi = bi_t({0: 'a', 1: v, 2: 'c'})
+        before = list(bi.items())
+        v.fail_after(n)
+        try:
+            if use_inv:
+                getattr(bi.inv, method)(v)
+            else:
+                getattr(bi, method)(1)
+        except HashFailed:
+            succeeded = False
+        else:
+            succeeded = True
+        v.stop()
+        if not succeeded:
+            assert list(bi.items()) == before, f'failing hash #{n + 1} left bi changed'
+        assert len(bi) == len(list(bi)) == len(bi.inv) == len(list(bi.inv))
+        assert_orderedbidict_nodes_consistent(bi)
+        assert_orderedbidict_nodes_consistent(bi.inv)
+        if succeeded:
+            break
+    assert n > 0
+    assert list(bi.items()) == [(0, 'a'), (2, 'c')]
 
 
 def _fill_empty(method: str, bi_t: MBT[t.Any, t.Any], items: t.Any, **kw: t.Any) -> t.Any:

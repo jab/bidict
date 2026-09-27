@@ -250,7 +250,12 @@ class OrderedBidictBase(BidictBase[KT, VT]):
         if oldval is MISSING and oldkey is MISSING:  # no key or value duplication
             # {0: 1, 2: 3} | {4: 5} => {0: 1, 2: 3, 4: 5}
             newnode = self._sntl.new_last_node()
-            assoc(newnode, newkey, newval)
+            # assoc() hashes newkey or newval, which can fail. It fails clean, but newnode is already linked in.
+            try:
+                assoc(newnode, newkey, newval)
+            except BaseException:
+                newnode.unlink()
+                raise
             if unwrites is not None:
                 unwrites.append((dissoc, newnode))
         elif oldval is not MISSING and oldkey is not MISSING:  # key and value duplication across two different items
@@ -263,14 +268,14 @@ class OrderedBidictBase(BidictBase[KT, VT]):
             else:
                 oldnode = node_by_korv[newval]
                 newnode = node_by_korv[oldval]
+            # As in BidictBase._write, record each unwrite as soon as its write succeeds:
+            # assoc() hashes newkey or newval, and can fail after dissoc() has succeeded.
             dissoc(oldnode)
+            if unwrites is not None:
+                unwrites.extend(((assoc, oldnode, oldkey, newval), (relink, oldnode)))
             assoc(newnode, newkey, newval)
             if unwrites is not None:
-                unwrites.extend((
-                    (assoc, newnode, newkey, oldval),
-                    (assoc, oldnode, oldkey, newval),
-                    (relink, oldnode),
-                ))
+                unwrites.append((assoc, newnode, newkey, oldval))
         elif oldval is not MISSING:  # just key duplication
             # {0: 1, 2: 3} | {2: 4} => {0: 1, 2: 4}
             # oldkey: MISSING, oldval: 3, newkey: 2, newval: 4

@@ -87,6 +87,15 @@ please consider sponsoring bidict on GitHub.`
   or was rolled back because the rest of an update failed.
   :issue:`414`
 
+- Fix a bug where a write to or removal from an :class:`~bidict.OrderedBidict`
+  that failed part-way through because one hash of a key or value raised
+  (e.g. with a :class:`RecursionError` or :class:`MemoryError`)
+  did not fail clean.
+  The bidict could be left yielding an item it did not contain,
+  omitting one it did,
+  or raising :class:`KeyError` when iterated.
+  :issue:`414`
+
 - Fix a bug where a custom bidict whose backing mapping
   judges distinct keys or values equal
   (e.g. a case-insensitive mapping)

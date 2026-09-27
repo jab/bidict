@@ -56,10 +56,20 @@ class OrderedBidict(OrderedBidictBase[KT, VT], MutableBidict[KT, VT]):
 
     @override
     def _pop(self, key: KT) -> VT:
-        node = self._node(key)  # before removing the item, so that a failed lookup leaves it in place
-        val = super()._pop(key)
+        # Find the node as _node() does, before removing the item, so that a failed lookup leaves it in place.
+        val = self._fwdm[key]
+        korv = self._invm[val] if self._bykey else val
+        node = self._node_by_korv[korv]
+        # Dissociate first, while the item is still contained, since dissociating hashes and may fail.
+        # If the removal then fails, restore the node from korv rather than by looking the item up again,
+        # which would also hash the other half of the item (whose hash may be what failed).
         self._dissoc_node(node)
-        return val
+        try:
+            return super()._pop(key)
+        except BaseException:
+            self._node_by_korv.forceput(korv, node)
+            self._relink_node(node)
+            raise
 
     @override
     def popitem(self, last: bool = True) -> tuple[KT, VT]:
