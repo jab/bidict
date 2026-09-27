@@ -133,6 +133,13 @@ please consider sponsoring bidict on GitHub.`
   As with :class:`dict`, such objects are accepted again.
   :issue:`413`
 
+- Fix a performance regression in 0.24.0
+  where removing an item from a :class:`~bidict.bidict` (or its inverse)
+  was ~15% slower than in 0.23.1
+  (~30% for :meth:`~bidict.MutableBidict.popitem`).
+  Removal is as fast as in 0.23.1 again.
+  :issue:`414`
+
 - :meth:`~bidict.MutableBidict.update`,
   :meth:`~bidict.MutableBidict.putall`, and
   :meth:`~bidict.MutableBidict.forceupdate`
