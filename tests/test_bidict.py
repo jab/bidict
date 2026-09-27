@@ -323,7 +323,8 @@ class BidictStateMachine(RuleBasedStateMachine):
                 expect = oracle.popitem(last=last)[::-1]
                 check = bi.inv.popitem(last=last)
             assert check == expect
-            assert check not in bi.items()
+            # When inv is true, check is an item of bi.inv, and it may still be in bi itself, e.g. {1: 2, 2: 1}.
+            assert check not in (bi.inv if inv else bi).items()
         else:
             fst, snd = (bi, oracle) if flip else (oracle, bi)
             k, v = fst.popitem()
