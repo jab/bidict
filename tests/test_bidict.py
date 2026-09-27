@@ -1409,6 +1409,44 @@ def test_orderedbidict_iterator_created_before_mutation_raises(
         list(it)
 
 
+#: (items, call) pairs, each call leaving an ordered bidict exactly as it was.
+_NO_OP_MUTATIONS: t.Any = {
+    'move_last_to_end': ({1: 'one', 2: 'two'}, lambda ob: ob.move_to_end(2)),
+    'move_first_to_start': ({1: 'one', 2: 'two'}, lambda ob: ob.move_to_end(1, last=False)),
+    'move_last_to_end_via_the_inverse': ({1: 'one', 2: 'two'}, lambda ob: ob.inv.move_to_end('two')),
+    'move_only_item_to_start': ({1: 'one'}, lambda ob: ob.move_to_end(1, last=False)),
+    'clear_when_empty': ({}, lambda ob: ob.clear()),
+}
+
+
+@pytest.mark.parametrize(('items', 'call'), _NO_OP_MUTATIONS.values(), ids=list(_NO_OP_MUTATIONS))
+@pytest.mark.parametrize('inv', [False, True], ids=['fwd', 'inv'])
+@pytest.mark.parametrize('bi_t', [OrderedBidict, UserOrderedBi])
+@pytest.mark.parametrize('view', [None, 'keys', 'items', 'values'])
+@pytest.mark.parametrize('iterate', [iter, reversed], ids=['forward', 'reverse'])
+def test_orderedbidict_no_op_does_not_invalidate_iterators(
+    items: dict[int, str], call: t.Any, inv: bool, bi_t: type[OrderedBidict[int, str]], view: str | None, iterate: t.Any
+) -> None:
+    """A call that changes nothing must not invalidate iterators.
+
+    OrderedDict permits a move_to_end() of an item already at the requested end, and dict,
+    OrderedDict, and bidict all permit a clear() when already empty. The former supports e.g.
+    LRU-style code that touches the most recently used item while iterating.
+    """
+    ob = bi_t(items)
+    b: OrderedBidict[t.Any, t.Any] = ob.inverse if inv else ob
+
+    def iterate_b(_: t.Any) -> t.Any:
+        return iterate(b if view is None else getattr(b, view)())
+
+    expected = list(iterate_b(b))
+    it = iterate_b(b)
+    call(ob)  # before the first next() call
+    assert list(it) == expected
+    _iterate_while_mutating(ob, iterate_b, lambda o, _key: call(o))
+    assert list(ob.items()) == list(items.items())
+
+
 def test_orderedbidict_iteration_unaffected_by_unrelated_bidict() -> None:
     """Only mutations to *this* bidict's linked list invalidate its iterators."""
     ob, other = OrderedBidict({1: 'one', 2: 'two'}), OrderedBidict({3: 'three'})

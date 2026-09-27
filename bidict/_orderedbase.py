@@ -120,6 +120,7 @@ class SentinelNode(Node):
     """
 
     nxt: WeakAttr[Node] = WeakAttr(slot='_nxt_weak')  # override base's plain slot with a weakref
+    _nxt_weak: weakref[Node]
     #: One :class:`Version` per direction, so that iterators can detect a change to the keys they
     #: are iterating: *version* for the bidict whose *_bykey* is true (see OrderedBidictBase),
     #: *inv_version* for its inverse. :meth:`mutated` bumps both, but :meth:`rekeyed` only one:
@@ -150,6 +151,10 @@ class SentinelNode(Node):
 
     def reset(self) -> None:
         """Empty the list."""
+        # Already empty: not a change, so leave iterators valid, as dict does. (Reads the weakref
+        # slot directly, sparing a call to the nxt descriptor.)
+        if self._nxt_weak() is self:
+            return
         self.nxt = self.prv = self
         self.mutated()
 

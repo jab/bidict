@@ -95,20 +95,23 @@ class OrderedBidict(OrderedBidictBase[KT, VT], MutableBidict[KT, VT]):
         :raises KeyError: if *key* is missing
         """
         node = self._node(key)
+        sntl = self._sntl
+        end = sntl.prv if last else sntl.nxt
+        # Already there: not a change, so leave iterators valid, as OrderedDict does. (The relinking
+        # below also relies on this, since it links node next to end.)
+        if node is end:
+            return
         node.prv.nxt = node.nxt
         node.nxt.prv = node.prv
-        sntl = self._sntl
         sntl.mutated()
         if last:
-            lastnode = sntl.prv
-            node.prv = lastnode
+            node.prv = end
             node.nxt = sntl
-            sntl.prv = lastnode.nxt = node
+            sntl.prv = end.nxt = node
         else:
-            firstnode = sntl.nxt
             node.prv = sntl
-            node.nxt = firstnode
-            sntl.nxt = firstnode.prv = node
+            node.nxt = end
+            sntl.nxt = end.prv = node
 
 
 #                             * Code review nav *

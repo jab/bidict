@@ -71,6 +71,13 @@ please consider sponsoring bidict on GitHub.`
   rather than raise :class:`RuntimeError`.
   :issue:`416`
 
+- Fix a regression in 0.24.0 where iterators over an :class:`~bidict.OrderedBidict`
+  raised :class:`RuntimeError`
+  after a :meth:`~bidict.OrderedBidict.move_to_end` of an item already at that end,
+  or a :meth:`~bidict.OrderedBidict.clear` when already empty,
+  although neither changed the bidict.
+  :issue:`416`
+
 - Fix a bug where updating a mutable bidict from its own inverse,
   e.g. ``b |= b.inverse``,
   could raise :class:`RuntimeError`
