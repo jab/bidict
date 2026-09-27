@@ -24,6 +24,7 @@ from weakref import ref as weakref
 
 from ._base import BidictBase
 from ._base import BidictKeysView
+from ._base import BidictValuesView
 from ._base import ProxiedSetView
 from ._base import Unwrites
 from ._base import _override_set_methods_to_use_backing_dict
@@ -97,6 +98,20 @@ class Node:
         self.prv.nxt = self.nxt.prv = self
 
 
+class Version:
+    """A counter that iterators take a snapshot of, to detect a change to what they are iterating.
+
+    Compared for equality only; its magnitude means nothing. A mutable object rather than an int
+    attribute of its owner, so that an iterator can hold on to the one it watches.
+    """
+
+    value: int
+    __slots__ = ('value',)
+
+    def __init__(self) -> None:
+        self.value = 0
+
+
 class SentinelNode(Node):
     """Special node in a circular doubly-linked list
     that links the first node with the last node.
@@ -105,23 +120,41 @@ class SentinelNode(Node):
     """
 
     nxt: WeakAttr[Node] = WeakAttr(slot='_nxt_weak')  # override base's plain slot with a weakref
-    #: Snapshot token, bumped by :meth:`mutated` on every structural change to the list, so
-    #: that iterators can detect one. Compared for equality only; its magnitude means nothing.
-    #: Lives here rather than on the owning bidict because a bidict and its inverse share this
-    #: sentinel, and so must invalidate each other's iterators.
-    version: int
-    __slots__ = ('_nxt_weak', 'version')
+    _nxt_weak: weakref[Node]
+    #: One :class:`Version` per direction, so that iterators can detect a change to the keys they
+    #: are iterating: *version* for the bidict whose *_bykey* is true (see OrderedBidictBase),
+    #: *inv_version* for its inverse. :meth:`mutated` bumps both, but :meth:`rekeyed` only one:
+    #: replacing an item's key in one direction only replaces a value in the other, which dict and
+    #: OrderedDict allow while iterating. These live here rather than on the owning bidict because
+    #: a bidict and its inverse share this sentinel, and so must invalidate each other's iterators.
+    version: Version
+    inv_version: Version
+    __slots__ = ('_nxt_weak', 'inv_version', 'version')
 
     def __init__(self) -> None:
-        self.version = 0
+        self.version = Version()
+        self.inv_version = Version()
         super().__init__(self, self)
 
     def mutated(self) -> None:
         """Record a structural change to the list, invalidating any iterators over it."""
-        self.version += 1
+        self.version.value += 1
+        self.inv_version.value += 1
+
+    def rekeyed(self, *, bykey: bool) -> None:
+        """Record that an item's key was replaced without moving its node.
+
+        *bykey* is the *_bykey* of the bidict whose key was replaced. Iterators over its keys
+        are invalidated, but not those over its inverse's, which only had a value replaced.
+        """
+        (self.version if bykey else self.inv_version).value += 1
 
     def reset(self) -> None:
         """Empty the list."""
+        # Already empty: not a change, so leave iterators valid, as dict does. (Reads the weakref
+        # slot directly, sparing a call to the nxt descriptor.)
+        if self._nxt_weak() is self:
+            return
         self.nxt = self.prv = self
         self.mutated()
 
@@ -129,27 +162,28 @@ class SentinelNode(Node):
         """Iterator yielding nodes in the requested order.
 
         Raises :class:`RuntimeError` if the list is structurally modified while iterating,
-        as :class:`dict` and :class:`collections.OrderedDict` do.
+        as :class:`dict` and :class:`collections.OrderedDict` do, or if a key of the bidict
+        whose *_bykey* is true is replaced in place (see :meth:`rekeyed`).
         """
         # Not a generator: the version is captured when the iterator is created rather than when it
         # is first advanced, so mutating in between is detected too, as OrderedDict does.
-        return self._iternodes(self.version, reverse=reverse)
+        return self._iternodes(self.version, self.version.value, reverse=reverse)
 
-    def _iternodes(self, initial_version: int, *, reverse: bool) -> Iterator[Node]:
+    def _iternodes(self, version: Version, initial_version: int, *, reverse: bool) -> Iterator[Node]:
         # Advance via a literal attr name rather than getattr(node, 'prv' if reverse else 'nxt'):
         # the dynamic lookup the latter needs costs more per node than everything else in
         # this loop put together, since only a literal gets CPython's specialized LOAD_ATTR.
         # (operator.attrgetter does not help: it is a call, not a load.)
         node = self.prv if reverse else self.nxt
         while node is not self:
-            if self.version != initial_version:
+            if version.value != initial_version:
                 raise RuntimeError(_MUTATED_DURING_ITERATION)
             yield node
             node = node.prv if reverse else node.nxt
         # Check on the step that finds the end too, so that a mutation which happens to leave the
         # iterator pointing at the sentinel is caught as well -- e.g. move_to_end() of the item
         # just yielded, which relinks it to exactly where iteration is about to stop.
-        if self.version != initial_version:
+        if version.value != initial_version:
             raise RuntimeError(_MUTATED_DURING_ITERATION)
 
     def new_last_node(self) -> Node:
@@ -286,6 +320,8 @@ class OrderedBidictBase(BidictBase[KT, VT]):
                 assoc(node, newkey, newval)
                 if unwrites is not None:
                     unwrites.append((self._reassoc_node, node, newkey, oldval))
+            # This bidict's keys are unchanged, but its inverse's key 3 became 4.
+            self._sntl.rekeyed(bykey=not bykey)
         else:
             assert oldkey is not MISSING  # just value duplication
             # {0: 1, 2: 3} | {4: 3} => {0: 1, 4: 3}
@@ -297,6 +333,8 @@ class OrderedBidictBase(BidictBase[KT, VT]):
                 assoc(node, newkey, newval)
                 if unwrites is not None:
                     unwrites.append((self._reassoc_node, node, oldkey, newval))
+            # This bidict's key 2 became 4, though the item keeps its node, and so its position.
+            self._sntl.rekeyed(bykey=bykey)
 
     @override
     def __iter__(self) -> Iterator[KT]:
@@ -308,17 +346,20 @@ class OrderedBidictBase(BidictBase[KT, VT]):
         """Iterator over the contained keys in reverse insertion order."""
         return self._iter(reverse=True)
 
-    def _iter(self, *, reverse: bool = False) -> Iterator[KT]:
+    def _iter(self, *, reverse: bool = False, values: bool = False) -> Iterator[t.Any]:
         # Not a generator, so that the version is captured now rather than on the first
         # next() call, and an iterator created before a mutation still detects it. Calls
         # _iternodes() directly rather than iternodes(), to skip a call on this hot path.
-        sntl = self._sntl
-        nodes = sntl._iternodes(sntl.version, reverse=reverse)
+        # Yields the values rather than the keys if *values* is true, but either way
+        # watches the keys for changes, not the values, as a dict's iterators do.
+        sntl, bykey = self._sntl, self._bykey
+        version = sntl.version if bykey else sntl.inv_version
+        nodes = sntl._iternodes(version, version.value, reverse=reverse)
         korv_by_node = self._node_by_korv.inverse
-        if self._bykey:
+        if bykey is not values:  # yield what the nodes are looked up by
             return (korv_by_node[node] for node in nodes)
-        key_by_val = self._invm
-        return (key_by_val[korv_by_node[node]] for node in nodes)
+        other_by_korv = self._fwdm if bykey else self._invm
+        return (other_by_korv[korv_by_node[node]] for node in nodes)
 
     # Override the keys() and items() implementations inherited from BidictBase, which may
     # delegate to the backing _fwdm dict: an ordered bidict's order is encoded in its linked
@@ -340,11 +381,7 @@ class OrderedBidictBase(BidictBase[KT, VT]):
     @override
     def values(self) -> BidictKeysView[VT]:
         """A set-like object providing a view on the contained values."""
-        # Unlike a non-ordered bidict, whose BidictValuesView has to iterate the backing
-        # _fwdm to yield values in key order (see BidictBase.values()), an ordered bidict
-        # gets that for free: the inverse shares this bidict's linked list, so its keys
-        # view already yields the values in this bidict's order.
-        return t.cast('BidictKeysView[VT]', self.inverse.keys())
+        return _OrderedBidictValuesView(self.inverse)
 
 
 # These views iterate the owning bidict to preserve its linked-list order. Create
@@ -377,6 +414,40 @@ class _OrderedBidictItemsView(ProxiedSetView, ItemsView[KT, VT]):
     def __reversed__(self) -> Iterator[tuple[KT, VT]]:
         ob = self._mapping
         return ((key, ob[key]) for key in reversed(ob))
+
+    @override
+    def __contains__(self, item: tuple[object, object]) -> bool:
+        # Like the Set methods proxied below, defer to the backing dict_items when there is one.
+        # The inherited ItemsView.__contains__ unpacks item, so it raises for anything but a pair,
+        # and matches e.g. [key, value] too. (It can't join them: their fallback, Set's own method,
+        # would be the abstract Container.__contains__.)
+        ob = self._mapping
+        return item in ob._fwdm.items() if ob._fwdm_is_dict else super().__contains__(item)
+
+
+class _OrderedBidictValuesView(BidictValuesView[VT]):
+    """The values view of an ordered bidict.
+
+    As with its base class, *_mapping* is the inverse, whose keys provide membership, len(), and
+    set operations. Iteration yields this bidict's values in linked-list order, and so raises if
+    this bidict's keys change, as a dict's values view does. (The inverse's keys view would yield
+    the same values in the same order, but raise when this bidict's values change instead.)
+    """
+
+    _mapping: OrderedBidictBase[VT, t.Any]
+    __slots__ = ()
+
+    @override
+    def __iter__(self) -> Iterator[VT]:
+        return self._mapping.inverse._iter(values=True)
+
+    @override
+    def __reversed__(self) -> Iterator[VT]:
+        ob = self._mapping.inverse
+        # Decline if ob's class declines reversed(), as reversed(ob.keys()) and reversed(ob.items()) do.
+        if type(ob).__reversed__ is None:
+            raise TypeError(f'{type(ob).__name__!r} object is not reversible')
+        return ob._iter(reverse=True, values=True)
 
 
 _override_set_methods_to_use_backing_dict(_OrderedBidictKeysView)

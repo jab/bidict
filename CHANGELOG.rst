@@ -63,6 +63,21 @@ please consider sponsoring bidict on GitHub.`
   as :class:`~collections.OrderedDict`'s do.
   :issue:`408`
 
+- Fix a bug where iterating over an ordered bidict (or its inverse)
+  while one of its keys was replaced in place,
+  e.g. by a :meth:`~bidict.MutableBidict.forceput` whose value was already contained,
+  or, for the inverse, by changing a value,
+  could silently repeat or skip keys
+  rather than raise :class:`RuntimeError`.
+  :issue:`416`
+
+- Fix a regression in 0.24.0 where iterators over an :class:`~bidict.OrderedBidict`
+  raised :class:`RuntimeError`
+  after a :meth:`~bidict.OrderedBidict.move_to_end` of an item already at that end,
+  or a :meth:`~bidict.OrderedBidict.clear` when already empty,
+  although neither changed the bidict.
+  :issue:`416`
+
 - Fix a bug where updating a mutable bidict from its own inverse,
   e.g. ``b |= b.inverse``,
   could raise :class:`RuntimeError`
@@ -133,6 +148,14 @@ please consider sponsoring bidict on GitHub.`
   As with :class:`dict`, such objects are accepted again.
   :issue:`413`
 
+- Fix a bug where ``x in b.items()``,
+  for an ordered bidict *b* backed by :class:`dict`\s (the default),
+  could raise :class:`TypeError` or :class:`ValueError`,
+  or return ``True`` for e.g. a list ``[key, value]``,
+  when *x* was not a 2-tuple,
+  rather than return ``False``, as for a :class:`dict`.
+  :issue:`416`
+
 - Fix a performance regression in 0.24.0
   where removing an item from a :class:`~bidict.bidict` (or its inverse)
   was ~15% slower than in 0.23.1
@@ -149,7 +172,7 @@ please consider sponsoring bidict on GitHub.`
   :issue:`413`
 
 - Changing the value of an existing key in an :class:`~bidict.OrderedBidict`
-  is ~1.3x faster than in 0.24.1.
+  is ~1.2x faster than in 0.24.1.
   :issue:`414`
 
 0.24.1 (2026-08-25)
