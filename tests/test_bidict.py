@@ -626,6 +626,52 @@ def test_remove_fails_clean_when_a_backing_mapping_refuses(bi_t: MBT[t.Any, t.An
     assert refused == nwrites
 
 
+@pytest.mark.parametrize('bi_t', [bidict, OrderedBidict])
+@pytest.mark.parametrize(
+    'update',
+    [
+        lambda b, arg: b.update(arg),
+        lambda b, arg: b.forceupdate(arg),
+        lambda b, arg: b.putall(arg),
+        lambda b, arg: b.__ior__(arg),
+    ],
+    ids=['update', 'forceupdate', 'putall', 'ior'],
+)
+@pytest.mark.parametrize(
+    ('init', 'arg'),
+    [
+        ({}, bidict({1: 'a', 2: 'b'})),  # empty and updating from a bidict: the _init_from() fast path
+        # Otherwise _write() each item, recording unwrites.
+        ({1: 'a'}, {2: 'b', 3: 'c'}),
+        ({1: 'a', 2: 'b', 3: 'c'}, {4: 'd'}),
+    ],
+    ids=['from-bidict-into-empty', 'larger-than-self', 'smaller-than-self'],
+)
+def test_bulk_update_fails_clean_when_a_backing_mapping_refuses(
+    bi_t: MBT[t.Any, t.Any], update: t.Any, init: dict[t.Any, t.Any], arg: Mapping[t.Any, t.Any]
+) -> None:
+    """A bulk update must fail clean when a backing mapping refuses part-way through, whichever way it is applied.
+
+    The bulk counterpart of test_write_fails_clean_when_a_backing_mapping_refuses: _update()'s fast path
+    writes to the backing mappings via _init_from() rather than _write(), and must not leave them disagreeing
+    either. Refuses the nth write for each n in turn, until the update gets through.
+    """
+    unchanged = dict(init), invdict(init), list(init)
+    refused = 0
+    for n in range(1, 100):
+        bi = bidict_refusing_nth_write(bi_t, init, n)
+        try:
+            update(bi, arg)
+        except WriteRefused:
+            refused += 1
+            assert (dict(bi._fwdm), dict(bi._invm), list(bi)) == unchanged, f'refusing write #{n} left bi changed'
+        else:
+            break
+    assert refused
+    expected = init | dict(arg)
+    assert (dict(bi._fwdm), dict(bi._invm), list(bi)) == (expected, invdict(expected), list(expected))
+
+
 @pytest.mark.parametrize('bi_t', mutable_bidict_types)
 @pytest.mark.parametrize('roundtrip', [copy, deepcopy, pickle_copy], ids=['copy', 'deepcopy', 'pickle'])
 def test_roundtrip_preserves_iteration_order(bi_t: MBT[t.Any, t.Any], roundtrip: t.Any) -> None:

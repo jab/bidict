@@ -520,7 +520,12 @@ class BidictBase(BidirectionalMapping[KT, VT]):
 
         # Fast path when we're empty and updating only from another bidict (i.e. no dup vals in new items).
         if not self and not kw and isinstance(arg, BidictBase):
-            self._init_from(arg)
+            try:
+                self._init_from(arg)
+            except Exception:
+                if rollback:  # _init_from() records no unwrites, so go back to empty to fail clean.
+                    self._init_from(())
+                raise
             return
 
         # In all other cases, for each new item, perform a dup check (raising if necessary), and apply the associated

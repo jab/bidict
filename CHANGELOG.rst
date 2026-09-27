@@ -46,6 +46,11 @@ please consider sponsoring bidict on GitHub.`
   as :class:`~collections.OrderedDict`'s do.
   :issue:`408`
 
+- Fix a bug where filling an empty custom bidict from another bidict
+  did not fail clean
+  if one of its backing mappings refused a write.
+  :issue:`413`
+
 - :meth:`~bidict.MutableBidict.update`,
   :meth:`~bidict.MutableBidict.putall`, and
   :meth:`~bidict.MutableBidict.forceupdate`
