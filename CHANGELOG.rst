@@ -63,6 +63,14 @@ please consider sponsoring bidict on GitHub.`
   as :class:`~collections.OrderedDict`'s do.
   :issue:`408`
 
+- Fix a bug where iterating over an ordered bidict (or its inverse)
+  while one of its keys was replaced in place,
+  e.g. by a :meth:`~bidict.MutableBidict.forceput` whose value was already contained,
+  or, for the inverse, by changing a value,
+  could silently repeat or skip keys
+  rather than raise :class:`RuntimeError`.
+  :issue:`416`
+
 - Fix a bug where updating a mutable bidict from its own inverse,
   e.g. ``b |= b.inverse``,
   could raise :class:`RuntimeError`
@@ -149,7 +157,7 @@ please consider sponsoring bidict on GitHub.`
   :issue:`413`
 
 - Changing the value of an existing key in an :class:`~bidict.OrderedBidict`
-  is ~1.3x faster than in 0.24.1.
+  is ~1.2x faster than in 0.24.1.
   :issue:`414`
 
 0.24.1 (2026-08-25)

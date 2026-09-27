@@ -1251,6 +1251,19 @@ def test_reversed_opt_out_is_honored_and_inherited() -> None:
         assert not isinstance(bi.values(), Reversible), bi_t
 
 
+def test_orderedbidict_reversed_opt_out_is_honored_by_its_views() -> None:
+    """An ordered bidict that opts out of reversed() cannot be reversed through its views either."""
+
+    class OptedOut(OrderedBidict[t.Any, t.Any]):
+        __reversed__ = None
+
+    ob: t.Any = OptedOut({1: 'one'})
+    for b in (ob, ob.inverse):
+        for reversible in (b, b.keys(), b.values(), b.items()):
+            with pytest.raises(TypeError):
+                list(reversed(reversible))
+
+
 #: Ways to mutate an ordered bidict, keyed by name. Each takes the bidict and the key
 #: just yielded by the iteration in progress.
 _MUTATIONS_DURING_ITERATION: t.Any = {
@@ -1260,6 +1273,8 @@ _MUTATIONS_DURING_ITERATION: t.Any = {
     'move_to_end': lambda ob, key: ob.move_to_end(key),
     'collapse_to_fewer_items': lambda ob, key: ob.forceput(key, next(iter(ob.inv))),
     'insert_via_the_inverse': lambda ob, key: ob.inv.__setitem__(f'new{key}', f'new{key}'),
+    'replace_key_in_place': lambda ob, key: ob.forceput(f'new{key}', ob[key]),
+    'replace_key_via_the_inverse': lambda ob, key: ob.inv.__setitem__(ob[key], f'new{key}'),
 }
 
 
@@ -1281,8 +1296,8 @@ def test_orderedbidict_mutation_during_iteration_raises(mutate: t.Any, iterate: 
 
     dict and OrderedDict both do this. Without it, inserting during iteration looped forever,
     clear() raised a KeyError naming an internal Node, and deleting silently skipped items.
-    Note the last mutation goes through the inverse, which shares the linked list, so it must
-    invalidate this iterator too.
+    Note the *_via_the_inverse mutations go through the inverse, which shares the linked list,
+    so they must invalidate this iterator too.
     """
     ob: OrderedBidict[t.Any, t.Any] = OrderedBidict({1: 'one', 2: 'two', 3: 'three'})
     with pytest.raises(RuntimeError):
@@ -1302,16 +1317,27 @@ def test_orderedbidict_mutation_on_final_item_raises() -> None:
         _iterate_while_mutating(ob, iter, lambda o, key: o.__setitem__(3, 'three') if key == 2 else None)
 
 
-def test_orderedbidict_iteration_allows_value_only_update() -> None:
-    """Updating an existing key's value does not restructure the list, so it must not raise.
+@pytest.mark.parametrize('inv', [False, True], ids=['fwd', 'inv'])
+@pytest.mark.parametrize('view', [None, 'keys', 'items', 'values'])
+@pytest.mark.parametrize('iterate', [iter, reversed], ids=['forward', 'reverse'])
+def test_orderedbidict_iteration_allows_value_only_update(iterate: t.Any, view: str | None, inv: bool) -> None:
+    """Updating an existing key's value changes none of the keys being iterated, so it must not raise.
 
     dict and OrderedDict both permit this, and an ordered bidict's iteration order is
-    unaffected by it: the item keeps its node, and so its position.
+    unaffected by it: the item keeps its node, and so its position. This holds for the
+    values view too, even though its elements are the inverse's keys, which such an
+    update does replace.
     """
     ob = OrderedBidict({1: 'one', 2: 'two'})
-    for key in ob:
-        ob[key] = f'updated{key}'
-    assert list(ob.items()) == [(1, 'updated1'), (2, 'updated2')]
+    b: OrderedBidict[t.Any, t.Any] = ob.inverse if inv else ob
+    keys = list(b)
+    new_vals = [10, 11] if inv else ['updated0', 'updated1']
+    visited = 0
+    for _ in iterate(b if view is None else getattr(b, view)()):
+        b[keys[visited]] = new_vals[visited]
+        visited += 1
+    assert visited == len(keys)
+    assert list(b.items()) == list(zip(keys, new_vals, strict=True))
 
 
 #: Bulk updates that pass more items than the bidict contains but change no keys: either
@@ -1350,20 +1376,35 @@ def test_iteration_allows_bulk_update_changing_no_keys(bi_t: MBT[t.Any, t.Any], 
     assert keys == list(iterate(bi)) == list(iterate([7, 8, 9]))
 
 
+#: Changes to the keys of an ordered bidict *b* (which may itself be an inverse). The last two replace a
+#: key in place: the item keeps its node, so the linked list is not restructured, but b's keys change.
+_KEY_CHANGES: t.Any = {
+    'insert': lambda b: b.__setitem__(object(), object()),
+    'replace_key_in_place': lambda b: b.forceput(object(), next(iter(b.values()))),
+    'replace_key_via_the_inverse': lambda b: b.inverse.__setitem__(next(iter(b.values())), object()),
+}
+
+
+@pytest.mark.parametrize('mutate', _KEY_CHANGES.values(), ids=list(_KEY_CHANGES))
+@pytest.mark.parametrize('inv', [False, True], ids=['fwd', 'inv'])
 @pytest.mark.parametrize('bi_t', [OrderedBidict, UserOrderedBi])
 @pytest.mark.parametrize('view', [None, 'keys', 'items', 'values'])
 @pytest.mark.parametrize('iterate', [iter, reversed], ids=['forward', 'reverse'])
 def test_orderedbidict_iterator_created_before_mutation_raises(
-    bi_t: type[OrderedBidict[int, str]], view: str | None, iterate: t.Any
+    bi_t: type[OrderedBidict[int, str]], view: str | None, iterate: t.Any, inv: bool, mutate: t.Any
 ) -> None:
     """The check must catch a mutation made after the iterator was created but before it ran.
 
     OrderedDict does this too, which is why iteration, including via the keys(), values(), and
     items() views, captures the version eagerly rather than on the first next() call.
+    Replacing a key in place must be caught too, whichever direction the write goes through,
+    even though a bidict and its inverse share one linked list, and to the other direction
+    the same write only replaces a value.
     """
     ob = bi_t({1: 'one', 2: 'two'})
-    it = iterate(ob if view is None else getattr(ob, view)())
-    ob[3] = 'three'
+    b: OrderedBidict[t.Any, t.Any] = ob.inverse if inv else ob
+    it = iterate(b if view is None else getattr(b, view)())
+    mutate(b)
     with pytest.raises(RuntimeError):
         list(it)
 
