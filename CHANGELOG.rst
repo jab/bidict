@@ -71,12 +71,31 @@ please consider sponsoring bidict on GitHub.`
   It now gives the same result as ``b | b.inverse``.
   :issue:`413`
 
+- Fix a bug where a write through an ordered bidict's inverse
+  that collapsed two items into one,
+  given an object equal to but distinct from a contained one,
+  left the ordered bidict yielding the given object rather than the contained one,
+  so that e.g. ``b.inverse[b[key]] is key`` no longer held.
+  An update that failed after such a write did not fail clean either.
+  :issue:`414`
+
 - Fix a bug where a custom bidict whose backing mapping
   judges distinct keys or values equal
   (e.g. a case-insensitive mapping)
   skipped duplication checking when filled from another bidict,
   leaving its two backing mappings out of sync.
   :issue:`413`
+
+- Fix a bug where a custom :class:`~bidict.OrderedBidict`
+  whose forward backing mapping judges distinct keys equal
+  (e.g. a case-insensitive mapping)
+  raised :class:`KeyError`
+  when filled with such keys,
+  or when setting, popping, deleting, or moving an item
+  by a key other than the contained one
+  (e.g. ``'a'`` for a contained ``'A'``).
+  A pop or deletion that raised this way also left the bidict corrupted.
+  :issue:`414`
 
 - Fix a bug where filling an empty custom bidict from another bidict
   did not fail clean

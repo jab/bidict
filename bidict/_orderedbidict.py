@@ -19,6 +19,7 @@ from __future__ import annotations
 import typing as t
 
 from ._bidict import MutableBidict
+from ._orderedbase import Node
 from ._orderedbase import OrderedBidictBase
 from ._typing import KT
 from ._typing import VT
@@ -45,10 +46,18 @@ class OrderedBidict(OrderedBidictBase[KT, VT], MutableBidict[KT, VT]):
         self._node_by_korv.clear()
         self._sntl.reset()
 
+    def _node(self, key: KT) -> Node:
+        """Return the node of the item with the given key."""
+        # Find the node by the contained key (for an inverse, the contained value), not by *key*:
+        # _node_by_korv need not resolve an equal but distinct *key* to the same item as a
+        # user-supplied _fwdm does (e.g. one that ignores case).
+        val = self._fwdm[key]
+        return self._node_by_korv[self._invm[val] if self._bykey else val]
+
     @override
     def _pop(self, key: KT) -> VT:
+        node = self._node(key)  # before removing the item, so that a failed lookup leaves it in place
         val = super()._pop(key)
-        node = self._node_by_korv[key if self._bykey else val]
         self._dissoc_node(node)
         return val
 
@@ -75,8 +84,7 @@ class OrderedBidict(OrderedBidictBase[KT, VT], MutableBidict[KT, VT]):
 
         :raises KeyError: if *key* is missing
         """
-        korv = key if self._bykey else self._fwdm[key]
-        node = self._node_by_korv[korv]
+        node = self._node(key)
         node.prv.nxt = node.nxt
         node.nxt.prv = node.prv
         sntl = self._sntl

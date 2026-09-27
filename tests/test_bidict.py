@@ -774,14 +774,15 @@ _FILLS_OF_EMPTY: t.Any = {
 
 @pytest.mark.parametrize('fill', _FILLS_OF_EMPTY.values(), ids=list(_FILLS_OF_EMPTY))
 @pytest.mark.parametrize('side', ['_fwdm_cls', '_invm_cls'])
-def test_fill_from_bidict_checks_dups_by_own_backing_mappings(side: str, fill: t.Any) -> None:
+@pytest.mark.parametrize('base', [bidict, OrderedBidict])
+def test_fill_from_bidict_checks_dups_by_own_backing_mappings(base: t.Any, side: str, fill: t.Any) -> None:
     """Filling an empty bidict from another bidict must match filling it from a dict of the same items.
 
     The other bidict has no dups as judged by its own backing mappings, but backing mappings are
     user-supplied (see _fwdm_cls and _invm_cls), so ours may judge some of its items equal.
     Skipping the dup check for them would collapse those items in only one of our backing mappings.
     """
-    bi_t = type('CaseFoldingBidict', (bidict,), {side: CaseFoldingDict})
+    bi_t = type(f'CaseFolding{base.__name__}', (base,), {side: CaseFoldingDict})
     items = {'K': 'V', 'k': 'v'}  # one dup (of a key or a value, per side) once case is ignored
 
     def outcome(src: t.Any) -> t.Any:
@@ -789,10 +790,38 @@ def test_fill_from_bidict_checks_dups_by_own_backing_mappings(side: str, fill: t
             bi = fill(bi_t, src)
         except DuplicationError as exc:
             return type(exc)
-        assert len(bi._fwdm) == len(bi._invm)
-        return dict(bi._fwdm), dict(bi._invm)
+        assert len(bi._fwdm) == len(bi._invm) == len(list(bi))
+        return dict(bi._fwdm), dict(bi._invm), list(bi.items())
 
     assert outcome(bidict(items)) == outcome(dict(items))
+
+
+#: (label, (mutation, expected items)) pairs, each acting on {'A': 1, 'B': 2} via the key 'a',
+#: which only a case-insensitive backing mapping resolves to the contained key 'A'.
+_CASE_FOLDING_KEY_OPS: t.Any = {
+    'setitem': (lambda b: b.__setitem__('a', 3), [('A', 3), ('B', 2)]),
+    'pop': (lambda b: b.pop('a'), [('B', 2)]),
+    'delitem': (lambda b: b.__delitem__('a'), [('B', 2)]),
+    'move_to_end': (lambda b: b.move_to_end('a'), [('B', 2), ('A', 1)]),
+}
+
+
+@pytest.mark.parametrize(('mutate', 'expected'), _CASE_FOLDING_KEY_OPS.values(), ids=list(_CASE_FOLDING_KEY_OPS))
+@pytest.mark.parametrize('side', ['_fwdm_cls', '_invm_cls'])
+def test_orderedbidict_acts_on_the_item_its_backing_mapping_resolves_to(
+    side: str, mutate: t.Any, expected: list[tuple[str, int]]
+) -> None:
+    """An ordered bidict must act on the item that its (user-supplied) backing mapping resolves a key to.
+
+    Its linked-list nodes are found via a plain dict, which may not resolve the key the same way.
+    Both sides are covered, since through the inverse, the mapping resolving the key is _invm_cls.
+    """
+    bi_t = type('CaseFoldingOrderedBidict', (OrderedBidict,), {side: CaseFoldingDict})
+    bi = bi_t({'A': 1, 'B': 2}) if side == '_fwdm_cls' else bi_t({1: 'A', 2: 'B'}).inverse
+    mutate(bi)
+    assert list(bi.items()) == expected
+    assert list(bi.inverse.items()) == [(v, k) for (k, v) in expected]
+    assert len(bi) == len(bi.inverse) == len(expected)
 
 
 @pytest.mark.parametrize('bi_t', mutable_bidict_types)
@@ -1205,12 +1234,25 @@ def test_orderedbidict_iteration_unaffected_by_unrelated_bidict() -> None:
     assert keys == [1, 2]
 
 
+def _failed_inverse_collapse(b: t.Any) -> None:
+    """Collapse two items through the inverse in an update that then fails, and so is rolled back."""
+    with pytest.raises(TypeError):
+        b.inverse.forceupdate([(Tagged(2, 'new'), Tagged(3, 'new')), ('x', [])])  # [] is unhashable
+    assert all(x.tag == 'orig' for item in b.items() for x in item), 'rollback did not restore the contained objects'
+
+
 #: (label, mutation) pairs, each writing an item that duplicates a contained key, a contained
 #: value, or both, using an object that is equal to the contained one but not identical to it.
+#: Some write through the inverse, since an ordered bidict's inverse finds nodes by value.
 _DUPLICATING_WRITES: t.Any = {
     'key_duplication': lambda b: b.__setitem__(Tagged(1, 'new'), 'other'),
     'value_duplication': lambda b: b.forceput(Tagged(9, 'new'), Tagged(2, 'new')),
-    'collapse': lambda b: b.forceput(Tagged(1, 'new'), Tagged(2, 'new')),
+    'collapse': lambda b: b.forceput(Tagged(1, 'new'), Tagged(4, 'new')),
+    'inverse_key_duplication': lambda b: b.inverse.__setitem__(Tagged(2, 'new'), 'other'),
+    'inverse_value_duplication': lambda b: b.inverse.forceput(Tagged(9, 'new'), Tagged(1, 'new')),
+    'inverse_collapse': lambda b: b.inverse.forceput(Tagged(2, 'new'), Tagged(3, 'new')),
+    'inverse_collapse_forceupdate': lambda b: b.inverse.forceupdate([(Tagged(2, 'new'), Tagged(3, 'new'))]),
+    'inverse_collapse_rolled_back': _failed_inverse_collapse,
 }
 
 
@@ -1221,10 +1263,11 @@ def test_one_object_per_item_in_both_directions(bi_t: MBT[t.Any, t.Any], mutate:
 
     dict keeps the key object it already has when a key is overwritten, but takes the new
     value object. In a bidict a value is also a key of the inverse, so those two conventions
-    conflict; applying each to its own backing mapping left the two holding equal but distinct
-    objects for one item, and so left b.inverse[b[key]] not identical to key.
+    conflict; a write given an object equal to but distinct from a contained key or value keeps
+    the contained object in both backing mappings, so that b.inverse[b[key]] is key still holds.
+    The bidict starts with two items so that a write can also collapse them into one.
     """
-    bi = bi_t({Tagged(1, 'orig'): Tagged(2, 'orig')})
+    bi = bi_t({Tagged(1, 'orig'): Tagged(2, 'orig'), Tagged(3, 'orig'): Tagged(4, 'orig')})
     mutate(bi)
     for key in bi:
         val = bi[key]

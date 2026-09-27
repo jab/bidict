@@ -229,6 +229,13 @@ class OrderedBidictBase(BidictBase[KT, VT]):
 
     @override
     def _write(self, newkey: KT, newval: VT, oldkey: OKT[KT], oldval: OVT[VT], unwrites: Unwrites | None) -> None:
+        # Use the contained key and value rather than the given ones, so that nodes are looked up by,
+        # and associated with, the objects the backing mappings hold. A user-supplied backing mapping
+        # may match a given object to a contained one that _node_by_korv would not (e.g. ignoring case).
+        if oldval is not MISSING:  # newkey duplicates a contained key
+            newkey = self._invm[oldval]
+        if oldkey is not MISSING:  # newval duplicates a contained value
+            newval = self._fwdm[oldkey]
         super()._write(newkey, newval, oldkey, oldval, unwrites)
         assoc, dissoc, relink = self._assoc_node, self._dissoc_node, self._relink_node
         node_by_korv, bykey = self._node_by_korv, self._bykey
