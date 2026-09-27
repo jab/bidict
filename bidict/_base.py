@@ -513,8 +513,10 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         discarded if the update fails, and so has nothing to roll back to.
         """
         # Note: We must process input in a single pass, since arg may be a generator.
+        # Like dict, also accept iterables that only support the legacy __getitem__ protocol. For anything else,
+        # iter() raises the appropriate TypeError (without consuming arg) before we've written anything.
         if not isinstance(arg, (Iterable, Maplike)):
-            raise TypeError(f"'{arg.__class__.__name__}' object is not iterable")
+            iter(arg)
         if not arg and not kw:
             return
         if on_dup is None:

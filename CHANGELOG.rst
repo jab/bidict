@@ -66,6 +66,13 @@ please consider sponsoring bidict on GitHub.`
   if one of its backing mappings refused a write.
   :issue:`413`
 
+- Fix a regression in 0.23.0 where an object
+  that is iterable only via the legacy sequence protocol
+  (i.e. that implements ``__getitem__`` but not ``__iter__``)
+  was rejected with :class:`TypeError`.
+  As with :class:`dict`, such objects are accepted again.
+  :issue:`413`
+
 - :meth:`~bidict.MutableBidict.update`,
   :meth:`~bidict.MutableBidict.putall`, and
   :meth:`~bidict.MutableBidict.forceupdate`

@@ -39,6 +39,7 @@ from bidict_test_fixtures import KT
 from bidict_test_fixtures import MBT
 from bidict_test_fixtures import SET_OPS
 from bidict_test_fixtures import VT
+from bidict_test_fixtures import LegacySequence
 from bidict_test_fixtures import Oracle
 from bidict_test_fixtures import SupportsKeysAndGetItem
 from bidict_test_fixtures import Tagged
@@ -382,6 +383,24 @@ def test_init_and_update_with_bad_args(bi_t: BT[KT, VT]) -> None:
         bi = bi_t()
         with pytest.raises(TypeError):
             bi.update(*bad_args)  # ty: ignore[invalid-argument-type, too-many-positional-arguments]  # https://github.com/astral-sh/ty/issues/3649
+
+
+@pytest.mark.parametrize('bi_t', bidict_types)
+def test_init_and_update_accept_legacy_sequence(bi_t: BT[t.Any, t.Any]) -> None:
+    """Like dict, accept an arg that is iterable only via the legacy __getitem__ sequence protocol."""
+    items = [(1, 'one'), (2, 'two')]
+    # Typed Any since the type hints (like typeshed's for dict) only admit iterables that have __iter__.
+    arg: t.Any = LegacySequence(items)
+    expected = dict(arg)
+    assert expected == dict(items)
+    assert bi_t(arg) == expected
+    if not issubclass(bi_t, MutableBidict):
+        return
+    for update in (bi_t.update, bi_t.forceupdate, bi_t.putall):
+        bi = bi_t({0: 'zero'})
+        update(bi, arg)
+        assert bi == {0: 'zero', **expected}
+        assert_bi_and_inv_are_inverse(bi)
 
 
 @pytest.mark.parametrize('bi_t', bidict_types)

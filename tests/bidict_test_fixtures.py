@@ -56,6 +56,16 @@ class SupportsKeysAndGetItem(t.Generic[KT, VT]):
         return self._mapping[key]
 
 
+class LegacySequence(t.Generic[KT, VT]):
+    """A sequence of items that is iterable only via the legacy __getitem__ protocol (no __iter__), as dict allows."""
+
+    def __init__(self, items: Iterable[tuple[KT, VT]] = ()) -> None:
+        self._items = list(items)
+
+    def __getitem__(self, index: int) -> tuple[KT, VT]:
+        return self._items[index]
+
+
 BB = BidictBase[KT, VT]
 BT = type[BidictBase[KT, VT]]
 user_bidict_types: list[BT[t.Any, t.Any]] = []
@@ -120,7 +130,7 @@ assert UserBiNotOwnInvInv is not UserBiNotOwnInv
 BTs = tuple[BT[t.Any, t.Any], ...]
 builtin_bidict_types: BTs = (bidict, frozenbidict, OrderedBidict)
 bidict_types: BTs = (*builtin_bidict_types, *user_bidict_types)
-update_arg_types = (*bidict_types, list, dict, iter, SupportsKeysAndGetItem)
+update_arg_types = (*bidict_types, list, dict, iter, SupportsKeysAndGetItem, LegacySequence)
 mutable_bidict_types: BTs = tuple(t for t in bidict_types if issubclass(t, MutableBidirectionalMapping))
 assert frozenbidict not in mutable_bidict_types
 MBT = type[bidict[KT, VT]] | type[OrderedBidict[KT, VT]]
