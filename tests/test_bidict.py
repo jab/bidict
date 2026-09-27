@@ -39,6 +39,10 @@ from bidict_test_fixtures import KT
 from bidict_test_fixtures import MBT
 from bidict_test_fixtures import SET_OPS
 from bidict_test_fixtures import VT
+from bidict_test_fixtures import AsymLookup
+from bidict_test_fixtures import AsymStored
+from bidict_test_fixtures import CaseFoldingDict
+from bidict_test_fixtures import HashFailed
 from bidict_test_fixtures import KeysViaGetattr
 from bidict_test_fixtures import LegacySequence
 from bidict_test_fixtures import Oracle
@@ -244,7 +248,7 @@ class BidictStateMachine(RuleBasedStateMachine):
         The preceding items are fresh, so the only thing that can fail is the bad item.
         Pass an iterator so this always takes the incremental rollback path.
         """
-        assert_update_fails_clean(self.bi, iter([*new, (bomb, 0)]), RuntimeError, on_dup)
+        assert_update_fails_clean(self.bi, iter([*new, (bomb, 0)]), HashFailed, on_dup)
 
     @precondition(is_ordered)
     @rule(updates=items, on_dup=on_dup)
@@ -258,7 +262,7 @@ class BidictStateMachine(RuleBasedStateMachine):
         non-ordered bidict is restored contents-only. See "Updates Fail Clean" in the docs.
         """
         arg = iter([*updates, (bomb, 0)])
-        assert_update_fails_clean(self.bi, arg, (RuntimeError, DuplicationError), on_dup)
+        assert_update_fails_clean(self.bi, arg, (HashFailed, DuplicationError), on_dup)
 
     @rule(on_dup=on_dup)
     def putall_own_inverse(self, on_dup: OnDup) -> None:
@@ -750,30 +754,6 @@ def test_bulk_update_fails_clean_when_a_backing_mapping_refuses(
     assert refused
     expected = init | dict(arg)
     assert (dict(bi._fwdm), dict(bi._invm), list(bi)) == (expected, invdict(expected), list(expected))
-
-
-class CaseFoldingDict(UserDict[t.Any, t.Any]):
-    """A backing mapping that judges str keys equal ignoring case, unlike the dicts backing a plain bidict."""
-
-    @staticmethod
-    def _fold(key: t.Any) -> t.Any:
-        return key.casefold() if isinstance(key, str) else key
-
-    @override
-    def __setitem__(self, key: t.Any, item: t.Any) -> None:
-        super().__setitem__(self._fold(key), item)
-
-    @override
-    def __getitem__(self, key: t.Any) -> t.Any:
-        return super().__getitem__(self._fold(key))
-
-    @override
-    def __delitem__(self, key: t.Any) -> None:
-        super().__delitem__(self._fold(key))
-
-    @override
-    def __contains__(self, key: object) -> bool:
-        return super().__contains__(self._fold(key))
 
 
 def _fill_empty(method: str, bi_t: MBT[t.Any, t.Any], items: t.Any, **kw: t.Any) -> t.Any:
@@ -1401,30 +1381,6 @@ def test_setitem_existing_is_noop_with_nonreflexive_eq(bi_t: MBT[t.Any, t.Any]) 
         b3[nan] = nan
 
 
-class _AsymStored:
-    """Pathological type equal to _AsymLookup instances, but only when on the left-hand side."""
-
-    @override
-    def __hash__(self) -> int:
-        return 1
-
-    @override
-    def __eq__(self, other: object) -> bool:
-        return isinstance(other, _AsymLookup)
-
-
-class _AsymLookup:
-    """Pathological type that is never equal to anything, even when an _AsymStored equals it."""
-
-    @override
-    def __hash__(self) -> int:
-        return 1
-
-    @override
-    def __eq__(self, other: object) -> bool:
-        return False
-
-
 @pytest.mark.parametrize('bi_t', mutable_bidict_types)
 def test_setitem_existing_is_noop_with_asymmetric_eq(bi_t: MBT[t.Any, t.Any]) -> None:
     """Setting an existing (key, val) pair should be a no-op even when __eq__ is asymmetric.
@@ -1436,7 +1392,7 @@ def test_setitem_existing_is_noop_with_asymmetric_eq(bi_t: MBT[t.Any, t.Any]) ->
     (with operands in the opposite order) and wrongly concluding the items differ.
     See #382.
     """
-    stored, lookup = _AsymStored(), _AsymLookup()
+    stored, lookup = AsymStored(), AsymLookup()
     probe: dict[t.Any, str] = {stored: 'hit'}
     if probe.get(lookup) != 'hit':
         pytest.skip('dict lookup on this runtime does not compare stored == lookup')
