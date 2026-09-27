@@ -12,6 +12,7 @@ import typing as t
 from collections import OrderedDict
 from collections import UserDict
 from collections.abc import Iterable
+from collections.abc import Iterator
 from collections.abc import KeysView
 from collections.abc import Mapping
 from collections.abc import MutableMapping
@@ -64,6 +65,26 @@ class LegacySequence(t.Generic[KT, VT]):
 
     def __getitem__(self, index: int) -> tuple[KT, VT]:
         return self._items[index]
+
+
+class KeysViaGetattr(t.Generic[KT, VT]):
+    """A mapping proxy whose keys() is supplied by __getattr__, as with wrapt, lazy-object-proxy, etc.
+
+    dict() treats it as a mapping, since it looks up keys dynamically. But inspect.getattr_static(),
+    and so isinstance(..., Maplike) on Python 3.12+, can't see its keys().
+    """
+
+    def __init__(self, *args: t.Any, **kw: t.Any) -> None:
+        self._mapping = t.cast('Mapping[KT, VT]', dict(*args, **kw))
+
+    def __getattr__(self, name: str) -> t.Any:
+        return getattr(self._mapping, name)
+
+    def __getitem__(self, key: KT) -> VT:
+        return self._mapping[key]
+
+    def __iter__(self) -> Iterator[KT]:
+        return iter(self._mapping)
 
 
 BB = BidictBase[KT, VT]
@@ -130,7 +151,7 @@ assert UserBiNotOwnInvInv is not UserBiNotOwnInv
 BTs = tuple[BT[t.Any, t.Any], ...]
 builtin_bidict_types: BTs = (bidict, frozenbidict, OrderedBidict)
 bidict_types: BTs = (*builtin_bidict_types, *user_bidict_types)
-update_arg_types = (*bidict_types, list, dict, iter, SupportsKeysAndGetItem, LegacySequence)
+update_arg_types = (*bidict_types, list, dict, iter, SupportsKeysAndGetItem, LegacySequence, KeysViaGetattr)
 mutable_bidict_types: BTs = tuple(t for t in bidict_types if issubclass(t, MutableBidirectionalMapping))
 assert frozenbidict not in mutable_bidict_types
 MBT = type[bidict[KT, VT]] | type[OrderedBidict[KT, VT]]
@@ -252,8 +273,9 @@ class Oracle(t.Generic[KT, VT]):
         items: Iterable[tuple[KT, VT]]
         if isinstance(updates, Mapping):
             items = t.cast('Mapping[KT, VT]', updates).items()
-        elif isinstance(updates, Maplike):
-            items = [(key, updates[key]) for key in updates.keys()]
+        elif hasattr(updates, 'keys'):  # like dict() and MutableMapping.update()
+            maplike = t.cast('Maplike[KT, VT]', updates)
+            items = [(key, maplike[key]) for key in maplike.keys()]
         else:
             items = updates
         try:

@@ -46,7 +46,6 @@ from ._typing import MISSING
 from ._typing import OKT
 from ._typing import OVT
 from ._typing import VT
-from ._typing import Maplike
 from ._typing import MapOrItems
 from ._typing import override
 
@@ -515,7 +514,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         # Note: We must process input in a single pass, since arg may be a generator.
         # Like dict, also accept iterables that only support the legacy __getitem__ protocol. For anything else,
         # iter() raises the appropriate TypeError (without consuming arg) before we've written anything.
-        if not isinstance(arg, (Iterable, Maplike)):
+        if not isinstance(arg, Iterable) and not hasattr(arg, 'keys'):
             iter(arg)
         if not arg and not kw:
             return

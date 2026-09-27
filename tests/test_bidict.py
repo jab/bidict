@@ -39,6 +39,7 @@ from bidict_test_fixtures import KT
 from bidict_test_fixtures import MBT
 from bidict_test_fixtures import SET_OPS
 from bidict_test_fixtures import VT
+from bidict_test_fixtures import KeysViaGetattr
 from bidict_test_fixtures import LegacySequence
 from bidict_test_fixtures import Oracle
 from bidict_test_fixtures import SupportsKeysAndGetItem
@@ -400,6 +401,25 @@ def test_init_and_update_accept_legacy_sequence(bi_t: BT[t.Any, t.Any]) -> None:
         bi = bi_t({0: 'zero'})
         update(bi, arg)
         assert bi == {0: 'zero', **expected}
+        assert_bi_and_inv_are_inverse(bi)
+
+
+@pytest.mark.parametrize('bi_t', bidict_types)
+def test_init_and_update_accept_keys_via_getattr(bi_t: BT[t.Any, t.Any]) -> None:
+    """Like dict, treat an arg as a mapping when it has keys(), even if only via __getattr__ (as a proxy's is)."""
+    # Two-character keys would be silently split into bogus items, e.g. 'ab' -> ('a', 'b'),
+    # if arg were mistaken for an iterable of items.
+    arg: t.Any = KeysViaGetattr({'ab': 1, 'cd': 2})
+    expected = dict(arg)
+    assert expected == {'ab': 1, 'cd': 2}
+    assert bi_t(arg) == expected
+    assert list(inverted(arg)) == [(1, 'ab'), (2, 'cd')]
+    if not issubclass(bi_t, MutableBidict):
+        return
+    for update in (bi_t.update, bi_t.forceupdate, bi_t.putall):
+        bi = bi_t({'ef': 0})
+        update(bi, arg)
+        assert bi == {'ef': 0, **expected}
         assert_bi_and_inv_are_inverse(bi)
 
 

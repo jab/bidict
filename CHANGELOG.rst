@@ -38,6 +38,15 @@ please consider sponsoring bidict on GitHub.`
   and one over an :class:`~bidict.OrderedBidict` raised :class:`RuntimeError`.
   :issue:`413`
 
+- Fix a bug on Python 3.12+ where a mapping-like object
+  whose ``keys()`` method is provided by ``__getattr__``
+  (as with many proxy objects)
+  was treated as an iterable of items rather than as a mapping,
+  which could silently produce the wrong items.
+  As with :class:`dict`,
+  any argument with a ``keys`` attribute is now treated as a mapping.
+  :issue:`413`
+
 - Iterators over an ordered bidict's
   ``keys()``, ``values()``, and ``items()`` views
   now raise :class:`RuntimeError`

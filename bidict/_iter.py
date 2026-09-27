@@ -24,12 +24,11 @@ def iteritems(arg: MapOrItems[KT, VT] = (), /, **kw: VT) -> ItemsIter[KT, VT]:
     """Yield the items from *arg* and *kw* in the order given."""
     if isinstance(arg, Mapping):
         yield from t.cast('Mapping[KT, VT]', arg).items()
-    # isinstance() against a runtime-checkable Protocol is cheap when it succeeds but expensive
-    # when it fails: it falls back to inspect.getattr_static() per member and caches nothing.
-    # It fails for an iterable of items, which is what every single-item write passes, so screen
-    # that case out first -- a Maplike has a keys attribute by definition.
-    elif hasattr(arg, 'keys') and isinstance(arg, Maplike):
-        yield from ((key, arg[key]) for key in arg.keys())
+    # Like dict() and MutableMapping.update(), check for keys dynamically. (isinstance(arg, Maplike)
+    # would miss a keys() supplied by __getattr__, as a proxy's is.)
+    elif hasattr(arg, 'keys'):
+        maplike = t.cast('Maplike[KT, VT]', arg)
+        yield from ((key, maplike[key]) for key in maplike.keys())
     else:
         yield from arg
     yield from t.cast('ItemsIter[KT, VT]', kw.items())
