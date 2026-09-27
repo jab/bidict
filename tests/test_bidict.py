@@ -542,8 +542,6 @@ def assert_update_fails_clean(
 # nothing to do with duplication, so rollback cannot be conditioned on on_dup.
 @pytest.mark.parametrize(('bi_t', 'on_dup'), list(product(mutable_bidict_types, (None, *on_dups))))
 def test_update_with_bad_last_item_fails_clean(bi_t: MBT[t.Any, t.Any], on_dup: OnDup | None) -> None:
-    # Keep self at least as large as updates so this sized arg takes the
-    # in-place rollback path rather than the copy fast path.
     bi = bi_t({
         0: 0,
         1: 1,
@@ -972,6 +970,42 @@ def test_orderedbidict_iteration_allows_value_only_update() -> None:
     for key in ob:
         ob[key] = f'updated{key}'
     assert list(ob.items()) == [(1, 'updated1'), (2, 'updated2')]
+
+
+#: Bulk updates that pass more items than the bidict contains but change no keys: either
+#: nothing at all, or only the value of the item just yielded. Each takes the bidict and that key.
+_BULK_UPDATES_CHANGING_NO_KEYS: t.Any = {
+    'update_no_op': lambda b, key: b.update([*b.items(), (key, b[key])]),
+    'update_value_only': lambda b, key: b.update([*b.items(), (key, f'new{key}')]),
+    'forceupdate_value_only': lambda b, key: b.forceupdate([*b.items(), (key, f'new{key}')]),
+    'putall_no_op': lambda b, key: b.putall([*b.items(), (key, b[key])]),
+}
+
+
+@pytest.mark.parametrize('mutate', _BULK_UPDATES_CHANGING_NO_KEYS.values(), ids=list(_BULK_UPDATES_CHANGING_NO_KEYS))
+@pytest.mark.parametrize(
+    ('bi_t', 'iterate'),
+    [
+        (bi_t, iterate)
+        for bi_t in mutable_bidict_types
+        for iterate in (iter, reversed)
+        if iterate is iter or should_be_reversible(bi_t)
+    ],
+)
+def test_iteration_allows_bulk_update_changing_no_keys(bi_t: MBT[t.Any, t.Any], iterate: t.Any, mutate: t.Any) -> None:
+    """A bulk update that changes no keys must not disturb a live iterator, as with dict and OrderedDict.
+
+    Deleting some items first leaves holes in the backing dicts, which an update that rebuilt them would close.
+    """
+    bi = bi_t({i: -i for i in range(10)})
+    for i in range(7):
+        del bi[i]
+    keys = []
+    for key in iterate(bi):
+        assert len(keys) < 100, 'iteration did not terminate'
+        mutate(bi, key)
+        keys.append(key)
+    assert keys == list(iterate(bi)) == list(iterate([7, 8, 9]))
 
 
 @pytest.mark.parametrize('bi_t', [OrderedBidict, UserOrderedBi])

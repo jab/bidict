@@ -26,7 +26,6 @@ from collections.abc import Mapping
 from collections.abc import MutableMapping
 from collections.abc import Reversible
 from collections.abc import Set
-from collections.abc import Sized
 from collections.abc import ValuesView
 from operator import eq
 from types import MappingProxyType
@@ -524,19 +523,10 @@ class BidictBase(BidirectionalMapping[KT, VT]):
             self._init_from(arg)
             return
 
-        # Fast path when we're adding more items than we contain already and rollback is enabled:
-        # Update a copy of self with rollback disabled. Fail if that fails, otherwise become the copy.
-        if rollback and isinstance(arg, Sized) and len(arg) + len(kw) > len(self):
-            tmp = self.copy()
-            tmp._update(arg, kw, rollback=False, on_dup=on_dup)
-            self._init_from(tmp)
-            return
-
-        # In all other cases, benchmarking has indicated that the update is best implemented as follows:
-        # For each new item, perform a dup check (raising if necessary), and apply the associated writes we need to
-        # perform on our backing _fwdm and _invm mappings. If rollback is enabled, also compute the associated unwrites
-        # as we go. If item unpacking, duplication checking, or writing raises while rollback is enabled, apply the
-        # accumulated unwrites before re-raising, to ensure that we fail clean.
+        # In all other cases, for each new item, perform a dup check (raising if necessary), and apply the associated
+        # writes we need to perform on our backing _fwdm and _invm mappings. If rollback is enabled, also compute the
+        # associated unwrites as we go. If item unpacking, duplication checking, or writing raises while rollback is
+        # enabled, apply the accumulated unwrites before re-raising, to ensure that we fail clean.
         write = self._write
         unwrites: Unwrites | None = [] if rollback else None
         try:

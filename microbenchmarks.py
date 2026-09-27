@@ -146,7 +146,7 @@ PARTIAL_OVERLAP_RESULTS_BY_LEN: dict[int, dict[int, int]] = {
     n: (INT_DICTS_BY_LEN[n] | PARTIAL_OVERLAP_UPDATES_BY_LEN[n]) for n in LENS
 }
 
-#: New items, one more than the bidict contains: the fewest that take update's copy fast path.
+#: New items, one more than the bidict contains.
 LARGER_UPDATES_BY_LEN: dict[int, dict[int, int]] = {n: {-i: -i for i in range(1, n + 2)} for n in LENS}
 LARGER_UPDATE_RESULTS_BY_LEN: dict[int, dict[int, int]] = {
     n: INT_DICTS_BY_LEN[n] | LARGER_UPDATES_BY_LEN[n] for n in LENS
@@ -155,8 +155,6 @@ LARGER_UPDATE_RESULTS_BY_LEN: dict[int, dict[int, int]] = {
 # Failing updates. Every item before the failing one is new, so it gets written and must then
 # be rolled back. (Unlike INT_DICTS_BY_LEN_DUPVAL_*, whose items before the failing one are all
 # already contained, and so would not be written.) The failing item's value is already contained.
-# Each update is no larger than the bidict, so it rolls back in place rather than by discarding
-# a copy, as it would on the copy fast path.
 
 #: Writes one item, then fails.
 FAILING_UPDATES_EARLY_BY_LEN: dict[int, dict[int, int]] = {
@@ -411,21 +409,21 @@ def test_bi_update_fail_late_dupval(n: int, benchmark: t.Any) -> None:
 
 
 @pytest.mark.parametrize(
-    ('setup', 'in_place'),
+    'setup',
     [
-        (_setup_update_partial_overlap, True),
-        (_setup_update_larger, False),
-        (_setup_failing_update_early, True),
-        (_setup_failing_update_late, True),
+        _setup_update_partial_overlap,
+        _setup_update_larger,
+        _setup_failing_update_early,
+        _setup_failing_update_late,
     ],
 )
 @pytest.mark.parametrize('n', LENS)
-def test_update_workloads_take_intended_path(setup: t.Any, in_place: bool, n: int, monkeypatch: t.Any) -> None:
+def test_update_workloads_take_intended_path(setup: t.Any, n: int, monkeypatch: t.Any) -> None:
     """Not a benchmark: check that each update benchmark above exercises the path it is meant to.
 
-    Its data alone doesn't show this. Items already contained are never written, so a failing
-    update made only of those has nothing to roll back. And only an update larger than the bidict
-    takes the copy fast path, whose writes record no unwrites, since it rolls back by discarding the copy.
+    Its data alone doesn't show this: items already contained are never written, so a failing
+    update made only of those has nothing to roll back. Each must write items in place,
+    recording the unwrites that would roll it back.
     """
     (bi, other, _expected), _ = setup(n)
     unwrites_per_write: list[t.Any] = []
@@ -439,7 +437,7 @@ def test_update_workloads_take_intended_path(setup: t.Any, in_place: bool, n: in
     with contextlib.suppress(bidict.DuplicationError):
         bi.update(other)
     assert unwrites_per_write
-    assert all((unwrites is not None) is in_place for unwrites in unwrites_per_write)
+    assert all(unwrites is not None for unwrites in unwrites_per_write)
 
 
 @pytest.mark.parametrize('n', LENS)

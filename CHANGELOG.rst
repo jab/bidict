@@ -26,6 +26,18 @@ please consider sponsoring bidict on GitHub.`
 0.24.2 (not yet released)
 -------------------------
 
+- Fix a bug where
+  :meth:`~bidict.MutableBidict.update`,
+  :meth:`~bidict.MutableBidict.putall`, and
+  :meth:`~bidict.MutableBidict.forceupdate`,
+  when passed more items than the bidict contained,
+  disturbed live iterators over it,
+  even if they changed no keys.
+  An iterator over a non-ordered bidict could silently stop early
+  (or, if created by :func:`reversed`, repeat keys or crash the interpreter),
+  and one over an :class:`~bidict.OrderedBidict` raised :class:`RuntimeError`.
+  :issue:`413`
+
 - Iterators over an ordered bidict's
   ``keys()``, ``values()``, and ``items()`` views
   now raise :class:`RuntimeError`
@@ -34,6 +46,13 @@ please consider sponsoring bidict on GitHub.`
   as :class:`~collections.OrderedDict`'s do.
   :issue:`408`
 
+- :meth:`~bidict.MutableBidict.update`,
+  :meth:`~bidict.MutableBidict.putall`, and
+  :meth:`~bidict.MutableBidict.forceupdate`
+  are faster when they succeed with more items than the bidict contains:
+  ~1.4-1.9x faster than in 0.24.1 for :class:`~bidict.bidict`,
+  and ~3.1-4.8x for :class:`~bidict.OrderedBidict`.
+  :issue:`413`
 
 0.24.1 (2026-08-25)
 -------------------
