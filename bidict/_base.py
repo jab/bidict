@@ -525,7 +525,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         if not self and not kw and isinstance(arg, BidictBase):
             try:
                 self._init_from(arg)
-            except Exception:
+            except BaseException:
                 if rollback:  # _init_from() records no unwrites, so go back to empty to fail clean.
                     self._init_from(())
                 raise
@@ -550,7 +550,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
                 dedup_result = self._dedup(key, val, on_dup)
                 if dedup_result is not None:
                     write(key, val, *dedup_result, unwrites=unwrites)
-        except Exception:
+        except BaseException:
             if unwrites is not None:
                 for fn, *args in reversed(unwrites):
                     fn(*args)

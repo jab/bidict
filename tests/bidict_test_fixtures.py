@@ -357,16 +357,28 @@ class HashRaises:
 
 bomb = HashRaises()
 
+
+class HashInterrupted:
+    @override
+    def __hash__(self) -> int:
+        raise KeyboardInterrupt
+
+
 BAD_ITEMS = (
     (RuntimeError, (bomb, 0)),  # hashing the key raises
     (RuntimeError, (0, bomb)),  # hashing the value raises
+    (KeyboardInterrupt, (HashInterrupted(), 0)),  # not an Exception, so must not escape rollback
     (TypeError, (['unhashable'], 0)),
     (ValueError, (1, 2, 'bad len')),
 )
 
 
-class WriteRefused(Exception):
-    """Raised by the backing mappings that :func:`bidict_refusing_nth_write` provides."""
+class WriteRefused(BaseException):
+    """Raised by the backing mappings that :func:`bidict_refusing_nth_write` provides.
+
+    A BaseException rather than an Exception, so that the tests that use it also check that
+    rollback is not limited to Exceptions: e.g. a KeyboardInterrupt can arrive at any point.
+    """
 
 
 def bidict_refusing_nth_write(bi_t: BT[t.Any, t.Any], init: Mapping[t.Any, t.Any], n: int) -> BB[t.Any, t.Any]:

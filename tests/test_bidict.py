@@ -603,7 +603,7 @@ def assert_putall_matches_bulk_put(bi: MutableBidict[int, int], new_items: Items
 def assert_update_fails_clean(
     bi: MutableBidict[t.Any, t.Any],
     updates: t.Any,
-    exc_t: type[Exception] | tuple[type[Exception], ...],
+    exc_t: type[BaseException] | tuple[type[BaseException], ...],
     on_dup: OnDup | None = None,
 ) -> None:
     """Check that a bulk update that raises *exc_t* leaves *bi* exactly as it was.

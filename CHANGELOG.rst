@@ -38,6 +38,14 @@ please consider sponsoring bidict on GitHub.`
   and one over an :class:`~bidict.OrderedBidict` raised :class:`RuntimeError`.
   :issue:`413`
 
+- Fix a bug where a :class:`BaseException` that is not an :class:`Exception`
+  (e.g. :class:`KeyboardInterrupt`)
+  raised part-way through a write or removal
+  skipped rollback,
+  which could leave the bidict partially updated,
+  or its two backing mappings out of sync.
+  :issue:`413`
+
 - Fix a bug on Python 3.12+ where a mapping-like object
   whose ``keys()`` method is provided by ``__getattr__``
   (as with many proxy objects)

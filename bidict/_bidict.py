@@ -59,7 +59,7 @@ class MutableBidict(BidictBase[KT, VT], MutableBidirectionalMapping[KT, VT]):
         """
         try:
             del self._invm[val]
-        except Exception:
+        except BaseException:
             self._fwdm[key] = val
             raise
         return val
@@ -132,7 +132,7 @@ class MutableBidict(BidictBase[KT, VT], MutableBidirectionalMapping[KT, VT]):
         unwrites: Unwrites = []
         try:
             self._write(key, val, *dedup_result, unwrites=unwrites)
-        except Exception:
+        except BaseException:
             for fn, *args in reversed(unwrites):
                 fn(*args)
             raise
