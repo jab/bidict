@@ -735,10 +735,14 @@ def test_bidicts_freed_on_zero_refcount(bidict_t: BT[KT, VT]) -> None:
     gc.disable()
     try:
         bi = bidict_t()
-        weak = weakref.ref(bi)
+        inv = bi.inverse  # The inverse is created lazily, so access it to give a cycle a chance to form.
+        assert inv.inverse is bi
+        weak, weakinv = weakref.ref(bi), weakref.ref(inv)
         assert weak() is not None
-        del bi
+        assert weakinv() is not None
+        del bi, inv
         assert weak() is None
+        assert weakinv() is None
     finally:
         gc.enable()
 
