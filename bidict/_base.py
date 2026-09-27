@@ -98,7 +98,12 @@ class BidictValuesView(ProxiedSetView, BidictKeysView[VT]):
         return iter(self._mapping._invm.values())
 
     def __reversed__(self) -> Iterator[VT]:
-        return reversed(t.cast('Reversible[VT]', self._mapping._invm.values()))
+        mapping = self._mapping._invm
+        values = mapping.values()
+        if isinstance(values, Reversible):
+            return reversed(values)
+        # A custom backing mapping can be reversible even when its values view is not.
+        return (mapping[key] for key in reversed(t.cast('Reversible[t.Any]', mapping)))
 
 
 class _NonReversibleBidictValuesView(BidictValuesView[VT]):

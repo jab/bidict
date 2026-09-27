@@ -20,6 +20,7 @@ import weakref
 from collections import UserDict
 from collections.abc import Callable
 from collections.abc import ItemsView
+from collections.abc import Iterator
 from collections.abc import KeysView
 from collections.abc import Mapping
 from collections.abc import Reversible
@@ -1623,6 +1624,29 @@ def test_values_view_reversibility_matches_bidict(bi_t: BT[t.Any, t.Any]) -> Non
         assert not isinstance(values, Reversible)
         with pytest.raises(TypeError):  # and the claim is not a lie
             reversed(t.cast('t.Any', values))
+
+
+@given(items121=items121)
+def test_reversed_values_with_reversible_userdict(items121: Items121) -> None:
+    """A reversible mapping need not return a reversible values view."""
+
+    class ReversibleUserDict(UserDict[int, int]):
+        def __reversed__(self) -> Iterator[int]:
+            return reversed(self.data)
+
+    class ReversibleUserBi(bidict[int, int]):
+        _fwdm_cls = _invm_cls = ReversibleUserDict
+
+    bi = ReversibleUserBi(items121)
+    for current in (bi, bi.inverse):
+        values = current.values()
+        assert isinstance(values, Reversible)
+        assert list(reversed(values)) == list(values)[::-1]
+        # Capture the backing iterator now, not on the first next() call.
+        iterator = reversed(values)
+        current[1000] = -1000
+        with pytest.raises(RuntimeError):
+            next(iterator)
 
 
 @pytest.mark.parametrize('bi_t', bidict_types)
