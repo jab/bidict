@@ -59,7 +59,7 @@ class MutableBidict(BidictBase[KT, VT], MutableBidirectionalMapping[KT, VT]):
         """
         try:
             del self._invm[val]
-        except Exception:
+        except BaseException:
             self._fwdm[key] = val
             raise
         return val
@@ -123,7 +123,7 @@ class MutableBidict(BidictBase[KT, VT], MutableBidirectionalMapping[KT, VT]):
             :attr:`~bidict.RAISE`.
         """
         # Rather than self._update(((key, val),), on_dup=on_dup): a single item needs none of
-        # the argument-type dispatch, iteration, or bulk fast paths that _update() provides, and
+        # the argument-type dispatch, iteration, or bulk fast path that _update() provides, and
         # they cost several times what writing the item does. Rollback is still required, since
         # OrderedBidictBase._write() can fail after the write it delegates to has succeeded.
         dedup_result = self._dedup(key, val, on_dup)
@@ -132,7 +132,7 @@ class MutableBidict(BidictBase[KT, VT], MutableBidirectionalMapping[KT, VT]):
         unwrites: Unwrites = []
         try:
             self._write(key, val, *dedup_result, unwrites=unwrites)
-        except Exception:
+        except BaseException:
             for fn, *args in reversed(unwrites):
                 fn(*args)
             raise

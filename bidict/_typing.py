@@ -36,9 +36,11 @@ Items: t.TypeAlias = Iterable[tuple[KT, VT]]
 ItemsIter: t.TypeAlias = Iterator[tuple[KT, VT]]
 
 
-@t.runtime_checkable
 class Maplike(t.Protocol[KT, VT_co]):
-    """Like typeshed's SupportsKeysAndGetItem, but usable at runtime."""
+    """Like typeshed's SupportsKeysAndGetItem.
+
+    Only for static typing. At runtime, check hasattr(arg, 'keys') instead, as dict() does (see iteritems).
+    """
 
     def keys(self) -> Iterable[KT]: ...
     def __getitem__(self, key: KT, /) -> VT_co: ...

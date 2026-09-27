@@ -26,6 +26,35 @@ please consider sponsoring bidict on GitHub.`
 0.24.2 (not yet released)
 -------------------------
 
+- Fix a bug where
+  :meth:`~bidict.MutableBidict.update`,
+  :meth:`~bidict.MutableBidict.putall`, and
+  :meth:`~bidict.MutableBidict.forceupdate`,
+  when passed more items than the bidict contained,
+  disturbed live iterators over it,
+  even if they changed no keys.
+  An iterator over a non-ordered bidict could silently stop early
+  (or, if created by :func:`reversed`, repeat keys or crash the interpreter),
+  and one over an :class:`~bidict.OrderedBidict` raised :class:`RuntimeError`.
+  :issue:`413`
+
+- Fix a bug where a :class:`BaseException` that is not an :class:`Exception`
+  (e.g. :class:`KeyboardInterrupt`)
+  raised part-way through a write or removal
+  skipped rollback,
+  which could leave the bidict partially updated,
+  or its two backing mappings out of sync.
+  :issue:`413`
+
+- Fix a bug on Python 3.12+ where a mapping-like object
+  whose ``keys()`` method is provided by ``__getattr__``
+  (as with many proxy objects)
+  was treated as an iterable of items rather than as a mapping,
+  which could silently produce the wrong items.
+  As with :class:`dict`,
+  any argument with a ``keys`` attribute is now treated as a mapping.
+  :issue:`413`
+
 - Iterators over an ordered bidict's
   ``keys()``, ``values()``, and ``items()`` views
   now raise :class:`RuntimeError`
@@ -34,6 +63,40 @@ please consider sponsoring bidict on GitHub.`
   as :class:`~collections.OrderedDict`'s do.
   :issue:`408`
 
+- Fix a bug where updating a mutable bidict from its own inverse,
+  e.g. ``b |= b.inverse``,
+  could raise :class:`RuntimeError`
+  or silently give a different result than ``b | b.inverse``
+  (e.g. skipping a :class:`~bidict.DuplicationError` it should have raised).
+  It now gives the same result as ``b | b.inverse``.
+  :issue:`413`
+
+- Fix a bug where a custom bidict whose backing mapping
+  judges distinct keys or values equal
+  (e.g. a case-insensitive mapping)
+  skipped duplication checking when filled from another bidict,
+  leaving its two backing mappings out of sync.
+  :issue:`413`
+
+- Fix a bug where filling an empty custom bidict from another bidict
+  did not fail clean
+  if one of its backing mappings refused a write.
+  :issue:`413`
+
+- Fix a regression in 0.23.0 where an object
+  that is iterable only via the legacy sequence protocol
+  (i.e. that implements ``__getitem__`` but not ``__iter__``)
+  was rejected with :class:`TypeError`.
+  As with :class:`dict`, such objects are accepted again.
+  :issue:`413`
+
+- :meth:`~bidict.MutableBidict.update`,
+  :meth:`~bidict.MutableBidict.putall`, and
+  :meth:`~bidict.MutableBidict.forceupdate`
+  are faster when they succeed with more items than the bidict contains:
+  ~1.4-1.9x faster than in 0.24.1 for :class:`~bidict.bidict`,
+  and ~3.1-4.8x for :class:`~bidict.OrderedBidict`.
+  :issue:`413`
 
 0.24.1 (2026-08-25)
 -------------------

@@ -26,7 +26,6 @@ from collections.abc import Mapping
 from collections.abc import MutableMapping
 from collections.abc import Reversible
 from collections.abc import Set
-from collections.abc import Sized
 from collections.abc import ValuesView
 from operator import eq
 from types import MappingProxyType
@@ -47,7 +46,6 @@ from ._typing import MISSING
 from ._typing import OKT
 from ._typing import OVT
 from ._typing import VT
-from ._typing import Maplike
 from ._typing import MapOrItems
 from ._typing import override
 
@@ -241,10 +239,12 @@ class BidictBase(BidirectionalMapping[KT, VT]):
     def __init__(self, arg: MapOrItems[KT, VT] = (), /, **kw: VT) -> None:
         """Make a new bidirectional mapping.
         The signature behaves like that of :class:`dict`.
-        ktems passed via positional arg are processed first,
+        Items passed via positional arg are processed first,
         followed by any items passed via keyword argument.
         Any duplication encountered along the way
         is handled as per :attr:`on_dup`.
+        A falsy positional arg is treated as empty, without being iterated,
+        so as is usual for containers, it must be falsy only when it is empty.
         """
         self._fwdm = self._fwdm_cls()
         self._invm = self._invm_cls()
@@ -512,31 +512,37 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         discarded if the update fails, and so has nothing to roll back to.
         """
         # Note: We must process input in a single pass, since arg may be a generator.
-        if not isinstance(arg, (Iterable, Maplike)):
-            raise TypeError(f"'{arg.__class__.__name__}' object is not iterable")
+        # Like dict, also accept iterables that only support the legacy __getitem__ protocol. For anything else,
+        # iter() raises the appropriate TypeError (without consuming arg) before we've written anything.
+        if not isinstance(arg, Iterable) and not hasattr(arg, 'keys'):
+            iter(arg)
         if not arg and not kw:
             return
         if on_dup is None:
             on_dup = self.on_dup
 
-        # Fast path when we're empty and updating only from another bidict (i.e. no dup vals in new items).
+        # Fast path when we're empty and updating only from another bidict.
         if not self and not kw and isinstance(arg, BidictBase):
-            self._init_from(arg)
-            return
+            try:
+                self._init_from(arg)
+            except BaseException:
+                if rollback:  # _init_from() records no unwrites, so go back to empty to fail clean.
+                    self._init_from(())
+                raise
+            # arg has no dups by its own backing mappings' equality, but ours may judge some of its items equal
+            # (e.g. case-insensitively), collapsing them in one mapping only. If so, start over on the path below.
+            if len(self._fwdm) == len(self._invm) == len(arg):
+                return
+            self._init_from(())
 
-        # Fast path when we're adding more items than we contain already and rollback is enabled:
-        # Update a copy of self with rollback disabled. Fail if that fails, otherwise become the copy.
-        if rollback and isinstance(arg, Sized) and len(arg) + len(kw) > len(self):
-            tmp = self.copy()
-            tmp._update(arg, kw, rollback=False, on_dup=on_dup)
-            self._init_from(tmp)
-            return
-
-        # In all other cases, benchmarking has indicated that the update is best implemented as follows:
-        # For each new item, perform a dup check (raising if necessary), and apply the associated writes we need to
-        # perform on our backing _fwdm and _invm mappings. If rollback is enabled, also compute the associated unwrites
-        # as we go. If item unpacking, duplication checking, or writing raises while rollback is enabled, apply the
-        # accumulated unwrites before re-raising, to ensure that we fail clean.
+        # In all other cases, for each new item, perform a dup check (raising if necessary), and apply the associated
+        # writes we need to perform on our backing _fwdm and _invm mappings. If rollback is enabled, also compute the
+        # associated unwrites as we go. If item unpacking, duplication checking, or writing raises while rollback is
+        # enabled, apply the accumulated unwrites before re-raising, to ensure that we fail clean.
+        # arg may be our own inverse (e.g. b.update(b.inverse)), which shares the backing mappings written to below,
+        # so snapshot its items first. (ty doesn't narrow on the type() check, hence the cast.)
+        if type(arg) is self._inv_cls and t.cast('BidictBase[KT, VT]', arg)._fwdm is self._invm:
+            arg = [*iteritems(arg)]
         write = self._write
         unwrites: Unwrites | None = [] if rollback else None
         try:
@@ -544,7 +550,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
                 dedup_result = self._dedup(key, val, on_dup)
                 if dedup_result is not None:
                     write(key, val, *dedup_result, unwrites=unwrites)
-        except Exception:
+        except BaseException:
             if unwrites is not None:
                 for fn, *args in reversed(unwrites):
                     fn(*args)

@@ -39,6 +39,8 @@ from bidict_test_fixtures import KT
 from bidict_test_fixtures import MBT
 from bidict_test_fixtures import SET_OPS
 from bidict_test_fixtures import VT
+from bidict_test_fixtures import KeysViaGetattr
+from bidict_test_fixtures import LegacySequence
 from bidict_test_fixtures import Oracle
 from bidict_test_fixtures import SupportsKeysAndGetItem
 from bidict_test_fixtures import Tagged
@@ -258,6 +260,18 @@ class BidictStateMachine(RuleBasedStateMachine):
         arg = iter([*updates, (bomb, 0)])
         assert_update_fails_clean(self.bi, arg, (RuntimeError, DuplicationError), on_dup)
 
+    @rule(on_dup=on_dup)
+    def putall_own_inverse(self, on_dup: OnDup) -> None:
+        """Updating from our own inverse must behave like updating from a snapshot of it, as b | b.inv does.
+
+        The inverse shares our backing mappings, so this must not iterate over them while writing to them.
+        """
+        snapshot = list(self.bi.inv.items())
+        assert_calls_match(
+            partial(self.bi.putall, self.bi.inv, on_dup),
+            partial(self.oracle.putall, snapshot, on_dup),
+        )
+
     @rule(other=items121)
     def __ior__(self, other: Mapping[int, int]) -> None:
         assert_calls_match(
@@ -323,7 +337,8 @@ class BidictStateMachine(RuleBasedStateMachine):
                 expect = oracle.popitem(last=last)[::-1]
                 check = bi.inv.popitem(last=last)
             assert check == expect
-            assert check not in bi.items()
+            # When inv is true, check is an item of bi.inv, and it may still be in bi itself, e.g. {1: 2, 2: 1}.
+            assert check not in (bi.inv if inv else bi).items()
         else:
             fst, snd = (bi, oracle) if flip else (oracle, bi)
             k, v = fst.popitem()
@@ -369,6 +384,43 @@ def test_init_and_update_with_bad_args(bi_t: BT[KT, VT]) -> None:
         bi = bi_t()
         with pytest.raises(TypeError):
             bi.update(*bad_args)  # ty: ignore[invalid-argument-type, too-many-positional-arguments]  # https://github.com/astral-sh/ty/issues/3649
+
+
+@pytest.mark.parametrize('bi_t', bidict_types)
+def test_init_and_update_accept_legacy_sequence(bi_t: BT[t.Any, t.Any]) -> None:
+    """Like dict, accept an arg that is iterable only via the legacy __getitem__ sequence protocol."""
+    items = [(1, 'one'), (2, 'two')]
+    # Typed Any since the type hints (like typeshed's for dict) only admit iterables that have __iter__.
+    arg: t.Any = LegacySequence(items)
+    expected = dict(arg)
+    assert expected == dict(items)
+    assert bi_t(arg) == expected
+    if not issubclass(bi_t, MutableBidict):
+        return
+    for update in (bi_t.update, bi_t.forceupdate, bi_t.putall):
+        bi = bi_t({0: 'zero'})
+        update(bi, arg)
+        assert bi == {0: 'zero', **expected}
+        assert_bi_and_inv_are_inverse(bi)
+
+
+@pytest.mark.parametrize('bi_t', bidict_types)
+def test_init_and_update_accept_keys_via_getattr(bi_t: BT[t.Any, t.Any]) -> None:
+    """Like dict, treat an arg as a mapping when it has keys(), even if only via __getattr__ (as a proxy's is)."""
+    # Two-character keys would be silently split into bogus items, e.g. 'ab' -> ('a', 'b'),
+    # if arg were mistaken for an iterable of items.
+    arg: t.Any = KeysViaGetattr({'ab': 1, 'cd': 2})
+    expected = dict(arg)
+    assert expected == {'ab': 1, 'cd': 2}
+    assert bi_t(arg) == expected
+    assert list(inverted(arg)) == [(1, 'ab'), (2, 'cd')]
+    if not issubclass(bi_t, MutableBidict):
+        return
+    for update in (bi_t.update, bi_t.forceupdate, bi_t.putall):
+        bi = bi_t({'ef': 0})
+        update(bi, arg)
+        assert bi == {'ef': 0, **expected}
+        assert_bi_and_inv_are_inverse(bi)
 
 
 @pytest.mark.parametrize('bi_t', bidict_types)
@@ -495,6 +547,34 @@ def test_putall_matches_bulk_put(bi_t: type[MutableBidict[int, int]], on_dup: On
             assert_putall_matches_bulk_put(bi.inv if inv else bi, [(k1, v1), (k2, v2)], on_dup)
 
 
+@pytest.mark.parametrize(('bi_t', 'on_dup'), list(product(mutable_bidict_types, on_dups)))
+def test_putall_own_inverse(bi_t: type[MutableBidict[int, int]], on_dup: OnDup) -> None:
+    """Updating from our own inverse must behave like updating from a snapshot of it, as b | b.inv does.
+
+    The inverse shares our backing mappings, so this must not iterate over them while writing to them.
+    """
+    for init, inv in product(({0: 1, 2: 3}, {0: 1, 1: 2}), (False, True)):
+        bi = bi_t(init)
+        b = bi.inv if inv else bi
+        expect = b.copy()
+        assert_calls_match(
+            partial(expect.putall, list(b.inv.items()), on_dup),
+            partial(b.putall, b.inv, on_dup),
+        )
+        assert b.equals_order_sensitive(expect)
+        assert b.inv.equals_order_sensitive(expect.inv)
+        # b |= b.inv must agree with b = b | b.inv, as x |= y and x = x | y always do for a dict.
+        bi = bi_t(init)
+        b = bi.inv if inv else bi
+        try:
+            expect = b | b.inv
+        except DuplicationError:
+            expect = b.copy()
+        assert_calls_match(partial(b.__or__, b.inv), partial(b.__ior__, b.inv))
+        assert b.equals_order_sensitive(expect)
+        assert b.inv.equals_order_sensitive(expect.inv)
+
+
 def assert_putall_matches_bulk_put(bi: MutableBidict[int, int], new_items: Items, on_dup: OnDup) -> None:
     before = bi.copy()
     tmp = bi.copy()
@@ -523,7 +603,7 @@ def assert_putall_matches_bulk_put(bi: MutableBidict[int, int], new_items: Items
 def assert_update_fails_clean(
     bi: MutableBidict[t.Any, t.Any],
     updates: t.Any,
-    exc_t: type[Exception] | tuple[type[Exception], ...],
+    exc_t: type[BaseException] | tuple[type[BaseException], ...],
     on_dup: OnDup | None = None,
 ) -> None:
     """Check that a bulk update that raises *exc_t* leaves *bi* exactly as it was.
@@ -542,8 +622,6 @@ def assert_update_fails_clean(
 # nothing to do with duplication, so rollback cannot be conditioned on on_dup.
 @pytest.mark.parametrize(('bi_t', 'on_dup'), list(product(mutable_bidict_types, (None, *on_dups))))
 def test_update_with_bad_last_item_fails_clean(bi_t: MBT[t.Any, t.Any], on_dup: OnDup | None) -> None:
-    # Keep self at least as large as updates so this sized arg takes the
-    # in-place rollback path rather than the copy fast path.
     bi = bi_t({
         0: 0,
         1: 1,
@@ -626,6 +704,115 @@ def test_remove_fails_clean_when_a_backing_mapping_refuses(bi_t: MBT[t.Any, t.An
         else:
             break
     assert refused == nwrites
+
+
+@pytest.mark.parametrize('bi_t', [bidict, OrderedBidict])
+@pytest.mark.parametrize(
+    'update',
+    [
+        lambda b, arg: b.update(arg),
+        lambda b, arg: b.forceupdate(arg),
+        lambda b, arg: b.putall(arg),
+        lambda b, arg: b.__ior__(arg),
+    ],
+    ids=['update', 'forceupdate', 'putall', 'ior'],
+)
+@pytest.mark.parametrize(
+    ('init', 'arg'),
+    [
+        ({}, bidict({1: 'a', 2: 'b'})),  # empty and updating from a bidict: the _init_from() fast path
+        # Otherwise _write() each item, recording unwrites.
+        ({1: 'a'}, {2: 'b', 3: 'c'}),
+        ({1: 'a', 2: 'b', 3: 'c'}, {4: 'd'}),
+    ],
+    ids=['from-bidict-into-empty', 'larger-than-self', 'smaller-than-self'],
+)
+def test_bulk_update_fails_clean_when_a_backing_mapping_refuses(
+    bi_t: MBT[t.Any, t.Any], update: t.Any, init: dict[t.Any, t.Any], arg: Mapping[t.Any, t.Any]
+) -> None:
+    """A bulk update must fail clean when a backing mapping refuses part-way through, whichever way it is applied.
+
+    The bulk counterpart of test_write_fails_clean_when_a_backing_mapping_refuses: _update()'s fast path
+    writes to the backing mappings via _init_from() rather than _write(), and must not leave them disagreeing
+    either. Refuses the nth write for each n in turn, until the update gets through.
+    """
+    unchanged = dict(init), invdict(init), list(init)
+    refused = 0
+    for n in range(1, 100):
+        bi = bidict_refusing_nth_write(bi_t, init, n)
+        try:
+            update(bi, arg)
+        except WriteRefused:
+            refused += 1
+            assert (dict(bi._fwdm), dict(bi._invm), list(bi)) == unchanged, f'refusing write #{n} left bi changed'
+        else:
+            break
+    assert refused
+    expected = init | dict(arg)
+    assert (dict(bi._fwdm), dict(bi._invm), list(bi)) == (expected, invdict(expected), list(expected))
+
+
+class CaseFoldingDict(UserDict[t.Any, t.Any]):
+    """A backing mapping that judges str keys equal ignoring case, unlike the dicts backing a plain bidict."""
+
+    @staticmethod
+    def _fold(key: t.Any) -> t.Any:
+        return key.casefold() if isinstance(key, str) else key
+
+    @override
+    def __setitem__(self, key: t.Any, item: t.Any) -> None:
+        super().__setitem__(self._fold(key), item)
+
+    @override
+    def __getitem__(self, key: t.Any) -> t.Any:
+        return super().__getitem__(self._fold(key))
+
+    @override
+    def __delitem__(self, key: t.Any) -> None:
+        super().__delitem__(self._fold(key))
+
+    @override
+    def __contains__(self, key: object) -> bool:
+        return super().__contains__(self._fold(key))
+
+
+def _fill_empty(method: str, bi_t: MBT[t.Any, t.Any], items: t.Any, **kw: t.Any) -> t.Any:
+    bi = bi_t()
+    getattr(bi, method)(items, **kw)
+    return bi
+
+
+_FILLS_OF_EMPTY: t.Any = {
+    'init': lambda bi_t, items: bi_t(items),
+    'or': lambda bi_t, items: bi_t() | items,
+    'ior': partial(_fill_empty, '__ior__'),
+    'update': partial(_fill_empty, 'update'),
+    'forceupdate': partial(_fill_empty, 'forceupdate'),
+    **{f'putall-{od.key.name}-{od.val.name}': partial(_fill_empty, 'putall', on_dup=od) for od in on_dups},
+}
+
+
+@pytest.mark.parametrize('fill', _FILLS_OF_EMPTY.values(), ids=list(_FILLS_OF_EMPTY))
+@pytest.mark.parametrize('side', ['_fwdm_cls', '_invm_cls'])
+def test_fill_from_bidict_checks_dups_by_own_backing_mappings(side: str, fill: t.Any) -> None:
+    """Filling an empty bidict from another bidict must match filling it from a dict of the same items.
+
+    The other bidict has no dups as judged by its own backing mappings, but backing mappings are
+    user-supplied (see _fwdm_cls and _invm_cls), so ours may judge some of its items equal.
+    Skipping the dup check for them would collapse those items in only one of our backing mappings.
+    """
+    bi_t = type('CaseFoldingBidict', (bidict,), {side: CaseFoldingDict})
+    items = {'K': 'V', 'k': 'v'}  # one dup (of a key or a value, per side) once case is ignored
+
+    def outcome(src: t.Any) -> t.Any:
+        try:
+            bi = fill(bi_t, src)
+        except DuplicationError as exc:
+            return type(exc)
+        assert len(bi._fwdm) == len(bi._invm)
+        return dict(bi._fwdm), dict(bi._invm)
+
+    assert outcome(bidict(items)) == outcome(dict(items))
 
 
 @pytest.mark.parametrize('bi_t', mutable_bidict_types)
@@ -972,6 +1159,42 @@ def test_orderedbidict_iteration_allows_value_only_update() -> None:
     for key in ob:
         ob[key] = f'updated{key}'
     assert list(ob.items()) == [(1, 'updated1'), (2, 'updated2')]
+
+
+#: Bulk updates that pass more items than the bidict contains but change no keys: either
+#: nothing at all, or only the value of the item just yielded. Each takes the bidict and that key.
+_BULK_UPDATES_CHANGING_NO_KEYS: t.Any = {
+    'update_no_op': lambda b, key: b.update([*b.items(), (key, b[key])]),
+    'update_value_only': lambda b, key: b.update([*b.items(), (key, f'new{key}')]),
+    'forceupdate_value_only': lambda b, key: b.forceupdate([*b.items(), (key, f'new{key}')]),
+    'putall_no_op': lambda b, key: b.putall([*b.items(), (key, b[key])]),
+}
+
+
+@pytest.mark.parametrize('mutate', _BULK_UPDATES_CHANGING_NO_KEYS.values(), ids=list(_BULK_UPDATES_CHANGING_NO_KEYS))
+@pytest.mark.parametrize(
+    ('bi_t', 'iterate'),
+    [
+        (bi_t, iterate)
+        for bi_t in mutable_bidict_types
+        for iterate in (iter, reversed)
+        if iterate is iter or should_be_reversible(bi_t)
+    ],
+)
+def test_iteration_allows_bulk_update_changing_no_keys(bi_t: MBT[t.Any, t.Any], iterate: t.Any, mutate: t.Any) -> None:
+    """A bulk update that changes no keys must not disturb a live iterator, as with dict and OrderedDict.
+
+    Deleting some items first leaves holes in the backing dicts, which an update that rebuilt them would close.
+    """
+    bi = bi_t({i: -i for i in range(10)})
+    for i in range(7):
+        del bi[i]
+    keys = []
+    for key in iterate(bi):
+        assert len(keys) < 100, 'iteration did not terminate'
+        mutate(bi, key)
+        keys.append(key)
+    assert keys == list(iterate(bi)) == list(iterate([7, 8, 9]))
 
 
 @pytest.mark.parametrize('bi_t', [OrderedBidict, UserOrderedBi])
