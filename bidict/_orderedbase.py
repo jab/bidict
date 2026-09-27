@@ -209,6 +209,14 @@ class OrderedBidictBase(BidictBase[KT, VT]):
         node.unlink()
         self._sntl.mutated()
 
+    def _reassoc_node(self, node: Node, key: KT, val: VT) -> None:
+        """Undo an :meth:`_assoc_node` that changed what *node* was associated with. See :meth:`_write`."""
+        # Dissociate node first. If the key or value it is now associated with compares equal to the one
+        # it is being reassociated with (e.g. under asymmetric __eq__), forceput would find that pair
+        # already present, and do nothing.
+        del self._node_by_korv.inverse[node]
+        self._assoc_node(node, key, val)
+
     def _relink_node(self, node: Node) -> None:
         """Undo a :meth:`_dissoc_node` (the linked list half of it). See :meth:`_write`."""
         node.relink()
@@ -266,18 +274,24 @@ class OrderedBidictBase(BidictBase[KT, VT]):
         elif oldval is not MISSING:  # just key duplication
             # {0: 1, 2: 3} | {2: 4} => {0: 1, 2: 4}
             # oldkey: MISSING, oldval: 3, newkey: 2, newval: 4
-            node = node_by_korv[newkey if bykey else oldval]
-            assoc(node, newkey, newval)
-            if unwrites is not None:
-                unwrites.append((assoc, node, newkey, oldval))
+            # A node keyed by the kept key stays as is (re-adding that key could land on an asymmetrically
+            # equal contained key's entry); only one keyed by the replaced value changes.
+            if not bykey:
+                node = node_by_korv[oldval]
+                assoc(node, newkey, newval)
+                if unwrites is not None:
+                    unwrites.append((self._reassoc_node, node, newkey, oldval))
         else:
             assert oldkey is not MISSING  # just value duplication
             # {0: 1, 2: 3} | {4: 3} => {0: 1, 4: 3}
             # oldkey: 2, oldval: MISSING, newkey: 4, newval: 3
-            node = node_by_korv[oldkey if bykey else newval]
-            assoc(node, newkey, newval)
-            if unwrites is not None:
-                unwrites.append((assoc, node, oldkey, newval))
+            # A node keyed by the kept value stays as is (re-adding that value could land on an asymmetrically
+            # equal contained value's entry); only one keyed by the replaced key changes.
+            if bykey:
+                node = node_by_korv[oldkey]
+                assoc(node, newkey, newval)
+                if unwrites is not None:
+                    unwrites.append((self._reassoc_node, node, oldkey, newval))
 
     @override
     def __iter__(self) -> Iterator[KT]:

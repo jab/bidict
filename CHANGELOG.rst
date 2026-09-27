@@ -79,6 +79,14 @@ please consider sponsoring bidict on GitHub.`
   An update that failed after such a write did not fail clean either.
   :issue:`414`
 
+- Fix a bug where replacing a contained key or value
+  with one that has asymmetric equality with it
+  (i.e. that compares equal to it, but not vice versa)
+  could leave a bidict and its inverse out of sync,
+  whether the write succeeded
+  or was rolled back because the rest of an update failed.
+  :issue:`414`
+
 - Fix a bug where a custom bidict whose backing mapping
   judges distinct keys or values equal
   (e.g. a case-insensitive mapping)
@@ -123,6 +131,10 @@ please consider sponsoring bidict on GitHub.`
   ~1.4-1.9x faster than in 0.24.1 for :class:`~bidict.bidict`,
   and ~3.1-4.8x for :class:`~bidict.OrderedBidict`.
   :issue:`413`
+
+- Changing the value of an existing key in an :class:`~bidict.OrderedBidict`
+  is ~1.3x faster than in 0.24.1.
+  :issue:`414`
 
 0.24.1 (2026-08-25)
 -------------------

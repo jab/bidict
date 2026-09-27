@@ -474,16 +474,11 @@ class BidictBase(BidirectionalMapping[KT, VT]):
             newval = fwdm[oldkey]
         # Record each unwrite as soon as its write succeeds, rather than all of them at the end:
         # a backing mapping is user-supplied (see _fwdm_cls/_invm_cls) and may reject a write, and
-        # if it does, everything written before it still has to be undone. Note that the four
-        # writes below touch four distinct slots, so the order they are undone in does not matter.
-        fwdm_set(newkey, newval)
-        if unwrites is not None:
-            # {0: 1} | {2: 3} => del fwdm[2];  {0: 1} | {0: 3} => fwdm[0] = 1
-            unwrites.append((fwdm_del, newkey) if oldval is MISSING else (fwdm_set, newkey, oldval))
-        invm_set(newval, newkey)
-        if unwrites is not None:
-            # {0: 1} | {2: 3} => del invm[3];  {0: 1} | {2: 1} => invm[1] = 0
-            unwrites.append((invm_del, newval) if oldkey is MISSING else (invm_set, newval, oldkey))
+        # if it does, everything written before it still has to be undone.
+        # Delete the old entries before writing the new ones, so that undoing (in reverse) deletes the new
+        # entries before restoring the old ones. A new object may compare equal to the old one it replaces
+        # (e.g. under asymmetric __eq__), in which case, while both are in the same backing mapping,
+        # deleting or restoring one of them could land on the other's entry instead.
         if oldkey is not MISSING:  # newval duplicates the value of the item keyed by oldkey
             # {0: 1, 2: 3} | {4: 3} => {0: 1, 4: 3}
             fwdm_del(oldkey)
@@ -494,6 +489,14 @@ class BidictBase(BidirectionalMapping[KT, VT]):
             invm_del(oldval)
             if unwrites is not None:
                 unwrites.append((invm_set, oldval, newkey))
+        fwdm_set(newkey, newval)
+        if unwrites is not None:
+            # {0: 1} | {2: 3} => del fwdm[2];  {0: 1} | {0: 3} => fwdm[0] = 1
+            unwrites.append((fwdm_del, newkey) if oldval is MISSING else (fwdm_set, newkey, oldval))
+        invm_set(newval, newkey)
+        if unwrites is not None:
+            # {0: 1} | {2: 3} => del invm[3];  {0: 1} | {2: 1} => invm[1] = 0
+            unwrites.append((invm_del, newval) if oldkey is MISSING else (invm_set, newval, oldkey))
 
     def _update(
         self,

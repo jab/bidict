@@ -1460,6 +1460,12 @@ def test_setitem_existing_is_noop_with_nonreflexive_eq(bi_t: MBT[t.Any, t.Any]) 
         b3[nan] = nan
 
 
+def _skip_unless_dict_compares_stored_eq_lookup() -> None:
+    probe: dict[t.Any, str] = {AsymStored(): 'hit'}
+    if probe.get(AsymLookup()) != 'hit':
+        pytest.skip('dict lookup on this runtime does not compare stored == lookup')
+
+
 @pytest.mark.parametrize('bi_t', mutable_bidict_types)
 def test_setitem_existing_is_noop_with_asymmetric_eq(bi_t: MBT[t.Any, t.Any]) -> None:
     """Setting an existing (key, val) pair should be a no-op even when __eq__ is asymmetric.
@@ -1471,10 +1477,8 @@ def test_setitem_existing_is_noop_with_asymmetric_eq(bi_t: MBT[t.Any, t.Any]) ->
     (with operands in the opposite order) and wrongly concluding the items differ.
     See #382.
     """
+    _skip_unless_dict_compares_stored_eq_lookup()
     stored, lookup = AsymStored(), AsymLookup()
-    probe: dict[t.Any, str] = {stored: 'hit'}
-    if probe.get(lookup) != 'hit':
-        pytest.skip('dict lookup on this runtime does not compare stored == lookup')
     # Asymmetric key: dict considers *lookup* the same key as *stored* -> no-op
     b1 = bi_t()
     b1[stored] = 'v'
@@ -1487,6 +1491,96 @@ def test_setitem_existing_is_noop_with_asymmetric_eq(bi_t: MBT[t.Any, t.Any]) ->
     b2['x'] = lookup
     assert len(b2) == 1
     assert b2['x'] is stored
+
+
+@pytest.mark.parametrize('bi_t', mutable_bidict_types)
+@pytest.mark.parametrize('use_inv', [False, True], ids=['fwd', 'inv'])
+@pytest.mark.parametrize('replace', ['value', 'key'])
+@pytest.mark.parametrize('free_slot', [False, True], ids=['no-free-slot', 'free-slot'])
+@pytest.mark.parametrize('fail', [False, True], ids=['write', 'rollback'])
+def test_replacing_with_asymmetric_equal_object(
+    bi_t: MBT[t.Any, t.Any], use_inv: bool, replace: str, free_slot: bool, fail: bool
+) -> None:
+    """Replacing a contained object with an asymmetrically equal one keeps a bidict and its inverse in sync.
+
+    The contained *lookup* is replaced with *stored* (stored == lookup, but not lookup == stored), and the write
+    either succeeds or is rolled back because the rest of the update fails. A dict lookup compares
+    stored == lookup, so while both are in a backing mapping, operating on *lookup* can land on *stored*'s entry.
+    *lookup*, *stored*, and 1 all hash to 1, so with *free_slot*, deleting the item containing 1 lets *stored*
+    take the slot ahead of *lookup*'s; otherwise *stored* goes after it.
+    """
+    _skip_unless_dict_compares_stored_eq_lookup()
+    stored, lookup = AsymStored(), AsymLookup()
+    bi = bi_t()
+    b = bi.inverse if use_inv else bi
+    if replace == 'value':
+        b.putall({'x': 1, 'k': lookup})
+        if free_slot:
+            del b['x']
+        write = ('k', stored)
+    else:
+        b.putall({1: 'x', lookup: 'v'})
+        if free_slot:
+            del b[1]
+        write = (stored, 'v')
+    before = list(b.items())
+    if fail:
+        with pytest.raises(TypeError):
+            b.forceupdate([write, (['unhashable'], 0)])
+        after = list(b.items())
+        if not isinstance(b, OrderedBidictBase):  # rolling back may reorder a non-ordered bidict's items
+            before.sort(key=repr)
+            after.sort(key=repr)
+        assert len(after) == len(before)
+        assert all(k1 is k2 and v1 is v2 for ((k1, v1), (k2, v2)) in zip(after, before, strict=True))
+    else:
+        b.forceput(*write)
+        if replace == 'value':
+            assert b['k'] is stored
+        else:
+            assert b.inverse['v'] is stored
+            assert any(k is stored for k in b)
+        assert len(b) == len(before)
+    assert len(b.inverse) == len(b)
+    assert all(b.inverse[v] is k for (k, v) in b.items())
+    assert all(b[k] is v for (v, k) in b.inverse.items())
+
+
+@pytest.mark.parametrize('bi_t', mutable_bidict_types)
+@pytest.mark.parametrize('use_inv', [False, True], ids=['fwd', 'inv'])
+@pytest.mark.parametrize('keep', ['key', 'value'])
+def test_rolling_back_write_that_keeps_asymmetric_equal_object(
+    bi_t: MBT[t.Any, t.Any], use_inv: bool, keep: str
+) -> None:
+    """Rolling back a write that keeps a contained object leaves another asymmetrically equal one in place.
+
+    *lookup* and *stored* (stored == lookup, but not lookup == stored) are both contained, *lookup* first,
+    so it takes the first slot for their shared hash. The write keeps *lookup* and replaces the other half
+    of its item; then the update fails. While *lookup* is absent from a dict that holds *stored*, re-adding it
+    lands on *stored*'s entry, so the rollback must not remove and re-add *lookup* in any backing dict,
+    including an ordered bidict's node map (keyed by the keys, or through .inverse, by the values).
+    """
+    _skip_unless_dict_compares_stored_eq_lookup()
+    stored, lookup = AsymStored(), AsymLookup()
+    bi = bi_t()
+    b = bi.inverse if use_inv else bi
+    if keep == 'key':
+        b.putall([(lookup, 'a'), (stored, 'b')])
+        write = (lookup, 'c')
+    else:
+        b.putall([('a', lookup), ('b', stored)])
+        write = ('c', lookup)
+    before = list(b.items())
+    with pytest.raises(TypeError):
+        b.forceupdate([write, (['unhashable'], 0)])
+    after = list(b.items())
+    if not isinstance(b, OrderedBidictBase):  # rolling back may reorder a non-ordered bidict's items
+        before.sort(key=repr)
+        after.sort(key=repr)
+    assert len(after) == len(before)
+    assert all(k1 is k2 and v1 is v2 for ((k1, v1), (k2, v2)) in zip(after, before, strict=True))
+    assert len(b.inverse) == len(b)
+    assert all(b.inverse[v] is k for (k, v) in b.items())
 
 
 def assert_calls_match(call1: Callable[..., t.Any], call2: Callable[..., t.Any]) -> None:
