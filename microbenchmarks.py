@@ -12,6 +12,7 @@ which pairs well with ../cachegrind.py (as used by ../.github/workflows/benchmar
 
 from __future__ import annotations
 
+import contextlib
 import pickle
 import typing as t
 from collections import deque
@@ -145,6 +146,25 @@ PARTIAL_OVERLAP_RESULTS_BY_LEN: dict[int, dict[int, int]] = {
     n: (INT_DICTS_BY_LEN[n] | PARTIAL_OVERLAP_UPDATES_BY_LEN[n]) for n in LENS
 }
 
+#: New items, one more than the bidict contains: the fewest that take update's copy fast path.
+LARGER_UPDATES_BY_LEN: dict[int, dict[int, int]] = {n: {-i: -i for i in range(1, n + 2)} for n in LENS}
+LARGER_UPDATE_RESULTS_BY_LEN: dict[int, dict[int, int]] = {
+    n: INT_DICTS_BY_LEN[n] | LARGER_UPDATES_BY_LEN[n] for n in LENS
+}
+
+# Failing updates. Every item before the failing one is new, so it gets written and must then
+# be rolled back. (Unlike INT_DICTS_BY_LEN_DUPVAL_*, whose items before the failing one are all
+# already contained, and so would not be written.) The failing item's value is already contained.
+# Each update is no larger than the bidict, so it rolls back in place rather than by discarding
+# a copy, as it would on the copy fast path.
+
+#: Writes one item, then fails.
+FAILING_UPDATES_EARLY_BY_LEN: dict[int, dict[int, int]] = {
+    n: dict([(-1, -1), (-2, 0), *((-i, -i) for i in range(3, n + 1))]) for n in LENS
+}
+#: Writes all but the last item, then fails.
+FAILING_UPDATES_LATE_BY_LEN: dict[int, dict[int, int]] = {n: {-i: -i for i in range(1, n)} | {-n: 0} for n in LENS}
+
 BIDICT_AND_DICT_LAST_TWO_ITEMS_DIFFERENT_ORDER: dict[int, tuple[bidict.bidict[int, int], dict[int, int]]] = {}
 ORDERED_BIDICT_AND_DICT_LAST_TWO_ITEMS_DIFFERENT_ORDER: dict[
     int, tuple[bidict.OrderedBidict[int, int], dict[int, int]]
@@ -217,11 +237,15 @@ def _setup_update_partial_overlap(n: int) -> tuple[tuple[t.Any, ...], dict[str, 
     )
 
 
+def _setup_update_larger(n: int) -> tuple[tuple[t.Any, ...], dict[str, t.Any]]:
+    return ((INT_BIDICTS_BY_LEN[n].copy(), LARGER_UPDATES_BY_LEN[n], LARGER_UPDATE_RESULTS_BY_LEN[n]), {})
+
+
 def _setup_failing_update_early(n: int) -> tuple[tuple[t.Any, ...], dict[str, t.Any]]:
     return (
         (
             INT_BIDICTS_BY_LEN[n].copy(),
-            INT_DICTS_BY_LEN_DUPVAL_EARLY[n],
+            FAILING_UPDATES_EARLY_BY_LEN[n],
             INT_DICTS_BY_LEN[n],
         ),
         {},
@@ -232,7 +256,7 @@ def _setup_failing_update_late(n: int) -> tuple[tuple[t.Any, ...], dict[str, t.A
     return (
         (
             INT_BIDICTS_BY_LEN[n].copy(),
-            INT_DICTS_BY_LEN_DUPVAL_LATE[n],
+            FAILING_UPDATES_LATE_BY_LEN[n],
             INT_DICTS_BY_LEN[n],
         ),
         {},
@@ -354,6 +378,17 @@ def test_bi_update_partial_overlap(n: int, benchmark: t.Any) -> None:
 
 
 @pytest.mark.parametrize('n', LENS)
+def test_bi_update_larger(n: int, benchmark: t.Any) -> None:
+    """Benchmark updating from a mapping of more new items than the bidict contains."""
+    benchmark.pedantic(
+        _update,
+        setup=lambda n=n: _setup_update_larger(n),
+        teardown=_assert_mapping_matches,
+        rounds=ROUNDS,
+    )
+
+
+@pytest.mark.parametrize('n', LENS)
 def test_bi_update_fail_early_dupval(n: int, benchmark: t.Any) -> None:
     """Benchmark a bulk update that fails near the start and rolls back."""
     benchmark.pedantic(
@@ -373,6 +408,38 @@ def test_bi_update_fail_late_dupval(n: int, benchmark: t.Any) -> None:
         teardown=_assert_mapping_matches,
         rounds=ROUNDS,
     )
+
+
+@pytest.mark.parametrize(
+    ('setup', 'in_place'),
+    [
+        (_setup_update_partial_overlap, True),
+        (_setup_update_larger, False),
+        (_setup_failing_update_early, True),
+        (_setup_failing_update_late, True),
+    ],
+)
+@pytest.mark.parametrize('n', LENS)
+def test_update_workloads_take_intended_path(setup: t.Any, in_place: bool, n: int, monkeypatch: t.Any) -> None:
+    """Not a benchmark: check that each update benchmark above exercises the path it is meant to.
+
+    Its data alone doesn't show this. Items already contained are never written, so a failing
+    update made only of those has nothing to roll back. And only an update larger than the bidict
+    takes the copy fast path, whose writes record no unwrites, since it rolls back by discarding the copy.
+    """
+    (bi, other, _expected), _ = setup(n)
+    unwrites_per_write: list[t.Any] = []
+    write = bidict.BidictBase._write
+
+    def spy(self: t.Any, *args: t.Any, unwrites: t.Any) -> None:
+        unwrites_per_write.append(unwrites)
+        write(self, *args, unwrites=unwrites)
+
+    monkeypatch.setattr(bidict.BidictBase, '_write', spy)
+    with contextlib.suppress(bidict.DuplicationError):
+        bi.update(other)
+    assert unwrites_per_write
+    assert all((unwrites is not None) is in_place for unwrites in unwrites_per_write)
 
 
 @pytest.mark.parametrize('n', LENS)
