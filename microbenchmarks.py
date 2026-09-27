@@ -204,6 +204,16 @@ def _pop(bi: bidict.bidict[int, int], keys: list[int], _expected: dict[int, int]
         bi.pop(key)
 
 
+def _del(bi: bidict.bidict[int, int], keys: list[int], _expected: dict[int, int]) -> None:
+    for key in keys:
+        del bi[key]
+
+
+def _popitem(bi: bidict.bidict[int, int], count: int, _expected: dict[int, int]) -> None:
+    for _ in range(count):
+        bi.popitem()
+
+
 def _assert_mapping_matches(*args: t.Any) -> None:
     assert dict(args[0]) == args[-1]
 
@@ -222,6 +232,20 @@ def _setup_forceput_existing_value(n: int) -> tuple[tuple[t.Any, ...], dict[str,
 
 def _setup_pop(n: int) -> tuple[tuple[t.Any, ...], dict[str, t.Any]]:
     return ((INT_BIDICTS_BY_LEN[n].copy(), POP_KEYS_BY_LEN[n], POP_RESULTS_BY_LEN[n]), {})
+
+
+def _setup_popitem(n: int) -> tuple[tuple[t.Any, ...], dict[str, t.Any]]:
+    # popitem() removes the last item added, so it removes the same keys as POP_KEYS_BY_LEN[n].
+    return ((INT_BIDICTS_BY_LEN[n].copy(), len(POP_KEYS_BY_LEN[n]), POP_RESULTS_BY_LEN[n]), {})
+
+
+# Each int in INT_DICTS_BY_LEN[n] maps to itself, so its inverse has the same keys, and the same results.
+def _setup_inverse_pop(n: int) -> tuple[tuple[t.Any, ...], dict[str, t.Any]]:
+    return ((INT_BIDICTS_BY_LEN[n].copy().inverse, POP_KEYS_BY_LEN[n], POP_RESULTS_BY_LEN[n]), {})
+
+
+def _setup_inverse_popitem(n: int) -> tuple[tuple[t.Any, ...], dict[str, t.Any]]:
+    return ((INT_BIDICTS_BY_LEN[n].copy().inverse, len(POP_KEYS_BY_LEN[n]), POP_RESULTS_BY_LEN[n]), {})
 
 
 def _setup_update_partial_overlap(n: int) -> tuple[tuple[t.Any, ...], dict[str, t.Any]]:
@@ -359,6 +383,50 @@ def test_bi_pop_existing_key(n: int, benchmark: t.Any) -> None:
     benchmark.pedantic(
         _pop,
         setup=lambda n=n: _setup_pop(n),
+        teardown=_assert_mapping_matches,
+        rounds=ROUNDS,
+    )
+
+
+@pytest.mark.parametrize('n', LENS)
+def test_bi_del_existing_key(n: int, benchmark: t.Any) -> None:
+    """Benchmark deleting existing keys."""
+    benchmark.pedantic(
+        _del,
+        setup=lambda n=n: _setup_pop(n),
+        teardown=_assert_mapping_matches,
+        rounds=ROUNDS,
+    )
+
+
+@pytest.mark.parametrize('n', LENS)
+def test_bi_popitem(n: int, benchmark: t.Any) -> None:
+    """Benchmark popping items."""
+    benchmark.pedantic(
+        _popitem,
+        setup=lambda n=n: _setup_popitem(n),
+        teardown=_assert_mapping_matches,
+        rounds=ROUNDS,
+    )
+
+
+@pytest.mark.parametrize('n', LENS)
+def test_bi_inverse_pop_existing_key(n: int, benchmark: t.Any) -> None:
+    """Benchmark popping existing keys through the inverse."""
+    benchmark.pedantic(
+        _pop,
+        setup=lambda n=n: _setup_inverse_pop(n),
+        teardown=_assert_mapping_matches,
+        rounds=ROUNDS,
+    )
+
+
+@pytest.mark.parametrize('n', LENS)
+def test_bi_inverse_popitem(n: int, benchmark: t.Any) -> None:
+    """Benchmark popping items through the inverse."""
+    benchmark.pedantic(
+        _popitem,
+        setup=lambda n=n: _setup_inverse_popitem(n),
         teardown=_assert_mapping_matches,
         rounds=ROUNDS,
     )
