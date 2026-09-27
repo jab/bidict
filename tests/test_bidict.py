@@ -476,17 +476,20 @@ def test_frozenbidicts_hashable(items121: Items121) -> None:
     assert hash(bi2) == h1
 
 
-# These test cases ensure coverage of all branches in [Ordered]BidictBase._undo_write.
+# These test cases ensure coverage of all the unwrite branches in [Ordered]BidictBase._write.
 # (Hypothesis doesn't always generate examples that cover all the branches otherwise.)
 @pytest.mark.parametrize(('bi_t', 'on_dup'), list(product(mutable_bidict_types, on_dups)))
 def test_putall_matches_bulk_put(bi_t: type[MutableBidict[int, int]], on_dup: OnDup) -> None:
-    bi = bi_t({0: 0, 1: 1})
     for k1, v1, k2, v2 in product(range(4), repeat=4):
-        for b in bi, bi.inv:
-            assert_putall_matches_bulk_put(b, [(k1, v1), (k2, v2)], on_dup)
+        for inv in False, True:
+            # Start each case from the same state, so that each case reaches the branch it targets
+            # (e.g. overwriting one key with a new value), rather than whatever earlier cases left behind.
+            bi = bi_t({0: 0, 1: 1})
+            assert_putall_matches_bulk_put(bi.inv if inv else bi, [(k1, v1), (k2, v2)], on_dup)
 
 
 def assert_putall_matches_bulk_put(bi: MutableBidict[int, int], new_items: Items, on_dup: OnDup) -> None:
+    before = bi.copy()
     tmp = bi.copy()
     checkexc = None
     expectexc = None
@@ -495,7 +498,7 @@ def assert_putall_matches_bulk_put(bi: MutableBidict[int, int], new_items: Items
             tmp.put(key, val, on_dup)
     except DuplicationError as exc:
         expectexc = type(exc)
-        tmp = bi  # Since bulk updates fail clean, expect no changes (i.e. revert to bi).
+        tmp = before  # Since bulk updates fail clean, expect no changes (i.e. revert to before).
     try:
         bi.putall(new_items, on_dup)
     except DuplicationError as exc:
@@ -503,6 +506,11 @@ def assert_putall_matches_bulk_put(bi: MutableBidict[int, int], new_items: Items
     assert checkexc == expectexc
     assert bi == tmp
     assert bi.inv == tmp.inv
+    # == is order-insensitive, so it never walks an ordered bidict's linked list or node map.
+    # (Only ordered bidicts promise to restore their order after a failed update.)
+    if is_ordered(bi):
+        assert bi.equals_order_sensitive(tmp)
+        assert bi.inv.equals_order_sensitive(tmp.inv)
 
 
 def assert_update_fails_clean(
