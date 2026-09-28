@@ -669,6 +669,13 @@ def test_reversed_view(name: str, n: int, benchmark: t.Any) -> None:
 
 
 @pytest.mark.parametrize('n', LENS)
+@pytest.mark.parametrize('bi_type', BIDICTS_BY_TYPE_AND_LEN)
+def test_repr(bi_type: str, n: int, benchmark: t.Any) -> None:
+    """Benchmark repr() of a bidict."""
+    benchmark.pedantic(repr, args=(BIDICTS_BY_TYPE_AND_LEN[bi_type][n],), rounds=ROUNDS, iterations=scaled_iterations(n))
+
+
+@pytest.mark.parametrize('n', LENS)
 def test_copy(n: int, benchmark: t.Any) -> None:
     """Benchmark creating a copy of a bidict."""
     bi = INT_BIDICTS_BY_LEN[n]
