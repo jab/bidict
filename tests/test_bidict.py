@@ -19,6 +19,7 @@ import typing as t
 import weakref
 from collections import UserDict
 from collections.abc import Callable
+from collections.abc import Iterator
 from collections.abc import KeysView
 from collections.abc import Mapping
 from collections.abc import Reversible
@@ -1897,6 +1898,9 @@ def test_static_types() -> None:
     fb = frozenbidict(d)
     assert_type(fb, frozenbidict[str, int])
     assert_type(fb.inv, frozenbidict[int, str])
+    # reversed() yields keys, whatever their type.
+    assert_type(reversed(fb), Iterator[str])
+    assert_type(reversed(fb.inv), Iterator[int])
 
 
 @pytest.mark.parametrize('bi_t', mutable_bidict_types)
