@@ -106,6 +106,12 @@ class BidictValuesView(ProxiedSetView, BidictKeysView[VT]):
         return key in self._mapping._fwdm
 
     @override
+    def __repr__(self) -> str:
+        # Show the bidict whose values these are, as ValuesView(b) shows b, not the inverse in
+        # _mapping, which would present our values as keys, and in its own order rather than ours.
+        return f'{self.__class__.__name__}({self._mapping.inverse!r})'
+
+    @override
     def __iter__(self) -> Iterator[VT]:
         return iter(self._mapping._invm.values())
 

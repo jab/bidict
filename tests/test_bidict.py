@@ -1807,6 +1807,20 @@ def test_reversed_values_with_reversible_userdict(bi_t: MBT[int, int], items121:
 
 
 @pytest.mark.parametrize('bi_t', bidict_types)
+def test_values_view_repr_shows_its_bidict(bi_t: BT[t.Any, t.Any]) -> None:
+    """A values view's repr shows the bidict whose values it views, as ValuesView's does,
+    and so lists them in the order the view yields them.
+
+    Overwriting key 1's value moves it to the end of the backing inverse mapping but not of
+    the forward one, so the inverse lists the values in a different order.
+    """
+    bi = bi_t([(1, 'a'), (2, 'b'), (1, 'c')])
+    for b in (bi, bi.inverse):
+        view = b.values()
+        assert repr(view) == f'{type(view).__name__}({b!r})'
+
+
+@pytest.mark.parametrize('bi_t', bidict_types)
 def test_inv_aliases_inverse(bi_t: BT[KT, VT]) -> None:
     """bi.inv should alias bi.inverse."""
     bi = bi_t()
