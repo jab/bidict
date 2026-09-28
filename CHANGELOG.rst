@@ -254,6 +254,14 @@ please consider sponsoring bidict on GitHub.`
   :meth:`~bidict.BidictBase.equals_order_sensitive`, which use ``items()``.
   :issue:`420`
 
+- The views that bidict provides itself,
+  such as a non-ordered bidict's :meth:`~bidict.BidictBase.values` view
+  and an ordered bidict's ``keys()`` and ``values()`` views,
+  no longer have a per-instance ``__dict__``.
+  Like :class:`dict` views, they are now smaller,
+  and no longer accept arbitrary attributes or weak references.
+  :issue:`420`
+
 0.24.1 (2026-08-25)
 -------------------
 

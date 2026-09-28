@@ -66,6 +66,8 @@ class BidictKeysView(KeysView[KT], ValuesView[KT]):
     is also a :class:`~collections.abc.KeysView` of *bi.inverse*.
     """
 
+    __slots__ = ()
+
 
 class ProxiedSetView:
     """Mixin for bidict views whose :class:`~collections.abc.Set` methods

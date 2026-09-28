@@ -1753,6 +1753,24 @@ def test_view_iterator_detects_mutation_before_first_next(bi_t: MBT[t.Any, t.Any
 
 
 @pytest.mark.parametrize('bi_t', bidict_types)
+@pytest.mark.parametrize('opt_out', [False, True], ids=['as_is', 'opted_out'])
+def test_views_have_no_instance_dict(bi_t: BT[t.Any, t.Any], opt_out: bool) -> None:
+    """Like dict views, bidict's own views have no per-instance __dict__.
+
+    A view class's __slots__ = () only takes effect if every class in its MRO declares __slots__.
+    Views that a backing mapping provides are its own business (on PyPy, OrderedDict's have a __dict__).
+    A bidict that opts out of reversed() gets non-reversible variants of its views, so check those too.
+    """
+    if opt_out:
+        bi_t = type('OptedOut', (bi_t,), {'__reversed__': None})
+    bi = bi_t({1: 'one'})
+    for b in (bi, bi.inverse):
+        for view in (b.keys(), b.values(), b.items()):
+            if type(view).__module__.partition('.')[0] == 'bidict':
+                assert not hasattr(view, '__dict__'), type(view)
+
+
+@pytest.mark.parametrize('bi_t', bidict_types)
 def test_views_reversibility_matches_bidict(bi_t: BT[t.Any, t.Any]) -> None:
     """keys(), values(), and items() must each be reversible when the bidict itself is, and those
     that bidict provides must not be when it isn't -- never advertising a reversed() that raises.
