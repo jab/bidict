@@ -45,6 +45,7 @@ from bidict_test_fixtures import VT
 from bidict_test_fixtures import AsymLookup
 from bidict_test_fixtures import AsymStored
 from bidict_test_fixtures import CaseFoldingDict
+from bidict_test_fixtures import Handle
 from bidict_test_fixtures import HashFailed
 from bidict_test_fixtures import HashFails
 from bidict_test_fixtures import KeysViaGetattr
@@ -1054,6 +1055,26 @@ def test_pickle_dynamically_generated_inverse_bidict() -> None:
     assert ub._inv_cls.__qualname__ == 'UserBiNotOwnInv._inv_cls'
     module = sys.modules[ub._inv_cls.__module__]
     assert reduce(getattr, ub._inv_cls.__qualname__.split('.'), module) is ub._inv_cls
+
+
+@pytest.mark.parametrize('bi_t', bidict_types)
+def test_repr_with_indirect_self_reference(bi_t: BT[t.Any, t.Any]) -> None:
+    """Where an item's repr includes the bidict (or its inverse), the bidict's repr must print a
+    placeholder rather than recurse without end, as a dict's or an OrderedDict's does.
+
+    A bidict can't contain itself, but it can contain such an item.
+    """
+    val = Handle()
+    bi = bi_t({1: val})
+    val.owner = bi
+    assert repr(bi) == str(bi) == f'{bi_t.__name__}({{1: Handle(...)}})'
+    for view in (bi.keys(), bi.values(), bi.items()):
+        repr(view)  # (some views' reprs go through the bidict's)
+    key = Handle()
+    bi = bi_t({key: 1})
+    key.owner = bi.inverse
+    inv_name = type(bi.inverse).__name__
+    assert repr(bi) == f'{bi_t.__name__}({{Handle({inv_name}({{1: Handle(...)}})): 1}})'
 
 
 def test_abstract_bimap_init_fails() -> None:

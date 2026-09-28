@@ -464,6 +464,20 @@ class HashFails:
 bomb = HashFails().fail_after()
 
 
+class Handle:
+    """Hashable by identity, with a repr that includes its *owner*'s, as a handle's might show the registry that owns it.
+
+    Its repr has no recursion guard of its own (unlike e.g. a dataclass's), so when its owner contains it,
+    only the owner's repr can stop the cycle.
+    """
+
+    owner: object = None
+
+    @override
+    def __repr__(self) -> str:
+        return f'Handle({self.owner!r})'
+
+
 BAD_ITEMS = (
     (HashFailed, (bomb, 0)),  # hashing the key raises
     (HashFailed, (0, bomb)),  # hashing the value raises
