@@ -184,6 +184,13 @@ please consider sponsoring bidict on GitHub.`
   :issue:`410`
   :issue:`420`
 
+- Fix a bug where the ``keys()``, ``values()``, and ``items()`` views
+  of a custom ordered bidict that opts out of :func:`reversed`
+  (by setting ``__reversed__ = None``)
+  claimed to be :class:`~collections.abc.Reversible`
+  but raised :class:`TypeError` from :func:`reversed`.
+  :issue:`420`
+
 - Fix a performance regression in 0.24.0
   where removing an item from a :class:`~bidict.bidict` (or its inverse)
   was ~15% slower than in 0.23.1

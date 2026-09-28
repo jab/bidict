@@ -118,7 +118,7 @@ class _NonReversibleBidictValuesView(BidictValuesView[VT]):
     advertise support for reversed() that the bidict declines to offer.
     """
 
-    __reversed__: t.ClassVar[None] = None  # type: ignore[assignment]
+    __reversed__: t.ClassVar[None] = None
     __slots__ = ()
 
 
@@ -163,6 +163,17 @@ class _ItemsView(ProxiedSetView, ItemsView[KT, VT]):
         # would be the abstract Container.__contains__.)
         bi = self._mapping
         return item in bi._fwdm.items() if bi._fwdm_is_dict else super().__contains__(item)
+
+
+# The views of a bidict that is not reversible. See _NonReversibleBidictValuesView.
+class _NonReversibleKeysView(_KeysView[KT]):
+    __reversed__: t.ClassVar[None] = None
+    __slots__ = ()
+
+
+class _NonReversibleItemsView(_ItemsView[KT, VT]):
+    __reversed__: t.ClassVar[None] = None
+    __slots__ = ()
 
 
 class BidictBase(BidirectionalMapping[KT, VT]):

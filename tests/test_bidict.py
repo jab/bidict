@@ -1306,17 +1306,37 @@ def test_reversed_opt_out_is_honored_and_inherited() -> None:
         assert not isinstance(bi.values(), Reversible), bi_t
 
 
-def test_orderedbidict_reversed_opt_out_is_honored_by_its_views() -> None:
+@pytest.mark.parametrize('bi_t', [bi_t for bi_t in bidict_types if issubclass(bi_t, OrderedBidictBase)])
+def test_orderedbidict_reversed_opt_out_is_honored_by_its_views(bi_t: t.Any) -> None:
     """An ordered bidict that opts out of reversed() cannot be reversed through its views either."""
 
-    class OptedOut(OrderedBidict[t.Any, t.Any]):
+    class OptedOut(bi_t):
         __reversed__ = None
 
     ob: t.Any = OptedOut({1: 'one'})
+    assert not isinstance(ob, Reversible)
     for b in (ob, ob.inverse):
-        for reversible in (b, b.keys(), b.values(), b.items()):
+        for view in (b.keys(), b.values(), b.items()):
+            assert not isinstance(view, Reversible), view  # never advertising a reversed() that raises
+            with pytest.raises(TypeError):  # and the claim is not a lie
+                reversed(view)
+
+
+def test_orderedbidict_reversed_opt_out_after_class_creation_is_honored_by_its_views() -> None:
+    """An ordered bidict whose class opts out of reversed() after it was created cannot be reversed through
+    its views either, although the views' classes, unlike the bidict's, still claim to be Reversible.
+    """
+
+    class OptedOutLater(OrderedBidict[t.Any, t.Any]):
+        pass
+
+    # The declared type of OrderedBidictBase.__reversed__ doesn't allow opting out after creation, which this tests.
+    OptedOutLater.__reversed__ = t.cast('t.Any', None)
+    ob = OptedOutLater({1: 'one'})
+    for b in (ob, ob.inverse):
+        for view in (b, b.keys(), b.values(), b.items()):
             with pytest.raises(TypeError):
-                list(reversed(reversible))
+                reversed(t.cast('t.Any', view))
 
 
 #: Ways to mutate an ordered bidict, keyed by name. Each takes the bidict and the key

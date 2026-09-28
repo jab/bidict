@@ -28,6 +28,8 @@ from ._base import BidictValuesView
 from ._base import Unwrites
 from ._base import _ItemsView
 from ._base import _KeysView
+from ._base import _NonReversibleItemsView
+from ._base import _NonReversibleKeysView
 from ._bidict import bidict
 from ._iter import iteritems
 from ._typing import KT
@@ -371,17 +373,18 @@ class OrderedBidictBase(BidictBase[KT, VT]):
     @override
     def keys(self) -> KeysView[KT]:
         """A set-like object providing a view on the contained keys."""
-        return _KeysView(self)
+        return _KeysView(self) if self._reversible else _NonReversibleKeysView(self)
 
     @override
     def items(self) -> ItemsView[KT, VT]:
         """A set-like object providing a view on the contained items."""
-        return _ItemsView(self)
+        return _ItemsView(self) if self._reversible else _NonReversibleItemsView(self)
 
     @override
     def values(self) -> BidictKeysView[VT]:
         """A set-like object providing a view on the contained values."""
-        return _OrderedBidictValuesView(self.inverse)
+        inv = self.inverse
+        return _OrderedBidictValuesView(inv) if self._reversible else _NonReversibleOrderedBidictValuesView(inv)
 
 
 class _OrderedBidictValuesView(BidictValuesView[VT]):
@@ -403,10 +406,18 @@ class _OrderedBidictValuesView(BidictValuesView[VT]):
     @override
     def __reversed__(self) -> Iterator[VT]:
         ob = self._mapping.inverse
-        # Decline if ob's class declines reversed(), as reversed(ob.keys()) and reversed(ob.items()) do.
+        # Decline if ob's class declines reversed(), as reversed(ob.keys()) and reversed(ob.items()) do,
+        # even if it opted out after it was created, and so after it chose this view class.
         if type(ob).__reversed__ is None:
             raise TypeError(f'{type(ob).__name__!r} object is not reversible')
         return ob._iter(reverse=True, values=True)
+
+
+class _NonReversibleOrderedBidictValuesView(_OrderedBidictValuesView[VT]):
+    """The values view of an ordered bidict that is not reversible. See _NonReversibleBidictValuesView."""
+
+    __reversed__: t.ClassVar[None] = None
+    __slots__ = ()
 
 
 #                             * Code review nav *
