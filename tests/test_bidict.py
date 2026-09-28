@@ -19,7 +19,6 @@ import typing as t
 import weakref
 from collections import UserDict
 from collections.abc import Callable
-from collections.abc import ItemsView
 from collections.abc import KeysView
 from collections.abc import Mapping
 from collections.abc import Reversible
@@ -1647,21 +1646,50 @@ def test_items_view_membership_matches_dict_items(bi_t: BT[t.Any, t.Any]) -> Non
     """`x in b.items()` must agree with a dict's items view for any x, not just for (key, value) pairs.
 
     For anything but a 2-tuple, e.g. 'kv', [key, value], 1, or (1, 2, 3), that means False, not a
-    match against its elements or an unpacking error, including when a Set comparison checks it.
-    A bidict not backed by a dict has a generic ItemsView instead (see BidictBase.items()), and
-    must agree with that.
+    match against its elements or an unpacking error, including when a Set comparison checks it,
+    whatever the bidict's backing mappings. For a pair, it means comparing the contained value to the
+    given one as dict_items does: identity first (so a contained nan matches itself), then with the
+    contained value on the left (so it matches an AsymLookup that a contained AsymStored equals).
     """
-    d = {'k': 'v', 1: 2}
+    nan, stored = float('nan'), AsymStored()
+    d = {'k': 'v', 1: 2, 'n': nan, 's': stored, nan: 'nk', stored: 'sk'}
     bi = bi_t(d)
-    probes = ('kv', 'vk', [1, 2], [2, 1], 1, None, (), (1,), (1, 2, 3), ('k', 'v'), (1, 2), (2, 1), ([1], 2))
+    probes = (
+        *('kv', 'vk', [1, 2], [2, 1], 1, None, (), (1,), (1, 2, 3), ('k', 'v'), (1, 2), (2, 1), ([1], 2)),
+        *(('n', nan), ('s', AsymLookup()), ('nk', nan), ('sk', AsymLookup())),
+    )
     non_pairs = KeysView(UserDict({1: 1}))  # a Set that is not a dict view, whose elements are not pairs
     for b, items in ((bi, d), (bi.inverse, invdict(d))):
         view = b.items()
-        expect = items.items() if b._fwdm_is_dict else ItemsView(items)
+        expect = items.items()
         for probe in probes:
             assert_calls_match(partial(operator.contains, view, probe), partial(operator.contains, expect, probe))
         assert_calls_match(partial(operator.le, non_pairs, view), partial(operator.le, non_pairs, expect))
         assert_calls_match(partial(operator.ge, view, non_pairs), partial(operator.ge, expect, non_pairs))
+
+
+@pytest.mark.parametrize('bi_t', bidict_types)
+def test_views_read_backing_mappings_not_subclass_overrides(bi_t: t.Any) -> None:
+    """Like a dict subclass's views, a bidict's views read its backing mappings directly,
+    not through a subclass's __getitem__, and so neither do repr() and the other methods that use items().
+    """
+
+    class Overrides(bi_t):
+        @override
+        def __getitem__(self, key: t.Any) -> t.Any:
+            return 'overridden'
+
+    d = {1: 'a', 2: 'b'}
+    bi = Overrides(d)
+    for b, items in ((bi, d), (bi.inverse, invdict(d))):
+        # The override is in effect on the bidict itself, but not on its views, which agree with a dict's.
+        assert b[next(iter(items))] == 'overridden'
+        view, expect = b.items(), items.items()
+        assert list(view) == list(expect)
+        assert all(item in view for item in expect)
+        if isinstance(view, Reversible):
+            assert list(reversed(view)) == list(reversed(expect))
+        assert repr(b) == f'{type(b).__name__}({items})'
 
 
 def test_abc_slots() -> None:

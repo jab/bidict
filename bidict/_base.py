@@ -146,23 +146,36 @@ class _ItemsView(ProxiedSetView, ItemsView[KT, VT]):
     _viewname: t.ClassVar[str] = 'items'
     __slots__ = ()
 
+    # Like a dict's views, these look values up in the backing mapping directly, not through the bidict.
     @override
     def __iter__(self) -> Iterator[tuple[KT, VT]]:
         bi = self._mapping
-        return ((key, bi[key]) for key in bi)
+        fwdm = bi._fwdm
+        return ((key, fwdm[key]) for key in bi)
 
     def __reversed__(self) -> Iterator[tuple[KT, VT]]:
         bi: t.Any = self._mapping  # reversible, since this view is only used for bidicts that are
-        return ((key, bi[key]) for key in reversed(bi))
+        fwdm = bi._fwdm
+        return ((key, fwdm[key]) for key in reversed(bi))
 
     @override
-    def __contains__(self, item: tuple[object, object]) -> bool:
-        # Like the Set methods proxied below, defer to the backing dict_items when there is one.
-        # The inherited ItemsView.__contains__ unpacks item, so it raises for anything but a pair,
-        # and matches e.g. [key, value] too. (It can't join them: their fallback, Set's own method,
-        # would be the abstract Container.__contains__.)
+    def __contains__(self, item: tuple[t.Any, t.Any]) -> bool:
+        # Like the Set methods proxied below, defer to the backing dict_items when there is one. (It can't
+        # join them: their fallback, Set's own method, would be the abstract Container.__contains__.)
         bi = self._mapping
-        return item in bi._fwdm.items() if bi._fwdm_is_dict else super().__contains__(item)
+        fwdm = bi._fwdm
+        if bi._fwdm_is_dict:
+            return item in fwdm.items()
+        # Otherwise do what dict_items does, where the inherited ItemsView.__contains__ would unpack item,
+        # and so raise for anything but a pair, and match e.g. [key, value] too.
+        if not isinstance(item, tuple) or len(item) != 2:
+            return False
+        key, value = item
+        try:
+            val = fwdm[key]
+        except KeyError:
+            return False
+        return val is value or val == value
 
 
 # The views of a bidict that is not reversible. See _NonReversibleBidictValuesView.
