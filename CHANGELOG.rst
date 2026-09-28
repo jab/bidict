@@ -231,6 +231,13 @@ please consider sponsoring bidict on GitHub.`
   now needs a suppression under mypy and pyright.
   :issue:`420`
 
+- Fix a regression in 0.21.4 where :func:`typing.get_type_hints`
+  raised :class:`NameError` for :class:`~bidict.BidictBase` and its subclasses
+  (e.g. :class:`~bidict.bidict`),
+  including custom ones,
+  which broke runtime tools that use it.
+  :issue:`420`
+
 - Fix a regression in 0.22.0 where a subclass of a bidict type
   could not pass class keyword arguments to a later base class,
   e.g. ``class B(bidict, Plugin, name='b')`` raised :class:`TypeError`.
