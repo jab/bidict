@@ -18,16 +18,20 @@ env:
   FORCE_COLOR: "1"
   PYTHONHASHSEED: "42"
   BASELINE_RELEASE_TAG: microbenchmarks
-  # Cachegrind counts instructions rather than measuring time, so comparing them is
-  # reproducible and can be held to a tight bound. A change of more than this much in
-  # either direction is called out.
+  # Callgrind counts instructions rather than measuring time, so comparing them is
+  # reproducible and can be held to a tight bound. A change of more than these in either
+  # direction is called out, whether in the total of the benchmarks' counts or in any one
+  # benchmark's. The individual benchmarks get the looser bound because they vary more
+  # between runs of identical code: across five such runs, the total varied by 0.13%, and
+  # most benchmarks by under 0.5%, but a few that raise exceptions by up to 1.3%.
   #
   # There is deliberately no wall-clock threshold. The timings pytest-benchmark reports
-  # here are measured *under* Cachegrind, and vary far more between runs of identical code
+  # here are measured *under* Callgrind, and vary far more between runs of identical code
   # than any change worth catching: revisions whose bidict/ was byte-identical have been
   # seen to differ by tens of percent, in both directions. They are still compared in the
   # run output, which is archived below for eyeballing, but nothing keys off them.
-  INSTRUCTION_CHANGE_PCT: "1.0"
+  TOTAL_INSTRUCTION_CHANGE_PCT: "1.0"
+  BENCHMARK_INSTRUCTION_CHANGE_PCT: "3.0"
 
 jobs:
   benchmark:
@@ -55,9 +59,9 @@ jobs:
           python_impl=${python_info[1]}
           python_series=${python_version%.*}
           arch=$(uname -m)
-          baseline_asset_name="GHA-linux-cachegrind-${arch}-${python_impl}-${python_series}-baseline.json"
+          baseline_asset_name="GHA-linux-callgrind-${arch}-${python_impl}-${python_series}-baseline.json"
           baseline_url="https://github.com/${GITHUB_REPOSITORY}/releases/download/${BASELINE_RELEASE_TAG}/${baseline_asset_name}"
-          instr_asset_name="GHA-linux-cachegrind-${arch}-${python_impl}-${python_series}-instructions.txt"
+          instr_asset_name="GHA-linux-callgrind-${arch}-${python_impl}-${python_series}-instructions.json"
           instr_url="https://github.com/${GITHUB_REPOSITORY}/releases/download/${BASELINE_RELEASE_TAG}/${instr_asset_name}"
           {
             echo "python_version=$python_version"
@@ -89,7 +93,8 @@ jobs:
             else
               echo "::notice::No timing baseline published yet (${{ steps.metadata.outputs.baseline_asset_name }}), so timings are not compared."
             fi
-            ./cachegrind.py pytest -c /dev/null -n0 \
+            ./callgrind.py --json instructions.json \
+              pytest -c /dev/null -n0 -p callgrind --benchmark-timer=callgrind.timer \
                 --benchmark-autosave \
                 --benchmark-columns=min,rounds,iterations \
                 --benchmark-disable-gc \
@@ -113,50 +118,35 @@ jobs:
             echo "result_message=$result_message"
           } >> "$GITHUB_OUTPUT"
           exit "$benchmark_status"
-        env:
-          CACHEGRIND_ESTIMATE_OUT: ${{ github.workspace }}/instructions.txt
-      - name: compare instruction estimate to baseline
+      - name: compare instruction estimates to baseline
         id: instructions
         if: always()
         env:
           INSTR_URL: ${{ steps.metadata.outputs.instr_url }}
         run: |
-          # This comparison is reproducible where a wall-clock one is not: two runs of the
-          # same revision have been measured 0.13% apart, against swings of tens of percent
-          # for the per-benchmark timings.
-          state=unavailable
-          delta=
-          now=
-          baseline=
-          if [ ! -s instructions.txt ]; then
-            # Distinct from a missing baseline: this means cachegrind.py did not honor
-            # CACHEGRIND_ESTIMATE_OUT, i.e. something here is broken rather than unpublished.
-            summary='cachegrind.py recorded no instruction estimate'
-          elif ! curl -fL -s -o instructions-baseline.txt "$INSTR_URL" || [ ! -s instructions-baseline.txt ]; then
-            summary="no instruction baseline published yet (${INSTR_URL##*/})"
+          if [ ! -s instructions.json ]; then
+            # Distinct from a missing baseline: this means callgrind.py did not honor --json,
+            # i.e. something here is broken rather than unpublished.
+            echo 'state=unavailable' >> "$GITHUB_OUTPUT"
+            echo 'summary=callgrind.py recorded no instruction estimates' >> "$GITHUB_OUTPUT"
+          elif ! curl -fL -s -o instructions-baseline.json "$INSTR_URL" || [ ! -s instructions-baseline.json ]; then
+            echo 'state=unavailable' >> "$GITHUB_OUTPUT"
+            echo "summary=no instruction baseline published yet (${INSTR_URL##*/})" >> "$GITHUB_OUTPUT"
           else
-            now=$(cat instructions.txt)
-            baseline=$(cat instructions-baseline.txt)
-            delta=$(python -c "print(f'{($now - $baseline) / $baseline * 100:+.2f}')")
-            state=$(python -c "d = $delta; p = $INSTRUCTION_CHANGE_PCT; print('regression' if d > p else 'improved' if d < -p else 'ok')")
-            if [ "$state" = regression ]; then
-              summary="${delta}% vs baseline, over the ${INSTRUCTION_CHANGE_PCT}% threshold"
-            else
-              summary="${delta}% vs baseline"
-            fi
+            ./compare_instructions.py instructions-baseline.json instructions.json \
+                --threshold "$BENCHMARK_INSTRUCTION_CHANGE_PCT" \
+                --total-threshold "$TOTAL_INSTRUCTION_CHANGE_PCT" \
+                --github-output "$GITHUB_OUTPUT" \
+                > instructions-report.md
           fi
-          {
-            echo "state=$state"
-            echo "summary=$summary"
-            echo "delta=$delta"
-            echo "now=$now"
-            echo "baseline=$baseline"
-          } >> "$GITHUB_OUTPUT"
-          # Warn only on pull requests, matching the timing check: on a push the baseline is
-          # whatever was last published, so drift since then is expected rather than notable.
-          if [ "$state" = regression ] && [ "${{ github.event_name }}" = "pull_request" ]; then
-            echo "::warning::Instruction count regressed by ${delta}% vs the baseline (threshold ${INSTRUCTION_CHANGE_PCT}%)."
-          fi
+      # Only on pull requests: on a push the baseline is whatever was last published, so drift
+      # since then is expected rather than notable.
+      - name: warn of instruction count regressions
+        if: always() && github.event_name == 'pull_request' && steps.instructions.outputs.state == 'regression'
+        env:
+          INSTR_SUMMARY: ${{ steps.instructions.outputs.summary }}
+        run: |
+          echo "::warning::Instruction count: ${INSTR_SUMMARY}."
 
       - name: summarize benchmark result
         if: always()
@@ -166,9 +156,13 @@ jobs:
             echo
             echo "- Baseline asset: \`${{ steps.metadata.outputs.baseline_asset_name }}\`"
             echo "- Benchmark run: [${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID})"
-            echo "- Instruction threshold: \`${INSTRUCTION_CHANGE_PCT}%\`"
+            echo "- Instruction thresholds: \`${BENCHMARK_INSTRUCTION_CHANGE_PCT}%\` per benchmark, \`${TOTAL_INSTRUCTION_CHANGE_PCT}%\` for the total"
             echo "- Result: ${{ steps.benchmark.outputs.result_message }}"
             echo "- Instruction count: ${{ steps.instructions.outputs.summary }}"
+            if [ -s instructions-report.md ]; then
+              echo
+              cat instructions-report.md
+            fi
           } >> "$GITHUB_STEP_SUMMARY"
       - name: prepare PR benchmark comment
         if: always() && github.event_name == 'pull_request'
@@ -179,18 +173,21 @@ jobs:
           RESULT_STATE: ${{ steps.benchmark.outputs.result_state }}
           INSTR_STATE: ${{ steps.instructions.outputs.state }}
           INSTR_SUMMARY: ${{ steps.instructions.outputs.summary }}
-          INSTR_DELTA: ${{ steps.instructions.outputs.delta }}
         run: |
           mkdir -p benchmark-pr-comment
           run_url="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
           case "$INSTR_STATE" in
-            improved)   headline=":zap: Instruction count improved: ${INSTR_SUMMARY}." ;;
-            regression) headline=":warning: Instruction count regressed: ${INSTR_SUMMARY}." ;;
-            ok)         headline=":white_check_mark: Instruction count within threshold: ${INSTR_SUMMARY}." ;;
-            *)          headline=":grey_question: Instruction count: ${INSTR_SUMMARY}." ;;
+            improved)   emoji=:zap: ;;
+            regression) emoji=:warning: ;;
+            ok)         emoji=:white_check_mark: ;;
+            *)          emoji=:grey_question: ;;
           esac
+          headline="${emoji} Instruction count: ${INSTR_SUMMARY}."
+          report=
           if [ "$RESULT_STATE" != ok ]; then
             headline=":x: Benchmark execution failed, so there is nothing to compare."
+          elif [ -s instructions-report.md ]; then
+            report=$(cat instructions-report.md)
           fi
           cat > benchmark-pr-comment/comment.md <<EOF
           <!-- bidict-benchmark-comment -->
@@ -198,13 +195,15 @@ jobs:
 
           ${headline}
 
+          ${report}
+
           - Baseline asset: \`${BASELINE_ASSET_NAME}\`
-          - Instruction threshold: \`${INSTRUCTION_CHANGE_PCT}%\`
+          - Instruction thresholds: \`${BENCHMARK_INSTRUCTION_CHANGE_PCT}%\` per benchmark, \`${TOTAL_INSTRUCTION_CHANGE_PCT}%\` for the total
           - Run: [benchmark workflow run](${run_url})
 
-          _Instruction counts are reported for information and do not block merging. Wall-clock
-          timings are compared in the run output too, but they are measured under Cachegrind and
-          vary too much between runs to report on._
+          _Instruction counts are reported for information and do not block merging. Each counts
+          only the benchmark's timed calls. Wall-clock timings are compared in the run output too,
+          but they are measured under Callgrind and vary too much between runs to report on._
           EOF
           python - <<'PY'
           import json
@@ -216,10 +215,10 @@ jobs:
               'result_state': os.environ['RESULT_STATE'],
               'result_message': os.environ['RESULT_MESSAGE'],
               'baseline_asset_name': os.environ['BASELINE_ASSET_NAME'],
-              'instruction_threshold_pct': os.environ['INSTRUCTION_CHANGE_PCT'],
+              'benchmark_instruction_threshold_pct': os.environ['BENCHMARK_INSTRUCTION_CHANGE_PCT'],
+              'total_instruction_threshold_pct': os.environ['TOTAL_INSTRUCTION_CHANGE_PCT'],
               'instruction_state': os.environ['INSTR_STATE'],
               'instruction_summary': os.environ['INSTR_SUMMARY'],
-              'instruction_delta_pct': os.environ['INSTR_DELTA'],
               'run_url': f"{os.environ['GITHUB_SERVER_URL']}/{os.environ['GITHUB_REPOSITORY']}/actions/runs/{os.environ['GITHUB_RUN_ID']}",
           }
           Path('benchmark-pr-comment/result.json').write_text(json.dumps(payload, indent=2) + '\n')
@@ -239,7 +238,8 @@ jobs:
           path: |
             .benchmarks
             benchmark-output.txt
-            instructions.txt
+            instructions.json
+            instructions-report.md
           include-hidden-files: true
           if-no-files-found: error
 

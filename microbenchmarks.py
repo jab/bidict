@@ -6,8 +6,8 @@
 
 """Microbenchmarks.
 
-Uses https://pytest-benchmark.readthedocs.io/en/v4.0.0/pedantic.html
-which pairs well with ../cachegrind.py (as used by ../.github/workflows/benchmark.yml).
+Uses https://pytest-benchmark.readthedocs.io/en/v4.0.0/pedantic.html,
+which ../callgrind.py (as used by ../.github/workflows/benchmark.yml) requires.
 """
 
 from __future__ import annotations
@@ -29,10 +29,10 @@ consume: t.Any = partial(deque, maxlen=0)
 #: sample cannot dominate a result. pedantic() defaults to a single round, i.e. no filtering.
 ROUNDS = 5
 
-#: Iterations per round for an operation too cheap to time on its own. Running this suite
-#: under Cachegrind puts a fixed floor of roughly 25us on a single timed call -- three orders
-#: of magnitude more than e.g. a lookup costs -- so unless the operation is repeated within
-#: the round, the result is nearly all floor and carries no signal. Only valid for operations
+#: Iterations per round for an operation too cheap to measure on its own. Running this suite
+#: under ../callgrind.py puts a fixed floor of roughly 11,000 instructions on each round of timed
+#: calls -- some 25 times what e.g. a lookup costs -- so unless the operation is repeated within
+#: the round, the result is nearly all floor and carries little signal. Only valid for operations
 #: that can be repeated without fresh setup.
 CHEAP_ITERATIONS = 1000
 
@@ -54,8 +54,8 @@ def scaled_iterations(n: int) -> int:
 #:
 #: Those benchmarks cannot use `iterations`: each needs a bidict in a known state, setup runs
 #: once per round rather than once per iteration, and repeating a write would not exercise the
-#: same path the second time. That left one write per timed call, which at roughly a microsecond
-#: is far under the floor above, so the reported figure was nearly all floor. Batching this many
+#: same path the second time. That left one write per timed call, which costs about as much as
+#: the floor above, so the reported figure was largely floor. Batching this many
 #: writes into a single timed call lifts them clear of it, at a fraction of what raising `rounds`
 #: to the same effect would cost, since the per-round setup copies the whole bidict.
 #:

@@ -149,7 +149,9 @@ ignore = [
 typing-modules = ["bidict._typing"]
 
 [tool.ruff.lint.per-file-ignores]
-"cachegrind.py" = ["print"]  # printing its results is what this script is for
+# Printing their results is what these scripts are for.
+"callgrind.py" = ["print"]
+"compare_instructions.py" = ["print"]
 
 [tool.ruff.lint.isort]
 force-single-line = true
