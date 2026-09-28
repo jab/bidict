@@ -55,7 +55,6 @@ from ._typing import override
 OldKV: t.TypeAlias = tuple[OKT[KT], OVT[VT]]
 DedupResult: t.TypeAlias = OldKV[KT, VT] | None
 Unwrites: t.TypeAlias = list[tuple[t.Any, ...]]
-ReversedIter: t.TypeAlias = t.Callable[['BidictBase[KT, t.Any]'], Iterator[KT]]
 
 # keys() and items() methods known to return dict views, i.e. dict_keys and dict_items (or subclasses of them).
 _DICT_VIEW_METHODS: t.Final = ((dict.keys, dict.items), (OrderedDict.keys, OrderedDict.items))
@@ -127,8 +126,7 @@ class BidictValuesView(ProxiedSetView, BidictKeysView[VT]):
             return reversed(values)
         # A custom backing mapping's values view need not be reversible even when this bidict is,
         # so look the values up in the order that reversing this bidict gives its keys.
-        bi: t.Any = self._mapping.inverse  # reversible, since this view is only used for bidicts that are
-        return (mapping[key] for key in reversed(bi))
+        return (mapping[key] for key in reversed(self._mapping.inverse))
 
 
 class _NonReversibleBidictValuesView(BidictValuesView[VT]):
@@ -163,8 +161,7 @@ class _KeysView(ProxiedSetView, BidictKeysView[KT]):
         return iter(self._mapping)
 
     def __reversed__(self) -> Iterator[KT]:
-        bi: t.Any = self._mapping  # reversible, since this view is only used for bidicts that are
-        return reversed(bi)
+        return reversed(self._mapping)
 
 
 class _ItemsView(ProxiedSetView, ItemsView[KT, VT]):
@@ -180,7 +177,7 @@ class _ItemsView(ProxiedSetView, ItemsView[KT, VT]):
         return ((key, fwdm[key]) for key in bi)
 
     def __reversed__(self) -> Iterator[tuple[KT, VT]]:
-        bi: t.Any = self._mapping  # reversible, since this view is only used for bidicts that are
+        bi = self._mapping
         fwdm = bi._fwdm
         return ((key, fwdm[key]) for key in reversed(bi))
 
@@ -253,7 +250,11 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         cls._ensure_inv_cls()
         cls._set_reversed()
 
-    __reversed__: t.ClassVar[ReversedIter[t.Any] | None]
+    if t.TYPE_CHECKING:
+        # Set by _set_reversed() below instead (to None when this bidict is not reversible).
+        # Declared as a method so that type checkers see reversed(bi) yield bi's keys, as for a dict.
+        def __reversed__(self) -> Iterator[KT]: ...
+
     #: Whether this class's own __reversed__ was computed by :meth:`_set_reversed` rather than declared.
     #: Only ever read from a class's own namespace, see :meth:`_declared_reversed`.
     _reversed_is_computed: t.ClassVar[bool]
@@ -266,7 +267,8 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         declared = cls._declared_reversed()
         if declared is MISSING:
             backing_reversible = all(issubclass(i, Reversible) for i in (cls._fwdm_cls, cls._invm_cls))
-            cls.__reversed__ = _fwdm_reversed if backing_reversible else None
+            # Cast, since type checkers see the method declared above, and reject reassigning it.
+            cls.__reversed__ = t.cast('t.Any', _fwdm_reversed if backing_reversible else None)
         elif cls.__reversed__ is not declared:
             # A value computed for a base that precedes the declaring class in the MRO shadows the declared one,
             # e.g. bidict's shadows OrderedBidictBase's in `class C(bidict, OrderedBidict)`.

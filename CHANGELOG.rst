@@ -221,6 +221,16 @@ please consider sponsoring bidict on GitHub.`
   but raised :class:`TypeError` from :func:`reversed`.
   :issue:`420`
 
+- Fix a bug where type checkers inferred that
+  :func:`reversed` of a :class:`~bidict.bidict`, :class:`~bidict.frozenbidict`,
+  or :class:`~bidict.MutableBidict` (or of its inverse)
+  yields its values rather than its keys,
+  or rejected the call.
+  As for a :class:`dict` subclass,
+  opting out of :func:`reversed` with ``__reversed__ = None``
+  now needs a suppression under mypy and pyright.
+  :issue:`420`
+
 - Fix a regression in 0.22.0 where a subclass of a bidict type
   could not pass class keyword arguments to a later base class,
   e.g. ``class B(bidict, Plugin, name='b')`` raised :class:`TypeError`.
