@@ -94,6 +94,7 @@ jobs:
             coverage combine
             coverage debug data
             coverage report
+            coverage xml
           '
       - name: maybe upload to Codecov  # https://github.com/codecov/codecov-action
         if: matrix.enable_coverage
@@ -101,6 +102,11 @@ jobs:
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
         with:
+          # Upload only the report written above. coverage.py is on PATH only inside the Nix shell,
+          # so the action can't generate a report itself, and its search of the workspace for
+          # coverage files matches the Nix shell venvs' `coverage-3.x` scripts instead.
+          files: coverage.xml
+          disable_search: true
           verbose: true
           fail_ci_if_error: false  # https://github.com/codecov/codecov-action/issues/557
 
