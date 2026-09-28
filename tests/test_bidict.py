@@ -376,7 +376,7 @@ class BidictStateMachine(RuleBasedStateMachine):
         key, val = random.choice(tuple(self.oracle.data.items()))
         self.bi.move_to_end(key, last=last)
         self.oracle.move_to_end(key, last=last)
-        it: t.Any = reversed if last else iter
+        it = reversed if last else iter
         assert (key, val) == next(it(self.bi.items()))
         assert (val, key) == next(it(self.bi.inv.items()))
         assert (key, val) == next(it(self.oracle.data.items()))
@@ -1380,7 +1380,7 @@ def test_orderedbidict_reversed_opt_out_after_class_creation_is_honored_by_its_v
     for b in (ob, ob.inverse):
         for view in (b, b.keys(), b.values(), b.items()):
             with pytest.raises(TypeError):
-                reversed(t.cast('t.Any', view))
+                reversed(view)
 
 
 @pytest.mark.parametrize('bi_t', bidict_types)
@@ -1901,6 +1901,11 @@ def test_static_types() -> None:
     # reversed() yields keys, whatever their type.
     assert_type(reversed(fb), Iterator[str])
     assert_type(reversed(fb.inv), Iterator[int])
+    # An ordered bidict's views are reversible, like an OrderedDict's.
+    ob = OrderedBidict(d)
+    assert_type(reversed(ob.keys()), Iterator[str])
+    assert_type(reversed(ob.values()), Iterator[int])
+    assert_type(reversed(ob.items()), Iterator[tuple[str, int]])
 
 
 @pytest.mark.parametrize('bi_t', mutable_bidict_types)
