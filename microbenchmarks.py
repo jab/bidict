@@ -660,6 +660,15 @@ def test_view_len(name: str, benchmark: t.Any) -> None:
 
 
 @pytest.mark.parametrize('n', LENS)
+@pytest.mark.parametrize('name', IMPLEMENTED_VIEWS)
+def test_reversed_view(name: str, n: int, benchmark: t.Any) -> None:
+    """Benchmark iterating over a view in reverse."""
+    view = _view(name, n)
+    # Build the iterator inside the timed callable, as test_bi_iter does.
+    benchmark.pedantic(lambda: consume(reversed(view)), rounds=ROUNDS, iterations=scaled_iterations(n))
+
+
+@pytest.mark.parametrize('n', LENS)
 def test_copy(n: int, benchmark: t.Any) -> None:
     """Benchmark creating a copy of a bidict."""
     bi = INT_BIDICTS_BY_LEN[n]
