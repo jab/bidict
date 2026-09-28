@@ -241,8 +241,8 @@ class BidictBase(BidirectionalMapping[KT, VT]):
     _inv_cls: t.ClassVar[type[BidictBase[t.Any, t.Any]]]  # the inverse bidict's class, see :meth:`_ensure_inv_cls`
     _reversible: t.ClassVar[bool]  # whether this class offers reversed(), see :meth:`_set_reversed`
 
-    def __init_subclass__(cls) -> None:
-        super().__init_subclass__()
+    def __init_subclass__(cls, **kw: t.Any) -> None:
+        super().__init_subclass__(**kw)
         cls._init_class()
 
     @classmethod
