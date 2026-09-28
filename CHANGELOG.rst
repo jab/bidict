@@ -221,6 +221,11 @@ please consider sponsoring bidict on GitHub.`
   but raised :class:`TypeError` from :func:`reversed`.
   :issue:`420`
 
+- Fix a regression in 0.22.0 where a subclass of a bidict type
+  could not pass class keyword arguments to a later base class,
+  e.g. ``class B(bidict, Plugin, name='b')`` raised :class:`TypeError`.
+  :issue:`420`
+
 - Fix a performance regression in 0.24.0
   where removing an item from a :class:`~bidict.bidict` (or its inverse)
   was ~15% slower than in 0.23.1

@@ -1382,6 +1382,31 @@ def test_orderedbidict_reversed_opt_out_after_class_creation_is_honored_by_its_v
                 reversed(t.cast('t.Any', view))
 
 
+@pytest.mark.parametrize('bi_t', bidict_types)
+def test_class_keywords_reach_later_base(bi_t: t.Any) -> None:
+    """Class keyword arguments pass through a bidict base to a later base that accepts them, as through dict.
+
+    Parametrized over bidict_types to cover a class whose inverse class is generated (UserBiNotOwnInv),
+    which, like any other subclass, isn't passed them.
+    """
+
+    class Labeled:
+        label: t.ClassVar[str]
+
+        def __init_subclass__(cls, label: str = '', **kw: t.Any) -> None:
+            super().__init_subclass__(**kw)
+            cls.label = label
+
+    class Sub(bi_t, Labeled, label='sub'):
+        pass
+
+    assert Sub.label == 'sub'
+    bi = Sub({1: -1})
+    assert bi.inverse[-1] == 1
+    assert type(bi.inverse.inverse) is Sub
+    assert type(bi.inverse).label == ('sub' if type(bi.inverse) is Sub else '')
+
+
 #: Ways to mutate an ordered bidict, keyed by name. Each takes the bidict and the key
 #: just yielded by the iteration in progress.
 _MUTATIONS_DURING_ITERATION: t.Any = {
