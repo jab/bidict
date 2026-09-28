@@ -56,6 +56,7 @@ from bidict_test_fixtures import Tagged
 from bidict_test_fixtures import UserBi
 from bidict_test_fixtures import UserBiBackedByDictSub
 from bidict_test_fixtures import UserBiBackedByReversibleNonDict
+from bidict_test_fixtures import UserBiBackedByReversibleValues
 from bidict_test_fixtures import UserBiNotOwnInv
 from bidict_test_fixtures import UserOrderedBi
 from bidict_test_fixtures import UserOrderedBiBase
@@ -1713,9 +1714,10 @@ def test_views_of_bidict_declaring_reversed_are_reversible() -> None:
 
 
 @given(items121=items121)
-def test_reversed_values_with_reversible_userdict(items121: Items121) -> None:
-    """A reversible mapping need not return a reversible values view."""
-    bi = UserBiBackedByReversibleNonDict(items121)
+@pytest.mark.parametrize('bi_t', [UserBiBackedByReversibleNonDict, UserBiBackedByReversibleValues])
+def test_reversed_values_with_reversible_userdict(bi_t: MBT[int, int], items121: Items121) -> None:
+    """A reversible mapping need not return a reversible values view, though it may."""
+    bi = bi_t(items121)
     for current in (bi, bi.inverse):
         values = current.values()
         assert isinstance(values, Reversible)

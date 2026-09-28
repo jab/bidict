@@ -17,6 +17,7 @@ from collections.abc import KeysView
 from collections.abc import Mapping
 from collections.abc import MutableMapping
 from collections.abc import Reversible
+from collections.abc import ValuesView
 from dataclasses import dataclass
 from itertools import chain
 from itertools import combinations
@@ -148,6 +149,21 @@ class UserBiBackedByReversibleNonDict(bidict[KT, VT]):
 
     _fwdm_cls = ReversibleUserDict
     _invm_cls = ReversibleUserDict
+
+
+class ReversibleUserDictWithReversibleValues(ReversibleUserDict[KT, VT]):
+    """Like ReversibleUserDict, except that its values() view is reversible too: that of the dict it wraps."""
+
+    @override
+    def values(self) -> ValuesView[VT]:
+        return self.data.values()
+
+
+class UserBiBackedByReversibleValues(bidict[KT, VT]):
+    """A bidict backed by a mapping that is not a dict, but whose values() view is reversible."""
+
+    _fwdm_cls = ReversibleUserDictWithReversibleValues
+    _invm_cls = ReversibleUserDictWithReversibleValues
 
 
 @user_bidict
