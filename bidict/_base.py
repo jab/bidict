@@ -122,11 +122,11 @@ class _NonReversibleBidictValuesView(BidictValuesView[VT]):
     __slots__ = ()
 
 
-# The keys() and items() views of an ordered bidict, and of a reversible bidict whose backing forward
-# mapping isn't a dict (see BidictBase.keys()). They iterate the owning bidict, creating its iterator
-# eagerly rather than inside the collections.abc generator methods, so that a mutation before the first
-# next() call is detected too. Unlike those collections.abc views, they are reversible, by reversing the
-# owning bidict.
+# The keys() and items() views of an ordered bidict, and of a bidict whose backing forward mapping isn't a
+# dict (see BidictBase.keys()), which gets the non-reversible variants below if it isn't reversible itself.
+# They iterate the owning bidict, creating its iterator eagerly rather than inside the collections.abc
+# generator methods, so that a mutation before the first next() call is detected too. Unlike those
+# collections.abc views, they are reversible, by reversing the owning bidict.
 class _KeysView(ProxiedSetView, BidictKeysView[KT]):
     _mapping: BidictBase[KT, t.Any]
     _viewname: t.ClassVar[str] = 'keys'
@@ -406,7 +406,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         """
         if self._fwdm_is_dict:
             return self._fwdm.keys()
-        return _KeysView(self) if self._reversible else BidictKeysView(self)
+        return _KeysView(self) if self._reversible else _NonReversibleKeysView(self)
 
     @override
     def items(self) -> ItemsView[KT, VT]:
@@ -430,7 +430,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         """
         if self._fwdm_is_dict:
             return self._fwdm.items()
-        return _ItemsView(self) if self._reversible else ItemsView(self)
+        return _ItemsView(self) if self._reversible else _NonReversibleItemsView(self)
 
     # The inherited collections.abc.Mapping.__contains__() method is implemented by doing a `try`
     # `except KeyError` around `self[key]`. The following implementation is much faster,

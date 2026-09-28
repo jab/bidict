@@ -64,7 +64,7 @@ please consider sponsoring bidict on GitHub.`
   :issue:`408`
 
 - Iterators over the ``keys()`` and ``items()`` views
-  of a reversible custom bidict not backed by :class:`dict`\s
+  of a custom bidict not backed by :class:`dict`\s
   now detect a change in size made before they're first advanced,
   as a :class:`dict` view's do,
   if the backing mapping's own iterators detect such changes

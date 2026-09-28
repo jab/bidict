@@ -1675,6 +1675,21 @@ def test_abc_slots() -> None:
     assert MutableBidirectionalMapping.__dict__['__slots__'] == ()
 
 
+@pytest.mark.parametrize('viewname', ['keys', 'items'])
+@pytest.mark.parametrize('bi_t', mutable_bidict_types)
+def test_view_iterator_detects_mutation_before_first_next(bi_t: MBT[t.Any, t.Any], viewname: str) -> None:
+    """An iterator over a bidict's keys() or items() view (or its inverse's) raises RuntimeError if the bidict
+    changes size between the iterator's creation and its first next() call, as a dict view's iterator does,
+    whether or not the bidict is reversible.
+    """
+    bi = bi_t({1: -1, 2: -2})
+    for b in (bi, bi.inverse):
+        it = iter(getattr(b, viewname)())
+        bi[len(bi) + 1] = -len(bi) - 1
+        with pytest.raises(RuntimeError):
+            next(it)
+
+
 @pytest.mark.parametrize('bi_t', bidict_types)
 def test_views_reversibility_matches_bidict(bi_t: BT[t.Any, t.Any]) -> None:
     """keys(), values(), and items() must each be reversible when the bidict itself is, and those
