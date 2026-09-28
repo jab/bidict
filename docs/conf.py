@@ -237,7 +237,6 @@ nitpick_ignore_regex = [
     # work around https://github.com/sphinx-doc/sphinx/issues/10974
     ('py:(class|obj)', r'(bidict\._typing\.)?(KT|VT|DT|Maplike|MapOrItems|MissingT)'),
     ('py:class', r'(bidict\._base\.)?BT'),
-    ('py:class', r't\.(Any|ClassVar|MutableMapping)'),
     # private view classes that keys(), values(), and items() are annotated to return
     ('py:class', r'bidict\._base\._(Keys|Items)View'),
     ('py:class', r'bidict\._orderedbase\._OrderedBidictValuesView'),

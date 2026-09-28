@@ -1908,6 +1908,20 @@ def test_static_types() -> None:
     assert_type(reversed(ob.items()), Iterator[tuple[str, int]])
 
 
+@pytest.mark.parametrize('bi_t', bidict_types)
+def test_get_type_hints(bi_t: t.Any) -> None:
+    """typing.get_type_hints() resolves the annotations of every class in a bidict subclass's MRO.
+
+    It looks each class's annotations up in the module that the class's __module__ names, which for
+    the classes that bidict exports is not the module that defined them (see bidict/__init__.py).
+    """
+
+    class Sub(bi_t):
+        note: str
+
+    assert t.get_type_hints(Sub)['note'] is str
+
+
 @pytest.mark.parametrize('bi_t', mutable_bidict_types)
 def test_setitem_existing_is_noop_with_nonreflexive_eq(bi_t: MBT[t.Any, t.Any]) -> None:
     """Setting an existing (key, val) pair should be a no-op even when key == key is False.

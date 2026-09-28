@@ -54,6 +54,7 @@ if you are reading this elsewhere.
 # Use private aliases to not re-export these publicly (for Sphinx automodule with imported-members).
 from __future__ import annotations as _annotations
 
+import sys as _sys
 from contextlib import suppress as _suppress
 
 from ._abc import BidirectionalMapping as BidirectionalMapping
@@ -87,6 +88,12 @@ from ._orderedbidict import OrderedBidict as OrderedBidict
 for _obj in tuple(locals().values()):  # pragma: no cover
     if not getattr(_obj, '__module__', '').startswith('bidict.'):
         continue
+    # `from __future__ import annotations` leaves a class's annotations as strings in its namespace, and
+    # typing.get_type_hints() evaluates those in the module its __module__ names. So evaluate them first,
+    # in the module that defined them (which means they can't name anything imported only for type checking).
+    if isinstance(_obj, type) and (_ann := vars(_obj).get('__annotations__')):
+        _globals = vars(_sys.modules[_obj.__module__])
+        _obj.__annotations__ = {k: eval(v, _globals) if isinstance(v, str) else v for (k, v) in _ann.items()}
     with _suppress(AttributeError):
         _obj.__module__ = 'bidict'
 
