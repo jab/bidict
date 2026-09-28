@@ -198,6 +198,13 @@ please consider sponsoring bidict on GitHub.`
   this was a regression in 0.24.0.
   :issue:`420`
 
+- Fix a bug where :func:`repr` of a bidict raised :class:`RecursionError`
+  when the repr of one of its keys or values included the bidict
+  (or its inverse).
+  As with :class:`~collections.OrderedDict`,
+  such a nested reference now prints as ``...``.
+  :issue:`420`
+
 - Fix a bug where the ``keys()``, ``values()``, and ``items()`` views
   of a reversible custom bidict
   backed by mappings that are not :class:`dict`\s

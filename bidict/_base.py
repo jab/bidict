@@ -29,6 +29,7 @@ from collections.abc import Reversible
 from collections.abc import Set
 from collections.abc import ValuesView
 from operator import eq
+from reprlib import recursive_repr
 from types import MappingProxyType
 
 from ._abc import BidirectionalMapping
@@ -398,7 +399,10 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         """Alias for :attr:`inverse`."""
         return self.inverse
 
+    # A bidict can't contain itself, but a key or value's repr can include the bidict (or its inverse). The dict
+    # built below is a new object on each call, so dict's own recursion guard can't catch that, hence recursive_repr.
     @override
+    @recursive_repr()
     def __repr__(self) -> str:
         """See :func:`repr`."""
         clsname = self.__class__.__name__

@@ -508,7 +508,8 @@ Other interesting stuff in the standard library
 ===============================================
 
 - :mod:`reprlib` and :func:`reprlib.recursive_repr`
-  (but not needed for bidict because there's no way to insert a bidict into itself)
+  (needed even though there's no way to insert a bidict into itself,
+  since a key or value's repr can still include the bidict)
 - :func:`operator.methodcaller`
 - See :ref:`addendum:Missing \`\`bidict\`\`\\s in the Standard Library`
 
