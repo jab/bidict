@@ -85,6 +85,7 @@ from hypothesis.strategies import randoms
 from hypothesis.strategies import sampled_from
 from typing_extensions import TypeIs
 
+from bidict import ON_DUP_DROP_OLD
 from bidict import BidictKeysView
 from bidict import BidirectionalMapping
 from bidict import DuplicationError
@@ -1207,16 +1208,67 @@ def test_user_provided_reversed_is_honored_and_inherited() -> None:
         _fwdm_cls = UserDict
         _invm_cls = UserDict
 
-    for bi_t in (CustomReversed, SubCustom):
+    class Assigned(bidict[t.Any, t.Any]):
+        pass
+
+    Assigned.__reversed__ = vars(CustomReversed)['__reversed__']  # after _set_reversed() ran for Assigned
+
+    class SubAssigned(Assigned):
+        pass
+
+    for bi_t in (CustomReversed, SubCustom, Assigned, SubAssigned):
         assert issubclass(bi_t, Reversible)
         assert list(reversed(bi_t())) == ['custom'], bi_t
 
 
-def test_set_reversed_is_idempotent() -> None:
-    """Running _set_reversed() again must not make a computed __reversed__ look user-provided.
+@pytest.mark.parametrize(
+    ('base', 'ordered_base'),
+    [
+        (bidict, OrderedBidict),
+        (UserBi, OrderedBidict),
+        (UserBiNotOwnInv, OrderedBidict),
+        (frozenbidict, OrderedBidictBase),
+    ],
+)
+def test_ordered_bidict_reverses_its_own_order_whatever_precedes_it(base: t.Any, ordered_base: t.Any) -> None:
+    """An ordered bidict reverses its linked list, even with a non-ordered bidict class ahead of its ordered base
+    in the MRO, whose own __reversed__ reverses its backing mapping (or is None, if that is not reversible).
 
-    It only runs once per class today, but were a repeat ever to mark the class as having a
-    user-provided __reversed__, subclasses would inherit that and stop computing their own,
+    on_dup lets __init__ overwrite an item, which keeps its place in the linked list but not in the backing mappings.
+    """
+    ordered_t: t.Any = type('Ordered', (base, ordered_base), {'on_dup': ON_DUP_DROP_OLD})
+    ob = ordered_t([(1, -1), (2, -2), (3, -1)])
+    assert list(ob.items()) == [(3, -1), (2, -2)]
+    for b in (ob, ob.inverse):
+        assert isinstance(b, Reversible)
+        assert list(reversed(b)) == list(b)[::-1]
+        for view in (b.keys(), b.values(), b.items()):
+            assert list(reversed(view)) == list(view)[::-1]
+
+
+def test_reversed_opt_out_is_honored_wherever_it_is_declared() -> None:
+    """A declared opt-out holds wherever it is in the MRO relative to a bidict class whose __reversed__
+    is computed: after one (bidict, ahead of an opted-out ordered bidict class), or before one (a mixin).
+    """
+
+    class OptedOut(OrderedBidict[t.Any, t.Any]):
+        __reversed__ = None
+
+    class OptOutMixin:
+        __reversed__ = None
+
+    for bases in ((bidict, OptedOut), (OptOutMixin, bidict)):
+        composed: t.Any = type('Composed', bases, {})
+        assert not issubclass(composed, Reversible), bases
+        with pytest.raises(TypeError):
+            reversed(composed({1: -1}))
+
+
+def test_set_reversed_is_idempotent() -> None:
+    """Running _set_reversed() again must not make a computed __reversed__ look declared.
+
+    It only runs once per class today, but were a repeat ever to take the class's own computed
+    __reversed__ for a declared one, subclasses would inherit it rather than computing their own,
     which is exactly the bug that test_subclass_can_regain_reversibility covers.
     """
 
@@ -1224,7 +1276,6 @@ def test_set_reversed_is_idempotent() -> None:
         pass
 
     Computed._set_reversed()
-    assert not Computed._reversed_is_user_provided
 
     class SubComputed(Computed):
         _fwdm_cls = UserDict
