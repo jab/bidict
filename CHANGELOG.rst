@@ -190,6 +190,14 @@ please consider sponsoring bidict on GitHub.`
   :issue:`416`
   :issue:`420`
 
+- Fix a bug where ``repr(b.values())`` showed the inverse of *b*,
+  which lists *b*'s values as its keys,
+  and, for a non-ordered bidict, in a different order than the view yields them,
+  rather than *b* itself, as ``collections.abc.ValuesView(b)`` does.
+  For a non-ordered bidict backed by :class:`dict`\s,
+  this was a regression in 0.24.0.
+  :issue:`420`
+
 - Fix a bug where the ``keys()``, ``values()``, and ``items()`` views
   of a reversible custom bidict
   backed by mappings that are not :class:`dict`\s
