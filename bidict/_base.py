@@ -78,15 +78,19 @@ class ProxiedSetView:
     _viewname: t.ClassVar[str]
     __slots__ = ()
 
+    # Go straight to the backing mapping, rather than through _mapping.__len__ as MappingView's does.
+    def __len__(self) -> int:
+        return len(self._mapping._fwdm)
+
 
 class BidictValuesView(ProxiedSetView, BidictKeysView[VT]):
     """The set-like view returned by *bi.values()* for a non-ordered bidict.
 
     A bidict's values are the keys of its inverse, so the fast, set-like operations are
     all provided by viewing the inverse's keys, which this does by taking the *inverse*
-    as its *_mapping*: the inherited __contains__ and __len__ then already do the right
-    thing, and _mapping._fwdm is the backing mapping whose keys are our elements, so the
-    set-method proxy below works unmodified.
+    as its *_mapping*: _mapping._fwdm is then the backing mapping whose keys are our
+    elements, so membership and len() can check it directly, and the set-method proxy
+    below works unmodified.
 
     Iteration is the exception. The inverse's key order is its own backing mapping's,
     which diverges from this bidict's key order as soon as an item is overwritten. So
@@ -96,6 +100,10 @@ class BidictValuesView(ProxiedSetView, BidictKeysView[VT]):
 
     _viewname: t.ClassVar[str] = 'keys'
     __slots__ = ()
+
+    @override
+    def __contains__(self, key: object) -> bool:
+        return key in self._mapping._fwdm
 
     @override
     def __iter__(self) -> Iterator[VT]:
@@ -135,6 +143,11 @@ class _KeysView(ProxiedSetView, BidictKeysView[KT]):
     _mapping: BidictBase[KT, t.Any]
     _viewname: t.ClassVar[str] = 'keys'
     __slots__ = ()
+
+    # Membership does not depend on order, so check the backing mapping directly.
+    @override
+    def __contains__(self, key: object) -> bool:
+        return key in self._mapping._fwdm
 
     @override
     def __iter__(self) -> Iterator[KT]:

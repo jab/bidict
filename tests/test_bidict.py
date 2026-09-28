@@ -1693,10 +1693,19 @@ def test_items_view_membership_matches_dict_items(bi_t: BT[t.Any, t.Any]) -> Non
 @pytest.mark.parametrize('bi_t', bidict_types)
 def test_views_read_backing_mappings_not_subclass_overrides(bi_t: t.Any) -> None:
     """Like a dict subclass's views, a bidict's views read its backing mappings directly,
-    not through a subclass's __getitem__, and so neither do repr() and the other methods that use items().
+    not through a subclass's __len__, __contains__, or __getitem__,
+    and so neither do repr() and the other methods that use items().
     """
 
     class Overrides(bi_t):
+        @override
+        def __len__(self) -> int:
+            return 99
+
+        @override
+        def __contains__(self, key: object) -> bool:
+            return True
+
         @override
         def __getitem__(self, key: t.Any) -> t.Any:
             return 'overridden'
@@ -1704,13 +1713,16 @@ def test_views_read_backing_mappings_not_subclass_overrides(bi_t: t.Any) -> None
     d = {1: 'a', 2: 'b'}
     bi = Overrides(d)
     for b, items in ((bi, d), (bi.inverse, invdict(d))):
-        # The override is in effect on the bidict itself, but not on its views, which agree with a dict's.
-        assert b[next(iter(items))] == 'overridden'
-        view, expect = b.items(), items.items()
-        assert list(view) == list(expect)
-        assert all(item in view for item in expect)
-        if isinstance(view, Reversible):
-            assert list(reversed(view)) == list(reversed(expect))
+        # The overrides are in effect on the bidict itself, but not on its views, which agree with a dict's.
+        assert (len(b), 'absent' in b, b[next(iter(items))]) == (99, True, 'overridden')
+        for viewname, absent in (('keys', 'absent'), ('values', 'absent'), ('items', ('absent', 'absent'))):
+            view, expect = getattr(b, viewname)(), getattr(items, viewname)()
+            assert len(view) == len(expect)
+            assert list(view) == list(expect)
+            assert all(x in view for x in expect)
+            assert absent not in view
+            if isinstance(view, Reversible):
+                assert list(reversed(view)) == list(reversed(expect))
         assert repr(b) == f'{type(b).__name__}({items})'
 
 
