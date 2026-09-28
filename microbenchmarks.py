@@ -13,9 +13,11 @@ which pairs well with ../cachegrind.py (as used by ../.github/workflows/benchmar
 from __future__ import annotations
 
 import contextlib
+import operator
 import pickle
 import typing as t
 from collections import deque
+from collections.abc import Mapping
 from functools import partial
 
 import pytest
@@ -608,6 +610,53 @@ def test_orderedbi_items_equals_with_equal_dict_items(n: int, benchmark: t.Any) 
     ob, d = ORDERED_BIDICT_AND_DICT_LAST_TWO_ITEMS_DIFFERENT_ORDER[n]
     result = benchmark.pedantic(ob.items().__eq__, args=(d.items(),), rounds=ROUNDS, iterations=scaled_iterations(n))
     assert result
+
+
+#: A bidict and an OrderedBidict of each length, for the view benchmarks below.
+BIDICTS_BY_TYPE_AND_LEN: dict[str, Mapping[int, bidict.BidictBase[int, int]]] = {
+    'bi': INT_BIDICTS_BY_LEN,
+    'orderedbi': ORDERED_BIDICTS_BY_LEN,
+}
+
+#: The views that bidict implements itself, rather than passing through its backing dict's own:
+#: a bidict's values(), and each of an OrderedBidict's views.
+IMPLEMENTED_VIEWS = ('bi-values', 'orderedbi-keys', 'orderedbi-values', 'orderedbi-items')
+
+
+def _view(name: str, n: int) -> t.Any:
+    bi_type, viewname = name.split('-')
+    return getattr(BIDICTS_BY_TYPE_AND_LEN[bi_type][n], viewname)()
+
+
+@pytest.mark.parametrize('viewname', ['keys', 'values', 'items'])
+@pytest.mark.parametrize('bi_type', BIDICTS_BY_TYPE_AND_LEN)
+def test_view(bi_type: str, viewname: str, benchmark: t.Any) -> None:
+    """Benchmark creating a view."""
+    make_view = getattr(BIDICTS_BY_TYPE_AND_LEN[bi_type][1_000], viewname)
+    benchmark.pedantic(make_view, rounds=ROUNDS, iterations=CHEAP_ITERATIONS)
+
+
+#: Views held across calls, as when a caller keeps one to query repeatedly, so that the
+#: benchmarks below measure the query rather than creating the view.
+HELD_VIEWS: dict[str, t.Any] = {name: _view(name, 1_000) for name in IMPLEMENTED_VIEWS}
+#: A contained element of each held view. (INT_DICTS_BY_LEN maps each int to itself.)
+HELD_VIEW_ELEMENTS: dict[str, t.Any] = {name: (0, 0) if name.endswith('items') else 0 for name in IMPLEMENTED_VIEWS}
+
+
+@pytest.mark.parametrize('name', IMPLEMENTED_VIEWS)
+def test_view_contains(name: str, benchmark: t.Any) -> None:
+    """Benchmark a membership test on a held view."""
+    result = benchmark.pedantic(
+        operator.contains, args=(HELD_VIEWS[name], HELD_VIEW_ELEMENTS[name]), rounds=ROUNDS, iterations=CHEAP_ITERATIONS
+    )
+    assert result
+
+
+@pytest.mark.parametrize('name', IMPLEMENTED_VIEWS)
+def test_view_len(name: str, benchmark: t.Any) -> None:
+    """Benchmark len() of a held view."""
+    result = benchmark.pedantic(len, args=(HELD_VIEWS[name],), rounds=ROUNDS, iterations=CHEAP_ITERATIONS)
+    assert result == 1_000
 
 
 @pytest.mark.parametrize('n', LENS)
