@@ -44,7 +44,7 @@ test = [
   "pytest-xdist",
   "sortedcollections",
   "sortedcontainers",
-  "ty>=0.0.72",
+  "ty>=0.0.84",
   "typing_extensions",
 ]
 dev = [
