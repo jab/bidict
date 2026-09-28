@@ -128,6 +128,24 @@ since the *WeakrefBidict* isn't holding on to them:
    >>> if sys.implementation.name == 'cpython':
    ...     assert not b
 
+Note that :func:`~copy.deepcopy` and :mod:`pickle`
+copy the objects in a *WeakrefBidict* along with it,
+and since nothing else references the copies,
+they are soon freed (immediately, on CPython),
+leaving the copied *WeakrefBidict* empty.
+:meth:`~bidict.BidictBase.copy` and :func:`copy.copy`
+share the objects instead:
+
+.. doctest::
+
+   >>> from copy import deepcopy
+   >>> o1, o2 = frozenset({1}), frozenset({2})
+   >>> b[o1] = o2
+   >>> len(b.copy())
+   1
+   >>> if sys.implementation.name == 'cpython':
+   ...     assert not deepcopy(b)
+
 
 ``SortedBidict`` Recipes
 ########################
