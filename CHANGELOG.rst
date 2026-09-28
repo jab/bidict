@@ -169,11 +169,13 @@ please consider sponsoring bidict on GitHub.`
 
 - Fix a bug where ``x in b.items()``,
   for an ordered bidict *b* backed by :class:`dict`\s (the default),
+  or for any bidict not backed by :class:`dict`\s,
   could raise :class:`TypeError` or :class:`ValueError`,
   or return ``True`` for e.g. a list ``[key, value]``,
   when *x* was not a 2-tuple,
   rather than return ``False``, as for a :class:`dict`.
   :issue:`416`
+  :issue:`420`
 
 - Fix a bug where the ``keys()``, ``values()``, and ``items()`` views
   of a reversible custom bidict
@@ -209,6 +211,18 @@ please consider sponsoring bidict on GitHub.`
 - Changing the value of an existing key in an :class:`~bidict.OrderedBidict`
   is ~1.2x faster than in 0.24.1.
   :issue:`414`
+
+- Iterating an ordered bidict's ``items()`` view
+  is ~1.3x faster than in 0.24.1.
+  :issue:`420`
+
+- Like a :class:`dict` subclass's,
+  the ``items()`` view of an ordered bidict,
+  or of a custom bidict not backed by :class:`dict`\s,
+  no longer goes through a subclass's ``__getitem__``,
+  and so neither do e.g. :func:`repr` and
+  :meth:`~bidict.BidictBase.equals_order_sensitive`, which use it.
+  :issue:`420`
 
 0.24.1 (2026-08-25)
 -------------------
