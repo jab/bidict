@@ -133,6 +133,23 @@ class UserBiBackedByDictSub(bidict[KT, VT]):
     _invm_cls = OrderedDict
 
 
+class ReversibleUserDict(UserDict[KT, VT]):
+    """A reversible backing mapping that, unlike e.g. OrderedDict, is not a dict,
+    and whose values() view (UserDict's generic one) is not reversible.
+    """
+
+    def __reversed__(self) -> Iterator[KT]:
+        return reversed(self.data)
+
+
+@user_bidict
+class UserBiBackedByReversibleNonDict(bidict[KT, VT]):
+    """A bidict backed by a reversible mapping that is not a dict, which gets generic views rather than native ones."""
+
+    _fwdm_cls = ReversibleUserDict
+    _invm_cls = ReversibleUserDict
+
+
 @user_bidict
 class UserOrderedBiBase(OrderedBidictBase[KT, VT]):
     """An immutable ordered bidict, i.e. an OrderedBidictBase that is not an OrderedBidict.

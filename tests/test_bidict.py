@@ -20,7 +20,6 @@ import weakref
 from collections import UserDict
 from collections.abc import Callable
 from collections.abc import ItemsView
-from collections.abc import Iterator
 from collections.abc import KeysView
 from collections.abc import Mapping
 from collections.abc import Reversible
@@ -56,6 +55,7 @@ from bidict_test_fixtures import SupportsKeysAndGetItem
 from bidict_test_fixtures import Tagged
 from bidict_test_fixtures import UserBi
 from bidict_test_fixtures import UserBiBackedByDictSub
+from bidict_test_fixtures import UserBiBackedByReversibleNonDict
 from bidict_test_fixtures import UserBiNotOwnInv
 from bidict_test_fixtures import UserOrderedBi
 from bidict_test_fixtures import UserOrderedBiBase
@@ -1603,13 +1603,6 @@ def test_orderedbidictbase_order_diverges_from_backing_mappings() -> None:
 def test_orderedbidict_cross_view_set_operations() -> None:
     """Set operations between an OrderedBidict keys view and an items view (or vice versa) should
     behave like the equivalent plain dict views rather than raising TypeError or giving a wrong result.
-
-    Regression test: the set-operation proxy methods in _OrderedBidictKeysView and
-    _OrderedBidictItemsView previously passed the opposing custom view type directly to the
-    C-level dict_keys/dict_items methods, which returned NotImplemented (they only recognize
-    dict_keys and dict_items). With both sides returning NotImplemented, Python raised TypeError
-    (for the ordering comparisons) or fell back to the wrong answer (e.g. identity-based __eq__).
-    The fix extracts the backing dict view from a cross-type _OView arg before forwarding.
     """
     ob1 = OrderedBidict({'a': 1, 'b': 2})
     ob2 = OrderedBidict({'a': 1})
@@ -1662,33 +1655,47 @@ def test_abc_slots() -> None:
 
 
 @pytest.mark.parametrize('bi_t', bidict_types)
-def test_values_view_reversibility_matches_bidict(bi_t: BT[t.Any, t.Any]) -> None:
-    """values() iterates the backing forward mapping, so it must be reversible
-    exactly when the bidict itself is -- never advertising a reversed() that raises.
+def test_views_reversibility_matches_bidict(bi_t: BT[t.Any, t.Any]) -> None:
+    """keys(), values(), and items() must each be reversible when the bidict itself is, and those
+    that bidict provides must not be when it isn't -- never advertising a reversed() that raises.
+
+    A dict-backed bidict's keys() and items() are its backing dict's own views, which reverse correctly.
     """
     bi = bi_t({1: -1, 2: -2})
-    values = bi.values()
-    if isinstance(bi, Reversible):
-        assert isinstance(values, Reversible)
-        assert list(reversed(values)) == list(bi.values())[::-1]
-    else:
-        assert not isinstance(values, Reversible)
-        with pytest.raises(TypeError):  # and the claim is not a lie
-            reversed(t.cast('t.Any', values))
+    for b in (bi, bi.inverse):
+        if isinstance(b, Reversible):
+            for view in (b.keys(), b.values(), b.items()):
+                assert isinstance(view, Reversible), view
+                assert list(reversed(view)) == list(view)[::-1]
+        else:
+            for view in (b.values(),) if b._fwdm_is_dict else (b.keys(), b.values(), b.items()):
+                assert not isinstance(view, Reversible), view
+                with pytest.raises(TypeError):  # and the claim is not a lie
+                    reversed(t.cast('t.Any', view))
+
+
+def test_views_of_bidict_declaring_reversed_are_reversible() -> None:
+    """A bidict that declares __reversed__ is reversible whatever its backing mappings, and so are its views."""
+
+    class DeclaresReversed(bidict[t.Any, t.Any]):
+        _fwdm_cls = UserDict
+        _invm_cls = UserDict
+
+        @override
+        def __reversed__(self) -> t.Any:
+            return reversed(list(self))
+
+    bi = DeclaresReversed({1: -1, 2: -2})
+    for b in (bi, bi.inverse):
+        for view in (b.keys(), b.values(), b.items()):
+            assert isinstance(view, Reversible), view
+            assert list(reversed(view)) == list(view)[::-1]
 
 
 @given(items121=items121)
 def test_reversed_values_with_reversible_userdict(items121: Items121) -> None:
     """A reversible mapping need not return a reversible values view."""
-
-    class ReversibleUserDict(UserDict[int, int]):
-        def __reversed__(self) -> Iterator[int]:
-            return reversed(self.data)
-
-    class ReversibleUserBi(bidict[int, int]):
-        _fwdm_cls = _invm_cls = ReversibleUserDict
-
-    bi = ReversibleUserBi(items121)
+    bi = UserBiBackedByReversibleNonDict(items121)
     for current in (bi, bi.inverse):
         values = current.values()
         assert isinstance(values, Reversible)

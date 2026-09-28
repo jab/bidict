@@ -25,9 +25,9 @@ from weakref import ref as weakref
 from ._base import BidictBase
 from ._base import BidictKeysView
 from ._base import BidictValuesView
-from ._base import ProxiedSetView
 from ._base import Unwrites
-from ._base import _override_set_methods_to_use_backing_dict
+from ._base import _ItemsView
+from ._base import _KeysView
 from ._bidict import bidict
 from ._iter import iteritems
 from ._typing import KT
@@ -371,58 +371,17 @@ class OrderedBidictBase(BidictBase[KT, VT]):
     @override
     def keys(self) -> KeysView[KT]:
         """A set-like object providing a view on the contained keys."""
-        return _OrderedBidictKeysView(self)
+        return _KeysView(self)
 
     @override
     def items(self) -> ItemsView[KT, VT]:
         """A set-like object providing a view on the contained items."""
-        return _OrderedBidictItemsView(self)
+        return _ItemsView(self)
 
     @override
     def values(self) -> BidictKeysView[VT]:
         """A set-like object providing a view on the contained values."""
         return _OrderedBidictValuesView(self.inverse)
-
-
-# These views iterate the owning bidict to preserve its linked-list order. Create
-# that iterator eagerly, rather than inside the collections.abc generator methods,
-# so mutations before the first next() call are detected too. They also provide a
-# __reversed__ implementation, which is not provided by the collections.abc superclasses.
-class _OrderedBidictKeysView(ProxiedSetView, BidictKeysView[KT]):
-    _mapping: OrderedBidictBase[KT, t.Any]
-    _viewname: t.ClassVar[str] = 'keys'
-    __slots__ = ()
-
-    @override
-    def __iter__(self) -> Iterator[KT]:
-        return iter(self._mapping)
-
-    def __reversed__(self) -> Iterator[KT]:
-        return reversed(self._mapping)
-
-
-class _OrderedBidictItemsView(ProxiedSetView, ItemsView[KT, VT]):
-    _mapping: OrderedBidictBase[KT, VT]
-    _viewname: t.ClassVar[str] = 'items'
-    __slots__ = ()
-
-    @override
-    def __iter__(self) -> Iterator[tuple[KT, VT]]:
-        ob = self._mapping
-        return ((key, ob[key]) for key in ob)
-
-    def __reversed__(self) -> Iterator[tuple[KT, VT]]:
-        ob = self._mapping
-        return ((key, ob[key]) for key in reversed(ob))
-
-    @override
-    def __contains__(self, item: tuple[object, object]) -> bool:
-        # Like the Set methods proxied below, defer to the backing dict_items when there is one.
-        # The inherited ItemsView.__contains__ unpacks item, so it raises for anything but a pair,
-        # and matches e.g. [key, value] too. (It can't join them: their fallback, Set's own method,
-        # would be the abstract Container.__contains__.)
-        ob = self._mapping
-        return item in ob._fwdm.items() if ob._fwdm_is_dict else super().__contains__(item)
 
 
 class _OrderedBidictValuesView(BidictValuesView[VT]):
@@ -448,10 +407,6 @@ class _OrderedBidictValuesView(BidictValuesView[VT]):
         if type(ob).__reversed__ is None:
             raise TypeError(f'{type(ob).__name__!r} object is not reversible')
         return ob._iter(reverse=True, values=True)
-
-
-_override_set_methods_to_use_backing_dict(_OrderedBidictKeysView)
-_override_set_methods_to_use_backing_dict(_OrderedBidictItemsView)
 
 
 #                             * Code review nav *
