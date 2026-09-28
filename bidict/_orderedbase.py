@@ -17,13 +17,10 @@
 from __future__ import annotations
 
 import typing as t
-from collections.abc import ItemsView
 from collections.abc import Iterator
-from collections.abc import KeysView
 from weakref import ref as weakref
 
 from ._base import BidictBase
-from ._base import BidictKeysView
 from ._base import BidictValuesView
 from ._base import Unwrites
 from ._base import _ItemsView
@@ -369,19 +366,20 @@ class OrderedBidictBase(BidictBase[KT, VT]):
     # changes an existing item, but also during __init__ itself, since a value-duplication
     # overwrite reuses the existing item's node (keeping its position) while _fwdm gets the
     # new key appended and the old one deleted. So these must be overridden here rather than
-    # in OrderedBidict, to cover immutable ordered bidicts too.
+    # in OrderedBidict, to cover immutable ordered bidicts too. The return types name the
+    # concrete view classes so that type checkers see that they are reversible.
     @override
-    def keys(self) -> KeysView[KT]:
+    def keys(self) -> _KeysView[KT]:
         """A set-like object providing a view on the contained keys."""
         return _KeysView(self) if self._reversible else _NonReversibleKeysView(self)
 
     @override
-    def items(self) -> ItemsView[KT, VT]:
+    def items(self) -> _ItemsView[KT, VT]:
         """A set-like object providing a view on the contained items."""
         return _ItemsView(self) if self._reversible else _NonReversibleItemsView(self)
 
     @override
-    def values(self) -> BidictKeysView[VT]:
+    def values(self) -> _OrderedBidictValuesView[VT]:
         """A set-like object providing a view on the contained values."""
         inv = self.inverse
         return _OrderedBidictValuesView(inv) if self._reversible else _NonReversibleOrderedBidictValuesView(inv)

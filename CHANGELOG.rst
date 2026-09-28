@@ -284,6 +284,13 @@ please consider sponsoring bidict on GitHub.`
   and no longer accept arbitrary attributes or weak references.
   :issue:`420`
 
+- Type checkers now accept :func:`reversed`
+  of an ordered bidict's ``keys()``, ``values()``, and ``items()`` views.
+  A subclass that overrides one of these methods
+  must now declare a compatible return type
+  (such as the private ``_KeysView``).
+  :issue:`420`
+
 0.24.1 (2026-08-25)
 -------------------
 
