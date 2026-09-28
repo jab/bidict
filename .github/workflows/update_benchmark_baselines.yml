@@ -45,10 +45,10 @@ jobs:
           python_impl=${python_info[1]}
           python_series=${python_version%.*}
           arch=$(uname -m)
-          versioned_asset_name="GHA-linux-cachegrind-${arch}-${python_impl}-${python_version}-baseline.json"
-          series_asset_name="GHA-linux-cachegrind-${arch}-${python_impl}-${python_series}-baseline.json"
-          versioned_instr_name="GHA-linux-cachegrind-${arch}-${python_impl}-${python_version}-instructions.txt"
-          series_instr_name="GHA-linux-cachegrind-${arch}-${python_impl}-${python_series}-instructions.txt"
+          versioned_asset_name="GHA-linux-callgrind-${arch}-${python_impl}-${python_version}-baseline.json"
+          series_asset_name="GHA-linux-callgrind-${arch}-${python_impl}-${python_series}-baseline.json"
+          versioned_instr_name="GHA-linux-callgrind-${arch}-${python_impl}-${python_version}-instructions.json"
+          series_instr_name="GHA-linux-callgrind-${arch}-${python_impl}-${python_series}-instructions.json"
           {
             echo "python_version=$python_version"
             echo "python_series=$python_series"
@@ -58,16 +58,16 @@ jobs:
             echo "series_instr_name=$series_instr_name"
           } >> "$GITHUB_OUTPUT"
       - name: benchmark
-        env:
-          # Have cachegrind.py record its instruction estimate, which unlike the wall-clock
-          # figures is reproducible, so PR runs can compare against it without a noise allowance.
-          CACHEGRIND_ESTIMATE_OUT: ${{ github.workspace }}/instructions.txt
         run: |
           nix develop .#benchmark --command bash -c '
             uv pip install --python "$VIRTUAL_ENV/bin/python" --no-deps .
             # Move aside the working tree package so we always import the installed version.
             mv -v bidict src
-            ./cachegrind.py pytest -c /dev/null -n0 \
+            # Have callgrind.py record its per-benchmark instruction estimates, which unlike
+            # the wall-clock figures are reproducible, so PR runs can compare against them
+            # without a noise allowance.
+            ./callgrind.py --json instructions.json \
+              pytest -c /dev/null -n0 -p callgrind --benchmark-timer=callgrind.timer \
                 --benchmark-autosave \
                 --benchmark-columns=min,rounds,iterations \
                 --benchmark-disable-gc \
@@ -81,9 +81,9 @@ jobs:
           [ -n "$benchmark_json" ]
           cp "$benchmark_json" '${{ steps.metadata.outputs.versioned_asset_name }}'
           cp "$benchmark_json" '${{ steps.metadata.outputs.series_asset_name }}'
-          [ -s instructions.txt ]
-          cp instructions.txt '${{ steps.metadata.outputs.versioned_instr_name }}'
-          cp instructions.txt '${{ steps.metadata.outputs.series_instr_name }}'
+          [ -s instructions.json ]
+          cp instructions.json '${{ steps.metadata.outputs.versioned_instr_name }}'
+          cp instructions.json '${{ steps.metadata.outputs.series_instr_name }}'
           {
             echo "benchmark_json=$benchmark_json"
             echo "versioned_asset_path=${{ github.workspace }}/${{ steps.metadata.outputs.versioned_asset_name }}"
@@ -115,6 +115,8 @@ jobs:
             --clobber
       - name: write summary
         run: |
+          count=$(python -c "import json; print(len(json.load(open('instructions.json'))))")
+          total=$(python -c "import json; print(sum(r['estimate'] for r in json.load(open('instructions.json')).values()))")
           {
             echo '### Uploaded benchmark baselines'
             echo
@@ -122,7 +124,7 @@ jobs:
             echo '- Versioned asset: `${{ steps.metadata.outputs.versioned_asset_name }}`'
             echo '- Series alias: `${{ steps.metadata.outputs.series_asset_name }}`'
             echo '- Source benchmark file: `${{ steps.assets.outputs.benchmark_json }}`'
-            echo "- Instruction estimate: \`$(cat instructions.txt)\`"
+            echo "- Instruction estimates: ${count} benchmarks, totaling \`${total}\`"
           } >> "$GITHUB_STEP_SUMMARY"
       - name: archive benchmark results
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
