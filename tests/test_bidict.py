@@ -56,8 +56,10 @@ from bidict_test_fixtures import UserBi
 from bidict_test_fixtures import UserBiBackedByDictSub
 from bidict_test_fixtures import UserBiBackedByReversibleNonDict
 from bidict_test_fixtures import UserBiBackedByReversibleValues
+from bidict_test_fixtures import UserBiBackedBySortedDict
 from bidict_test_fixtures import UserBiNotOwnInv
 from bidict_test_fixtures import UserOrderedBi
+from bidict_test_fixtures import UserOrderedBiBackedBySortedDict
 from bidict_test_fixtures import UserOrderedBiBase
 from bidict_test_fixtures import WriteRefused
 from bidict_test_fixtures import bidict_refusing_nth_write
@@ -1133,13 +1135,10 @@ def test_orderedbidictbase_nodes_consistent(items: Items) -> None:
 
 
 def test_dict_subclass_backing_gets_native_views() -> None:
-    """A backing mapping that is a dict subclass should get the same views a dict would.
+    """A backing dict subclass with dict views, e.g. OrderedDict, should get the same views a dict would.
 
-    keys()/items() dispatch on isinstance(fwdm, dict) rather than `fwdm_cls is dict`, so a
-    dict subclass -- which is what every backing in the docs' recipes actually is, e.g.
-    sortedcontainers.SortedDict -- gets its own native views. Those are reversible, carry a
-    .mapping attribute, and implement their set operations in C, none of which a generic
-    view over the bidict provides.
+    Those are reversible, carry a .mapping attribute, and implement their set operations in C,
+    none of which a generic view over the bidict provides.
     """
     b = UserBiBackedByDictSub({1: 'one', 2: 'two'})  # backed by OrderedDict
     keysview, itemsview = b.keys(), b.items()
@@ -1164,6 +1163,29 @@ def test_non_dict_backing_falls_back_to_generic_views() -> None:
     assert list(b.keys()) == [1, 2]
     assert b.keys() == {1, 2}
     assert list(b.items()) == [(1, 'one'), (2, 'two')]
+
+
+@pytest.mark.parametrize('bi_t', [UserBiBackedBySortedDict, UserOrderedBiBackedBySortedDict])
+@pytest.mark.parametrize('viewname', ['keys', 'values', 'items'])
+@pytest.mark.parametrize('set_op', SET_OPS)
+def test_views_set_ops_match_dict_views_when_backing_has_own_views(
+    bi_t: BT[t.Any, t.Any], viewname: str, set_op: t.Any
+) -> None:
+    """Set operations on a bidict's views must give what a dict's views give, down to the type of the result,
+    even when its backing mapping is a dict subclass with views of its own.
+
+    SortedDict's are an example: their set operations return a SortedSet, which raises TypeError for
+    elements that cannot be ordered against each other, so the operand here includes such an element.
+    """
+    bi = bi_t({1: 'one', 2: 'two'})
+    for b in (bi, bi.inverse):
+        d = dict(b)
+        # A dict's values() is not set-like, so compare with its inverse's keys().
+        expect = invdict(d).keys() if viewname == 'values' else getattr(d, viewname)()
+        # One element in common, and one that cannot be ordered against the others (a pair, for items()).
+        other = {next(iter(expect)), (None, None) if viewname == 'items' else None}
+        got, want = set_op(getattr(b, viewname)(), other), set_op(expect, other)
+        assert (type(got), got) == (type(want), want)
 
 
 def test_subclass_can_regain_reversibility() -> None:
@@ -1732,7 +1754,7 @@ def test_views_reversibility_matches_bidict(bi_t: BT[t.Any, t.Any]) -> None:
                 assert isinstance(view, Reversible), view
                 assert list(reversed(view)) == list(view)[::-1]
         else:
-            for view in (b.values(),) if b._fwdm_is_dict else (b.keys(), b.values(), b.items()):
+            for view in (b.values(),) if b._fwdm_has_dict_views else (b.keys(), b.values(), b.items()):
                 assert not isinstance(view, Reversible), view
                 with pytest.raises(TypeError):  # and the claim is not a lie
                     reversed(t.cast('t.Any', view))
