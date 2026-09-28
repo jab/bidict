@@ -99,6 +99,8 @@ class BidictValuesView(ProxiedSetView, BidictKeysView[VT]):
 
     def __reversed__(self) -> Iterator[VT]:
         mapping = self._mapping._invm
+        if isinstance(mapping, dict):
+            return reversed(mapping.values())
         values = mapping.values()
         if isinstance(values, Reversible):
             return reversed(values)
