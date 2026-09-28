@@ -156,6 +156,10 @@ please consider sponsoring bidict on GitHub.`
   rather than return ``False``, as for a :class:`dict`.
   :issue:`416`
 
+- Fix ``reversed(b.values())`` for bidicts backed by reversible mappings
+  whose values views do not support reverse iteration.
+  :issue:`410`
+
 - Fix a performance regression in 0.24.0
   where removing an item from a :class:`~bidict.bidict` (or its inverse)
   was ~15% slower than in 0.23.1
