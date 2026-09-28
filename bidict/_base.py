@@ -157,40 +157,50 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         cls._set_reversed()
 
     __reversed__: t.ClassVar[ReversedIter[t.Any] | None]
-    #: Whether __reversed__ was provided by a user rather than by :meth:`_set_reversed`.
-    #: Inherited, so that a subclass of e.g. :class:`~bidict.OrderedBidictBase` keeps
-    #: the implementation it inherits rather than computing one of its own.
-    _reversed_is_user_provided: t.ClassVar[bool] = False
+    #: Whether this class's own __reversed__ was computed by :meth:`_set_reversed` rather than declared.
+    #: Only ever read from a class's own namespace, see :meth:`_declared_reversed`.
+    _reversed_is_computed: t.ClassVar[bool]
 
     @classmethod
     def _set_reversed(cls) -> None:
-        """Set __reversed__ for subclasses that do not set it explicitly
-        according to whether backing mappings are reversible.
+        """Set __reversed__ according to whether the backing mappings are reversible,
+        unless this class or one of its bases declares it.
         """
         backing_reversible = all(issubclass(i, Reversible) for i in (cls._fwdm_cls, cls._invm_cls))
-        # Leave a user-provided __reversed__ alone, whether it is defined in this class's own
-        # body (e.g. OrderedBidictBase's) or inherited from a base class that defined one
-        # (e.g. OrderedBidict's). Crucially, a value *this* method assigned must not count as
-        # user-provided: a subclass of a bidict whose backing mappings were not reversible
-        # inherits the None assigned below, and must stay free to compute its own answer from
-        # its own backing types, which may well be reversible.
-        resolved = getattr(cls, '__reversed__', None)
-        # Note Mapping.__reversed__ is None, which is what resolves here for BidictBase itself.
-        user_impl = resolved is not None and resolved is not _fwdm_reversed
-        # A user's explicit `__reversed__ = None` opt-out is indistinguishable by value from
-        # the None assigned below, so look for it in the class's own namespace instead. Match
-        # only that exact value: a bare membership test would also match a value assigned by a
-        # previous call of this method, which would then be inherited as if a user had provided it.
-        opted_out = getattr(cls, '__dict__', {}).get('__reversed__', MISSING) is None
-        if user_impl or opted_out:
-            cls._reversed_is_user_provided = True
-        if not cls._reversed_is_user_provided:
+        declared = cls._declared_reversed()
+        if declared is MISSING:
             cls.__reversed__ = _fwdm_reversed if backing_reversible else None
+        elif cls.__reversed__ is not declared:
+            # A value computed for a base that precedes the declaring class in the MRO shadows the declared one,
+            # e.g. bidict's shadows OrderedBidictBase's in `class C(bidict, OrderedBidict)`.
+            cls.__reversed__ = declared
+        cls._reversed_is_computed = declared is MISSING
         # values() iterates a backing mapping (see :meth:`values`), so its view can only
         # support reversed() if that mapping does, and should not offer it if this bidict
         # declines to offer reversed() itself.
         values_reversible = backing_reversible and cls.__reversed__ is not None
         cls._values_view_cls = BidictValuesView if values_reversible else _NonReversibleBidictValuesView
+
+    @classmethod
+    def _declared_reversed(cls) -> t.Any:
+        """The __reversed__ declared by the first class in the MRO that declares one, else MISSING.
+
+        A class declares __reversed__ by setting it, to an implementation
+        (e.g. OrderedBidictBase's) or to None to opt out of reversed().
+        Values that :meth:`_set_reversed` computed are skipped wherever they are in the MRO:
+        they must neither shadow a declared one nor stop a subclass from computing its own.
+        """
+        mro = cls.__mro__
+        # Stop before BidictBase: its own __reversed__ is computed, and Mapping's (None) is a default, not an opt-out.
+        for c in mro[: mro.index(BidictBase)]:
+            ns = vars(c)
+            impl = ns.get('__reversed__', MISSING)
+            # Check the value too: one assigned to the class after _set_reversed() ran is declared, unless
+            # it's one that _set_reversed() itself assigns (None or _fwdm_reversed), which can't be told apart.
+            computed = ns.get('_reversed_is_computed') and (impl is _fwdm_reversed or impl is None)
+            if impl is not MISSING and not computed:
+                return impl
+        return MISSING
 
     @classmethod
     def _ensure_inv_cls(cls) -> None:

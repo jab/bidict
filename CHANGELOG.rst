@@ -78,6 +78,17 @@ please consider sponsoring bidict on GitHub.`
   although neither changed the bidict.
   :issue:`416`
 
+- Fix a bug where a custom ordered bidict class
+  that lists a non-ordered bidict class ahead of its ordered base
+  (e.g. ``class C(MyBidict, OrderedBidict)``)
+  reversed the order of its backing mapping rather than its own,
+  or was not reversible at all.
+  Likewise, a bidict class now honors a ``__reversed__ = None`` opt-out
+  declared by any of its bases,
+  which was a regression in 0.22.0
+  (or in 0.24.0, for one listed ahead of all its bidict bases).
+  :issue:`420`
+
 - Fix a bug where updating a mutable bidict from its own inverse,
   e.g. ``b |= b.inverse``,
   could raise :class:`RuntimeError`
