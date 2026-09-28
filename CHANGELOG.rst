@@ -229,12 +229,21 @@ please consider sponsoring bidict on GitHub.`
   is ~1.3x faster than in 0.24.1.
   :issue:`420`
 
-- Like a :class:`dict` subclass's,
-  the ``items()`` view of an ordered bidict,
-  or of a custom bidict not backed by :class:`dict`\s,
-  no longer goes through a subclass's ``__getitem__``,
+- :func:`len` and :class:`bool` on a bidict's :meth:`~bidict.BidictBase.values` view
+  and on an ordered bidict's views,
+  and ``in`` on those views other than an ordered bidict's ``items()``,
+  are ~1.7x faster than in 0.24.1.
+  :issue:`420`
+
+- Like a :class:`dict` subclass's views,
+  the views that bidict provides itself
+  (a bidict's :meth:`~bidict.BidictBase.values` view,
+  and those of an ordered bidict
+  or of a custom bidict not backed by :class:`dict`\s)
+  no longer go through a subclass's
+  ``__len__``, ``__contains__``, or ``__getitem__``,
   and so neither do e.g. :func:`repr` and
-  :meth:`~bidict.BidictBase.equals_order_sensitive`, which use it.
+  :meth:`~bidict.BidictBase.equals_order_sensitive`, which use ``items()``.
   :issue:`420`
 
 0.24.1 (2026-08-25)
