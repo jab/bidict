@@ -22,6 +22,8 @@ from dataclasses import dataclass
 from itertools import chain
 from itertools import combinations
 
+from sortedcontainers import SortedDict
+
 from bidict import DROP_NEW
 from bidict import DROP_OLD
 from bidict import ON_DUP_DROP_OLD
@@ -164,6 +166,22 @@ class UserBiBackedByReversibleValues(bidict[KT, VT]):
 
     _fwdm_cls = ReversibleUserDictWithReversibleValues
     _invm_cls = ReversibleUserDictWithReversibleValues
+
+
+# Not registered via @user_bidict: SortedDict requires its keys to be orderable against each other,
+# which much of the data that the tests over bidict_types use is not.
+class UserBiBackedBySortedDict(bidict[KT, VT]):
+    """The SortedBidict recipe in docs/extending.rst: backed by a dict subclass with views of its own."""
+
+    _fwdm_cls = SortedDict
+    _invm_cls = SortedDict
+
+
+class UserOrderedBiBackedBySortedDict(OrderedBidict[KT, VT]):
+    """An ordered bidict backed by a dict subclass with views of its own."""
+
+    _fwdm_cls = SortedDict
+    _invm_cls = SortedDict
 
 
 @user_bidict

@@ -160,6 +160,19 @@ please consider sponsoring bidict on GitHub.`
   so that e.g. ``b.inverse[b[key]] is key`` no longer held.
   :issue:`414`
 
+- Fix a regression in 0.24.0 where set operations on the views
+  of a custom bidict backed by ``sortedcontainers.SortedDict``
+  (as in the recipes in :doc:`extending`),
+  or by another :class:`dict` subclass with views of its own,
+  returned a ``SortedSet`` rather than a :class:`set`,
+  and raised :class:`TypeError` for elements
+  that could not be ordered against the contained ones.
+  As in 0.23.1, such a bidict's views are no longer the backing mapping's own,
+  so they no longer support e.g. indexing (``b.keys()[0]``),
+  and ``x in b.items()`` now behaves as for a :class:`dict`
+  when *x* is not a 2-tuple.
+  :issue:`420`
+
 - Fix a regression in 0.23.0 where an object
   that is iterable only via the legacy sequence protocol
   (i.e. that implements ``__getitem__`` but not ``__iter__``)

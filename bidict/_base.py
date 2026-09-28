@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import typing as t
 import weakref
+from collections import OrderedDict
 from collections.abc import ItemsView
 from collections.abc import Iterable
 from collections.abc import Iterator
@@ -54,6 +55,9 @@ OldKV: t.TypeAlias = tuple[OKT[KT], OVT[VT]]
 DedupResult: t.TypeAlias = OldKV[KT, VT] | None
 Unwrites: t.TypeAlias = list[tuple[t.Any, ...]]
 ReversedIter: t.TypeAlias = t.Callable[['BidictBase[KT, t.Any]'], Iterator[KT]]
+
+# keys() and items() methods known to return dict views, i.e. dict_keys and dict_items (or subclasses of them).
+_DICT_VIEW_METHODS: t.Final = ((dict.keys, dict.items), (OrderedDict.keys, OrderedDict.items))
 
 
 class BidictKeysView(KeysView[KT], ValuesView[KT]):
@@ -122,8 +126,8 @@ class _NonReversibleBidictValuesView(BidictValuesView[VT]):
     __slots__ = ()
 
 
-# The keys() and items() views of an ordered bidict, and of a bidict whose backing forward mapping isn't a
-# dict (see BidictBase.keys()), which gets the non-reversible variants below if it isn't reversible itself.
+# The keys() and items() views of an ordered bidict, and of a bidict whose backing forward mapping doesn't have
+# dict views (see BidictBase.keys()), which gets the non-reversible variants below if it isn't reversible itself.
 # They iterate the owning bidict, creating its iterator eagerly rather than inside the collections.abc
 # generator methods, so that a mutation before the first next() call is detected too. Unlike those
 # collections.abc views, they are reversible, by reversing the owning bidict.
@@ -164,7 +168,7 @@ class _ItemsView(ProxiedSetView, ItemsView[KT, VT]):
         # join them: their fallback, Set's own method, would be the abstract Container.__contains__.)
         bi = self._mapping
         fwdm = bi._fwdm
-        if bi._fwdm_is_dict:
+        if bi._fwdm_has_dict_views:
             return item in fwdm.items()
         # Otherwise do what dict_items does, where the inherited ItemsView.__contains__ would unpack item,
         # and so raise for anything but a pair, and match e.g. [key, value] too.
@@ -205,7 +209,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
     _invm: MutableMapping[VT, KT]  #: the backing inverse mapping (*val* → *key*)
     _fwdm_cls: t.ClassVar[type[MutableMapping[t.Any, t.Any]]] = dict  #: class of the backing forward mapping
     _invm_cls: t.ClassVar[type[MutableMapping[t.Any, t.Any]]] = dict  #: class of the backing inverse mapping
-    _fwdm_is_dict: t.ClassVar[bool] = True
+    _fwdm_has_dict_views: t.ClassVar[bool] = True  # see :meth:`_init_class`
 
     # When a bidict's `.inverse` property is accessed for the first time, the inverse instance is computed on demand
     # and stored for subsequent use. A reference back to itself is also stored on the inverse instance at the same time.
@@ -221,7 +225,9 @@ class BidictBase(BidirectionalMapping[KT, VT]):
 
     @classmethod
     def _init_class(cls) -> None:
-        cls._fwdm_is_dict = issubclass(cls._fwdm_cls, dict)
+        # Not issubclass(fwdm_cls, dict): a dict subclass that overrides keys() and items() may return views of its own.
+        fwdm_cls = cls._fwdm_cls
+        cls._fwdm_has_dict_views = (fwdm_cls.keys, fwdm_cls.items) in _DICT_VIEW_METHODS
         cls._ensure_inv_cls()
         cls._set_reversed()
 
@@ -412,12 +418,14 @@ class BidictBase(BidirectionalMapping[KT, VT]):
           - having a .mapping attribute in Python 3.10+
             that exposes a mappingproxy to *b._fwdm*.
 
-        A :class:`dict` subclass gets the same treatment, via whatever view its own
-        *keys()* returns. Only a backing mapping that is not a :class:`dict` at all
-        falls back to a generic view over this bidict,
+        A :class:`dict` subclass gets the same treatment if its *keys()* and *items()*
+        are those of :class:`dict` or :class:`collections.OrderedDict`. Any other backing
+        mapping, including a :class:`dict` subclass with views of its own (which need not
+        behave like *dict_keys*, e.g. *sortedcontainers.SortedDict*'s set operations return
+        a *SortedSet*), gets bidict's own view of this bidict instead,
         which is reversible if this bidict is.
         """
-        if self._fwdm_is_dict:
+        if self._fwdm_has_dict_views:
             return self._fwdm.keys()
         return _KeysView(self) if self._reversible else _NonReversibleKeysView(self)
 
@@ -441,7 +449,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
 
         See :meth:`keys` for how backing mappings that are not exactly dicts are handled.
         """
-        if self._fwdm_is_dict:
+        if self._fwdm_has_dict_views:
             return self._fwdm.items()
         return _ItemsView(self) if self._reversible else _NonReversibleItemsView(self)
 
@@ -742,19 +750,19 @@ _setmethodnames: Iterable[str] = (
 def _override_set_methods_to_use_backing_dict(cls: type[ProxiedSetView]) -> None:
     def make_proxy_method(methodname: str) -> t.Any:
         def method(self: ProxiedSetView, *args: t.Any) -> t.Any:
-            fwdm = self._mapping._fwdm
-            if not isinstance(fwdm, dict):  # dict view speedup not available, fall back to Set's implementation.
+            mapping = self._mapping
+            if not mapping._fwdm_has_dict_views:  # dict view speedup not available, fall back to Set's implementation.
                 return getattr(Set, methodname)(self, *args)
-            fwdm_dict_view = getattr(fwdm, self._viewname)()
+            fwdm_dict_view = getattr(mapping._fwdm, self._viewname)()
             fwdm_dict_view_method = getattr(fwdm_dict_view, methodname)
-            # When the (single) arg is another ProxiedSetView backed by a dict, forward its
+            # When the (single) arg is another ProxiedSetView whose backing mapping has dict views, forward its
             # backing dict_keys/dict_items to the C-level method rather than the arg itself. C-level dict views
             # only interoperate with other C-level dict views, not with arbitrary Set subclasses, so e.g.
             # `dict_keys(ob1).__lt__(ob2.keys())` returns NotImplemented. With both sides returning
             # NotImplemented, Python either raises TypeError (for `<`, `<=`, `>`, `>=`) or falls back to the
             # wrong answer (e.g. identity-based `==`). Note arg's view may differ from self's (keys vs items),
             # so use arg._viewname; this also subsumes the same-type case, where it equals self._viewname.
-            if len(args) == 1 and isinstance((arg := args[0]), ProxiedSetView) and isinstance(arg._mapping._fwdm, dict):
+            if len(args) == 1 and isinstance((arg := args[0]), ProxiedSetView) and arg._mapping._fwdm_has_dict_views:
                 arg_dict_view = getattr(arg._mapping._fwdm, arg._viewname)()
                 return fwdm_dict_view_method(arg_dict_view)
             return fwdm_dict_view_method(*args)
