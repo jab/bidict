@@ -63,6 +63,14 @@ please consider sponsoring bidict on GitHub.`
   as :class:`~collections.OrderedDict`'s do.
   :issue:`408`
 
+- Iterators over the ``keys()`` and ``items()`` views
+  of a reversible custom bidict not backed by :class:`dict`\s
+  now detect a change in size made before they're first advanced,
+  as a :class:`dict` view's do,
+  if the backing mapping's own iterators detect such changes
+  (as e.g. a :class:`~collections.UserDict`'s do).
+  :issue:`420`
+
 - Fix a bug where iterating over an ordered bidict (or its inverse)
   while one of its keys was replaced in place,
   e.g. by a :meth:`~bidict.MutableBidict.forceput` whose value was already contained,
@@ -167,9 +175,14 @@ please consider sponsoring bidict on GitHub.`
   rather than return ``False``, as for a :class:`dict`.
   :issue:`416`
 
-- Fix ``reversed(b.values())`` for bidicts backed by reversible mappings
-  whose values views do not support reverse iteration.
+- Fix a bug where the ``keys()``, ``values()``, and ``items()`` views
+  of a reversible custom bidict
+  backed by mappings that are not :class:`dict`\s
+  were not reversible,
+  or, in the case of ``values()``,
+  claimed to be but raised :class:`TypeError` from :func:`reversed`.
   :issue:`410`
+  :issue:`420`
 
 - Fix a performance regression in 0.24.0
   where removing an item from a :class:`~bidict.bidict` (or its inverse)
