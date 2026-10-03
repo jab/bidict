@@ -289,20 +289,21 @@ def main() -> None:
         # Distinct from the benchmarks failing: this means the plugin never ran, or never timed.
         raise SystemExit('No benchmark was measured. Pass pytest -p callgrind --benchmark-timer=callgrind.timer.')
     # Unlike the wall-clock figures pytest-benchmark records, which vary with whatever else is running
-    # on the machine, these estimates count instructions and so are reproducible. Record them when
-    # asked, so a caller can compare them between revisions.
-    estimates = {
+    # on the machine, these count instructions and so are reproducible. Record them when asked, so a
+    # caller can compare them between revisions.
+    records = {
         label: {'estimate': combined_instruction_estimate(get_counts(events)), **events}
         for label, events in results.items()
     }
-    width = max(map(len, estimates), default=0)
+    width = max(map(len, records), default=0)
     print('*' * 80)
-    print("Combined instruction estimate of each benchmark's timed calls:")
-    for label, result in estimates.items():
-        print(f'{label:<{width}}  {result["estimate"]:>16,}')
-    print(f'{"Total":<{width}}  {sum(r["estimate"] for r in estimates.values()):>16,}')
+    print("Instructions executed by each benchmark's timed calls, and their combined estimate:")
+    for label, record in records.items():
+        print(f'{label:<{width}}  {record["Ir"]:>16,}  {record["estimate"]:>16,}')
+    totals = (sum(r['Ir'] for r in records.values()), sum(r['estimate'] for r in records.values()))
+    print(f'{"Total":<{width}}  {totals[0]:>16,}  {totals[1]:>16,}')
     if args.json:
-        args.json.write_text(json.dumps(estimates, indent=2) + '\n', encoding='utf-8')
+        args.json.write_text(json.dumps(records, indent=2) + '\n', encoding='utf-8')
     sys.exit(returncode)
 
 
