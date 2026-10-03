@@ -52,6 +52,9 @@ from tempfile import TemporaryDirectory
 #: nothing without it, so loading it in any other run is harmless.
 ACTIVE_ENV_VAR = 'CALLGRIND_PY_ACTIVE'
 
+#: Whether this is the process that main() runs under Callgrind.
+ACTIVE = bool(os.environ.get(ACTIVE_ENV_VAR))
+
 # The pytest plugin, which runs in the process being measured.
 #
 # Callgrind starts with instrumentation off, which runs pytest's startup and collection several
@@ -117,7 +120,7 @@ def _make_client_request() -> t.Callable[[int, int], int]:
     return client_request
 
 
-_client_request = _make_client_request() if os.environ.get(ACTIVE_ENV_VAR) else None
+_client_request = _make_client_request() if ACTIVE else None
 _timer_calls = 0
 
 

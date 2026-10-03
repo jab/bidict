@@ -28,9 +28,10 @@ env:
   # Callgrind counts instructions rather than measuring time, so comparing them is
   # reproducible and can be held to a tight bound. A change of more than these in either
   # direction is called out, whether in the total of the benchmarks' counts or in any one
-  # benchmark's. The individual benchmarks get the looser bound because they vary more
-  # between runs of identical code: across five such runs, the total varied by 0.13%, and
-  # most benchmarks by under 0.5%, but a few that raise exceptions by up to 1.3%.
+  # benchmark's. Repeated runs of one revision give identical counts, but a change elsewhere
+  # in the code, even to a docstring, shifts the process's memory layout, which has been seen
+  # to move individual benchmarks by up to 0.8% and their total by up to 0.06%. Hence the
+  # looser bound for the individual benchmarks.
   #
   # There is deliberately no wall-clock threshold. The timings pytest-benchmark reports
   # here are measured *under* Callgrind, and vary far more between runs of identical code
