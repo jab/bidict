@@ -29,9 +29,10 @@ env:
   # reproducible and can be held to a tight bound. A change of more than these in either
   # direction is called out, whether in the total of the benchmarks' counts or in any one
   # benchmark's. Repeated runs of one revision give identical counts, but a change elsewhere
-  # in the code, even to a docstring, shifts the process's memory layout, which has been seen
-  # to move individual benchmarks by up to 0.8% and their total by up to 0.06%. Hence the
-  # looser bound for the individual benchmarks.
+  # in the code, even to a docstring, or a run from another workflow, as the baselines' is,
+  # shifts the process's memory layout, which has been seen to move individual benchmarks by
+  # up to 1.4% and their total by up to 0.14%. Hence the looser bound for the individual
+  # benchmarks.
   #
   # There is deliberately no wall-clock threshold. The timings pytest-benchmark reports
   # here are measured *under* Callgrind, and vary far more between runs of identical code
@@ -126,7 +127,7 @@ jobs:
             echo "result_message=$result_message"
           } >> "$GITHUB_OUTPUT"
           exit "$benchmark_status"
-      - name: compare instruction estimates to baseline
+      - name: compare instruction counts to baseline
         id: instructions
         if: always()
         env:
@@ -136,7 +137,7 @@ jobs:
             # Distinct from a missing baseline: this means callgrind.py did not honor --json,
             # i.e. something here is broken rather than unpublished.
             echo 'state=unavailable' >> "$GITHUB_OUTPUT"
-            echo 'summary=callgrind.py recorded no instruction estimates' >> "$GITHUB_OUTPUT"
+            echo 'summary=callgrind.py recorded no instruction counts' >> "$GITHUB_OUTPUT"
           elif ! curl -fL -s -o instructions-baseline.json "$INSTR_URL" || [ ! -s instructions-baseline.json ]; then
             echo 'state=unavailable' >> "$GITHUB_OUTPUT"
             echo "summary=no instruction baseline published yet (${INSTR_URL##*/})" >> "$GITHUB_OUTPUT"

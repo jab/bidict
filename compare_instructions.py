@@ -5,9 +5,9 @@
 # License, v. 2.0. If a copy of the MPL was not distributed with this
 # file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
-"""Compare two sets of per-benchmark instruction estimates recorded by `./callgrind.py --json`.
+"""Compare two sets of per-benchmark instruction counts recorded by `./callgrind.py --json`.
 
-Prints a Markdown report of the benchmarks whose estimate changed by more than --threshold percent,
+Prints a Markdown report of the benchmarks whose count changed by more than --threshold percent,
 in either direction, and of the change in their total, followed by a table of every benchmark.
 With --github-output, also appends `state` (regression, improved, or ok) and a one-line `summary`
 to that file, in the form that GitHub Actions expects of $GITHUB_OUTPUT.
@@ -32,7 +32,11 @@ class Change(t.NamedTuple):
 
 
 def load(path: Path) -> dict[str, int]:
-    return {name: result['estimate'] for name, result in json.loads(path.read_text(encoding='utf-8')).items()}
+    # Instruction counts rather than the combined estimate that callgrind.py also records: the
+    # estimate's cache-miss terms depend on the process's memory layout, which varies with its
+    # history, and have been seen to move a benchmark's estimate by 5.4% between runs of the same
+    # revision while its instruction count moved by 0.002%.
+    return {name: result['Ir'] for name, result in json.loads(path.read_text(encoding='utf-8')).items()}
 
 
 def fmt_pct(pct: float) -> str:
@@ -49,7 +53,7 @@ def compare(
     baseline: dict[str, int], current: dict[str, int], threshold: float, total_threshold: float
 ) -> tuple[str, str, str]:
     """Return the state, a one-line summary, and a Markdown report."""
-    changes = [Change(name, baseline[name], estimate) for name, estimate in current.items() if name in baseline]
+    changes = [Change(name, baseline[name], count) for name, count in current.items() if name in baseline]
     regressed = sorted((c for c in changes if c.pct > threshold), key=lambda c: -c.pct)
     improved = sorted((c for c in changes if c.pct < -threshold), key=lambda c: c.pct)
     # Only benchmarks in both runs count toward the total, so that adding or removing one does not

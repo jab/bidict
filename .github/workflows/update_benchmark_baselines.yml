@@ -63,7 +63,7 @@ jobs:
             uv pip install --python "$VIRTUAL_ENV/bin/python" --no-deps .
             # Move aside the working tree package so we always import the installed version.
             mv -v bidict src
-            # Have callgrind.py record its per-benchmark instruction estimates, which unlike
+            # Have callgrind.py record its per-benchmark instruction counts, which unlike
             # the wall-clock figures are reproducible, so PR runs can compare against them
             # without a noise allowance.
             ./callgrind.py --json instructions.json \
@@ -116,7 +116,7 @@ jobs:
       - name: write summary
         run: |
           count=$(python -c "import json; print(len(json.load(open('instructions.json'))))")
-          total=$(python -c "import json; print(sum(r['estimate'] for r in json.load(open('instructions.json')).values()))")
+          total=$(python -c "import json; print(sum(r['Ir'] for r in json.load(open('instructions.json')).values()))")
           {
             echo '### Uploaded benchmark baselines'
             echo
@@ -124,7 +124,7 @@ jobs:
             echo '- Versioned asset: `${{ steps.metadata.outputs.versioned_asset_name }}`'
             echo '- Series alias: `${{ steps.metadata.outputs.series_asset_name }}`'
             echo '- Source benchmark file: `${{ steps.assets.outputs.benchmark_json }}`'
-            echo "- Instruction estimates: ${count} benchmarks, totaling \`${total}\`"
+            echo "- Instruction counts: ${count} benchmarks, totaling \`${total}\`"
           } >> "$GITHUB_STEP_SUMMARY"
       - name: archive benchmark results
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a
