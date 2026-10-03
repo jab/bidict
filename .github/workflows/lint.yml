@@ -11,6 +11,13 @@ name: lint
     branches:
       - main
 
+# A push to a pull request supersedes any run still in progress for an earlier push, so cancel
+# that run rather than make the new one wait for it. Each run for any other event gets a group
+# of its own, so always runs to completion.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 env:
   PREK_HOME: ~/.cache/prek
 

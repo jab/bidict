@@ -18,7 +18,7 @@ name: benchmark
 # that run rather than make the new one wait for it. Each run for any other event gets a group
 # of its own, so always runs to completion.
 concurrency:
-  group: benchmark-${{ github.event.pull_request.number || github.run_id }}
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.run_id }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 env:
