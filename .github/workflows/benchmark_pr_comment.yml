@@ -9,7 +9,8 @@ name: benchmark PR comment
 
 jobs:
   comment:
-    if: github.event.workflow_run.event == 'pull_request'
+    # A cancelled run was superseded by a newer push to the pull request, whose run comments instead.
+    if: github.event.workflow_run.event == 'pull_request' && github.event.workflow_run.conclusion != 'cancelled'
     runs-on: ubuntu-24.04
     permissions:
       actions: read
