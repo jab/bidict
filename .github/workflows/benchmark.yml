@@ -34,11 +34,10 @@ env:
   # up to 1.4% and their total by up to 0.14%. Hence the looser bound for the individual
   # benchmarks.
   #
-  # There is deliberately no wall-clock threshold. The timings pytest-benchmark reports
-  # here are measured *under* Callgrind, and vary far more between runs of identical code
-  # than any change worth catching: revisions whose bidict/ was byte-identical have been
-  # seen to differ by tens of percent, in both directions. They are still compared in the
-  # run output, which is archived below for eyeballing, but nothing keys off them.
+  # Wall-clock timings are deliberately not compared at all. The timings pytest-benchmark
+  # reports here are measured *under* Callgrind, and vary far more between runs of identical
+  # code than any change worth catching: revisions whose bidict/ was byte-identical have been
+  # seen to differ by tens of percent, in both directions.
   TOTAL_INSTRUCTION_CHANGE_PCT: "1.0"
   BENCHMARK_INSTRUCTION_CHANGE_PCT: "3.0"
 
@@ -68,19 +67,15 @@ jobs:
           python_impl=${python_info[1]}
           python_series=${python_version%.*}
           arch=$(uname -m)
-          baseline_asset_name="GHA-linux-callgrind-${arch}-${python_impl}-${python_series}-baseline.json"
-          baseline_url="https://github.com/${GITHUB_REPOSITORY}/releases/download/${BASELINE_RELEASE_TAG}/${baseline_asset_name}"
           instr_asset_name="GHA-linux-callgrind-${arch}-${python_impl}-${python_series}-instructions.json"
           instr_url="https://github.com/${GITHUB_REPOSITORY}/releases/download/${BASELINE_RELEASE_TAG}/${instr_asset_name}"
           {
             echo "python_version=$python_version"
             echo "python_series=$python_series"
-            echo "baseline_asset_name=$baseline_asset_name"
-            echo "baseline_url=$baseline_url"
             echo "instr_asset_name=$instr_asset_name"
             echo "instr_url=$instr_url"
           } >> "$GITHUB_OUTPUT"
-      - name: benchmark and compare to baseline
+      - name: benchmark
         id: benchmark
         run: |
           set +e
@@ -93,22 +88,12 @@ jobs:
             git checkout ${{ github.sha }}
             # move aside the '"'"'bidict'"'"' subdirectory to make sure we always import the installed version
             mv -v bidict src
-            # The timing comparison is only for eyeballing, so a missing baseline (e.g. for
-            # a Python series none has been published for yet) skips it rather than failing.
-            compare_args=()
-            if curl -fL -s -o baseline.json "${{ steps.metadata.outputs.baseline_url }}" \
-                && [ "$(head -n1 baseline.json)" = "{" ]; then
-              compare_args+=(--benchmark-compare=baseline.json)
-            else
-              echo "::notice::No timing baseline published yet (${{ steps.metadata.outputs.baseline_asset_name }}), so timings are not compared."
-            fi
             ./callgrind.py --json instructions.json \
               pytest -c /dev/null -n0 -p callgrind --benchmark-timer=callgrind.timer \
                 --benchmark-autosave \
                 --benchmark-columns=min,rounds,iterations \
                 --benchmark-disable-gc \
                 --benchmark-group-by=name \
-                "${compare_args[@]}" \
                 microbenchmarks.py
           ' 2>&1 | tee benchmark-output.txt
           benchmark_status=${PIPESTATUS[0]}
@@ -163,7 +148,7 @@ jobs:
           {
             echo '## Benchmark result'
             echo
-            echo "- Baseline asset: \`${{ steps.metadata.outputs.baseline_asset_name }}\`"
+            echo "- Baseline asset: \`${{ steps.metadata.outputs.instr_asset_name }}\`"
             echo "- Benchmark run: [${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID})"
             echo "- Instruction thresholds: \`${BENCHMARK_INSTRUCTION_CHANGE_PCT}%\` per benchmark, \`${TOTAL_INSTRUCTION_CHANGE_PCT}%\` for the total"
             echo "- Result: ${{ steps.benchmark.outputs.result_message }}"
@@ -176,7 +161,7 @@ jobs:
       - name: prepare PR benchmark comment
         if: always() && github.event_name == 'pull_request'
         env:
-          BASELINE_ASSET_NAME: ${{ steps.metadata.outputs.baseline_asset_name }}
+          BASELINE_ASSET_NAME: ${{ steps.metadata.outputs.instr_asset_name }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
           RESULT_MESSAGE: ${{ steps.benchmark.outputs.result_message }}
           RESULT_STATE: ${{ steps.benchmark.outputs.result_state }}
@@ -211,8 +196,8 @@ jobs:
           - Run: [benchmark workflow run](${run_url})
 
           _Instruction counts are reported for information and do not block merging. Each counts
-          only the benchmark's timed calls. Wall-clock timings are compared in the run output too,
-          but they are measured under Callgrind and vary too much between runs to report on._
+          only the benchmark's timed calls. Wall-clock timings are not compared: measured under
+          Callgrind, they vary too much between runs._
           EOF
           python - <<'PY'
           import json
