@@ -45,15 +45,11 @@ jobs:
           python_impl=${python_info[1]}
           python_series=${python_version%.*}
           arch=$(uname -m)
-          versioned_asset_name="GHA-linux-callgrind-${arch}-${python_impl}-${python_version}-baseline.json"
-          series_asset_name="GHA-linux-callgrind-${arch}-${python_impl}-${python_series}-baseline.json"
           versioned_instr_name="GHA-linux-callgrind-${arch}-${python_impl}-${python_version}-instructions.json"
           series_instr_name="GHA-linux-callgrind-${arch}-${python_impl}-${python_series}-instructions.json"
           {
             echo "python_version=$python_version"
             echo "python_series=$python_series"
-            echo "versioned_asset_name=$versioned_asset_name"
-            echo "series_asset_name=$series_asset_name"
             echo "versioned_instr_name=$versioned_instr_name"
             echo "series_instr_name=$series_instr_name"
           } >> "$GITHUB_OUTPUT"
@@ -77,17 +73,10 @@ jobs:
       - name: prepare baseline assets
         id: assets
         run: |
-          benchmark_json=$(find .benchmarks -type f -name '*.json' | sort | tail -n1)
-          [ -n "$benchmark_json" ]
-          cp "$benchmark_json" '${{ steps.metadata.outputs.versioned_asset_name }}'
-          cp "$benchmark_json" '${{ steps.metadata.outputs.series_asset_name }}'
           [ -s instructions.json ]
           cp instructions.json '${{ steps.metadata.outputs.versioned_instr_name }}'
           cp instructions.json '${{ steps.metadata.outputs.series_instr_name }}'
           {
-            echo "benchmark_json=$benchmark_json"
-            echo "versioned_asset_path=${{ github.workspace }}/${{ steps.metadata.outputs.versioned_asset_name }}"
-            echo "series_asset_path=${{ github.workspace }}/${{ steps.metadata.outputs.series_asset_name }}"
             echo "versioned_instr_path=${{ github.workspace }}/${{ steps.metadata.outputs.versioned_instr_name }}"
             echo "series_instr_path=${{ github.workspace }}/${{ steps.metadata.outputs.series_instr_name }}"
           } >> "$GITHUB_OUTPUT"
@@ -107,8 +96,6 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           gh release upload "$BASELINE_RELEASE_TAG" \
-            '${{ steps.assets.outputs.versioned_asset_path }}' \
-            '${{ steps.assets.outputs.series_asset_path }}' \
             '${{ steps.assets.outputs.versioned_instr_path }}' \
             '${{ steps.assets.outputs.series_instr_path }}' \
             --repo "$GITHUB_REPOSITORY" \
@@ -121,9 +108,8 @@ jobs:
             echo '### Uploaded benchmark baselines'
             echo
             echo '- Python: `${{ steps.metadata.outputs.python_version }}`'
-            echo '- Versioned asset: `${{ steps.metadata.outputs.versioned_asset_name }}`'
-            echo '- Series alias: `${{ steps.metadata.outputs.series_asset_name }}`'
-            echo '- Source benchmark file: `${{ steps.assets.outputs.benchmark_json }}`'
+            echo '- Versioned asset: `${{ steps.metadata.outputs.versioned_instr_name }}`'
+            echo '- Series alias: `${{ steps.metadata.outputs.series_instr_name }}`'
             echo "- Instruction counts: ${count} benchmarks, totaling \`${total}\`"
           } >> "$GITHUB_STEP_SUMMARY"
       - name: archive benchmark results
@@ -132,8 +118,8 @@ jobs:
           name: microbenchmark baseline results (CPython ${{ steps.metadata.outputs.python_version }})
           path: |
             .benchmarks
-            ${{ steps.metadata.outputs.versioned_asset_name }}
-            ${{ steps.metadata.outputs.series_asset_name }}
+            ${{ steps.metadata.outputs.versioned_instr_name }}
+            ${{ steps.metadata.outputs.series_instr_name }}
           include-hidden-files: true
           if-no-files-found: error
 
