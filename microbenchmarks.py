@@ -21,13 +21,17 @@ from functools import partial
 import pytest
 
 import bidict
+import callgrind
 
 
 consume: t.Any = partial(deque, maxlen=0)
 
-#: Rounds per benchmark. The reported figure is the min over these, so that one unlucky
-#: sample cannot dominate a result. pedantic() defaults to a single round, i.e. no filtering.
-ROUNDS = 5
+#: Rounds per benchmark. When the benchmarks are timed, the reported figure is the min over
+#: these, so that one unlucky sample cannot dominate a result. (pedantic() defaults to a single
+#: round, i.e. no filtering.) ../callgrind.py counts instructions instead, which needs no such
+#: filtering, so it gets one round: more would multiply its cost, and pytest-benchmark's
+#: statistics over several rounds' timings would perturb the counts of the benchmarks after.
+ROUNDS = 1 if callgrind.ACTIVE else 5
 
 #: Iterations per round for an operation too cheap to measure on its own. Running this suite
 #: under ../callgrind.py puts a fixed floor of roughly 11,000 instructions on each round of timed
