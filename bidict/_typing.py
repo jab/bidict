@@ -55,3 +55,12 @@ class Maplike(t.Protocol[KT, VT_co]):
 
 
 MapOrItems: t.TypeAlias = Maplike[KT, VT] | Items[KT, VT]
+
+
+class SupportsStrGetItem(t.Protocol[VT_co]):
+    """Like typeshed's SupportsGetItem[str, VT_co].
+
+    Only for static typing, as the self type of the update() and forceupdate() overloads that take keyword arguments.
+    """
+
+    def __getitem__(self, key: str, /) -> VT_co: ...

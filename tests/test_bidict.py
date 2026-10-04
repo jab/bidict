@@ -424,7 +424,7 @@ def test_init_and_update_with_bad_args(bi_t: BT[t.Any, t.Any]) -> None:
             continue
         bi = bi_t()
         with pytest.raises(TypeError):
-            bi.update(*bad_args)  # ty: ignore[invalid-argument-type, too-many-positional-arguments]  # https://github.com/astral-sh/ty/issues/3649
+            bi.update(*bad_args)  # ty: ignore[no-matching-overload]  # deliberately invalid args
         # Re-initializing a bidict (or its inverse) with these deliberately invalid args must fail clean too.
         bi = bi_t({1: 'one'})
         for b in (bi, bi.inverse):
@@ -2287,6 +2287,18 @@ def test_static_types() -> None:
     assert_type(reversed(ob.keys()), Iterator[str])
     assert_type(reversed(ob.values()), Iterator[int])
     assert_type(reversed(ob.items()), Iterator[tuple[str, int]])
+    # Keyword arguments supply str keys, so as for a dict, update() and forceupdate() take them
+    # just when the bidict's keys may be str.
+    b: bidict[str | int, int] = bidict()
+    b.update([(3, 3)], a=2)
+    b.forceupdate([(4, 4)], c=4)
+    b.update(d='x')  # ty: ignore[invalid-argument-type]
+    i = bidict({1: 'one'})
+    i.update(two='deux')  # ty: ignore[invalid-argument-type]
+    i.forceupdate(two='deux')  # ty: ignore[invalid-argument-type]
+    kw = {'three': 'trois'}
+    i.update(**kw)  # ty: ignore[invalid-argument-type]
+    i.forceupdate(**kw)  # ty: ignore[invalid-argument-type]
 
 
 @pytest.mark.parametrize('bi_t', bidict_types)

@@ -379,6 +379,16 @@ please consider sponsoring bidict on GitHub.`
   (such as the private ``_KeysView``).
   :issue:`420`
 
+- Type checkers now reject keyword arguments
+  to :meth:`~bidict.MutableBidict.update` and
+  :meth:`~bidict.MutableBidict.forceupdate`
+  unless the bidict's keys may be :class:`str`,
+  as they do for a :class:`dict`.
+  Also as for a :class:`dict`,
+  they now reject calling either method with no arguments
+  on a bidict whose keys can't be :class:`str`.
+  :issue:`426`
+
 0.24.1 (2026-08-25)
 -------------------
 
