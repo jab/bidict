@@ -105,6 +105,14 @@ please consider sponsoring bidict on GitHub.`
   It now gives the same result as ``b | b.inverse``.
   :issue:`413`
 
+- Fix a bug where calling ``__init__()`` again on an existing bidict
+  left its inverse and its views reflecting its old items
+  (its ``inverse`` attribute too, since 0.22.0, once accessed),
+  and changed even an immutable bidict, whose hash could then go stale.
+  A mutable bidict now replaces its items in place, and fails clean;
+  an immutable one now ignores it, as :class:`frozenset` does.
+  :issue:`426`
+
 - Fix a bug where a write through an ordered bidict's inverse
   that collapsed two items into one,
   given an object equal to but distinct from a contained one,

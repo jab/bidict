@@ -20,6 +20,7 @@ import weakref
 from collections import UserDict
 from collections import defaultdict
 from collections.abc import Callable
+from collections.abc import Hashable
 from collections.abc import Iterator
 from collections.abc import KeysView
 from collections.abc import Mapping
@@ -70,6 +71,7 @@ from bidict_test_fixtures import bidict_types
 from bidict_test_fixtures import bomb
 from bidict_test_fixtures import dedup
 from bidict_test_fixtures import eq_other_types
+from bidict_test_fixtures import immutable_bidict_types
 from bidict_test_fixtures import invdict
 from bidict_test_fixtures import mutable_bidict_types
 from bidict_test_fixtures import pickle_copy
@@ -92,6 +94,7 @@ from hypothesis.strategies import sampled_from
 from typing_extensions import TypeIs
 
 from bidict import ON_DUP_DROP_OLD
+from bidict import ON_DUP_RAISE
 from bidict import BidictKeysView
 from bidict import BidirectionalMapping
 from bidict import DuplicationError
@@ -235,6 +238,20 @@ class BidictStateMachine(RuleBasedStateMachine):
     def clear(self) -> None:
         self.bi.clear()
         self.oracle.clear()
+
+    @rule(items121=items121, inv=booleans())
+    def reinit(self, items121: Items121, inv: bool) -> None:
+        """Calling __init__ again must replace the items in place (not merge into them, as dict's does), on either side.
+
+        The inverse (which the invariants above have already created) shares the backing mappings, so it then
+        keeps mirroring the bidict, and so does a view created beforehand.
+        """
+        keys, bi_inv = self.bi.keys(), self.bi.inv
+        reinit, arg = (bi_inv.__init__, invdict(items121)) if inv else (self.bi.__init__, items121)
+        reinit(arg)
+        self.oracle.data = dict(items121)
+        assert self.bi.inv is bi_inv
+        assert list(keys) == list(items121)
 
     @rule(key=keys, val=vals, on_dup=on_dup)
     def put(self, key: int, val: int, on_dup: OnDup) -> None:
@@ -389,7 +406,7 @@ BidictStateMachineTest = BidictStateMachine.TestCase
 
 
 @pytest.mark.parametrize('bi_t', bidict_types)
-def test_init_and_update_with_bad_args(bi_t: BT[KT, VT]) -> None:
+def test_init_and_update_with_bad_args(bi_t: BT[t.Any, t.Any]) -> None:
     bad_args: t.Any
     for bad_args in ((None,), (0,), (False,), (True,), ({}, {})):
         # ty raises on unpacking an `Any`/unknown-length arg into a call; see
@@ -401,6 +418,14 @@ def test_init_and_update_with_bad_args(bi_t: BT[KT, VT]) -> None:
         bi = bi_t()
         with pytest.raises(TypeError):
             bi.update(*bad_args)  # ty: ignore[invalid-argument-type, too-many-positional-arguments]  # https://github.com/astral-sh/ty/issues/3649
+        # Re-initializing a bidict (or its inverse) with these deliberately invalid args must fail clean too.
+        bi = bi_t({1: 'one'})
+        for b in (bi, bi.inverse):
+            reinit = b.__init__
+            with pytest.raises(TypeError):
+                reinit(*bad_args)  # ty: ignore[invalid-argument-type, too-many-positional-arguments]
+            assert bi.equals_order_sensitive({1: 'one'})
+            assert bi.inverse.equals_order_sensitive({'one': 1})
 
 
 @pytest.mark.parametrize('bi_t', bidict_types)
@@ -743,6 +768,164 @@ def test_update_with_bad_last_item_fails_clean(bi_t: MBT[t.Any, t.Any], on_dup: 
             # bad item's reason regardless of the on_dup.
             updates = [(3, 3), (4, 4), bad]
             assert_update_fails_clean(b, updates, exc, on_dup)
+
+
+@pytest.mark.parametrize('bi_t', mutable_bidict_types)
+def test_reinit_replaces_items_in_place(bi_t: MBT[t.Any, t.Any]) -> None:
+    """Calling __init__ again must replace a mutable bidict's items in place, rather than merge into them as dict's does.
+
+    Its inverse shares its backing mappings, so whichever of the two is re-initialized, they keep mirroring
+    each other, and views created beforehand keep reflecting them. The new items include keyword arguments,
+    which come after the positional ones, as for a new bidict. Re-initializing from itself or its inverse
+    gives the same result as from a copy of it, as for a dict.
+    """
+    for via_inv in (False, True):
+        bi = bi_t({'one': 'uno', 'two': 'dos'})
+        inv, keys = bi.inverse, bi.keys()
+        reinit, arg, kw = (
+            (inv.__init__, {'tres': 'three'}, {'cuatro': 'four'})
+            if via_inv
+            else (bi.__init__, {'three': 'tres'}, {'four': 'cuatro'})
+        )
+        reinit(arg, **kw)
+        assert bi.equals_order_sensitive({'three': 'tres', 'four': 'cuatro'})
+        assert bi.inverse is inv
+        assert_bi_and_inv_are_inverse(bi)
+        assert list(keys) == ['three', 'four']
+        inv['cinco'] = 'five'
+        assert bi['five'] == 'cinco'
+    bi = bi_t({1: 'one', 2: 'two'})
+    reinit = bi.__init__
+    reinit(bi)
+    assert bi.equals_order_sensitive({1: 'one', 2: 'two'})
+    reinit(bi.inverse)
+    assert bi.equals_order_sensitive({'one': 1, 'two': 2})
+    assert_bi_and_inv_are_inverse(bi)
+
+
+#: Items for a bidict whose inverse iterates in a different order (unless it's ordered):
+#: replacing 1's value with 'z' puts 'z' last in the inverse, but leaves 1 first.
+_REORDERED_INVERSE_ITEMS = [(1, 'a'), (2, 'b'), (1, 'z')]
+
+
+@pytest.mark.parametrize('bi_t', immutable_bidict_types)
+def test_reinit_is_ignored_by_an_immutable_bidict(bi_t: BT[t.Any, t.Any]) -> None:
+    """Calling __init__ again on an immutable bidict or its inverse must change neither, as for a frozenset.
+
+    Either may already have been hashed, e.g. as a dict key, where it must stay findable.
+    """
+    bi = bi_t({1: 'one', 2: 'two'})
+    before = bi.copy()
+    by_bidict = {bi: 'bi', bi.inverse: 'inv'} if isinstance(bi, Hashable) else {}
+    for reinit, arg in ((bi.__init__, {3: 'three'}), (bi.inverse.__init__, {'three': 3})):
+        reinit(arg)
+        assert bi.equals_order_sensitive(before)
+        assert bi.inverse.equals_order_sensitive(before.inverse)
+    if by_bidict:
+        assert by_bidict[bi_t(before)] == 'bi'
+        assert by_bidict[bi_t(before.inverse)] == 'inv'
+
+
+@pytest.mark.parametrize('bi_t', immutable_bidict_types)
+def test_init_can_be_retried_after_it_fails(bi_t: t.Any) -> None:
+    """Calling __init__ again after it failed, e.g. from a subclass's __init__ that retries with other items,
+    must initialize the bidict afresh, even an immutable one, which ignores a repeat __init__ only once initialized.
+    """
+
+    class RetriesWithoutDups(bi_t):
+        on_dup = ON_DUP_RAISE
+
+        def __init__(self, items: Sequence[tuple[int, str]] = ()) -> None:
+            try:
+                super().__init__(items)
+            except DuplicationError:
+                super().__init__(dedup(items))
+
+    bi = RetriesWithoutDups([(1, 'a'), (2, 'b'), (3, 'b'), (4, 'd')])
+    assert bi.equals_order_sensitive({1: 'a', 3: 'b', 4: 'd'})
+    assert_bi_and_inv_are_inverse(bi)
+
+
+@pytest.mark.parametrize('bi_t', mutable_bidict_types)
+def test_reinit_with_bad_last_item_fails_clean(bi_t: MBT[t.Any, t.Any]) -> None:
+    """Calling __init__ again with an item that raises must leave the bidict exactly as it was, in both directions."""
+    bi = bi_t(_REORDERED_INVERSE_ITEMS)
+    for b in (bi, bi.inv):
+        for exc, bad in BAD_ITEMS:
+            before = b.copy()
+            reinit, items = b.__init__, [(3, 3), (4, 4), bad]
+            with pytest.raises(exc):
+                reinit(items)  # ty: ignore[invalid-argument-type]  # bad is deliberately not always a pair
+            assert b.equals_order_sensitive(before)
+            assert b.inv.equals_order_sensitive(before.inv)
+
+
+@pytest.mark.parametrize('bi_t', [bidict, OrderedBidict])
+@pytest.mark.parametrize('use_inv', [False, True], ids=['fwd', 'inv'])
+def test_reinit_fails_clean_when_a_backing_mapping_refuses(bi_t: BT[t.Any, t.Any], use_inv: bool) -> None:
+    """Calling __init__ again must fail clean when a backing mapping refuses a write part-way through.
+
+    The re-init counterpart of test_bulk_update_fails_clean_when_a_backing_mapping_refuses: it empties the
+    backing mappings before writing the new items, and a refusal at any point of either must leave the bidict
+    as it was, in both directions' orders. Refuses the nth write for each n in turn, until the re-init gets through.
+    """
+    expected = {1: 'x', 3: 'y'}
+    refused = 0
+    for n in range(1, 100):
+        b = bidict_refusing_nth_write(bi_t, _REORDERED_INVERSE_ITEMS, n)
+        bi = b.inverse if use_inv else b
+        unchanged = dict(bi._fwdm), dict(bi._invm), list(bi.items()), list(bi.inverse.items())
+        reinit = bi.__init__
+        try:
+            reinit(invdict(expected) if use_inv else expected)
+        except WriteRefused:
+            refused += 1
+            assert (dict(bi._fwdm), dict(bi._invm)) == unchanged[:2], f'refusing write #{n} left bi changed'
+            assert (list(bi.items()), list(bi.inverse.items())) == unchanged[2:], f'refusing write #{n} reordered bi'
+        else:
+            break
+    assert refused
+    assert b.equals_order_sensitive(expected)
+    assert_bi_and_inv_are_inverse(b)
+
+
+def test_subclass_with_its_own_initialized_attr() -> None:
+    """A subclass or mixin may track its own initialization in an attribute named _initialized, as many classes do."""
+
+    class TracksInit:
+        def __init__(self, *args: t.Any, **kw: t.Any) -> None:
+            self._initialized = False
+            super().__init__(*args, **kw)
+            self._initialized = True
+
+    for bi_t in (bidict, OrderedBidict):
+        b = type(f'TracksInit{bi_t.__name__}', (TracksInit, bi_t), {})({1: 'a'})
+        inv, reinit = b.inverse, b.__init__
+        reinit({2: 'b'})
+        assert b._initialized
+        assert dict(b) == {2: 'b'}
+        assert b.inverse is inv
+        assert_bi_and_inv_are_inverse(b)
+
+
+@pytest.mark.parametrize('bi_t', bidict_types)
+def test_falsy_arg_is_not_iterated(bi_t: BT[t.Any, t.Any]) -> None:
+    """A falsy positional arg must be taken as empty without being iterated, by a new bidict or a re-initialized one."""
+
+    class FalsyUniterable:
+        def __len__(self) -> int:
+            return 0
+
+        def __iter__(self) -> t.NoReturn:
+            raise AssertionError('iterated')
+
+    assert not bi_t(FalsyUniterable())
+    bi = bi_t({1: 'one'})
+    reinit = bi.__init__
+    reinit(FalsyUniterable())
+    # (An immutable bidict ignores a repeat __init__.)
+    assert bi == ({} if isinstance(bi, MutableBidict) else {1: 'one'})
+    assert_bi_and_inv_are_inverse(bi)
 
 
 @pytest.mark.parametrize('bi_t', [bidict, OrderedBidict])
@@ -1514,6 +1697,7 @@ _MUTATIONS_DURING_ITERATION: t.Any = {
     'insert_via_the_inverse': lambda ob, key: ob.inv.__setitem__(f'new{key}', f'new{key}'),
     'replace_key_in_place': lambda ob, key: ob.forceput(f'new{key}', ob[key]),
     'replace_key_via_the_inverse': lambda ob, key: ob.inv.__setitem__(ob[key], f'new{key}'),
+    'reinit': lambda ob, key: ob.__init__({f'new{key}': f'new{key}'}),
 }
 
 
@@ -1621,6 +1805,7 @@ _KEY_CHANGES: t.Any = {
     'insert': lambda b: b.__setitem__(object(), object()),
     'replace_key_in_place': lambda b: b.forceput(object(), next(iter(b.values()))),
     'replace_key_via_the_inverse': lambda b: b.inverse.__setitem__(next(iter(b.values())), object()),
+    'reinit': lambda b: b.__init__({object(): object()}),
 }
 
 

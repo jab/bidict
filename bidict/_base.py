@@ -235,6 +235,10 @@ class BidictBase(BidirectionalMapping[KT, VT]):
 
     _fwdm: MutableMapping[KT, VT]  #: the backing forward mapping (*key* → *val*)
     _invm: MutableMapping[VT, KT]  #: the backing inverse mapping (*val* → *key*)
+    # Whether __init__ has already succeeded, so that it can tell when it's called again. Named for bidict, since a
+    # subclass or mixin may well have an _initialized of its own. (Not a class-level default for _fwdm instead, which
+    # would slow every later load of it on CPython 3.12 and 3.13.)
+    _bidict_initialized: bool = False
     _fwdm_cls: t.ClassVar[type[MutableMapping[t.Any, t.Any]]] = dict  #: class of the backing forward mapping
     _invm_cls: t.ClassVar[type[MutableMapping[t.Any, t.Any]]] = dict  #: class of the backing inverse mapping
     _fwdm_has_dict_views: t.ClassVar[bool] = True  # see :meth:`_init_class`
@@ -368,9 +372,32 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         A falsy positional arg is treated as empty, without being iterated,
         so as is usual for containers, it must be falsy only when it is empty.
         """
-        self._fwdm = self._fwdm_cls()
-        self._invm = self._invm_cls()
-        self._update(arg, kw, rollback=False)
+        if not self._bidict_initialized:
+            self._fwdm = self._fwdm_cls()
+            self._invm = self._invm_cls()
+            self._update(arg, kw, rollback=False)
+            # Only once that has succeeded, so that calling __init__ again after it failed starts afresh.
+            self._bidict_initialized = True
+            return
+        # Called again on an initialized instance. An immutable bidict ignores this, as frozenset and frozendict do,
+        # since it or its inverse may already have been hashed.
+        if not isinstance(self, MutableMapping):
+            return
+        # A mutable one replaces its items, rather than merge the new ones into them as dict's __init__ does, and in
+        # place, since its inverse (if created) and its views share its backing mappings (and an ordered bidict's
+        # linked list). Take the new items before emptying this bidict, which arg may be (or share backing mappings
+        # with). To restore if emptying it or writing them fails part-way, take its items, and its inverse backing
+        # mapping's in their own order, which _init_from() alone would not restore.
+        new = [*iteritems(arg, **kw)] if arg or kw else arg  # as for a new bidict, don't iterate a falsy arg
+        old, old_inv = [*self.items()], [*self._invm.items()]
+        try:
+            self._init_from(())
+            self._update(new, rollback=False)
+        except BaseException:
+            self._init_from(old)
+            self._invm.clear()
+            self._invm.update(old_inv)
+            raise
 
     @property
     @override

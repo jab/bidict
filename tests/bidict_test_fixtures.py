@@ -274,6 +274,7 @@ update_arg_types = (*bidict_types, list, dict, iter, SupportsKeysAndGetItem, Leg
 eq_other_types = (dict, OrderedDict, BoxedValuesDict, BoxedValuesDefaultDict, UserDict, IterItemsDict, *bidict_types)
 mutable_bidict_types: BTs = tuple(t for t in bidict_types if issubclass(t, MutableBidirectionalMapping))
 assert frozenbidict not in mutable_bidict_types
+immutable_bidict_types: BTs = tuple(t for t in bidict_types if t not in mutable_bidict_types)
 MBT = type[bidict[KT, VT]] | type[OrderedBidict[KT, VT]]
 
 
@@ -566,7 +567,7 @@ class WriteRefused(BaseException):
     """
 
 
-def bidict_refusing_nth_write(bi_t: BT[t.Any, t.Any], init: Mapping[t.Any, t.Any], n: int) -> BB[t.Any, t.Any]:
+def bidict_refusing_nth_write(bi_t: BT[t.Any, t.Any], init: MapOrItems[t.Any, t.Any], n: int) -> BB[t.Any, t.Any]:
     """Return a *bi_t* containing *init* whose nth write from now on raises :class:`WriteRefused`.
 
     Stands in for a custom bidict's backing mapping that may raise on a write it will not accept,
