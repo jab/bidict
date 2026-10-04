@@ -2173,6 +2173,37 @@ def test_inv_aliases_inverse(bi_t: BT[KT, VT]) -> None:
     assert bi.inv.inverse is bi.inverse.inv
 
 
+@pytest.mark.parametrize('bi_t', bidict_types)
+def test_inverse_is_linked_back_before_it_is_found(bi_t: t.Any) -> None:
+    """Whatever finds bi's new inverse while .inverse is still creating it (e.g. another thread) must find it
+    already linked back to bi. Otherwise it computes an inverse of its own for it, which stays cached there,
+    so that bi.inverse.inverse is no longer bi.
+
+    Stand in for such a reader by reading bi.inverse.inverse after each attribute that .inverse sets.
+    """
+    seen: list[t.Any] = []
+    reading = False  # while computing bi.inverse (but not while reading it here)
+
+    class Spy(bi_t):
+        @override
+        def __setattr__(self, name: str, value: t.Any) -> None:
+            nonlocal reading
+            super().__setattr__(name, value)
+            if reading:
+                reading = False
+                seen.append(bi.inverse.inverse)
+                reading = True
+
+    bi = Spy({1: 'one'})
+    reading = True
+    inv = bi.inverse
+    reading = False
+    assert seen
+    assert all(s is bi for s in seen)
+    assert inv.inverse is bi
+    assert_bi_and_inv_are_inverse(bi)
+
+
 def test_static_types() -> None:
     d = {'1': 1}
     fb = frozenbidict(d)

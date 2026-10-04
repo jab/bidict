@@ -415,12 +415,14 @@ class BidictBase(BidirectionalMapping[KT, VT]):
                 return inv
         # No luck. Compute the inverse reference and store it for subsequent use.
         inv = self._make_inverse()
-        self._inv = inv
-        self._invweak = None
         # Also store a weak reference back to `instance` on its inverse instance, so that
         # the second `.inverse` access in `bi.inverse.inverse` hits the cached weakref.
+        # Do so before storing the inverse on this instance, so that another thread that finds it there
+        # finds it complete, rather than computing a different inverse of it and caching that for good.
         inv._inv = None
         inv._invweak = weakref.ref(self)
+        self._inv = inv
+        self._invweak = None
         # In e.g. `bidict().inverse.inverse`, this design ensures that a strong reference
         # back to the original instance is retained before its refcount drops to zero,
         # avoiding an unintended potential deallocation.
