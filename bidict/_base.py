@@ -611,6 +611,9 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         If duplication is found and the corresponding :class:`~bidict.OnDupAction` is
         :attr:`~bidict.DROP_OLD`, or if no duplication is found,
         return *(oldkey, oldval)*.
+
+        If duplication is found and the corresponding action is not an :class:`~bidict.OnDupAction`,
+        raise :class:`ValueError`.
         """
         fwdm, invm = self._fwdm, self._invm
         oldval: OVT[VT] = fwdm.get(key, MISSING)
@@ -625,21 +628,25 @@ class BidictBase(BidirectionalMapping[KT, VT]):
                 raise KeyAndValueDuplicationError(key, val)
             if on_dup.val is DROP_NEW:
                 return None
-            assert on_dup.val is DROP_OLD
+            # Not an assert, which python -O would strip, letting an invalid action act as DROP_OLD. Same below.
+            if on_dup.val is not DROP_OLD:
+                raise ValueError(f'invalid on_dup.val: {on_dup.val!r}')
             # Fall through to the return statement on the last line.
         elif isdupkey:
             if on_dup.key is RAISE:
                 raise KeyDuplicationError(key)
             if on_dup.key is DROP_NEW:
                 return None
-            assert on_dup.key is DROP_OLD
+            if on_dup.key is not DROP_OLD:
+                raise ValueError(f'invalid on_dup.key: {on_dup.key!r}')
             # Fall through to the return statement on the last line.
         elif isdupval:
             if on_dup.val is RAISE:
                 raise ValueDuplicationError(val)
             if on_dup.val is DROP_NEW:
                 return None
-            assert on_dup.val is DROP_OLD
+            if on_dup.val is not DROP_OLD:
+                raise ValueError(f'invalid on_dup.val: {on_dup.val!r}')
             # Fall through to the return statement on the last line.
         # else no key or value duplication.
         return oldkey, oldval

@@ -249,6 +249,15 @@ please consider sponsoring bidict on GitHub.`
   but raised :class:`TypeError` from :func:`reversed`.
   :issue:`420`
 
+- Fix a regression in 0.21.1 where an :class:`~bidict.OnDup`
+  whose actions are not :class:`~bidict.OnDupAction`\s
+  (e.g. ``OnDup('RAISE', 'RAISE')``)
+  raised :class:`AssertionError`
+  when there was duplication for it to handle,
+  or, under ``python -O``, silently acted as :attr:`~bidict.DROP_OLD`.
+  It raises :class:`ValueError` again.
+  :issue:`426`
+
 - Fix a bug where type checkers inferred that
   :func:`reversed` of a :class:`~bidict.bidict`, :class:`~bidict.frozenbidict`,
   or :class:`~bidict.MutableBidict` (or of its inverse)

@@ -928,6 +928,35 @@ def test_falsy_arg_is_not_iterated(bi_t: BT[t.Any, t.Any]) -> None:
     assert_bi_and_inv_are_inverse(bi)
 
 
+@pytest.mark.parametrize('bi_t', mutable_bidict_types)
+@pytest.mark.parametrize('action', ['RAISE', None])
+@pytest.mark.parametrize(('key', 'val'), [(1, 'z'), (9, 'a'), (1, 'b')], ids=['dup-key', 'dup-val', 'dup-key-and-val'])
+def test_invalid_on_dup_raises_and_fails_clean(bi_t: MBT[t.Any, t.Any], action: t.Any, key: int, val: str) -> None:
+    """An OnDup whose action isn't an OnDupAction must be rejected, at every entry point, and fail clean.
+
+    OnDup doesn't validate its fields, so this surfaces only once there is duplication to apply it to,
+    and must not then be taken as DROP_OLD, even under python -O.
+    """
+    bad = OnDup(action, action)
+    bad_default_t = type(f'{bi_t.__name__}WithBadOnDup', (bi_t,), {'on_dup': bad})
+    b, bd = bi_t({1: 'a', 2: 'b'}), bad_default_t({1: 'a', 2: 'b'})
+    # The bulk writes start with a new item, which must be rolled back.
+    writes = (
+        (b, lambda: b.put(key, val, bad)),
+        (b, lambda: b.putall([(5, 'e'), (key, val)], bad)),
+        (bd, lambda: bd.__setitem__(key, val)),
+        (bd, lambda: bd.update([(5, 'e'), (key, val)])),
+    )
+    for target, write in writes:
+        before = target.copy()
+        with pytest.raises(ValueError, match='invalid on_dup'):
+            write()
+        assert target.equals_order_sensitive(before)
+        assert target.inv.equals_order_sensitive(before.inv)
+    with pytest.raises(ValueError, match='invalid on_dup'):
+        bad_default_t([(1, 'a'), (2, 'b'), (key, val)])
+
+
 @pytest.mark.parametrize('bi_t', [bidict, OrderedBidict])
 @pytest.mark.parametrize(
     ('init', 'write', 'nwrites'),
