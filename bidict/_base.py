@@ -246,6 +246,9 @@ class BidictBase(BidirectionalMapping[KT, VT]):
     # When a bidict's `.inverse` property is accessed for the first time, the inverse instance is computed on demand
     # and stored for subsequent use. A reference back to itself is also stored on the inverse instance at the same time.
     # A weakref is used in the inverse direction to avoid creating a reference cycle. See :meth:`inverse`
+    # __init__ sets both to None, so that :meth:`inverse` can read them directly, and so that a class's first instances
+    # set them, as CPython requires to keep them inline (where they're fastest to access) rather than in a __dict__.
+    # (Not class-level defaults, which would slow every store of them, and on CPython 3.12 and 3.13 every load.)
     _inv: BidictBase[VT, KT] | None
     _invweak: weakref.ReferenceType[BidictBase[VT, KT]] | None
     _inv_cls: t.ClassVar[type[BidictBase[t.Any, t.Any]]]  # the inverse bidict's class, see :meth:`_ensure_inv_cls`
@@ -375,6 +378,8 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         if not self._bidict_initialized:
             self._fwdm = self._fwdm_cls()
             self._invm = self._invm_cls()
+            self._inv = None
+            self._invweak = None
             self._update(arg, kw, rollback=False)
             # Only once that has succeeded, so that calling __init__ again after it failed starts afresh.
             self._bidict_initialized = True
@@ -404,11 +409,11 @@ class BidictBase(BidirectionalMapping[KT, VT]):
     def inverse(self) -> BidictBase[VT, KT]:
         """The inverse of this bidirectional mapping instance."""
         # First check if a strong reference is already stored.
-        inv: BidictBase[VT, KT] | None = getattr(self, '_inv', None)
+        inv = self._inv
         if inv is not None:
             return inv
         # Next check if a weak reference is already stored.
-        invweak = getattr(self, '_invweak', None)
+        invweak = self._invweak
         if invweak is not None:
             inv = invweak()  # Try to resolve a strong reference and return it.
             if inv is not None:
@@ -419,10 +424,9 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         # the second `.inverse` access in `bi.inverse.inverse` hits the cached weakref.
         # Do so before storing the inverse on this instance, so that another thread that finds it there
         # finds it complete, rather than computing a different inverse of it and caching that for good.
-        inv._inv = None
+        # (Any dead weakref left in self._invweak is never read again once self._inv is set.)
         inv._invweak = weakref.ref(self)
         self._inv = inv
-        self._invweak = None
         # In e.g. `bidict().inverse.inverse`, this design ensures that a strong reference
         # back to the original instance is retained before its refcount drops to zero,
         # avoiding an unintended potential deallocation.

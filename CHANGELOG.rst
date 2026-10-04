@@ -307,6 +307,15 @@ please consider sponsoring bidict on GitHub.`
   Comparing with a non-mapping such as ``None`` is ~1.4x slower on CPython.
   :issue:`426`
 
+- Accessing a bidict's :attr:`~bidict.BidictBase.inverse` once it exists
+  is ~1.5x faster than in 0.24.1 on CPython 3.11,
+  and ~1.7-2.2x on 3.12 and later,
+  which also speeds up creating a :meth:`~bidict.BidictBase.values` view.
+  On CPython, a bidict whose inverse has been accessed,
+  together with that inverse,
+  also takes up to ~1/3 less memory.
+  :issue:`426`
+
 - Changing the value of an existing key in an :class:`~bidict.OrderedBidict`
   is ~1.2x faster than in 0.24.1.
   :issue:`414`
