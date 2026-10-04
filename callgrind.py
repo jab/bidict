@@ -47,6 +47,8 @@ import typing as t
 from pathlib import Path
 from tempfile import TemporaryDirectory
 
+import pytest
+
 
 #: Set in the environment of the command that main() runs under Callgrind. The plugin below does
 #: nothing without it, so loading it in any other run is harmless.
@@ -59,7 +61,7 @@ ACTIVE = bool(os.environ.get(ACTIVE_ENV_VAR))
 #
 # Callgrind starts with instrumentation off, which runs pytest's startup and collection several
 # times faster, and with event collection off (see run_with_callgrind()). pytest_runtestloop()
-# switches instrumentation on once the tests start. The timer switches collection on for each round
+# switches instrumentation on while the tests run. The timer switches collection on for each round
 # of a benchmark's timed calls, and pytest_runtest_teardown() then has Callgrind dump what it
 # collected across the rounds, labeled with the benchmark's name. Each switch is a Valgrind client
 # request: a special no-op instruction sequence that Valgrind intercepts.
@@ -69,6 +71,7 @@ _ZERO_STATS = 0x43540001
 _TOGGLE_COLLECT = 0x43540002
 _DUMP_STATS_AT = 0x43540003
 _START_INSTRUMENTATION = 0x43540004
+_STOP_INSTRUMENTATION = 0x43540005
 
 #: Machine code for `size_t request(size_t args[6], size_t default)`, which makes the client request
 #: that *args* describes (request code first, then its arguments) and returns Valgrind's reply, or
@@ -124,14 +127,23 @@ _client_request = _make_client_request() if ACTIVE else None
 _timer_calls = 0
 
 
-def pytest_runtestloop() -> None:
-    """Switch Callgrind's instrumentation on, for the rest of the run.
+@pytest.hookimpl(wrapper=True)
+def pytest_runtestloop() -> t.Generator[None, object, object]:
+    """Switch Callgrind's instrumentation on while the tests run.
 
     Not only around each benchmark: Callgrind 3.22's dumps after the first come out corrupted if its
-    instrumentation is switched off and on again.
+    instrumentation is switched off and on again. Switching it off for good once the tests have run
+    is safe, since none of the dumps that main() reads come after, and spares the rest of the run
+    from being instrumented. That includes pytest's reporting, for which a plugin may import a
+    sizable package: hypothesis's imports all of hypothesis.
     """
     if _client_request is not None:
         _client_request(_START_INSTRUMENTATION)
+    try:
+        return (yield)
+    finally:
+        if _client_request is not None:
+            _client_request(_STOP_INSTRUMENTATION)
 
 
 def timer() -> float:
