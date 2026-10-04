@@ -18,8 +18,16 @@ from enum import Enum
 
 if sys.version_info >= (3, 12):
     from typing import override as override
-else:
+elif t.TYPE_CHECKING:
     from typing_extensions import override as override
+else:
+    # Do at runtime what typing.override does, rather than depend on typing_extensions just for this.
+    def override(method: t.Any, /) -> t.Any:
+        try:
+            method.__override__ = True
+        except (AttributeError, TypeError):  # e.g. __slots__, a read-only property, or a builtin
+            pass
+        return method
 
 
 KT = t.TypeVar('KT')

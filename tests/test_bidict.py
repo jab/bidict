@@ -12,8 +12,10 @@ Mainly these are property-based tests implemented via https://hypothesis.works.
 from __future__ import annotations
 
 import gc
+import importlib.metadata
 import operator
 import pickle
+import subprocess
 import sys
 import typing as t
 import weakref
@@ -33,6 +35,7 @@ from functools import reduce
 from itertools import count
 from itertools import product
 from itertools import starmap
+from pathlib import Path
 from random import Random
 from typing import assert_type
 from unittest.mock import ANY
@@ -2231,6 +2234,30 @@ def test_inverse_is_linked_back_before_it_is_found(bi_t: t.Any) -> None:
     assert all(s is bi for s in seen)
     assert inv.inverse is bi
     assert_bi_and_inv_are_inverse(bi)
+
+
+def test_needs_only_the_standard_library() -> None:
+    """bidict declares no dependencies, and imports nothing outside the standard library, on every supported Python.
+
+    Check in fresh processes that can't import typing_extensions, which is where a dependency is likeliest to creep in:
+    one as the running Python, and one that claims to be the oldest supported Python, to take its code paths.
+    """
+    assert not importlib.metadata.requires('bidict')
+    src = Path(t.cast('str', sys.modules['bidict'].__file__)).parent.parent
+    for version_info in ('sys.version_info', "(3, 11, 0, 'final', 0)"):
+        code = f"""if True:
+            import sys
+            sys.path.insert(0, {str(src)!r})
+            sys.modules['typing_extensions'] = None  # (makes any import of it fail)
+            sys.version_info = {version_info}
+            before = set(sys.modules)
+            import bidict
+            imported = {{name.partition('.')[0] for name in sys.modules.keys() - before}}
+            assert imported <= sys.stdlib_module_names | {{'bidict'}}, imported
+            assert bidict.bidict(a=1).inverse == {{1: 'a'}}
+            assert bidict.bidict.__contains__.__override__  # as typing.override sets it
+        """
+        subprocess.run([sys.executable, '-c', code], check=True)
 
 
 def test_static_types() -> None:

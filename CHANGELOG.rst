@@ -258,6 +258,11 @@ please consider sponsoring bidict on GitHub.`
   It raises :class:`ValueError` again.
   :issue:`426`
 
+- Fix a regression in 0.24.0 where bidict required ``typing_extensions``
+  on Python 3.11.
+  It again depends on nothing outside the standard library.
+  :issue:`426`
+
 - Fix a bug where type checkers inferred that
   :func:`reversed` of a :class:`~bidict.bidict`, :class:`~bidict.frozenbidict`,
   or :class:`~bidict.MutableBidict` (or of its inverse)
