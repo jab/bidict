@@ -871,7 +871,7 @@ def test_reinit_raises(bi_t: BT[t.Any, t.Any], make: Callable[[t.Any], t.Any]) -
 @pytest.mark.parametrize('bi_t', bidict_types)
 def test_init_can_be_retried_after_it_fails(bi_t: t.Any) -> None:
     """Calling __init__ again after it failed, e.g. from a subclass's __init__ that retries with other items,
-    must initialize the bidict afresh, rather than raise as it does once the bidict is initialized.
+    must initialize the bidict afresh, its inverse included, rather than raise as it does once the bidict is initialized.
     """
 
     class RetriesWithoutDups(bi_t):
@@ -881,6 +881,8 @@ def test_init_can_be_retried_after_it_fails(bi_t: t.Any) -> None:
             try:
                 super().__init__(items)
             except DuplicationError:
+                # A subclass might read what the failed attempt left, e.g. to report it.
+                self.left_by_failure = dict(self.inverse)
                 super().__init__(dedup(items))
 
     bi = RetriesWithoutDups([(1, 'a'), (2, 'b'), (3, 'b'), (4, 'd')])

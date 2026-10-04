@@ -34,6 +34,13 @@ please consider sponsoring bidict on GitHub.`
   call :meth:`~bidict.MutableBidict.clear` and then :meth:`~bidict.MutableBidict.update`.
   :issue:`426`
 
+- For a custom bidict whose ``__init__()`` doesn't call ``super().__init__()``,
+  or one made with ``__new__()`` and set up by hand,
+  :attr:`~bidict.BidictBase.inverse` and the methods that use it
+  (such as :meth:`~bidict.BidictBase.values` and :meth:`~bidict.BidictBase.copy`)
+  now raise :class:`AttributeError`.
+  :issue:`426`
+
 - Fix a bug where
   :meth:`~bidict.MutableBidict.update`,
   :meth:`~bidict.MutableBidict.putall`, and
@@ -312,6 +319,15 @@ please consider sponsoring bidict on GitHub.`
   is ~1.9-6x faster than in 0.24.1.
   Other ``==`` comparisons which are not as common may be slower.
   :issue:`430`
+
+- Accessing a bidict's :attr:`~bidict.BidictBase.inverse` once it exists
+  is ~1.5x faster than in 0.24.1 on CPython 3.11,
+  and ~1.7-2.2x on 3.12 and later,
+  which also speeds up creating a :meth:`~bidict.BidictBase.values` view.
+  On CPython, a bidict whose inverse has been accessed,
+  together with that inverse,
+  also takes up to ~1/3 less memory.
+  :issue:`426`
 
 - Changing the value of an existing key in an :class:`~bidict.OrderedBidict`
   is ~1.2x faster than in 0.24.1.
