@@ -273,6 +273,15 @@ please consider sponsoring bidict on GitHub.`
   now needs a suppression under mypy and pyright.
   :issue:`420`
 
+- Fix a bug where type checkers rejected ``b |= other``
+  for a mutable bidict *b*
+  unless *other* was a :class:`~collections.abc.Mapping`,
+  although, as for a :class:`dict`,
+  it accepts anything :meth:`~bidict.MutableBidict.update` does.
+  A subclass that overrides ``__ior__()``
+  must now accept at least what :meth:`~bidict.MutableBidict.update` does.
+  :issue:`426`
+
 - Fix a regression in 0.21.4 where :func:`typing.get_type_hints`
   raised :class:`NameError` for :class:`~bidict.BidictBase` and its subclasses
   (e.g. :class:`~bidict.bidict`),

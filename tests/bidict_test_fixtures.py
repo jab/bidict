@@ -408,7 +408,7 @@ class Oracle(t.Generic[KT, VT]):
             self.data = tmp  # fail clean (no partially-applied updates)
             raise
 
-    def __ior__(self, other: Mapping[KT, VT]) -> dict[KT, VT]:
+    def __ior__(self, other: MapOrItems[KT, VT]) -> dict[KT, VT]:
         self.putall(other)
         return self.data
 

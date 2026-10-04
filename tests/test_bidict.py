@@ -309,11 +309,15 @@ class BidictStateMachine(RuleBasedStateMachine):
             partial(self.oracle.putall, snapshot, on_dup),
         )
 
-    @rule(other=items121)
-    def __ior__(self, other: Mapping[int, int]) -> None:
+    @rule(updates=items, updates_t=updates_t)
+    def __ior__(self, updates: MapOrItems[int, int], updates_t: t.Any) -> None:
+        """Like dict's |=, bidict's accepts anything that update() does (unlike |)."""
+        # As in putall above.
+        if isinstance(updates_t, type) and issubclass(updates_t, BidirectionalMapping):
+            updates = dedup(updates)
         assert_calls_match(
-            partial(self.bi.__ior__, other),
-            partial(self.oracle.__ior__, other),
+            partial(self.bi.__ior__, updates_t(updates)),
+            partial(self.oracle.__ior__, updates_t(updates)),
         )
 
     @rule(other=items121)
@@ -602,6 +606,16 @@ def test_eq_compares_an_ordered_bidict_by_the_keys_its_items_yields(side: str) -
         assert other == bi
         assert (bi != other) is False
     assert bi != {'a': 1, 'b': 2}
+
+
+@pytest.mark.parametrize('bi_t', mutable_bidict_types)
+def test_ior_accepts_what_update_does(bi_t: MBT[int, str]) -> None:
+    """Unlike bi | other, and as for dict, bi |= other accepts (and type-checks with) anything update() does."""
+    bi = bi_t()
+    bi |= SupportsKeysAndGetItem({1: 'one'})
+    bi |= [(2, 'two')]
+    bi |= iter([(3, 'three')])
+    assert bi == {1: 'one', 2: 'two', 3: 'three'}
 
 
 @given(items121=items121, bidict_t=bidict_t, rand=randoms())
