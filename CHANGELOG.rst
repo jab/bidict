@@ -26,6 +26,14 @@ please consider sponsoring bidict on GitHub.`
 0.24.2 (not yet released)
 -------------------------
 
+- Calling ``__init__()`` again on an existing bidict now raises :class:`TypeError`.
+  It used to leave the bidict's inverse and some of its views reflecting its old items
+  (its ``inverse`` attribute too, since 0.22.0, once accessed),
+  and changed even an immutable bidict, whose hash could then go stale.
+  To replace a mutable bidict's items,
+  call :meth:`~bidict.MutableBidict.clear` and then :meth:`~bidict.MutableBidict.update`.
+  :issue:`426`
+
 - Fix a bug where
   :meth:`~bidict.MutableBidict.update`,
   :meth:`~bidict.MutableBidict.putall`, and

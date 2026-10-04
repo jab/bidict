@@ -209,10 +209,15 @@ class OrderedBidictBase(BidictBase[KT, VT]):
 
         The order in which items are inserted is remembered,
         similar to :class:`collections.OrderedDict`.
+
+        Calling it again on an initialized bidict raises :class:`TypeError`.
         """
-        self._sntl = SentinelNode()
-        self._node_by_korv = bidict()
-        self._bykey = True
+        # For an initialized bidict, BidictBase.__init__ raises, and the linked list, which its inverse and iterators
+        # share, must be left alone.
+        if not self._bidict_initialized:
+            self._sntl = SentinelNode()
+            self._node_by_korv = bidict()
+            self._bykey = True
         super().__init__(arg, **kw)
 
     if t.TYPE_CHECKING:

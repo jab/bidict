@@ -226,6 +226,9 @@ class BidictBase(BidirectionalMapping[KT, VT]):
 
     _fwdm: MutableMapping[KT, VT]  #: the backing forward mapping (*key* → *val*)
     _invm: MutableMapping[VT, KT]  #: the backing inverse mapping (*val* → *key*)
+    # Whether __init__ has already succeeded, so that it can refuse to run again. Named for bidict, since a subclass or
+    # mixin may well have an _initialized of its own.
+    _bidict_initialized: bool = False
     _fwdm_cls: t.ClassVar[type[MutableMapping[t.Any, t.Any]]] = dict  #: class of the backing forward mapping
     _invm_cls: t.ClassVar[type[MutableMapping[t.Any, t.Any]]] = dict  #: class of the backing inverse mapping
     _fwdm_has_dict_views: t.ClassVar[bool] = True  # see :meth:`_init_class`
@@ -362,10 +365,17 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         is handled as per :attr:`on_dup`.
         A falsy positional arg is treated as empty, without being iterated,
         so as is usual for containers, it must be falsy only when it is empty.
+        Calling it again on an initialized bidict raises :class:`TypeError`.
         """
+        # An initialized bidict's inverse (if created), views and iterators share its backing mappings, and it or its
+        # inverse may already have been hashed, so refuse to give it new backing mappings or new items.
+        if self._bidict_initialized:
+            raise TypeError(f'{type(self).__name__!r} object does not support re-initialization')
         self._fwdm = self._fwdm_cls()
         self._invm = self._invm_cls()
         self._update(arg, kw, rollback=False)
+        # Only once that has succeeded, so that calling __init__ again after it failed starts afresh.
+        self._bidict_initialized = True
 
     @property
     @override
