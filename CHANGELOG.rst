@@ -137,6 +137,26 @@ please consider sponsoring bidict on GitHub.`
   leaving its two backing mappings out of sync.
   :issue:`413`
 
+- Fix a bug where ``==`` between a bidict and another mapping
+  compared each pair of keys or each pair of values
+  (depending on the other mapping's type)
+  in the reverse order from :class:`dict`,
+  so that for keys or values with an asymmetric ``__eq__()``,
+  it could disagree with comparing the two as :class:`dict`\s,
+  contrary to its documentation.
+  Likewise, a custom ordered bidict whose backing mapping normalizes keys
+  (e.g. case-insensitively)
+  is now compared by the keys it yields, not those that mapping stores.
+  :issue:`426`
+
+- Fix a regression in 0.22.0 where a bidict compared unequal
+  to any mapping whose ``items()`` is not set-like,
+  such as a :class:`~weakref.WeakKeyDictionary`,
+  and a custom bidict backed by such mappings,
+  as in the ``WeakrefBidict`` recipe in :doc:`extending`,
+  compared unequal to every mapping, even itself.
+  :issue:`426`
+
 - Fix a bug where a custom :class:`~bidict.OrderedBidict`
   whose forward backing mapping judges distinct keys equal
   (e.g. a case-insensitive mapping)
@@ -257,6 +277,20 @@ please consider sponsoring bidict on GitHub.`
   ~1.4-1.9x faster than in 0.24.1 for :class:`~bidict.bidict`,
   and ~3.1-4.8x for :class:`~bidict.OrderedBidict`.
   :issue:`413`
+
+- ``==`` between a bidict backed by :class:`dict`\s
+  (as all of bidict's own types are)
+  and a :class:`dict` or another such bidict
+  is ~1.2-4x faster than in 0.24.1.
+  Comparing a bidict with any other mapping
+  (including a custom bidict not backed by :class:`dict`\s)
+  now copies that mapping,
+  so it takes time proportional to its size even when an early item differs:
+  with 1,000 items, ~50-85x as long as in 0.24.1 on CPython
+  when the first item differs,
+  and up to ~2.5x as long when the two are equal.
+  Comparing with a non-mapping such as ``None`` is ~1.4x slower on CPython.
+  :issue:`426`
 
 - Changing the value of an existing key in an :class:`~bidict.OrderedBidict`
   is ~1.2x faster than in 0.24.1.

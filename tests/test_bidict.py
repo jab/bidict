@@ -18,6 +18,7 @@ import sys
 import typing as t
 import weakref
 from collections import UserDict
+from collections import defaultdict
 from collections.abc import Callable
 from collections.abc import Iterator
 from collections.abc import KeysView
@@ -68,6 +69,7 @@ from bidict_test_fixtures import bidict_refusing_nth_write
 from bidict_test_fixtures import bidict_types
 from bidict_test_fixtures import bomb
 from bidict_test_fixtures import dedup
+from bidict_test_fixtures import eq_other_types
 from bidict_test_fixtures import invdict
 from bidict_test_fixtures import mutable_bidict_types
 from bidict_test_fixtures import pickle_copy
@@ -479,6 +481,99 @@ def test_eq_and_or_with_non_mapping(bi_t: BT[KT, VT], non_mapping: t.Any) -> Non
         bi | non_mapping
     with pytest.raises(TypeError):
         non_mapping | bi
+
+
+@pytest.mark.parametrize(('bi_t', 'other_t'), list(product(bidict_types, eq_other_types)))
+def test_eq_compares_keys_and_values_as_dict_does(bi_t: BT[t.Any, t.Any], other_t: t.Any) -> None:
+    """bi == other is equivalent to dict(bi.items()) == dict(other.items()), as documented for any other whose len() is
+    the number of distinct keys its items() yields (as for every mapping here), even for keys and values with an
+    asymmetric __eq__:
+    dict looks up each of its keys in the other dict, which puts the other dict's key on the left of their comparison,
+    and compares its own value with the other dict's, its own on the left.
+    (An AsymStored equals an AsymLookup only when on the left.)
+    """
+    # As for a dict and a dict subclass, Python calls other.__eq__ first if other's class is a proper subclass of bi's.
+    reflected = issubclass(other_t, bi_t) and other_t is not bi_t
+    stored, lookup = AsymStored(), AsymLookup()
+    for mine, theirs in ((stored, lookup), (lookup, stored)):
+        bi, other = bi_t({'k': mine}), other_t({'k': theirs})
+        assert (dict(bi.items()) == dict(other.items())) is (mine is stored)
+        expected = (theirs if reflected else mine) is stored
+        assert (bi == other) is expected
+        assert (bi != other) is not expected
+        bi, other = bi_t({mine: 'v'}), other_t({theirs: 'v'})
+        assert (dict(bi.items()) == dict(other.items())) is (theirs is stored)
+        expected = (mine if reflected else theirs) is stored
+        assert (bi == other) is expected
+        assert (bi != other) is not expected
+
+
+@pytest.mark.parametrize(('bi_t', 'other_t'), list(product(bidict_types, eq_other_types)))
+def test_eq_iff_same_items(bi_t: BT[int, str], other_t: t.Any) -> None:
+    """bi == other, and other == bi, exactly when other has the same items, in any order."""
+    items = [(1, 'one'), (2, 'two')]
+    bi = bi_t(items)
+    for other_items, expected in (
+        (items[::-1], True),
+        (items[:1], False),
+        ([*items, (3, 'three')], False),
+        ([(1, 'one'), (3, 'two')], False),
+        ([(1, 'one'), (2, 'deux')], False),
+    ):
+        other = other_t(other_items)
+        assert (bi == other) is expected
+        assert (other == bi) is expected
+        assert (bi != other) is not expected
+        assert (other != bi) is not expected
+
+
+@pytest.mark.parametrize(('bi_t', 'other_t'), list(product(bidict_types, eq_other_types)))
+def test_eq_checks_values_for_identity_first(bi_t: BT[int, float], other_t: t.Any) -> None:
+    """As dict does, bi == other checks each pair of values for identity before equality,
+    so the same NaN matches itself, while a distinct NaN does not (unless it is identical, as on PyPy).
+    """
+    nan, other_nan = float('nan'), float('nan')
+    assert bi_t({1: nan}) == other_t({1: nan})
+    assert (bi_t({1: nan}) == other_t({1: other_nan})) is ({1: nan} == {1: other_nan})
+
+
+@pytest.mark.parametrize('bi_t', bidict_types)
+def test_eq_leaves_defaultdict_unchanged(bi_t: BT[int, str]) -> None:
+    """Comparing a bidict with a defaultdict that lacks one of its keys doesn't add the key to the defaultdict."""
+    other = defaultdict(str, {2: 'two'})
+    assert bi_t({1: 'one'}) != other
+    assert other == {2: 'two'}
+
+
+@pytest.mark.parametrize('bi_t', bidict_types)
+def test_eq_compares_other_by_the_keys_its_items_yields(bi_t: BT[str, int]) -> None:
+    """bi == other compares bi's keys with the keys that other's items() yields, as dict(other.items()) does,
+    rather than looking them up in other, which for a case-insensitive mapping finds keys that differ in case.
+    """
+    other = CaseFoldingDict({'A': 1})
+    assert list(other.items()) == [('a', 1)]
+    for bi, expected in ((bi_t({'a': 1}), True), (bi_t({'A': 1}), False)):
+        assert (bi == other) is expected
+        assert (other == bi) is expected
+        assert (bi != other) is not expected
+
+
+@pytest.mark.parametrize('side', ['_fwdm_cls', '_invm_cls'])
+def test_eq_compares_an_ordered_bidict_by_the_keys_its_items_yields(side: str) -> None:
+    """An ordered bidict compares by the keys that its items() yields, as dict(bi.items()) does,
+    even where its backing mapping stores them differently (here, case-folded),
+    so that it equals itself, its copies, and a dict of its items.
+
+    Both sides are covered, as in test_orderedbidict_acts_on_the_item_its_backing_mapping_resolves_to.
+    """
+    bi_t = type('CaseFoldingOrderedBidict', (OrderedBidict,), {side: CaseFoldingDict})
+    bi = bi_t({'A': 1, 'B': 2}) if side == '_fwdm_cls' else bi_t({1: 'A', 2: 'B'}).inverse
+    assert list(bi.items()) == [('A', 1), ('B', 2)]
+    for other in (bi, bi.copy(), deepcopy(bi), dict(bi.items()), OrderedBidict(bi)):
+        assert bi == other
+        assert other == bi
+        assert (bi != other) is False
+    assert bi != {'a': 1, 'b': 2}
 
 
 @given(items121=items121, bidict_t=bidict_t, rand=randoms())

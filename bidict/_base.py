@@ -58,6 +58,15 @@ Unwrites: t.TypeAlias = list[tuple[t.Any, ...]]
 
 # keys() and items() methods known to return dict views, i.e. dict_keys and dict_items (or subclasses of them).
 _DICT_VIEW_METHODS: t.Final = ((dict.keys, dict.items), (OrderedDict.keys, OrderedDict.items))
+# items() methods known to return a dict's own items, i.e. those it stores.
+_DICT_ITEMS_METHODS: t.Final = (dict.items, OrderedDict.items)
+# dict's own __eq__ and get(), for dicts that type checkers can't see are dicts. They ignore a subclass's overrides,
+# which `==` would call even for its right operand (e.g. OrderedDict's order-sensitive __eq__), and get() never calls
+# __missing__.
+_dict_eq: t.Final[t.Callable[[t.Any, t.Any], bool]] = dict.__eq__
+_dict_get: t.Final[t.Callable[[t.Any, t.Any, t.Any], t.Any]] = dict.get
+# isinstance() without ABCMeta's much slower __instancecheck__, for checking for a class's real subclasses only.
+_is_instance: t.Final[t.Callable[[type, object], bool]] = type.__instancecheck__
 
 
 class BidictKeysView(KeysView[KT], ValuesView[KT]):
@@ -496,6 +505,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         """*x.__eq__(other)　⟺　x == other*
 
         Equivalent to *dict(x.items()) == dict(other.items())*
+        for any *other* whose :func:`len` is the number of distinct keys its *items()* yields,
         but more efficient.
 
         Note that :meth:`bidict's __eq__() <bidict.BidictBase.__eq__>` implementation
@@ -507,10 +517,39 @@ class BidictBase(BidirectionalMapping[KT, VT]):
 
         *See also* :meth:`equals_order_sensitive`
         """
-        if isinstance(other, Mapping):
-            return self._fwdm.items() == other.items()
-        # Ref: https://docs.python.org/3/library/constants.html#NotImplemented
-        return NotImplemented
+        # Compare as dict(self.items()) == dict(other.items()) does, i.e. with dict's own ==, which looks up each of our
+        # keys in other (with other's key on the left of that comparison) and compares our value with theirs (ours on
+        # the left). That matters for keys and values with an asymmetric __eq__. Copy other's items into a dict only if
+        # other isn't already a dict of just those items.
+        theirs: t.Any = other  # (a dict, once the checks below are done, which type checkers can't follow)
+        if type(other) is dict or (isinstance(other, dict) and type(other).items in _DICT_ITEMS_METHODS):
+            pass
+        elif _is_instance(BidictBase, other) and theirs._fwdm_has_dict_views:
+            theirs = theirs._fwdm
+        elif isinstance(other, Mapping):
+            # (Checking lengths before copying gives the same result for any mapping whose len() is the number of
+            # distinct keys its items() yields.)
+            if len(other) != len(self._fwdm):
+                return False
+            theirs = dict(other.items())
+        else:
+            # Ref: https://docs.python.org/3/library/constants.html#NotImplemented
+            return NotImplemented
+        fwdm = self._fwdm
+        if self._fwdm_has_dict_views:
+            # (== does the same for two exact dicts, and is faster.)
+            return fwdm == theirs if type(fwdm) is dict and type(theirs) is dict else _dict_eq(fwdm, theirs)
+        # Otherwise do what _dict_eq would do with a dict of our items, without copying them into one: take the keys
+        # that our items() yields, which for an ordered bidict come from its linked list and may differ from the keys
+        # fwdm stores (e.g. if fwdm folds their case), and look up their values in fwdm, as items() does.
+        if len(fwdm) != len(theirs):
+            return False
+        get, missing = _dict_get, MISSING
+        for key in self:
+            val, their_val = fwdm[key], get(theirs, key, missing)
+            if their_val is missing or not (val is their_val or val == their_val):
+                return False
+        return True
 
     def equals_order_sensitive(self, other: object) -> bool:
         """Order-sensitive equality check.
