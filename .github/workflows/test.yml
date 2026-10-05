@@ -53,7 +53,7 @@ jobs:
             shell: test312
           - python: "3.11"
             shell: test311
-            # bidict/_typing.py's `typing`/`typing_extensions` imports branch on python<3.12
+            # bidict/_typing.py's `override` branches on python<3.12
             enable_coverage: true
           - python: "pypy-3.11"
             shell: testPyPy311

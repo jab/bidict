@@ -105,6 +105,14 @@ please consider sponsoring bidict on GitHub.`
   It now gives the same result as ``b | b.inverse``.
   :issue:`413`
 
+- Fix a bug where calling ``__init__()`` again on an existing bidict
+  left its inverse and its views reflecting its old items
+  (its ``inverse`` attribute too, since 0.22.0, once accessed),
+  and changed even an immutable bidict, whose hash could then go stale.
+  A mutable bidict now replaces its items in place, and fails clean;
+  an immutable one now ignores it, as :class:`frozenset` does.
+  :issue:`426`
+
 - Fix a bug where a write through an ordered bidict's inverse
   that collapsed two items into one,
   given an object equal to but distinct from a contained one,
@@ -136,6 +144,26 @@ please consider sponsoring bidict on GitHub.`
   skipped duplication checking when filled from another bidict,
   leaving its two backing mappings out of sync.
   :issue:`413`
+
+- Fix a bug where ``==`` between a bidict and another mapping
+  compared each pair of keys or each pair of values
+  (depending on the other mapping's type)
+  in the reverse order from :class:`dict`,
+  so that for keys or values with an asymmetric ``__eq__()``,
+  it could disagree with comparing the two as :class:`dict`\s,
+  contrary to its documentation.
+  Likewise, a custom ordered bidict whose backing mapping normalizes keys
+  (e.g. case-insensitively)
+  is now compared by the keys it yields, not those that mapping stores.
+  :issue:`426`
+
+- Fix a regression in 0.22.0 where a bidict compared unequal
+  to any mapping whose ``items()`` is not set-like,
+  such as a :class:`~weakref.WeakKeyDictionary`,
+  and a custom bidict backed by such mappings,
+  as in the ``WeakrefBidict`` recipe in :doc:`extending`,
+  compared unequal to every mapping, even itself.
+  :issue:`426`
 
 - Fix a bug where a custom :class:`~bidict.OrderedBidict`
   whose forward backing mapping judges distinct keys equal
@@ -221,6 +249,20 @@ please consider sponsoring bidict on GitHub.`
   but raised :class:`TypeError` from :func:`reversed`.
   :issue:`420`
 
+- Fix a regression in 0.21.1 where an :class:`~bidict.OnDup`
+  whose actions are not :class:`~bidict.OnDupAction`\s
+  (e.g. ``OnDup('RAISE', 'RAISE')``)
+  raised :class:`AssertionError`
+  when there was duplication for it to handle,
+  or, under ``python -O``, silently acted as :attr:`~bidict.DROP_OLD`.
+  It raises :class:`ValueError` again.
+  :issue:`426`
+
+- Fix a regression in 0.24.0 where bidict required ``typing_extensions``
+  on Python 3.11.
+  It again depends on nothing outside the standard library.
+  :issue:`426`
+
 - Fix a bug where type checkers inferred that
   :func:`reversed` of a :class:`~bidict.bidict`, :class:`~bidict.frozenbidict`,
   or :class:`~bidict.MutableBidict` (or of its inverse)
@@ -230,6 +272,15 @@ please consider sponsoring bidict on GitHub.`
   opting out of :func:`reversed` with ``__reversed__ = None``
   now needs a suppression under mypy and pyright.
   :issue:`420`
+
+- Fix a bug where type checkers rejected ``b |= other``
+  for a mutable bidict *b*
+  unless *other* was a :class:`~collections.abc.Mapping`,
+  although, as for a :class:`dict`,
+  it accepts anything :meth:`~bidict.MutableBidict.update` does.
+  A subclass that overrides ``__ior__()``
+  must now accept at least what :meth:`~bidict.MutableBidict.update` does.
+  :issue:`426`
 
 - Fix a regression in 0.21.4 where :func:`typing.get_type_hints`
   raised :class:`NameError` for :class:`~bidict.BidictBase` and its subclasses
@@ -242,6 +293,13 @@ please consider sponsoring bidict on GitHub.`
   could not pass class keyword arguments to a later base class,
   e.g. ``class B(bidict, Plugin, name='b')`` raised :class:`TypeError`.
   :issue:`420`
+
+- Fix a regression in 0.22.0 where reading a bidict's
+  :attr:`~bidict.BidictBase.inverse` from several threads at once,
+  when it had not yet been accessed,
+  could leave ``b.inverse.inverse`` permanently a different object than *b*
+  (though one equal to it and sharing its contents).
+  :issue:`426`
 
 - Fix a performance regression in 0.24.0
   where removing an item from a :class:`~bidict.bidict` (or its inverse)
@@ -257,6 +315,29 @@ please consider sponsoring bidict on GitHub.`
   ~1.4-1.9x faster than in 0.24.1 for :class:`~bidict.bidict`,
   and ~3.1-4.8x for :class:`~bidict.OrderedBidict`.
   :issue:`413`
+
+- ``==`` between a bidict backed by :class:`dict`\s
+  (as all of bidict's own types are)
+  and a :class:`dict` or another such bidict
+  is ~1.2-4x faster than in 0.24.1.
+  Comparing a bidict with any other mapping
+  (including a custom bidict not backed by :class:`dict`\s)
+  now copies that mapping,
+  so it takes time proportional to its size even when an early item differs:
+  with 1,000 items, ~50-85x as long as in 0.24.1 on CPython
+  when the first item differs,
+  and up to ~2.5x as long when the two are equal.
+  Comparing with a non-mapping such as ``None`` is ~1.4x slower on CPython.
+  :issue:`426`
+
+- Accessing a bidict's :attr:`~bidict.BidictBase.inverse` once it exists
+  is ~1.5x faster than in 0.24.1 on CPython 3.11,
+  and ~1.7-2.2x on 3.12 and later,
+  which also speeds up creating a :meth:`~bidict.BidictBase.values` view.
+  On CPython, a bidict whose inverse has been accessed,
+  together with that inverse,
+  also takes up to ~1/3 less memory.
+  :issue:`426`
 
 - Changing the value of an existing key in an :class:`~bidict.OrderedBidict`
   is ~1.2x faster than in 0.24.1.
@@ -297,6 +378,16 @@ please consider sponsoring bidict on GitHub.`
   must now declare a compatible return type
   (such as the private ``_KeysView``).
   :issue:`420`
+
+- Type checkers now reject keyword arguments
+  to :meth:`~bidict.MutableBidict.update` and
+  :meth:`~bidict.MutableBidict.forceupdate`
+  unless the bidict's keys may be :class:`str`,
+  as they do for a :class:`dict`.
+  Also as for a :class:`dict`,
+  they now reject calling either method with no arguments
+  on a bidict whose keys can't be :class:`str`.
+  :issue:`426`
 
 0.24.1 (2026-08-25)
 -------------------

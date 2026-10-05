@@ -210,9 +210,11 @@ class OrderedBidictBase(BidictBase[KT, VT]):
         The order in which items are inserted is remembered,
         similar to :class:`collections.OrderedDict`.
         """
-        self._sntl = SentinelNode()
-        self._node_by_korv = bidict()
-        self._bykey = True
+        # Unless called again on an initialized instance, which keeps its linked list (see BidictBase.__init__).
+        if not self._bidict_initialized:
+            self._sntl = SentinelNode()
+            self._node_by_korv = bidict()
+            self._bykey = True
         super().__init__(arg, **kw)
 
     if t.TYPE_CHECKING:

@@ -11,6 +11,8 @@ import pickle
 import typing as t
 from collections import OrderedDict
 from collections import UserDict
+from collections import defaultdict
+from collections.abc import ItemsView
 from collections.abc import Iterable
 from collections.abc import Iterator
 from collections.abc import KeysView
@@ -153,6 +155,70 @@ class UserBiBackedByReversibleNonDict(bidict[KT, VT]):
     _invm_cls = ReversibleUserDict
 
 
+class IterItemsDict(UserDict[KT, VT]):
+    """A backing mapping whose items() returns an iterator rather than a set-like view,
+    as weakref.WeakKeyDictionary's and WeakValueDictionary's do (cf. the WeakrefBidict recipe in docs/extending.rst).
+    """
+
+    # Deliberately breaks Mapping's contract for items(), as typeshed's stubs for the weakref dicts note too.
+    @override
+    def items(self) -> Iterator[tuple[KT, VT]]:  # ty: ignore[invalid-method-override]
+        return iter(self.data.items())
+
+
+class BoxedValuesDict(OrderedDict[t.Any, t.Any]):
+    """A dict subclass that stores each value in a 1-tuple, and presents the value itself via [], get(), and items().
+    So, unlike a dict's or an OrderedDict's, its items() are not the items it stores.
+    """
+
+    def __init__(self, items: MapOrItems[t.Any, t.Any] = ()) -> None:
+        super().__init__((key, (val,)) for (key, val) in dict(items).items())
+
+    @override
+    def __getitem__(self, key: t.Any) -> t.Any:
+        return super().__getitem__(key)[0]
+
+    @override
+    def get(self, key: t.Any, default: t.Any = None) -> t.Any:
+        return super().get(key, (default,))[0]
+
+    # A view of the items presented, so not the odict_items that typeshed declares OrderedDict's items() returns.
+    @override
+    def items(self) -> ItemsView[t.Any, t.Any]:  # ty: ignore[invalid-method-override]
+        return ItemsView(self)
+
+
+class BoxedValuesDefaultDict(defaultdict[t.Any, t.Any]):
+    """Like BoxedValuesDict, but a defaultdict (with no default factory), which iterates as a dict does.
+    So dict(it) copies the items it stores, where dict(it.items()) copies those it presents.
+    (On CPython, dict() copies an OrderedDict, which iterates its own way, via keys() and [] instead.)
+    """
+
+    def __init__(self, items: MapOrItems[t.Any, t.Any] = ()) -> None:
+        super().__init__(None, ((key, (val,)) for (key, val) in dict(items).items()))
+
+    @override
+    def __getitem__(self, key: t.Any) -> t.Any:
+        return super().__getitem__(key)[0]
+
+    @override
+    def get(self, key: t.Any, default: t.Any = None) -> t.Any:
+        return super().get(key, (default,))[0]
+
+    # A view of the items presented, so not the dict_items that typeshed declares a dict's items() returns.
+    @override
+    def items(self) -> ItemsView[t.Any, t.Any]:  # ty: ignore[invalid-method-override]
+        return ItemsView(self)
+
+
+@user_bidict
+class UserBiBackedByIterItems(bidict[KT, VT]):
+    """A bidict backed by mappings whose items() is not set-like."""
+
+    _fwdm_cls = IterItemsDict
+    _invm_cls = IterItemsDict
+
+
 class ReversibleUserDictWithReversibleValues(ReversibleUserDict[KT, VT]):
     """Like ReversibleUserDict, except that its values() view is reversible too: that of the dict it wraps."""
 
@@ -203,8 +269,12 @@ BTs = tuple[BT[t.Any, t.Any], ...]
 builtin_bidict_types: BTs = (bidict, frozenbidict, OrderedBidict)
 bidict_types: BTs = (*builtin_bidict_types, *user_bidict_types)
 update_arg_types = (*bidict_types, list, dict, iter, SupportsKeysAndGetItem, LegacySequence, KeysViaGetattr)
+# Mappings to compare bidicts with: dicts and dict subclasses (the BoxedValues ones' items() aren't the items they
+# store), other mappings (IterItemsDict's items() aren't set-like), and bidicts.
+eq_other_types = (dict, OrderedDict, BoxedValuesDict, BoxedValuesDefaultDict, UserDict, IterItemsDict, *bidict_types)
 mutable_bidict_types: BTs = tuple(t for t in bidict_types if issubclass(t, MutableBidirectionalMapping))
 assert frozenbidict not in mutable_bidict_types
+immutable_bidict_types: BTs = tuple(t for t in bidict_types if t not in mutable_bidict_types)
 MBT = type[bidict[KT, VT]] | type[OrderedBidict[KT, VT]]
 
 
@@ -255,6 +325,8 @@ class Oracle(t.Generic[KT, VT]):
     def assert_match(self, bi: BidictBase[KT, VT]) -> None:
         assert dict(bi) == self.data
         assert dict(bi.inv) == self.data_inv
+        assert bi == self.data
+        assert bi.inv == self.data_inv
         self.assert_items_match(bi)
 
     def assert_items_match(self, bi: BidictBase[KT, VT]) -> None:
@@ -336,7 +408,7 @@ class Oracle(t.Generic[KT, VT]):
             self.data = tmp  # fail clean (no partially-applied updates)
             raise
 
-    def __ior__(self, other: Mapping[KT, VT]) -> dict[KT, VT]:
+    def __ior__(self, other: MapOrItems[KT, VT]) -> dict[KT, VT]:
         self.putall(other)
         return self.data
 
@@ -495,7 +567,7 @@ class WriteRefused(BaseException):
     """
 
 
-def bidict_refusing_nth_write(bi_t: BT[t.Any, t.Any], init: Mapping[t.Any, t.Any], n: int) -> BB[t.Any, t.Any]:
+def bidict_refusing_nth_write(bi_t: BT[t.Any, t.Any], init: MapOrItems[t.Any, t.Any], n: int) -> BB[t.Any, t.Any]:
     """Return a *bi_t* containing *init* whose nth write from now on raises :class:`WriteRefused`.
 
     Stands in for a custom bidict's backing mapping that may raise on a write it will not accept,

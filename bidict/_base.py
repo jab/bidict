@@ -58,6 +58,15 @@ Unwrites: t.TypeAlias = list[tuple[t.Any, ...]]
 
 # keys() and items() methods known to return dict views, i.e. dict_keys and dict_items (or subclasses of them).
 _DICT_VIEW_METHODS: t.Final = ((dict.keys, dict.items), (OrderedDict.keys, OrderedDict.items))
+# items() methods known to return a dict's own items, i.e. those it stores.
+_DICT_ITEMS_METHODS: t.Final = (dict.items, OrderedDict.items)
+# dict's own __eq__ and get(), for dicts that type checkers can't see are dicts. They ignore a subclass's overrides,
+# which `==` would call even for its right operand (e.g. OrderedDict's order-sensitive __eq__), and get() never calls
+# __missing__.
+_dict_eq: t.Final[t.Callable[[t.Any, t.Any], bool]] = dict.__eq__
+_dict_get: t.Final[t.Callable[[t.Any, t.Any, t.Any], t.Any]] = dict.get
+# isinstance() without ABCMeta's much slower __instancecheck__, for checking for a class's real subclasses only.
+_is_instance: t.Final[t.Callable[[type, object], bool]] = type.__instancecheck__
 
 
 class BidictKeysView(KeysView[KT], ValuesView[KT]):
@@ -226,6 +235,10 @@ class BidictBase(BidirectionalMapping[KT, VT]):
 
     _fwdm: MutableMapping[KT, VT]  #: the backing forward mapping (*key* → *val*)
     _invm: MutableMapping[VT, KT]  #: the backing inverse mapping (*val* → *key*)
+    # Whether __init__ has already succeeded, so that it can tell when it's called again. Named for bidict, since a
+    # subclass or mixin may well have an _initialized of its own. (Not a class-level default for _fwdm instead, which
+    # would slow every later load of it on CPython 3.12 and 3.13.)
+    _bidict_initialized: bool = False
     _fwdm_cls: t.ClassVar[type[MutableMapping[t.Any, t.Any]]] = dict  #: class of the backing forward mapping
     _invm_cls: t.ClassVar[type[MutableMapping[t.Any, t.Any]]] = dict  #: class of the backing inverse mapping
     _fwdm_has_dict_views: t.ClassVar[bool] = True  # see :meth:`_init_class`
@@ -233,6 +246,9 @@ class BidictBase(BidirectionalMapping[KT, VT]):
     # When a bidict's `.inverse` property is accessed for the first time, the inverse instance is computed on demand
     # and stored for subsequent use. A reference back to itself is also stored on the inverse instance at the same time.
     # A weakref is used in the inverse direction to avoid creating a reference cycle. See :meth:`inverse`
+    # __init__ sets both to None, so that :meth:`inverse` can read them directly, and so that a class's first instances
+    # set them, as CPython requires to keep them inline (where they're fastest to access) rather than in a __dict__.
+    # (Not class-level defaults, which would slow every store of them, and on CPython 3.12 and 3.13 every load.)
     _inv: BidictBase[VT, KT] | None
     _invweak: weakref.ReferenceType[BidictBase[VT, KT]] | None
     _inv_cls: t.ClassVar[type[BidictBase[t.Any, t.Any]]]  # the inverse bidict's class, see :meth:`_ensure_inv_cls`
@@ -359,32 +375,58 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         A falsy positional arg is treated as empty, without being iterated,
         so as is usual for containers, it must be falsy only when it is empty.
         """
-        self._fwdm = self._fwdm_cls()
-        self._invm = self._invm_cls()
-        self._update(arg, kw, rollback=False)
+        if not self._bidict_initialized:
+            self._fwdm = self._fwdm_cls()
+            self._invm = self._invm_cls()
+            self._inv = None
+            self._invweak = None
+            self._update(arg, kw, rollback=False)
+            # Only once that has succeeded, so that calling __init__ again after it failed starts afresh.
+            self._bidict_initialized = True
+            return
+        # Called again on an initialized instance. An immutable bidict ignores this, as frozenset and frozendict do,
+        # since it or its inverse may already have been hashed.
+        if not isinstance(self, MutableMapping):
+            return
+        # A mutable one replaces its items, rather than merge the new ones into them as dict's __init__ does, and in
+        # place, since its inverse (if created) and its views share its backing mappings (and an ordered bidict's
+        # linked list). Take the new items before emptying this bidict, which arg may be (or share backing mappings
+        # with). To restore if emptying it or writing them fails part-way, take its items, and its inverse backing
+        # mapping's in their own order, which _init_from() alone would not restore.
+        new = [*iteritems(arg, **kw)] if arg or kw else arg  # as for a new bidict, don't iterate a falsy arg
+        old, old_inv = [*self.items()], [*self._invm.items()]
+        try:
+            self._init_from(())
+            self._update(new, rollback=False)
+        except BaseException:
+            self._init_from(old)
+            self._invm.clear()
+            self._invm.update(old_inv)
+            raise
 
     @property
     @override
     def inverse(self) -> BidictBase[VT, KT]:
         """The inverse of this bidirectional mapping instance."""
         # First check if a strong reference is already stored.
-        inv: BidictBase[VT, KT] | None = getattr(self, '_inv', None)
+        inv = self._inv
         if inv is not None:
             return inv
         # Next check if a weak reference is already stored.
-        invweak = getattr(self, '_invweak', None)
+        invweak = self._invweak
         if invweak is not None:
             inv = invweak()  # Try to resolve a strong reference and return it.
             if inv is not None:
                 return inv
         # No luck. Compute the inverse reference and store it for subsequent use.
         inv = self._make_inverse()
-        self._inv = inv
-        self._invweak = None
         # Also store a weak reference back to `instance` on its inverse instance, so that
         # the second `.inverse` access in `bi.inverse.inverse` hits the cached weakref.
-        inv._inv = None
+        # Do so before storing the inverse on this instance, so that another thread that finds it there
+        # finds it complete, rather than computing a different inverse of it and caching that for good.
+        # (Any dead weakref left in self._invweak is never read again once self._inv is set.)
         inv._invweak = weakref.ref(self)
+        self._inv = inv
         # In e.g. `bidict().inverse.inverse`, this design ensures that a strong reference
         # back to the original instance is retained before its refcount drops to zero,
         # avoiding an unintended potential deallocation.
@@ -496,6 +538,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         """*x.__eq__(other)　⟺　x == other*
 
         Equivalent to *dict(x.items()) == dict(other.items())*
+        for any *other* whose :func:`len` is the number of distinct keys its *items()* yields,
         but more efficient.
 
         Note that :meth:`bidict's __eq__() <bidict.BidictBase.__eq__>` implementation
@@ -507,10 +550,39 @@ class BidictBase(BidirectionalMapping[KT, VT]):
 
         *See also* :meth:`equals_order_sensitive`
         """
-        if isinstance(other, Mapping):
-            return self._fwdm.items() == other.items()
-        # Ref: https://docs.python.org/3/library/constants.html#NotImplemented
-        return NotImplemented
+        # Compare as dict(self.items()) == dict(other.items()) does, i.e. with dict's own ==, which looks up each of our
+        # keys in other (with other's key on the left of that comparison) and compares our value with theirs (ours on
+        # the left). That matters for keys and values with an asymmetric __eq__. Copy other's items into a dict only if
+        # other isn't already a dict of just those items.
+        theirs: t.Any = other  # (a dict, once the checks below are done, which type checkers can't follow)
+        if type(other) is dict or (isinstance(other, dict) and type(other).items in _DICT_ITEMS_METHODS):
+            pass
+        elif _is_instance(BidictBase, other) and theirs._fwdm_has_dict_views:
+            theirs = theirs._fwdm
+        elif isinstance(other, Mapping):
+            # (Checking lengths before copying gives the same result for any mapping whose len() is the number of
+            # distinct keys its items() yields.)
+            if len(other) != len(self._fwdm):
+                return False
+            theirs = dict(other.items())
+        else:
+            # Ref: https://docs.python.org/3/library/constants.html#NotImplemented
+            return NotImplemented
+        fwdm = self._fwdm
+        if self._fwdm_has_dict_views:
+            # (== does the same for two exact dicts, and is faster.)
+            return fwdm == theirs if type(fwdm) is dict and type(theirs) is dict else _dict_eq(fwdm, theirs)
+        # Otherwise do what _dict_eq would do with a dict of our items, without copying them into one: take the keys
+        # that our items() yields, which for an ordered bidict come from its linked list and may differ from the keys
+        # fwdm stores (e.g. if fwdm folds their case), and look up their values in fwdm, as items() does.
+        if len(fwdm) != len(theirs):
+            return False
+        get, missing = _dict_get, MISSING
+        for key in self:
+            val, their_val = fwdm[key], get(theirs, key, missing)
+            if their_val is missing or not (val is their_val or val == their_val):
+                return False
+        return True
 
     def equals_order_sensitive(self, other: object) -> bool:
         """Order-sensitive equality check.
@@ -539,6 +611,9 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         If duplication is found and the corresponding :class:`~bidict.OnDupAction` is
         :attr:`~bidict.DROP_OLD`, or if no duplication is found,
         return *(oldkey, oldval)*.
+
+        If duplication is found and the corresponding action is not an :class:`~bidict.OnDupAction`,
+        raise :class:`ValueError`.
         """
         fwdm, invm = self._fwdm, self._invm
         oldval: OVT[VT] = fwdm.get(key, MISSING)
@@ -553,21 +628,25 @@ class BidictBase(BidirectionalMapping[KT, VT]):
                 raise KeyAndValueDuplicationError(key, val)
             if on_dup.val is DROP_NEW:
                 return None
-            assert on_dup.val is DROP_OLD
+            # Not an assert, which python -O would strip, letting an invalid action act as DROP_OLD. Same below.
+            if on_dup.val is not DROP_OLD:
+                raise ValueError(f'invalid on_dup.val: {on_dup.val!r}')
             # Fall through to the return statement on the last line.
         elif isdupkey:
             if on_dup.key is RAISE:
                 raise KeyDuplicationError(key)
             if on_dup.key is DROP_NEW:
                 return None
-            assert on_dup.key is DROP_OLD
+            if on_dup.key is not DROP_OLD:
+                raise ValueError(f'invalid on_dup.key: {on_dup.key!r}')
             # Fall through to the return statement on the last line.
         elif isdupval:
             if on_dup.val is RAISE:
                 raise ValueDuplicationError(val)
             if on_dup.val is DROP_NEW:
                 return None
-            assert on_dup.val is DROP_OLD
+            if on_dup.val is not DROP_OLD:
+                raise ValueError(f'invalid on_dup.val: {on_dup.val!r}')
             # Fall through to the return statement on the last line.
         # else no key or value duplication.
         return oldkey, oldval

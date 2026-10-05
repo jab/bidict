@@ -53,9 +53,6 @@ wheels = [
 name = "bidict"
 version = "0.24.2.dev0"
 source = { editable = "." }
-dependencies = [
-    { name = "typing-extensions", marker = "python_full_version < '3.12'" },
-]
 
 [package.dev-dependencies]
 dev = [
@@ -85,7 +82,6 @@ test = [
 ]
 
 [package.metadata]
-requires-dist = [{ name = "typing-extensions", marker = "python_full_version < '3.12'", specifier = ">=4.0" }]
 
 [package.metadata.requires-dev]
 dev = [
