@@ -28,6 +28,7 @@ from collections.abc import MutableMapping
 from collections.abc import Reversible
 from collections.abc import Set
 from collections.abc import ValuesView
+from copy import deepcopy
 from operator import eq
 from reprlib import recursive_repr
 from types import MappingProxyType
@@ -689,6 +690,16 @@ class BidictBase(BidirectionalMapping[KT, VT]):
     def __copy__(self) -> t.Self:
         """Used for the copy protocol. See the :mod:`copy` module."""
         return self.copy()
+
+    def __deepcopy__(self, memo: dict[int, t.Any]) -> t.Self:
+        """Deep-copy items while preserving references to this bidict and its inverse."""
+        inst = self.__class__()
+        # Register both directions before copying any items: a key or value can refer
+        # back to either direction, and both copies must share their backing mappings.
+        memo[id(self)] = inst
+        memo[id(self.inverse)] = inst.inverse
+        inst._init_from(deepcopy(dict(self.items()), memo))
+        return inst
 
     def copy(self) -> t.Self:
         """Make a (shallow) copy of this bidict."""
