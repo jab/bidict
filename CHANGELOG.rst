@@ -26,6 +26,11 @@ please consider sponsoring bidict on GitHub.`
 0.24.2 (not yet released)
 -------------------------
 
+- Fix :func:`copy.deepcopy` duplicating a bidict when one of its keys or values
+  refers back to it.
+  References to a bidict and its inverse now also stay linked after deep copying.
+  :issue:`427`
+
 - Fix a bug where
   :meth:`~bidict.MutableBidict.update`,
   :meth:`~bidict.MutableBidict.putall`, and

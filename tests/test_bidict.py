@@ -977,6 +977,35 @@ def test_orderedbidict_acts_on_the_item_its_backing_mapping_resolves_to(
     assert len(bi) == len(bi.inverse) == len(expected)
 
 
+@pytest.mark.parametrize('bi_t', bidict_types)
+@pytest.mark.parametrize('as_key', [False, True])
+@pytest.mark.parametrize('inverse_owner', [False, True])
+def test_deepcopy_preserves_owner_cycle(bi_t: BT[t.Any, t.Any], as_key: bool, inverse_owner: bool) -> None:
+    handle = Handle()
+    bi = bi_t({handle: 1} if as_key else {1: handle})
+    handle.owner = bi.inverse if inverse_owner else bi
+    cp = deepcopy(bi)
+    copied_handle = next(iter(cp)) if as_key else cp[1]
+    assert cp is not bi
+    assert copied_handle is not handle
+    assert copied_handle.owner is (cp.inverse if inverse_owner else cp)
+    assert cp.inverse.inverse is cp
+    assert handle.owner is (bi.inverse if inverse_owner else bi)
+
+
+@pytest.mark.parametrize('bi_t', bidict_types)
+@pytest.mark.parametrize('inverse_first', [False, True])
+def test_deepcopy_preserves_shared_inverse(bi_t: BT[t.Any, t.Any], inverse_first: bool) -> None:
+    bi = bi_t({1: -1, 2: -2})
+    if inverse_first:
+        inverse, forward = deepcopy([bi.inverse, bi])
+    else:
+        forward, inverse = deepcopy([bi, bi.inverse])
+    assert forward is not bi
+    assert inverse is forward.inverse
+    assert inverse.inverse is forward
+
+
 @pytest.mark.parametrize('bi_t', mutable_bidict_types)
 @pytest.mark.parametrize('roundtrip', [copy, deepcopy, pickle_copy], ids=['copy', 'deepcopy', 'pickle'])
 def test_roundtrip_preserves_iteration_order(bi_t: MBT[t.Any, t.Any], roundtrip: t.Any) -> None:
