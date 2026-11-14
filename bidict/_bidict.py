@@ -162,12 +162,11 @@ class MutableBidict(BidictBase[KT, VT], MutableBidirectionalMapping[KT, VT]):
 
         :raises KeyError: if *key* is not found and no *default* is provided.
         """
-        try:
-            return self._pop(key)
-        except KeyError:
-            if default is MISSING:
-                raise
+        # Only an absent key selects the default. A KeyError raised while removing
+        # a present item (e.g. by a custom backing mapping) must still propagate.
+        if default is not MISSING and key not in self:
             return default
+        return self._pop(key)
 
     @override
     def popitem(self) -> tuple[KT, VT]:

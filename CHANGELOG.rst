@@ -26,6 +26,11 @@ please consider sponsoring bidict on GitHub.`
 0.24.2 (not yet released)
 -------------------------
 
+- Fix :meth:`~bidict.MutableBidict.pop` returning its default
+  when hashing the key or removing a present item raised :class:`KeyError`.
+  The default now applies only when the key is absent;
+  other failures propagate instead of being mistaken for a missing key.
+
 - Fix a bug where
   :meth:`~bidict.MutableBidict.update`,
   :meth:`~bidict.MutableBidict.putall`, and
