@@ -454,6 +454,23 @@ def test_pop_missing_key(bi_t: MBT[t.Any, t.Any]) -> None:
     with pytest.raises(KeyError):
         bi.pop('foo')
     assert bi.pop('foo', 'bar') == 'bar'
+    bi['foo'] = 'value'
+    assert bi.pop('foo', 'bar') == 'value'
+    assert not bi
+
+
+@pytest.mark.parametrize('bi_t', mutable_bidict_types)
+@pytest.mark.parametrize('contained', [False, True])
+def test_pop_default_does_not_hide_key_hash_failure(bi_t: MBT[t.Any, t.Any], contained: bool) -> None:
+    """Even a transient KeyError in hashing the key must propagate, as dict.pop() does."""
+    key = HashFails(KeyError)
+    items = {key: 1} if contained else {0: 2}
+    bi = bi_t(items)
+    key.fail_on(1)
+    with pytest.raises(KeyError):
+        bi.pop(key, None)
+    key.stop()
+    assert dict(bi) == items
 
 
 @pytest.mark.parametrize('bi_t', [OrderedBidict, UserOrderedBi])
@@ -685,6 +702,30 @@ def test_write_fails_clean_when_a_backing_mapping_refuses(
         else:
             break
     assert refused == nwrites
+
+
+@pytest.mark.parametrize('bi_t', [bidict, OrderedBidict])
+@pytest.mark.parametrize('inverse', [False, True])
+def test_pop_default_does_not_hide_refused_removal(bi_t: MBT[t.Any, t.Any], inverse: bool) -> None:
+    """A default handles an absent key, not a KeyError raised while removing a present item."""
+
+    class RefusingDeleteDict(UserDict[t.Any, t.Any]):
+        @override
+        def __delitem__(self, key: t.Any) -> None:
+            raise KeyError('removal refused')
+
+    mapping = '_fwdm_cls' if inverse else '_invm_cls'
+    custom = type('RefusingDeleteBidict', (bi_t,), {mapping: RefusingDeleteDict})
+    bi = custom({1: 'a', 2: 'b'})
+    bi = bi.inverse if inverse else bi
+    before = list(bi.items())
+    key = next(iter(bi))
+    with pytest.raises(KeyError, match='removal refused'):
+        bi.pop(key, None)
+    assert dict(bi) == dict(before)
+    assert dict(bi.inverse) == invdict(dict(before))
+    if bi_t is OrderedBidict:
+        assert list(bi.items()) == before
 
 
 @pytest.mark.parametrize('bi_t', [bidict, OrderedBidict])
