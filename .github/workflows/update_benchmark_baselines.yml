@@ -23,9 +23,11 @@ jobs:
     runs-on: ubuntu-24.04
     steps:
       - name: install valgrind
-        uses: awalsh128/cache-apt-pkgs-action@553a35bb8ebd9fcabcb1c9451aa4c98e1b4ca8a9
-        with:
-          packages: valgrind
+        # Update the package lists first: the runner image's lists can name versions the mirrors no longer serve.
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends valgrind
+          valgrind --version
       - name: check out source
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0
         with:
