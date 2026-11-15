@@ -229,6 +229,7 @@ class BidictBase(BidirectionalMapping[KT, VT]):
     _fwdm_cls: t.ClassVar[type[MutableMapping[t.Any, t.Any]]] = dict  #: class of the backing forward mapping
     _invm_cls: t.ClassVar[type[MutableMapping[t.Any, t.Any]]] = dict  #: class of the backing inverse mapping
     _fwdm_has_dict_views: t.ClassVar[bool] = True  # see :meth:`_init_class`
+    _eq_fastpath_safe: t.ClassVar[bool] = True  # see :meth:`_init_class`
 
     # When a bidict's `.inverse` property is accessed for the first time, the inverse instance is computed on demand
     # and stored for subsequent use. A reference back to itself is also stored on the inverse instance at the same time.
@@ -247,6 +248,9 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         # Not issubclass(fwdm_cls, dict): a dict subclass that overrides keys() and items() may return views of its own.
         fwdm_cls = cls._fwdm_cls
         cls._fwdm_has_dict_views = (fwdm_cls.keys, fwdm_cls.items) in _DICT_VIEW_METHODS
+        cls._eq_fastpath_safe = (
+            fwdm_cls is dict and cls.items in cls._known_items_impls and cls.__iter__ in cls._known_iter_impls
+        )
         cls._ensure_inv_cls()
         cls._set_reversed()
 
@@ -480,6 +484,8 @@ class BidictBase(BidirectionalMapping[KT, VT]):
             return self._fwdm.items()
         return _ItemsView(self) if self._reversible else _NonReversibleItemsView(self)
 
+    _known_items_impls: t.ClassVar[frozenset[t.Any]] = frozenset({items})
+
     # The inherited collections.abc.Mapping.__contains__() method is implemented by doing a `try`
     # `except KeyError` around `self[key]`. The following implementation is much faster,
     # especially in the missing case.
@@ -488,15 +494,11 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         """True if the mapping contains the specified key, else False."""
         return key in self._fwdm
 
-    # The inherited collections.abc.Mapping.__eq__() method is implemented in terms of an inefficient
-    # `dict(self.items()) == dict(other.items())` comparison, so override it with a
-    # more efficient implementation.
     @override
     def __eq__(self, other: object) -> bool:
         """*x.__eq__(other)　⟺　x == other*
 
-        Equivalent to *dict(x.items()) == dict(other.items())*
-        but more efficient.
+        Equivalent to *dict(other.items()) == dict(x.items())*.
 
         Note that :meth:`bidict's __eq__() <bidict.BidictBase.__eq__>` implementation
         is inherited by subclasses,
@@ -507,10 +509,17 @@ class BidictBase(BidirectionalMapping[KT, VT]):
 
         *See also* :meth:`equals_order_sensitive`
         """
-        if isinstance(other, Mapping):
-            return self._fwdm.items() == other.items()
-        # Ref: https://docs.python.org/3/library/constants.html#NotImplemented
-        return NotImplemented
+        # Always keep other on the left and self on the right for correct results with e.g. unittest.mock.ANY values.
+        if self._eq_fastpath_safe:
+            other_t: type[t.Any] = type(other)
+            if other_t is dict:
+                return other == self._fwdm
+            # Like issubclass(), but skips ABCMeta's much slower virtual subclass check (and with arguments reversed):
+            if type.__subclasscheck__(BidictBase, other_t) and other_t._eq_fastpath_safe:
+                return other._fwdm == self._fwdm  # ty: ignore[unresolved-attribute]
+        if not isinstance(other, Mapping):
+            return NotImplemented
+        return dict(other.items()) == dict(self.items())
 
     def equals_order_sensitive(self, other: object) -> bool:
         """Order-sensitive equality check.
@@ -744,6 +753,8 @@ class BidictBase(BidirectionalMapping[KT, VT]):
     def __iter__(self) -> Iterator[KT]:
         """Iterator over the contained keys."""
         return iter(self._fwdm)
+
+    _known_iter_impls: t.ClassVar[frozenset[t.Any]] = frozenset({__iter__})
 
     @override
     def __getitem__(self, key: KT) -> VT:

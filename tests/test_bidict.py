@@ -13,11 +13,13 @@ from __future__ import annotations
 
 import gc
 import operator
+import os
 import pickle
 import sys
 import typing as t
 import weakref
 from collections import UserDict
+from collections import defaultdict
 from collections.abc import Callable
 from collections.abc import Iterator
 from collections.abc import KeysView
@@ -45,10 +47,12 @@ from bidict_test_fixtures import SET_OPS
 from bidict_test_fixtures import VT
 from bidict_test_fixtures import AsymLookup
 from bidict_test_fixtures import AsymStored
+from bidict_test_fixtures import BoxedItemsBidict
 from bidict_test_fixtures import CaseFoldingDict
 from bidict_test_fixtures import Handle
 from bidict_test_fixtures import HashFailed
 from bidict_test_fixtures import HashFails
+from bidict_test_fixtures import HidingOrderedBidict
 from bidict_test_fixtures import KeysViaGetattr
 from bidict_test_fixtures import LegacySequence
 from bidict_test_fixtures import Oracle
@@ -68,6 +72,8 @@ from bidict_test_fixtures import bidict_refusing_nth_write
 from bidict_test_fixtures import bidict_types
 from bidict_test_fixtures import bomb
 from bidict_test_fixtures import dedup
+from bidict_test_fixtures import eq_non_bidict_types
+from bidict_test_fixtures import eq_other_types
 from bidict_test_fixtures import invdict
 from bidict_test_fixtures import mutable_bidict_types
 from bidict_test_fixtures import pickle_copy
@@ -479,6 +485,139 @@ def test_eq_and_or_with_non_mapping(bi_t: BT[KT, VT], non_mapping: t.Any) -> Non
         bi | non_mapping
     with pytest.raises(TypeError):
         non_mapping | bi
+
+
+@pytest.mark.parametrize(('bi_t', 'other_t'), list(product(bidict_types, eq_non_bidict_types)))
+def test_eq_matches_mock_any_in_other(bi_t: BT[str, Tagged], other_t: t.Any) -> None:
+    """A mock.ANY value in a mapping compared with a bidict matches the bidict's value for that key, in either operand
+    order, even when that value's __eq__ returns False rather than NotImplemented for anything but its own type, as
+    Tagged's does. (A bidict can't contain mock.ANY itself, which is unhashable.)
+    """
+    val = Tagged(1)
+    assert (val == ANY) is False
+    bi = bi_t({'k': val})
+    for other, expected in ((other_t({'k': ANY}), True), (other_t({'j': ANY}), False)):
+        assert (bi == other) is expected
+        assert (other == bi) is expected
+        assert (bi != other) is not expected
+        assert (other != bi) is not expected
+
+
+@pytest.mark.parametrize('bi_t', bidict_types)
+def test_eq_with_mapping_whose_lookup_rejects_our_keys(bi_t: BT[int, str], monkeypatch: pytest.MonkeyPatch) -> None:
+    """Comparing a bidict with a mapping of the same length whose lookup raises for the bidict's keys,
+    as os.environ's does for a key that isn't a str and a WeakKeyDictionary's for one that can't be weakly referenced,
+    gives False, as comparing the two as dicts does, rather than raising.
+    """
+    monkeypatch.setenv('BIDICT_TEST_EQ', '1')  # so that os.environ isn't empty
+    key = frozenset({1})  # (a WeakKeyDictionary only keeps it while something else does)
+    others: tuple[t.Any, ...] = (os.environ, weakref.WeakKeyDictionary({key: 'v'}))
+    for other in others:
+        with pytest.raises(TypeError):
+            other[0]
+        bi = bi_t((i, str(i)) for i in range(len(other)))
+        assert dict(bi.items()) != dict(other.items())
+        assert bi != other
+        assert other != bi
+
+
+@pytest.mark.parametrize(('bi_t', 'other_t'), list(product(bidict_types, eq_other_types)))
+def test_eq_iff_same_items(bi_t: BT[int, str], other_t: t.Any) -> None:
+    """bi == other, and other == bi, exactly when other has the same items, in any order."""
+    items = [(1, 'one'), (2, 'two')]
+    bi = bi_t(items)
+    for other_items, expected in (
+        (items[::-1], True),
+        (items[:1], False),
+        ([*items, (3, 'three')], False),
+        ([(1, 'one'), (3, 'two')], False),
+        ([(1, 'one'), (2, 'deux')], False),
+    ):
+        other = other_t(other_items)
+        assert (bi == other) is expected
+        assert (other == bi) is expected
+        assert (bi != other) is not expected
+        assert (other != bi) is not expected
+
+
+@pytest.mark.parametrize(('bi_t', 'other_t'), list(product(bidict_types, eq_other_types)))
+def test_eq_checks_values_for_identity_first(bi_t: BT[int, float], other_t: t.Any) -> None:
+    """As dict does, bi == other checks each pair of values for identity before equality,
+    so the same NaN matches itself, while a distinct NaN does not (unless it is identical, as on PyPy).
+    """
+    nan, other_nan = float('nan'), float('nan')
+    assert bi_t({1: nan}) == other_t({1: nan})
+    assert (bi_t({1: nan}) == other_t({1: other_nan})) is ({1: nan} == {1: other_nan})
+
+
+@pytest.mark.parametrize('bi_t', bidict_types)
+def test_eq_leaves_defaultdict_unchanged(bi_t: BT[int, str]) -> None:
+    """Comparing a bidict with a defaultdict that lacks one of its keys doesn't add the key to the defaultdict."""
+    other = defaultdict(str, {2: 'two'})
+    assert bi_t({1: 'one'}) != other
+    assert other == {2: 'two'}
+
+
+@pytest.mark.parametrize('bi_t', bidict_types)
+def test_eq_compares_other_by_the_keys_its_items_yields(bi_t: BT[str, int]) -> None:
+    """bi == other compares bi's keys with the keys that other's items() yields, as dict(other.items()) does,
+    rather than looking them up in other, which for a case-insensitive mapping finds keys that differ in case.
+    """
+    other = CaseFoldingDict({'A': 1})
+    assert list(other.items()) == [('a', 1)]
+    for bi, expected in ((bi_t({'a': 1}), True), (bi_t({'A': 1}), False)):
+        assert (bi == other) is expected
+        assert (other == bi) is expected
+        assert (bi != other) is not expected
+
+
+@pytest.mark.parametrize('side', ['_fwdm_cls', '_invm_cls'])
+def test_eq_compares_an_ordered_bidict_by_the_keys_its_items_yields(side: str) -> None:
+    """An ordered bidict compares by the keys that its items() yields, as dict(bi.items()) does,
+    even where its backing mapping stores them differently (here, case-folded),
+    so that it equals itself, its copies, and a dict of its items.
+
+    Both sides are covered, as in test_orderedbidict_acts_on_the_item_its_backing_mapping_resolves_to.
+    """
+    bi_t = type('CaseFoldingOrderedBidict', (OrderedBidict,), {side: CaseFoldingDict})
+    bi = bi_t({'A': 1, 'B': 2}) if side == '_fwdm_cls' else bi_t({1: 'A', 2: 'B'}).inverse
+    assert list(bi.items()) == [('A', 1), ('B', 2)]
+    for other in (bi, bi.copy(), deepcopy(bi), dict(bi.items()), OrderedBidict(bi)):
+        assert bi == other
+        assert other == bi
+        assert (bi != other) is False
+    assert bi != {'a': 1, 'b': 2}
+
+
+@pytest.mark.parametrize(
+    ('bi_t', 'stored', 'yielded'),
+    [
+        (BoxedItemsBidict, {'k': 1}, {'k': (1,)}),
+        (HidingOrderedBidict, {'k': 1, 'hidden': 2}, {'k': 1}),
+    ],
+)
+def test_eq_compares_a_bidict_by_the_items_its_items_yields(
+    bi_t: BT[str, t.Any], stored: dict[str, int], yielded: dict[str, t.Any]
+) -> None:
+    """A bidict whose class overrides items(), or an ordered bidict whose class overrides the __iter__ that its
+    items() iterates, compares by the items its items() yields, as dict(bi.items()) does, whichever operand it is,
+    even where they differ from the items its backing dict stores.
+    """
+    bi = bi_t(stored)
+    assert dict(bi.items()) == yielded
+    assert yielded != stored
+    # (frozenbidict is a base of neither bi_t, so `other == bi` calls frozenbidict's __eq__ first.)
+    for other, expected in (
+        (dict(yielded), True),
+        (frozenbidict(yielded), True),
+        (bi_t(stored), True),
+        (dict(stored), False),
+        (frozenbidict(stored), False),
+    ):
+        assert (bi == other) is expected
+        assert (other == bi) is expected
+        assert (bi != other) is not expected
+        assert (other != bi) is not expected
 
 
 @given(items121=items121, bidict_t=bidict_t, rand=randoms())
