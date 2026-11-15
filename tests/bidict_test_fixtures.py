@@ -11,6 +11,7 @@ import pickle
 import typing as t
 from collections import OrderedDict
 from collections import UserDict
+from collections import defaultdict
 from collections.abc import Iterable
 from collections.abc import Iterator
 from collections.abc import KeysView
@@ -153,6 +154,74 @@ class UserBiBackedByReversibleNonDict(bidict[KT, VT]):
     _invm_cls = ReversibleUserDict
 
 
+class BoxedValuesDict(OrderedDict[t.Any, t.Any]):
+    """A dict that internally stores each value boxed in a 1-tuple, unboxing for presentation.
+    So unlike dict and OrderedDict, items presented by items() are not the same as the items stored.
+    """
+
+    def __init__(self, items: MapOrItems[t.Any, t.Any] = ()) -> None:
+        super().__init__((key, (val,)) for (key, val) in dict(items).items())
+
+    @override
+    def __getitem__(self, key: t.Any) -> t.Any:
+        return super().__getitem__(key)[0]
+
+    # Mapping.items returns an ItemsView which uses our __getitem__, to avoid odict_items presenting boxed values.
+    items = Mapping.items  # ty: ignore[invalid-method-override]
+
+
+class BoxedValuesDefaultDict(defaultdict[t.Any, t.Any]):
+    """Like BoxedValuesDict but extending defaultdict, which iterates as a dict does, rather than OrderedDict."""
+
+    def __init__(self, items: MapOrItems[t.Any, t.Any] = ()) -> None:
+        super().__init__(None, ((key, (val,)) for (key, val) in dict(items).items()))
+
+    @override
+    def __getitem__(self, key: t.Any) -> t.Any:
+        return super().__getitem__(key)[0]
+
+    # Mapping.items returns an ItemsView which uses our __getitem__, to avoid dict_items presenting boxed values.
+    items = Mapping.items  # ty: ignore[invalid-method-override]
+
+
+class IterItemsDict(UserDict[KT, VT]):
+    """A backing mapping whose items() returns an iterator rather than a set-like view,
+    as weakref.WeakKeyDictionary's and WeakValueDictionary's do (cf. the WeakrefBidict recipe in docs/extending.rst).
+    """
+
+    @override
+    def items(self) -> Iterator[tuple[KT, VT]]:  # ty: ignore[invalid-method-override]
+        return iter(self.data.items())
+
+
+@user_bidict
+class UserBiBackedByIterItems(bidict[KT, VT]):
+    """A bidict backed by mappings whose items() is not set-like."""
+
+    _fwdm_cls = IterItemsDict
+    _invm_cls = IterItemsDict
+
+
+class BoxedItemsBidict(bidict[t.Any, t.Any]):
+    """A bidict whose items() presents each value boxed in a 1-tuple, so unlike bidict's own items(),
+    it doesn't yield the items stored in the backing dict (cf. BoxedValuesDict).
+    """
+
+    @override
+    def items(self) -> t.Any:  # yields (key, (value,)) pairs
+        return {key: (val,) for (key, val) in self._fwdm.items()}.items()
+
+
+class HidingOrderedBidict(OrderedBidict[t.Any, t.Any]):
+    """An ordered bidict whose __iter__ skips the key 'hidden', so its inherited items(), which iterates it,
+    doesn't yield all the items stored in the backing dict.
+    """
+
+    @override
+    def __iter__(self) -> Iterator[t.Any]:
+        return (key for key in super().__iter__() if key != 'hidden')
+
+
 class ReversibleUserDictWithReversibleValues(ReversibleUserDict[KT, VT]):
     """Like ReversibleUserDict, except that its values() view is reversible too: that of the dict it wraps."""
 
@@ -203,6 +272,8 @@ BTs = tuple[BT[t.Any, t.Any], ...]
 builtin_bidict_types: BTs = (bidict, frozenbidict, OrderedBidict)
 bidict_types: BTs = (*builtin_bidict_types, *user_bidict_types)
 update_arg_types = (*bidict_types, list, dict, iter, SupportsKeysAndGetItem, LegacySequence, KeysViaGetattr)
+eq_non_bidict_types = (dict, OrderedDict, BoxedValuesDict, BoxedValuesDefaultDict, UserDict, IterItemsDict)
+eq_other_types = (*eq_non_bidict_types, *bidict_types)
 mutable_bidict_types: BTs = tuple(t for t in bidict_types if issubclass(t, MutableBidirectionalMapping))
 assert frozenbidict not in mutable_bidict_types
 MBT = type[bidict[KT, VT]] | type[OrderedBidict[KT, VT]]
@@ -255,6 +326,8 @@ class Oracle(t.Generic[KT, VT]):
     def assert_match(self, bi: BidictBase[KT, VT]) -> None:
         assert dict(bi) == self.data
         assert dict(bi.inv) == self.data_inv
+        assert bi == self.data
+        assert bi.inv == self.data_inv
         self.assert_items_match(bi)
 
     def assert_items_match(self, bi: BidictBase[KT, VT]) -> None:

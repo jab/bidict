@@ -340,6 +340,8 @@ class OrderedBidictBase(BidictBase[KT, VT]):
         """Iterator over the contained keys in insertion order."""
         return self._iter(reverse=False)
 
+    _known_iter_impls: t.ClassVar[frozenset[t.Any]] = frozenset({BidictBase.__iter__, __iter__})
+
     @override
     def __reversed__(self) -> Iterator[KT]:
         """Iterator over the contained keys in reverse insertion order."""
@@ -377,6 +379,8 @@ class OrderedBidictBase(BidictBase[KT, VT]):
     def items(self) -> _ItemsView[KT, VT]:
         """A set-like object providing a view on the contained items."""
         return _ItemsView(self) if self._reversible else _NonReversibleItemsView(self)
+
+    _known_items_impls: t.ClassVar[frozenset[t.Any]] = frozenset({BidictBase.items, items})
 
     @override
     def values(self) -> _OrderedBidictValuesView[VT]:

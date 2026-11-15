@@ -137,6 +137,40 @@ please consider sponsoring bidict on GitHub.`
   leaving its two backing mappings out of sync.
   :issue:`413`
 
+- Fix a regression in 0.22.0 where a bidict compared unequal
+  to any mapping whose ``items()`` is not set-like,
+  such as a :class:`~weakref.WeakKeyDictionary`.
+  A custom bidict backed by such mappings,
+  as in the ``WeakrefBidict`` recipe in :doc:`extending`,
+  compared unequal to every mapping, even itself.
+  :issue:`430`
+
+- Fix a bug where a value that equals anything, such as :data:`unittest.mock.ANY`,
+  in a mapping compared with a bidict
+  could fail to match a bidict value
+  whose ``__eq__()`` returns ``False`` rather than ``NotImplemented`` for other types,
+  depending on the mapping's type and the operand order
+  (e.g. in an :class:`~collections.OrderedDict`, but not in a :class:`dict`).
+  :issue:`430`
+
+- Fix a bug where a bidict was compared
+  by the items its backing mapping stores,
+  rather than by the items its ``items()`` yields,
+  where the two differ:
+  for a custom ordered bidict whose backing mapping normalizes keys
+  (e.g. case-insensitively),
+  or for a bidict whose class overrides ``items()``
+  (or, for an ordered bidict, ``__iter__()``).
+  :issue:`430`
+
+- Fix a bug where ``==`` between a custom bidict
+  whose backing mapping's ``items()`` is not a dict view
+  (e.g. one backed by a :class:`~collections.UserDict` or a ``SortedDict``)
+  and a mapping whose lookup rejects the bidict's keys
+  (e.g. :data:`os.environ`, for keys that aren't :class:`str`\s)
+  raised :class:`TypeError` rather than returning ``False``.
+  :issue:`430`
+
 - Fix a bug where a custom :class:`~bidict.OrderedBidict`
   whose forward backing mapping judges distinct keys equal
   (e.g. a case-insensitive mapping)
@@ -257,6 +291,12 @@ please consider sponsoring bidict on GitHub.`
   ~1.4-1.9x faster than in 0.24.1 for :class:`~bidict.bidict`,
   and ~3.1-4.8x for :class:`~bidict.OrderedBidict`.
   :issue:`413`
+
+- ``==`` between two bidicts (without custom backing mappings)
+  or between such a bidict and a :class:`dict`
+  is ~1.9-6x faster than in 0.24.1.
+  Other ``==`` comparisons which are not as common may be slower.
+  :issue:`430`
 
 - Changing the value of an existing key in an :class:`~bidict.OrderedBidict`
   is ~1.2x faster than in 0.24.1.
