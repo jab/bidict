@@ -23,7 +23,7 @@ please consider sponsoring bidict on GitHub.`
    Click the "Watch" dropdown, choose "Custom", and then choose "Releases".
 
 
-0.24.2 (not yet released)
+0.25.0 (not yet released)
 -------------------------
 
 - Calling ``__init__()`` again on an existing bidict now raises :class:`TypeError`.
