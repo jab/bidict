@@ -17,7 +17,6 @@
 from __future__ import annotations
 
 import typing as t
-from collections.abc import Mapping
 from contextlib import suppress
 
 from ._abc import MutableBidirectionalMapping
@@ -32,6 +31,7 @@ from ._typing import MISSING
 from ._typing import ODT
 from ._typing import VT
 from ._typing import MapOrItems
+from ._typing import SupportsStrGetItem
 from ._typing import override
 
 
@@ -185,13 +185,32 @@ class MutableBidict(BidictBase[KT, VT], MutableBidirectionalMapping[KT, VT]):
             raise
         return key, val
 
+    # As typeshed types dict's: keyword arguments supply str keys, so only a bidict whose keys may be str takes them,
+    # i.e. one whose __getitem__ accepts a str (as a bidict[str | int, VT]'s does). The first overload's arg has no
+    # default, so that b.update(**kw) can't match it. Likewise forceupdate below.
+    @t.overload
+    def update(self, arg: MapOrItems[KT, VT], /) -> None: ...
+    @t.overload
+    def update(self: SupportsStrGetItem[VT], arg: MapOrItems[KT, VT] = (), /, **kw: VT) -> None: ...
     @override
     def update(self, arg: MapOrItems[KT, VT] = (), /, **kw: VT) -> None:
-        """Like calling :meth:`putall` with *self.on_dup* passed for *on_dup*."""
+        """Like calling :meth:`putall` with *self.on_dup* passed for *on_dup*.
+
+        As for a :class:`dict`, keyword arguments supply :class:`str` keys,
+        so type checkers accept them only for a bidict whose keys may be :class:`str`.
+        """
         self._update(arg, kw=kw)
 
+    @t.overload
+    def forceupdate(self, arg: MapOrItems[KT, VT], /) -> None: ...
+    @t.overload
+    def forceupdate(self: SupportsStrGetItem[VT], arg: MapOrItems[KT, VT] = (), /, **kw: VT) -> None: ...
     def forceupdate(self, arg: MapOrItems[KT, VT] = (), /, **kw: VT) -> None:
-        """Like a bulk :meth:`forceput`."""
+        """Like a bulk :meth:`forceput`.
+
+        As for a :class:`dict`, keyword arguments supply :class:`str` keys,
+        so type checkers accept them only for a bidict whose keys may be :class:`str`.
+        """
         self._update(arg, kw=kw, on_dup=ON_DUP_DROP_OLD)
 
     def putall(self, items: MapOrItems[KT, VT], on_dup: OnDup = ON_DUP_RAISE) -> None:
@@ -202,9 +221,8 @@ class MutableBidict(BidictBase[KT, VT], MutableBidirectionalMapping[KT, VT]):
         """
         self._update(items, on_dup=on_dup)
 
-    # other's type is Mapping rather than Maplike since bidict() |= SupportsKeysAndGetItem({})
-    # raises a TypeError, just like dict() |= SupportsKeysAndGetItem({}) does.
-    def __ior__(self, other: Mapping[KT, VT]) -> t.Self:
+    # Unlike __or__ (see BidictBase), other may be anything that update() accepts, as for dict's |=.
+    def __ior__(self, other: MapOrItems[KT, VT]) -> t.Self:
         """Return self|=other."""
         self.update(other)
         return self

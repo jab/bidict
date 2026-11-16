@@ -23,8 +23,23 @@ please consider sponsoring bidict on GitHub.`
    Click the "Watch" dropdown, choose "Custom", and then choose "Releases".
 
 
-0.24.2 (not yet released)
+0.25.0 (not yet released)
 -------------------------
+
+- Calling ``__init__()`` again on an existing bidict now raises :class:`TypeError`.
+  It used to leave the bidict's inverse and some of its views reflecting its old items
+  (its ``inverse`` attribute too, since 0.22.0, once accessed),
+  and changed even an immutable bidict, whose hash could then go stale.
+  To replace a mutable bidict's items,
+  call :meth:`~bidict.MutableBidict.clear` and then :meth:`~bidict.MutableBidict.update`.
+  :issue:`426`
+
+- For a custom bidict whose ``__init__()`` doesn't call ``super().__init__()``,
+  or one made with ``__new__()`` and set up by hand,
+  :attr:`~bidict.BidictBase.inverse` and the methods that use it
+  (such as :meth:`~bidict.BidictBase.values` and :meth:`~bidict.BidictBase.copy`)
+  now raise :class:`AttributeError`.
+  :issue:`426`
 
 - Fix a bug where
   :meth:`~bidict.MutableBidict.update`,
@@ -255,6 +270,20 @@ please consider sponsoring bidict on GitHub.`
   but raised :class:`TypeError` from :func:`reversed`.
   :issue:`420`
 
+- Fix a regression in 0.21.1 where an :class:`~bidict.OnDup`
+  whose actions are not :class:`~bidict.OnDupAction`\s
+  (e.g. ``OnDup('RAISE', 'RAISE')``)
+  raised :class:`AssertionError`
+  when there was duplication for it to handle,
+  or, under ``python -O``, silently acted as :attr:`~bidict.DROP_OLD`.
+  It raises :class:`ValueError` again.
+  :issue:`426`
+
+- Fix a regression in 0.24.0 where bidict required ``typing_extensions``
+  on Python 3.11.
+  It again depends on nothing outside the standard library.
+  :issue:`426`
+
 - Fix a bug where type checkers inferred that
   :func:`reversed` of a :class:`~bidict.bidict`, :class:`~bidict.frozenbidict`,
   or :class:`~bidict.MutableBidict` (or of its inverse)
@@ -264,6 +293,15 @@ please consider sponsoring bidict on GitHub.`
   opting out of :func:`reversed` with ``__reversed__ = None``
   now needs a suppression under mypy and pyright.
   :issue:`420`
+
+- Fix a bug where type checkers rejected ``b |= other``
+  for a mutable bidict *b*
+  unless *other* was a :class:`~collections.abc.Mapping`,
+  although, as for a :class:`dict`,
+  it accepts anything :meth:`~bidict.MutableBidict.update` does.
+  A subclass that overrides ``__ior__()``
+  must now accept at least what :meth:`~bidict.MutableBidict.update` does.
+  :issue:`426`
 
 - Fix a regression in 0.21.4 where :func:`typing.get_type_hints`
   raised :class:`NameError` for :class:`~bidict.BidictBase` and its subclasses
@@ -276,6 +314,13 @@ please consider sponsoring bidict on GitHub.`
   could not pass class keyword arguments to a later base class,
   e.g. ``class B(bidict, Plugin, name='b')`` raised :class:`TypeError`.
   :issue:`420`
+
+- Fix a regression in 0.22.0 where reading a bidict's
+  :attr:`~bidict.BidictBase.inverse` from several threads at once,
+  when it had not yet been accessed,
+  could leave ``b.inverse.inverse`` permanently a different object than *b*
+  (though one equal to it and sharing its contents).
+  :issue:`426`
 
 - Fix a performance regression in 0.24.0
   where removing an item from a :class:`~bidict.bidict` (or its inverse)
@@ -297,6 +342,15 @@ please consider sponsoring bidict on GitHub.`
   is ~1.9-6x faster than in 0.24.1.
   Other ``==`` comparisons which are not as common may be slower.
   :issue:`430`
+
+- Accessing a bidict's :attr:`~bidict.BidictBase.inverse` once it exists
+  is ~1.5x faster than in 0.24.1 on CPython 3.11,
+  and ~1.7-2.2x on 3.12 and later,
+  which also speeds up creating a :meth:`~bidict.BidictBase.values` view.
+  On CPython, a bidict whose inverse has been accessed,
+  together with that inverse,
+  also takes up to ~1/3 less memory.
+  :issue:`426`
 
 - Changing the value of an existing key in an :class:`~bidict.OrderedBidict`
   is ~1.2x faster than in 0.24.1.
@@ -337,6 +391,16 @@ please consider sponsoring bidict on GitHub.`
   must now declare a compatible return type
   (such as the private ``_KeysView``).
   :issue:`420`
+
+- Type checkers now reject keyword arguments
+  to :meth:`~bidict.MutableBidict.update` and
+  :meth:`~bidict.MutableBidict.forceupdate`
+  unless the bidict's keys may be :class:`str`,
+  as they do for a :class:`dict`.
+  Also as for a :class:`dict`,
+  they now reject calling either method with no arguments
+  on a bidict whose keys can't be :class:`str`.
+  :issue:`426`
 
 0.24.1 (2026-08-25)
 -------------------

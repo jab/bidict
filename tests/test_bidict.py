@@ -12,15 +12,18 @@ Mainly these are property-based tests implemented via https://hypothesis.works.
 from __future__ import annotations
 
 import gc
+import importlib.metadata
 import operator
 import os
 import pickle
+import subprocess
 import sys
 import typing as t
 import weakref
 from collections import UserDict
 from collections import defaultdict
 from collections.abc import Callable
+from collections.abc import Hashable
 from collections.abc import Iterator
 from collections.abc import KeysView
 from collections.abc import Mapping
@@ -33,6 +36,7 @@ from functools import reduce
 from itertools import count
 from itertools import product
 from itertools import starmap
+from pathlib import Path
 from random import Random
 from typing import assert_type
 from unittest.mock import ANY
@@ -96,6 +100,7 @@ from hypothesis.strategies import sampled_from
 from typing_extensions import TypeIs
 
 from bidict import ON_DUP_DROP_OLD
+from bidict import ON_DUP_RAISE
 from bidict import BidictKeysView
 from bidict import BidirectionalMapping
 from bidict import DuplicationError
@@ -240,6 +245,16 @@ class BidictStateMachine(RuleBasedStateMachine):
         self.bi.clear()
         self.oracle.clear()
 
+    @rule(items121=items121, inv=booleans())
+    def reinit(self, items121: Items121, inv: bool) -> None:
+        """Calling __init__ again on either side must raise, leaving both sides (as the invariants check) linked."""
+        bi, bi_inv = self.bi, self.bi.inv
+        reinit = bi_inv.__init__ if inv else bi.__init__
+        with pytest.raises(TypeError, match='does not support re-initialization'):
+            reinit(items121)
+        assert bi.inv is bi_inv
+        assert bi_inv.inv is bi
+
     @rule(key=keys, val=vals, on_dup=on_dup)
     def put(self, key: int, val: int, on_dup: OnDup) -> None:
         assert_calls_match(
@@ -293,11 +308,15 @@ class BidictStateMachine(RuleBasedStateMachine):
             partial(self.oracle.putall, snapshot, on_dup),
         )
 
-    @rule(other=items121)
-    def __ior__(self, other: Mapping[int, int]) -> None:
+    @rule(updates=items, updates_t=updates_t)
+    def __ior__(self, updates: MapOrItems[int, int], updates_t: t.Any) -> None:
+        """Like dict's |=, bidict's accepts anything that update() does (unlike |)."""
+        # As in putall above.
+        if isinstance(updates_t, type) and issubclass(updates_t, BidirectionalMapping):
+            updates = dedup(updates)
         assert_calls_match(
-            partial(self.bi.__ior__, other),
-            partial(self.oracle.__ior__, other),
+            partial(self.bi.__ior__, updates_t(updates)),
+            partial(self.oracle.__ior__, updates_t(updates)),
         )
 
     @rule(other=items121)
@@ -404,7 +423,7 @@ def test_init_and_update_with_bad_args(bi_t: BT[KT, VT]) -> None:
             continue
         bi = bi_t()
         with pytest.raises(TypeError):
-            bi.update(*bad_args)  # ty: ignore[invalid-argument-type, too-many-positional-arguments]  # https://github.com/astral-sh/ty/issues/3649
+            bi.update(*bad_args)  # ty: ignore[no-matching-overload]  # deliberately invalid args
 
 
 @pytest.mark.parametrize('bi_t', bidict_types)
@@ -620,6 +639,16 @@ def test_eq_compares_a_bidict_by_the_items_its_items_yields(
         assert (other != bi) is not expected
 
 
+@pytest.mark.parametrize('bi_t', mutable_bidict_types)
+def test_ior_accepts_what_update_does(bi_t: MBT[int, str]) -> None:
+    """Unlike bi | other, and as for dict, bi |= other accepts (and type-checks with) anything update() does."""
+    bi = bi_t()
+    bi |= SupportsKeysAndGetItem({1: 'one'})
+    bi |= [(2, 'two')]
+    bi |= iter([(3, 'three')])
+    assert bi == {1: 'one', 2: 'two', 3: 'three'}
+
+
 @given(items121=items121, bidict_t=bidict_t, rand=randoms())
 def test_equals_order_sensitive(items121: Items121, bidict_t: BT[KT, VT], rand: Random) -> None:
     # Ensure there are at least 3 items in items121.
@@ -787,6 +816,146 @@ def test_update_with_bad_last_item_fails_clean(bi_t: MBT[t.Any, t.Any], on_dup: 
             # bad item's reason regardless of the on_dup.
             updates = [(3, 3), (4, 4), bad]
             assert_update_fails_clean(b, updates, exc, on_dup)
+
+
+@pytest.mark.parametrize('bi_t', bidict_types)
+@pytest.mark.parametrize('make', [lambda b: b, copy, deepcopy, pickle_copy], ids=['new', 'copy', 'deepcopy', 'pickled'])
+def test_reinit_raises(bi_t: BT[t.Any, t.Any], make: Callable[[t.Any], t.Any]) -> None:
+    """Calling __init__ again on an initialized bidict or its inverse must raise TypeError, without looking at its args.
+
+    That goes for a copied or unpickled bidict too, and for one whose inverse hasn't been created yet. It must change
+    neither, nor the link between them, nor a view or iterator created beforehand, all of which share its backing
+    mappings (and an ordered bidict's linked list). Either may already have been hashed, e.g. as a dict key, where it
+    must stay findable.
+    """
+
+    class Untouchable(Mapping[t.Any, t.Any]):
+        def __bool__(self) -> t.NoReturn:
+            raise AssertionError('truth-tested')
+
+        @override
+        def __len__(self) -> t.NoReturn:
+            raise AssertionError('sized')
+
+        @override
+        def __iter__(self) -> t.NoReturn:
+            raise AssertionError('iterated')
+
+        @override
+        def __getitem__(self, key: t.Any) -> t.NoReturn:
+            raise AssertionError('looked up')
+
+        @override
+        def keys(self) -> t.NoReturn:
+            raise AssertionError('taken as a mapping')
+
+    items = [(1, 'one'), (2, 'two')]
+    bi = make(bi_t(items))
+    keys, it = bi.keys(), iter(bi)
+    hashed = {bi: 'bi'} if isinstance(bi, Hashable) else {}
+
+    def assert_reinit_raises(b: BB[t.Any, t.Any]) -> None:
+        reinit, new = b.__init__, iter([(3, 'three')])
+        for call in (
+            partial(reinit),
+            partial(reinit, new),
+            partial(reinit, three=3),
+            partial(reinit, Untouchable()),
+            partial(reinit, t.cast('t.Any', None)),
+        ):
+            with pytest.raises(TypeError, match='does not support re-initialization'):
+                call()
+            assert list(bi.items()) == items
+            assert list(keys) == [1, 2]
+        assert list(new) == [(3, 'three')]
+
+    assert_reinit_raises(bi)  # before its inverse is created
+    inv = bi.inverse
+    if hashed:
+        hashed[inv] = 'inv'
+    its = it, iter(inv)
+    for b in (bi, inv):
+        assert_reinit_raises(b)
+        assert list(inv.items()) == [('one', 1), ('two', 2)]
+        assert bi.inverse is inv
+        assert inv.inverse is bi
+    assert [list(i) for i in its] == [[1, 2], ['one', 'two']]
+    if hashed:
+        assert hashed[bi_t(items)] == 'bi'
+        assert hashed[bi_t(inv.items())] == 'inv'
+
+
+@pytest.mark.parametrize('bi_t', bidict_types)
+def test_init_can_be_retried_after_it_fails(bi_t: t.Any) -> None:
+    """Calling __init__ again after it failed, e.g. from a subclass's __init__ that retries with other items,
+    must initialize the bidict afresh, its inverse included, rather than raise as it does once the bidict is initialized.
+    """
+
+    class RetriesWithoutDups(bi_t):
+        on_dup = ON_DUP_RAISE
+
+        def __init__(self, items: Sequence[tuple[int, str]] = ()) -> None:
+            try:
+                super().__init__(items)
+            except DuplicationError:
+                # A subclass might read what the failed attempt left, e.g. to report it.
+                self.left_by_failure = dict(self.inverse)
+                super().__init__(dedup(items))
+
+    bi = RetriesWithoutDups([(1, 'a'), (2, 'b'), (3, 'b'), (4, 'd')])
+    assert bi.equals_order_sensitive({1: 'a', 3: 'b', 4: 'd'})
+    assert_bi_and_inv_are_inverse(bi)
+
+
+def test_subclass_with_its_own_initialized_attr() -> None:
+    """A subclass or mixin may track its own initialization in an attribute named _initialized, as many classes do.
+
+    Resetting that before calling __init__ again must not let __init__ start afresh.
+    """
+
+    class TracksInit:
+        def __init__(self, *args: t.Any, **kw: t.Any) -> None:
+            self._initialized = False
+            super().__init__(*args, **kw)
+            self._initialized = True
+
+    for bi_t in (bidict, OrderedBidict):
+        b = type(f'TracksInit{bi_t.__name__}', (TracksInit, bi_t), {})({1: 'a'})
+        inv, reinit = b.inverse, b.__init__
+        with pytest.raises(TypeError, match='does not support re-initialization'):
+            reinit({2: 'b'})
+        assert b.equals_order_sensitive({1: 'a'})
+        assert b.inverse is inv
+        assert_bi_and_inv_are_inverse(b)
+
+
+@pytest.mark.parametrize('bi_t', mutable_bidict_types)
+@pytest.mark.parametrize('action', ['RAISE', None])
+@pytest.mark.parametrize(('key', 'val'), [(1, 'z'), (9, 'a'), (1, 'b')], ids=['dup-key', 'dup-val', 'dup-key-and-val'])
+def test_invalid_on_dup_raises_and_fails_clean(bi_t: MBT[t.Any, t.Any], action: t.Any, key: int, val: str) -> None:
+    """An OnDup whose action isn't an OnDupAction must be rejected, at every entry point, and fail clean.
+
+    OnDup doesn't validate its fields, so this surfaces only once there is duplication to apply it to,
+    and must not then be taken as DROP_OLD, even under python -O.
+    """
+    bad = OnDup(action, action)
+    bad_default_t = type(f'{bi_t.__name__}WithBadOnDup', (bi_t,), {'on_dup': bad})
+    b, bd = bi_t({1: 'a', 2: 'b'}), bad_default_t({1: 'a', 2: 'b'})
+    # The bulk writes start with a new item, which must be rolled back.
+    writes = (
+        (b, lambda: b.put(key, val, bad)),
+        (b, lambda: b.putall([(5, 'e'), (key, val)], bad)),
+        (bd, lambda: bd.__setitem__(key, val)),
+        (bd, lambda: bd.update([(5, 'e'), (key, val)])),
+    )
+    for target, write in writes:
+        before = target.copy()
+        with pytest.raises(ValueError, match='invalid on_dup'):
+            write()
+        assert target.equals_order_sensitive(before)
+        assert target.inv.equals_order_sensitive(before.inv)
+    with pytest.raises(ValueError, match='invalid on_dup'):
+        bad_default_t([(1, 'a'), (2, 'b'), (key, val)])
 
 
 @pytest.mark.parametrize('bi_t', [bidict, OrderedBidict])
@@ -2032,6 +2201,61 @@ def test_inv_aliases_inverse(bi_t: BT[KT, VT]) -> None:
     assert bi.inv.inverse is bi.inverse.inv
 
 
+@pytest.mark.parametrize('bi_t', bidict_types)
+def test_inverse_is_linked_back_before_it_is_found(bi_t: t.Any) -> None:
+    """Whatever finds bi's new inverse while .inverse is still creating it (e.g. another thread) must find it
+    already linked back to bi. Otherwise it computes an inverse of its own for it, which stays cached there,
+    so that bi.inverse.inverse is no longer bi.
+
+    Stand in for such a reader by reading bi.inverse.inverse after each attribute that .inverse sets.
+    """
+    seen: list[t.Any] = []
+    reading = False  # while computing bi.inverse (but not while reading it here)
+
+    class Spy(bi_t):
+        @override
+        def __setattr__(self, name: str, value: t.Any) -> None:
+            nonlocal reading
+            super().__setattr__(name, value)
+            if reading:
+                reading = False
+                seen.append(bi.inverse.inverse)
+                reading = True
+
+    bi = Spy({1: 'one'})
+    reading = True
+    inv = bi.inverse
+    reading = False
+    assert seen
+    assert all(s is bi for s in seen)
+    assert inv.inverse is bi
+    assert_bi_and_inv_are_inverse(bi)
+
+
+def test_needs_only_the_standard_library() -> None:
+    """bidict declares no dependencies, and imports nothing outside the standard library, on every supported Python.
+
+    Check in fresh processes that can't import typing_extensions, which is where a dependency is likeliest to creep in:
+    one as the running Python, and one that claims to be the oldest supported Python, to take its code paths.
+    """
+    assert not importlib.metadata.requires('bidict')
+    src = Path(t.cast('str', sys.modules['bidict'].__file__)).parent.parent
+    for version_info in ('sys.version_info', "(3, 11, 0, 'final', 0)"):
+        code = f"""if True:
+            import sys
+            sys.path.insert(0, {str(src)!r})
+            sys.modules['typing_extensions'] = None  # (makes any import of it fail)
+            sys.version_info = {version_info}
+            before = set(sys.modules)
+            import bidict
+            imported = {{name.partition('.')[0] for name in sys.modules.keys() - before}}
+            assert imported <= sys.stdlib_module_names | {{'bidict'}}, imported
+            assert bidict.bidict(a=1).inverse == {{1: 'a'}}
+            assert bidict.bidict.__contains__.__override__  # as typing.override sets it
+        """
+        subprocess.run([sys.executable, '-c', code], check=True)
+
+
 def test_static_types() -> None:
     d = {'1': 1}
     fb = frozenbidict(d)
@@ -2045,6 +2269,18 @@ def test_static_types() -> None:
     assert_type(reversed(ob.keys()), Iterator[str])
     assert_type(reversed(ob.values()), Iterator[int])
     assert_type(reversed(ob.items()), Iterator[tuple[str, int]])
+    # Keyword arguments supply str keys, so as for a dict, update() and forceupdate() take them
+    # just when the bidict's keys may be str.
+    b: bidict[str | int, int] = bidict()
+    b.update([(3, 3)], a=2)
+    b.forceupdate([(4, 4)], c=4)
+    b.update(d='x')  # ty: ignore[invalid-argument-type]
+    i = bidict({1: 'one'})
+    i.update(two='deux')  # ty: ignore[invalid-argument-type]
+    i.forceupdate(two='deux')  # ty: ignore[invalid-argument-type]
+    kw = {'three': 'trois'}
+    i.update(**kw)  # ty: ignore[invalid-argument-type]
+    i.forceupdate(**kw)  # ty: ignore[invalid-argument-type]
 
 
 @pytest.mark.parametrize('bi_t', bidict_types)

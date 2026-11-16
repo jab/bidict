@@ -226,6 +226,9 @@ class BidictBase(BidirectionalMapping[KT, VT]):
 
     _fwdm: MutableMapping[KT, VT]  #: the backing forward mapping (*key* → *val*)
     _invm: MutableMapping[VT, KT]  #: the backing inverse mapping (*val* → *key*)
+    # Whether __init__ has already succeeded, so that it can refuse to run again. Named for bidict, since a subclass or
+    # mixin may well have an _initialized of its own.
+    _bidict_initialized: bool = False
     _fwdm_cls: t.ClassVar[type[MutableMapping[t.Any, t.Any]]] = dict  #: class of the backing forward mapping
     _invm_cls: t.ClassVar[type[MutableMapping[t.Any, t.Any]]] = dict  #: class of the backing inverse mapping
     _fwdm_has_dict_views: t.ClassVar[bool] = True  # see :meth:`_init_class`
@@ -234,6 +237,8 @@ class BidictBase(BidirectionalMapping[KT, VT]):
     # When a bidict's `.inverse` property is accessed for the first time, the inverse instance is computed on demand
     # and stored for subsequent use. A reference back to itself is also stored on the inverse instance at the same time.
     # A weakref is used in the inverse direction to avoid creating a reference cycle. See :meth:`inverse`
+    # __init__ sets both to None, so that :meth:`inverse` can read them directly, and so that a class's first instances
+    # set them, as CPython requires to keep them inline (where they're fastest to access) rather than in a __dict__.
     _inv: BidictBase[VT, KT] | None
     _invweak: weakref.ReferenceType[BidictBase[VT, KT]] | None
     _inv_cls: t.ClassVar[type[BidictBase[t.Any, t.Any]]]  # the inverse bidict's class, see :meth:`_ensure_inv_cls`
@@ -362,33 +367,43 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         is handled as per :attr:`on_dup`.
         A falsy positional arg is treated as empty, without being iterated,
         so as is usual for containers, it must be falsy only when it is empty.
+        Calling it again on an initialized bidict raises :class:`TypeError`.
         """
+        # An initialized bidict's inverse (if created), views and iterators share its backing mappings, and it or its
+        # inverse may already have been hashed, so refuse to give it new backing mappings or new items.
+        if self._bidict_initialized:
+            raise TypeError(f'{type(self).__name__!r} object does not support re-initialization')
         self._fwdm = self._fwdm_cls()
         self._invm = self._invm_cls()
+        self._inv = None
+        self._invweak = None
         self._update(arg, kw, rollback=False)
+        # Only once that has succeeded, so that calling __init__ again after it failed starts afresh.
+        self._bidict_initialized = True
 
     @property
     @override
     def inverse(self) -> BidictBase[VT, KT]:
         """The inverse of this bidirectional mapping instance."""
         # First check if a strong reference is already stored.
-        inv: BidictBase[VT, KT] | None = getattr(self, '_inv', None)
+        inv = self._inv
         if inv is not None:
             return inv
         # Next check if a weak reference is already stored.
-        invweak = getattr(self, '_invweak', None)
+        invweak = self._invweak
         if invweak is not None:
             inv = invweak()  # Try to resolve a strong reference and return it.
             if inv is not None:
                 return inv
         # No luck. Compute the inverse reference and store it for subsequent use.
         inv = self._make_inverse()
-        self._inv = inv
-        self._invweak = None
         # Also store a weak reference back to `instance` on its inverse instance, so that
         # the second `.inverse` access in `bi.inverse.inverse` hits the cached weakref.
-        inv._inv = None
+        # Do so before storing the inverse on this instance, so that another thread that finds it there
+        # finds it complete, rather than computing a different inverse of it and caching that for good.
+        # (Any dead weakref left in self._invweak is never read again once self._inv is set.)
         inv._invweak = weakref.ref(self)
+        self._inv = inv
         # In e.g. `bidict().inverse.inverse`, this design ensures that a strong reference
         # back to the original instance is retained before its refcount drops to zero,
         # avoiding an unintended potential deallocation.
@@ -548,6 +563,9 @@ class BidictBase(BidirectionalMapping[KT, VT]):
         If duplication is found and the corresponding :class:`~bidict.OnDupAction` is
         :attr:`~bidict.DROP_OLD`, or if no duplication is found,
         return *(oldkey, oldval)*.
+
+        If duplication is found and the corresponding action is not an :class:`~bidict.OnDupAction`,
+        raise :class:`ValueError`.
         """
         fwdm, invm = self._fwdm, self._invm
         oldval: OVT[VT] = fwdm.get(key, MISSING)
@@ -562,21 +580,25 @@ class BidictBase(BidirectionalMapping[KT, VT]):
                 raise KeyAndValueDuplicationError(key, val)
             if on_dup.val is DROP_NEW:
                 return None
-            assert on_dup.val is DROP_OLD
+            # Not an assert, which python -O would strip, letting an invalid action act as DROP_OLD. Same below.
+            if on_dup.val is not DROP_OLD:
+                raise ValueError(f'invalid on_dup.val: {on_dup.val!r}')
             # Fall through to the return statement on the last line.
         elif isdupkey:
             if on_dup.key is RAISE:
                 raise KeyDuplicationError(key)
             if on_dup.key is DROP_NEW:
                 return None
-            assert on_dup.key is DROP_OLD
+            if on_dup.key is not DROP_OLD:
+                raise ValueError(f'invalid on_dup.key: {on_dup.key!r}')
             # Fall through to the return statement on the last line.
         elif isdupval:
             if on_dup.val is RAISE:
                 raise ValueDuplicationError(val)
             if on_dup.val is DROP_NEW:
                 return None
-            assert on_dup.val is DROP_OLD
+            if on_dup.val is not DROP_OLD:
+                raise ValueError(f'invalid on_dup.val: {on_dup.val!r}')
             # Fall through to the return statement on the last line.
         # else no key or value duplication.
         return oldkey, oldval
