@@ -464,3 +464,11 @@ for more interoperability documentation.
 
 Proceed to :doc:`other-bidict-types`
 for documentation on the remaining bidict variants.
+
+Deep copying
+############
+
+:func:`copy.deepcopy` copies a bidict's keys and values,
+while preserving references back to the copied bidict or its inverse.
+If the same object graph contains both a bidict and its inverse,
+their copies remain inverses of one another.
