@@ -42,8 +42,6 @@ jobs:
         include:
           - python: "3.15"
             shell: test315
-            # TODO: Drop allow_failure once 3.15 is stable:
-            allow_failure: true
           - python: "3.14"
             shell: test314
             enable_coverage: true
